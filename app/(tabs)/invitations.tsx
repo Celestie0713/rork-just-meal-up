@@ -1,0 +1,806 @@
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3 } from 'lucide-react-native';
+import { router } from 'expo-router';
+import { mockInvitations } from '@/mocks/invitations';
+import { mockUsers } from '@/mocks/users';
+import { useChat } from '@/hooks/use-chat';
+import type { MealInvitation, SystemMessage } from '@/types/user';
+
+const colors = {
+  primary: '#FF6B35',
+  text: '#FFFFFF',
+  textLight: '#CCCCCC',
+  background: '#000000',
+  surface: '#1A1A1A',
+  success: '#4CAF50',
+  warning: '#FFA726',
+  error: '#EF5350',
+  border: '#333333',
+} as const;
+
+type InvitationCardProps = {
+  invitation: MealInvitation;
+  onAccept: (id: string) => void;
+  onDecline: (id: string) => void;
+  onEdit?: (id: string) => void;
+};
+
+function InvitationCard({ invitation, onAccept, onDecline, onEdit }: InvitationCardProps) {
+  const inviter = mockUsers.find(user => user.id === invitation.inviterId);
+  const isPending = invitation.status === 'pending';
+  const isConfirmed = invitation.status === 'accepted';
+
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    
+    if (date.toDateString() === today.toDateString()) {
+      return 'Today';
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return 'Tomorrow';
+    } else {
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'long', 
+        month: 'short', 
+        day: 'numeric' 
+      });
+    }
+  };
+
+  const getStatusConfig = () => {
+    switch (invitation.status) {
+      case 'accepted':
+        return {
+          icon: CheckCircle,
+          color: colors.success,
+          backgroundColor: colors.success + '20',
+          text: 'Confirmed'
+        };
+      case 'pending':
+        return {
+          icon: Clock,
+          color: colors.warning,
+          backgroundColor: colors.warning + '20',
+          text: 'Pending'
+        };
+      case 'completed':
+        return {
+          icon: CheckCircle,
+          color: colors.success,
+          backgroundColor: colors.success + '20',
+          text: 'Completed'
+        };
+      case 'declined':
+        return {
+          icon: X,
+          color: colors.error,
+          backgroundColor: colors.error + '20',
+          text: 'Declined'
+        };
+      default:
+        return {
+          icon: Clock,
+          color: colors.warning,
+          backgroundColor: colors.warning + '20',
+          text: 'Pending'
+        };
+    }
+  };
+
+  const statusConfig = getStatusConfig();
+  const StatusIcon = statusConfig.icon;
+
+  return (
+    <View style={styles.invitationCard}>
+      <View style={styles.cardHeader}>
+        <View style={[styles.statusBadge, { backgroundColor: statusConfig.backgroundColor }]}>
+          <StatusIcon size={14} color={statusConfig.color} />
+          <Text style={[styles.statusText, { color: statusConfig.color }]}>
+            {statusConfig.text}
+          </Text>
+        </View>
+        
+        {isConfirmed && onEdit && (
+          <TouchableOpacity 
+            style={styles.editButton}
+            onPress={() => onEdit(invitation.id)}
+          >
+            <Edit3 size={16} color={colors.primary} />
+            <Text style={styles.editButtonText}>Edit</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={styles.inviterInfo}>
+        <View style={styles.avatar}>
+          {inviter?.photos?.[0] ? (
+            <Image 
+              source={{ uri: inviter.photos[0] }} 
+              style={styles.avatarImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <User size={20} color={colors.textLight} />
+          )}
+        </View>
+        <View style={styles.inviterDetails}>
+          <TouchableOpacity onPress={() => inviter && router.push(`/user-profile?userId=${inviter.id}`)}>
+            <Text style={[styles.inviterName, styles.clickableName]}>
+              {inviter?.name || 'Unknown User'}
+            </Text>
+          </TouchableOpacity>
+          <Text style={styles.inviterAge}>
+            {inviter?.age ? `${inviter.age} years old` : 'Age not specified'}
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.mealDetails}>
+        <View style={styles.detailRow}>
+          <Calendar size={16} color={colors.textLight} />
+          <Text style={styles.detailText}>
+            {formatDate(invitation.date)} at {invitation.time}
+          </Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <ChefHat size={16} color={colors.textLight} />
+          <Text style={styles.detailText}>
+            {invitation.venue.name} • {invitation.venue.cuisine}
+          </Text>
+        </View>
+        
+        <View style={styles.detailRow}>
+          <MapPin size={16} color={colors.textLight} />
+          <Text style={styles.detailText}>
+            {invitation.venue.address}
+          </Text>
+        </View>
+      </View>
+
+      {isPending && (
+        <View style={styles.actionButtons}>
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.declineButton]}
+            onPress={() => onDecline(invitation.id)}
+          >
+            <X size={16} color={colors.error} />
+            <Text style={[styles.actionButtonText, { color: colors.error }]}>
+              Decline
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[styles.actionButton, styles.acceptButton]}
+            onPress={() => onAccept(invitation.id)}
+          >
+            <Check size={16} color={colors.success} />
+            <Text style={[styles.actionButtonText, { color: colors.success }]}>
+              Accept
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
+
+type EditModalData = {
+  id: string;
+  date: string;
+  time: string;
+  venue: string;
+};
+
+type ConfirmModalData = {
+  type: 'accept' | 'decline';
+  invitationId: string;
+  title: string;
+  message: string;
+};
+
+export default function InvitationsScreen() {
+  const [invitations, setInvitations] = useState<MealInvitation[]>(mockInvitations);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editData, setEditData] = useState<EditModalData | null>(null);
+  const [confirmModalVisible, setConfirmModalVisible] = useState(false);
+  const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
+  const { addSystemMessage } = useChat();
+  const currentUserId = '1';
+
+  const handleAccept = (invitationId: string) => {
+    setConfirmData({
+      type: 'accept',
+      invitationId,
+      title: 'Accept Invitation',
+      message: 'Are you sure you want to accept this meal invitation?'
+    });
+    setConfirmModalVisible(true);
+  };
+
+  const handleDecline = (invitationId: string) => {
+    setConfirmData({
+      type: 'decline',
+      invitationId,
+      title: 'Decline Invitation',
+      message: 'Are you sure you want to decline this meal invitation?'
+    });
+    setConfirmModalVisible(true);
+  };
+
+  const handleEdit = (invitationId: string) => {
+    const invitation = invitations.find(inv => inv.id === invitationId);
+    if (invitation) {
+      setEditData({
+        id: invitationId,
+        date: invitation.date.toISOString().split('T')[0],
+        time: invitation.time,
+        venue: invitation.venue.name
+      });
+      setEditModalVisible(true);
+    }
+  };
+
+  const handleSaveEdit = () => {
+    if (!editData) return;
+    
+    setInvitations(prev => 
+      prev.map(inv => 
+        inv.id === editData.id 
+          ? { 
+              ...inv, 
+              date: new Date(editData.date),
+              time: editData.time,
+              venue: { ...inv.venue, name: editData.venue }
+            }
+          : inv
+      )
+    );
+    
+    setEditModalVisible(false);
+    setEditData(null);
+    
+    // Show success feedback
+    console.log('Invitation updated successfully!');
+  };
+
+  const handleCancelEdit = () => {
+    setEditModalVisible(false);
+    setEditData(null);
+  };
+
+  const handleConfirmAction = () => {
+    if (!confirmData) return;
+
+    if (confirmData.type === 'accept') {
+      const invitation = invitations.find(inv => inv.id === confirmData.invitationId);
+      if (invitation) {
+        const inviter = mockUsers.find(user => user.id === invitation.inviterId);
+        
+        // Update invitation status
+        setInvitations(prev => 
+          prev.map(inv => 
+            inv.id === confirmData.invitationId 
+              ? { ...inv, status: 'accepted' as const }
+              : inv
+          )
+        );
+        
+        // Add system message to chat
+        if (inviter) {
+          const chatId = `${currentUserId}-${inviter.id}`;
+          const systemMessage: SystemMessage = {
+            id: `system-${Date.now()}`,
+            type: 'invitation_accepted',
+            content: `You accepted the meal invitation for ${invitation.venue.name} on ${invitation.date.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'short', 
+              day: 'numeric' 
+            })} at ${invitation.time}. Looking forward to it!`,
+            timestamp: new Date(),
+            relatedInvitationId: confirmData.invitationId
+          };
+          
+          addSystemMessage(chatId, systemMessage);
+        }
+      }
+    } else if (confirmData.type === 'decline') {
+      const invitation = invitations.find(inv => inv.id === confirmData.invitationId);
+      if (invitation) {
+        const inviter = mockUsers.find(user => user.id === invitation.inviterId);
+        
+        // Update invitation status
+        setInvitations(prev => 
+          prev.map(inv => 
+            inv.id === confirmData.invitationId 
+              ? { ...inv, status: 'declined' as const }
+              : inv
+          )
+        );
+        
+        // Add system message to chat
+        if (inviter) {
+          const chatId = `${currentUserId}-${inviter.id}`;
+          const systemMessage: SystemMessage = {
+            id: `system-${Date.now()}`,
+            type: 'invitation_declined',
+            content: `You declined the meal invitation for ${invitation.venue.name} on ${invitation.date.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'short', 
+              day: 'numeric' 
+            })} at ${invitation.time}.`,
+            timestamp: new Date(),
+            relatedInvitationId: confirmData.invitationId
+          };
+          
+          addSystemMessage(chatId, systemMessage);
+        }
+      }
+    }
+
+    setConfirmModalVisible(false);
+    setConfirmData(null);
+  };
+
+  const handleCancelConfirm = () => {
+    setConfirmModalVisible(false);
+    setConfirmData(null);
+  };
+
+  const pendingInvitations = invitations.filter(inv => 
+    inv.status === 'pending'
+  );
+  
+  const confirmedInvitations = invitations.filter(inv => 
+    inv.status === 'accepted'
+  );
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Meal Invitations</Text>
+        <Text style={styles.subtitle}>
+          {pendingInvitations.length} pending • {confirmedInvitations.length} confirmed
+        </Text>
+      </View>
+      
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {pendingInvitations.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pending</Text>
+            {pendingInvitations.map(invitation => (
+              <InvitationCard
+                key={invitation.id}
+                invitation={invitation}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+              />
+            ))}
+          </View>
+        )}
+        
+        {confirmedInvitations.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Confirmed</Text>
+            {confirmedInvitations.map(invitation => (
+              <InvitationCard
+                key={invitation.id}
+                invitation={invitation}
+                onAccept={handleAccept}
+                onDecline={handleDecline}
+                onEdit={handleEdit}
+              />
+            ))}
+          </View>
+        )}
+        
+        {pendingInvitations.length === 0 && confirmedInvitations.length === 0 && (
+          <View style={styles.emptyState}>
+            <Calendar size={48} color={colors.textLight} />
+            <Text style={styles.emptyTitle}>No Invitations Yet</Text>
+            <Text style={styles.emptySubtitle}>
+              When someone invites you for a meal, you&apos;ll see it here
+            </Text>
+          </View>
+        )}
+      </ScrollView>
+      
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCancelEdit}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Edit Invitation</Text>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Date</Text>
+              <TextInput
+                style={styles.input}
+                value={editData?.date || ''}
+                onChangeText={(text) => setEditData(prev => prev ? { ...prev, date: text } : null)}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textLight}
+              />
+            </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Time</Text>
+              <TextInput
+                style={styles.input}
+                value={editData?.time || ''}
+                onChangeText={(text) => setEditData(prev => prev ? { ...prev, time: text } : null)}
+                placeholder="7:00 PM"
+                placeholderTextColor={colors.textLight}
+              />
+            </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Venue</Text>
+              <TextInput
+                style={styles.input}
+                value={editData?.venue || ''}
+                onChangeText={(text) => setEditData(prev => prev ? { ...prev, venue: text } : null)}
+                placeholder="Restaurant name"
+                placeholderTextColor={colors.textLight}
+              />
+            </View>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCancelEdit}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.textLight }]}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSaveEdit}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.text }]}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
+      <Modal
+        visible={confirmModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelConfirm}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.confirmModalContent}>
+            <Text style={styles.confirmTitle}>{confirmData?.title}</Text>
+            <Text style={styles.confirmMessage}>{confirmData?.message}</Text>
+            
+            <View style={styles.confirmButtons}>
+              <TouchableOpacity 
+                style={[styles.confirmButton, styles.cancelConfirmButton]}
+                onPress={handleCancelConfirm}
+              >
+                <Text style={[styles.confirmButtonText, { color: colors.textLight }]}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[
+                  styles.confirmButton, 
+                  confirmData?.type === 'decline' ? styles.declineConfirmButton : styles.acceptConfirmButton
+                ]}
+                onPress={handleConfirmAction}
+              >
+                <Text style={[
+                  styles.confirmButtonText, 
+                  { color: confirmData?.type === 'decline' ? colors.error : colors.success }
+                ]}>
+                  {confirmData?.type === 'decline' ? 'Decline' : 'Accept'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  header: {
+    padding: 20,
+    paddingBottom: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: colors.textLight,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  invitationCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  completedDate: {
+    fontSize: 12,
+    color: colors.textLight,
+    fontWeight: '500',
+  },
+  inviterInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  inviterDetails: {
+    flex: 1,
+  },
+  inviterName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  clickableName: {
+    color: colors.primary,
+    textDecorationLine: 'underline',
+  },
+  inviterAge: {
+    fontSize: 14,
+    color: colors.textLight,
+  },
+  mealDetails: {
+    marginBottom: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 14,
+    color: colors.text,
+    marginLeft: 8,
+    flex: 1,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  acceptButton: {
+    backgroundColor: colors.success + '20',
+    borderColor: colors.success,
+  },
+  declineButton: {
+    backgroundColor: colors.error + '20',
+    borderColor: colors.error,
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  emptyState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 16,
+    color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    backgroundColor: colors.primary + '20',
+  },
+  editButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 4,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputGroup: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 12,
+    fontSize: 16,
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  saveButton: {
+    backgroundColor: colors.primary,
+  },
+  modalButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  confirmModalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 350,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  confirmTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  confirmMessage: {
+    fontSize: 16,
+    color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  confirmButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  confirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  cancelConfirmButton: {
+    backgroundColor: colors.background,
+    borderColor: colors.border,
+  },
+  acceptConfirmButton: {
+    backgroundColor: colors.success + '20',
+    borderColor: colors.success,
+  },
+  declineConfirmButton: {
+    backgroundColor: colors.error + '20',
+    borderColor: colors.error,
+  },
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
