@@ -188,7 +188,7 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <Heart size={24} color={Colors.text} />
+            <Heart size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
         
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   notificationButton: {
     padding: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(255, 165, 0, 0.1)',
+    backgroundColor: '#FF69B4',
   },
   subtitle: {
     fontSize: 16,
