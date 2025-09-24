@@ -152,9 +152,22 @@ export default function PostMealScreen() {
           
           <View style={styles.eventFooter}>
             <Text style={styles.cuisineTag}>{event.cuisine}</Text>
-            <TouchableOpacity style={styles.reviewButton}>
-              <Star size={16} color={colors.primary} />
-              <Text style={styles.reviewButtonText}>Rate Experience</Text>
+          </View>
+          
+          <View style={styles.choicesContainer}>
+            <TouchableOpacity style={styles.choiceButton}>
+              <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
+              <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.choiceButton}>
+              <Text style={styles.choiceButtonText}>Let's do next round</Text>
+              <Text style={styles.choiceSubtext}>(Next date)</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity style={styles.choiceButton}>
+              <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
+              <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -313,20 +326,28 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 8,
   },
-  reviewButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+  choicesContainer: {
+    gap: 8,
+    marginTop: 12,
+  },
+  choiceButton: {
+    backgroundColor: colors.background,
     borderWidth: 1,
     borderColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
   },
-  reviewButtonText: {
-    fontSize: 12,
+  choiceButtonText: {
+    fontSize: 14,
     fontWeight: '600',
     color: colors.primary,
+    marginBottom: 2,
+  },
+  choiceSubtext: {
+    fontSize: 12,
+    color: colors.textLight,
   },
   infoSection: {
     backgroundColor: colors.surface,
