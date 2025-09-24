@@ -245,7 +245,7 @@ export default function PostMealScreen() {
                 <View style={styles.dateChoiceHeader}>
                   <View style={styles.dateChoiceHeaderContent}>
                     <Star size={14} color={colors.premium} />
-                    <Text style={styles.dateChoiceText}>Your date chose:</Text>
+                    <Text style={[styles.dateChoiceText, !isPremium && styles.blurredText]}>Your date chose:</Text>
                   </View>
                 </View>
                 {isPremium && choiceDisplay ? (
@@ -601,6 +601,12 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
+  },
+  blurredText: {
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 3,
+    color: 'transparent',
   },
 
 });
