@@ -397,7 +397,6 @@ const styles = StyleSheet.create({
     alignItems: 'baseline',
     flex: 1,
     marginRight: 12,
-    gap: 0,
   },
   clickableName: {
     color: colors.primary,
@@ -543,6 +542,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inlineButton: {
-    marginLeft: -4,
+    marginLeft: -2,
   },
 });
