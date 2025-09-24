@@ -396,7 +396,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
     marginRight: 12,
-    gap: 0,
   },
   clickableName: {
     color: colors.primary,
