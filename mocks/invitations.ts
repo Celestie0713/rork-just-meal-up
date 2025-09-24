@@ -8,9 +8,10 @@ export const mockInvitations: MealInvitation[] = [
     date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Tomorrow
     time: '7:00 PM',
     venue: {
-      name: 'Olive Garden',
-      address: '123 Main St, Downtown',
-      cuisine: 'Italian'
+      name: 'The Italian Corner',
+      address: '123 Main Street, Downtown',
+      cuisine: 'Italian',
+      placeId: 'mock_place_1'
     },
     status: 'accepted',
     createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
@@ -22,9 +23,10 @@ export const mockInvitations: MealInvitation[] = [
     date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
     time: '12:30 PM',
     venue: {
-      name: 'Cafe Bistro',
-      address: '456 Oak Ave, Midtown',
-      cuisine: 'French'
+      name: 'Cafe Mocha',
+      address: '321 Elm Street, Arts District',
+      cuisine: 'Cafe',
+      placeId: 'mock_place_4'
     },
     status: 'pending',
     createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
@@ -36,9 +38,10 @@ export const mockInvitations: MealInvitation[] = [
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
     time: '6:30 PM',
     venue: {
-      name: 'Sakura Sushi',
-      address: '789 Pine St, Uptown',
-      cuisine: 'Japanese'
+      name: 'Sushi Zen',
+      address: '456 Oak Avenue, Midtown',
+      cuisine: 'Japanese',
+      placeId: 'mock_place_2'
     },
     status: 'pending',
     createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000)
@@ -50,9 +53,10 @@ export const mockInvitations: MealInvitation[] = [
     date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     time: '8:00 PM',
     venue: {
-      name: 'The Steakhouse',
-      address: '321 Elm St, Downtown',
-      cuisine: 'American'
+      name: 'Burger Palace',
+      address: '789 Pine Road, Uptown',
+      cuisine: 'American',
+      placeId: 'mock_place_3'
     },
     status: 'completed',
     createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
@@ -64,9 +68,10 @@ export const mockInvitations: MealInvitation[] = [
     date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Day after tomorrow
     time: '1:00 PM',
     venue: {
-      name: 'Taco Libre',
-      address: '654 Maple Ave, Southside',
-      cuisine: 'Mexican'
+      name: 'Taco Fiesta',
+      address: '654 Maple Drive, South Side',
+      cuisine: 'Mexican',
+      placeId: 'mock_place_5'
     },
     status: 'declined',
     createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)

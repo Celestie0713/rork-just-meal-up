@@ -57,6 +57,7 @@ export interface MealInvitation {
     name: string;
     address: string;
     cuisine: string;
+    placeId?: string;
   };
   status: 'pending' | 'accepted' | 'declined' | 'completed';
   createdAt: Date;
