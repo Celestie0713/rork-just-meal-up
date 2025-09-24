@@ -241,12 +241,11 @@ export default function PostMealScreen() {
             </View>
           ) : (
             <View style={styles.choicesContainer}>
-              {isPremium && choiceDisplay && (
-                <View style={styles.premiumSection}>
-                  <View style={styles.premiumHeader}>
-                    <Star size={16} color={colors.premium} />
-                    <Text style={styles.premiumText}>Your date chose:</Text>
-                  </View>
+              <View style={styles.dateChoiceSection}>
+                <View style={styles.dateChoiceHeader}>
+                  <Text style={styles.dateChoiceText}>Your date chose:</Text>
+                </View>
+                {isPremium && choiceDisplay ? (
                   <View style={[styles.choiceButton, styles.selectedChoice]}>
                     <Text style={[styles.choiceButtonText, styles.selectedChoiceText]}>
                       {choiceDisplay.text}
@@ -255,8 +254,19 @@ export default function PostMealScreen() {
                       {choiceDisplay.subtext}
                     </Text>
                   </View>
-                </View>
-              )}
+                ) : isPremium ? (
+                  <View style={styles.noDecisionContainer}>
+                    <Text style={styles.noDecisionText}>No decision yet</Text>
+                  </View>
+                ) : (
+                  <View style={styles.upgradePromptInline}>
+                    <Star size={14} color={colors.premium} />
+                    <Text style={styles.upgradeTextInline}>
+                      Upgrade to Premium to see your date's choice
+                    </Text>
+                  </View>
+                )}
+              </View>
               
               <View style={styles.userChoicesSection}>
                 <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
@@ -276,14 +286,7 @@ export default function PostMealScreen() {
                   <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
                 </TouchableOpacity>
                 
-                {!isPremium && (
-                  <View style={styles.upgradePrompt}>
-                    <Star size={14} color={colors.premium} />
-                    <Text style={styles.upgradeText}>
-                      Upgrade to Premium to see your date&apos;s choice
-                    </Text>
-                  </View>
-                )}
+
               </View>
             </View>
           )}
@@ -510,19 +513,48 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     lineHeight: 20,
   },
-  premiumSection: {
+  dateChoiceSection: {
     gap: 12,
   },
-  premiumHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
+  dateChoiceHeader: {
     marginBottom: 4,
   },
-  premiumText: {
+  dateChoiceText: {
     fontSize: 14,
     fontWeight: '600',
     color: '#000000',
+  },
+  noDecisionContainer: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.textLight,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+  },
+  noDecisionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.textLight,
+  },
+  upgradePromptInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.premium,
+  },
+  upgradeTextInline: {
+    fontSize: 12,
+    color: colors.premium,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   selectedChoice: {
     backgroundColor: colors.premium,
