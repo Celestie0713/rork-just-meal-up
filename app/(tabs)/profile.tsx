@@ -374,20 +374,9 @@ export default function ProfileScreen() {
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
-          Your meal up history and upcoming events
+          Your upcoming meal up events
         </Text>
         <View style={styles.mealUpsContainer}>
-          <View style={styles.mealUpItem}>
-            <View style={styles.mealUpInfo}>
-              <Text style={styles.mealUpTitle}>Italian Night</Text>
-              <Text style={styles.mealUpDate}>Dec 15, 2024</Text>
-              <Text style={styles.mealUpVenue}>The Italian Corner</Text>
-            </View>
-            <View style={styles.mealUpStatus}>
-              <Text style={styles.statusText}>Attended</Text>
-            </View>
-          </View>
-          
           <View style={styles.mealUpItem}>
             <View style={styles.mealUpInfo}>
               <Text style={styles.mealUpTitle}>Sushi Social</Text>
@@ -401,12 +390,12 @@ export default function ProfileScreen() {
           
           <View style={styles.mealUpItem}>
             <View style={styles.mealUpInfo}>
-              <Text style={styles.mealUpTitle}>Taco Tuesday</Text>
-              <Text style={styles.mealUpDate}>Nov 28, 2024</Text>
-              <Text style={styles.mealUpVenue}>El Mariachi</Text>
+              <Text style={styles.mealUpTitle}>Brunch & Mimosas</Text>
+              <Text style={styles.mealUpDate}>Dec 25, 2024</Text>
+              <Text style={styles.mealUpVenue}>The Garden Cafe</Text>
             </View>
             <View style={styles.mealUpStatus}>
-              <Text style={styles.statusText}>Attended</Text>
+              <Text style={styles.statusTextUpcoming}>Upcoming</Text>
             </View>
           </View>
         </View>

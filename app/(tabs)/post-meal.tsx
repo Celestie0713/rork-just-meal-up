@@ -131,6 +131,46 @@ export default function PostMealScreen() {
           </View>
         )}
 
+        <View style={styles.attendedSection}>
+          <Text style={styles.attendedTitle}>Attended Meal Ups</Text>
+          <Text style={styles.attendedSubtitle}>Your meal up history</Text>
+          
+          <View style={styles.attendedContainer}>
+            <View style={styles.attendedItem}>
+              <View style={styles.attendedInfo}>
+                <Text style={styles.attendedMealTitle}>Italian Night</Text>
+                <Text style={styles.attendedDate}>Dec 15, 2024</Text>
+                <Text style={styles.attendedVenue}>The Italian Corner</Text>
+              </View>
+              <View style={styles.attendedStatus}>
+                <Text style={styles.attendedStatusText}>Attended</Text>
+              </View>
+            </View>
+            
+            <View style={styles.attendedItem}>
+              <View style={styles.attendedInfo}>
+                <Text style={styles.attendedMealTitle}>Taco Tuesday</Text>
+                <Text style={styles.attendedDate}>Nov 28, 2024</Text>
+                <Text style={styles.attendedVenue}>El Mariachi</Text>
+              </View>
+              <View style={styles.attendedStatus}>
+                <Text style={styles.attendedStatusText}>Attended</Text>
+              </View>
+            </View>
+            
+            <View style={styles.attendedItem}>
+              <View style={styles.attendedInfo}>
+                <Text style={styles.attendedMealTitle}>Wine & Dine</Text>
+                <Text style={styles.attendedDate}>Nov 15, 2024</Text>
+                <Text style={styles.attendedVenue}>Vintage Cellar</Text>
+              </View>
+              <View style={styles.attendedStatus}>
+                <Text style={styles.attendedStatusText}>Attended</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>How it works:</Text>
           <Text style={styles.infoText}>• Choices are revealed only when both users make their selection</Text>
@@ -246,5 +286,58 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textLight,
     marginBottom: 4,
+  },
+  attendedSection: {
+    marginBottom: 24,
+  },
+  attendedTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  attendedSubtitle: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginBottom: 16,
+  },
+  attendedContainer: {
+    gap: 12,
+  },
+  attendedItem: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    alignItems: 'center',
+  },
+  attendedInfo: {
+    flex: 1,
+  },
+  attendedMealTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  attendedDate: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginBottom: 2,
+  },
+  attendedVenue: {
+    fontSize: 14,
+    color: colors.textLight,
+  },
+  attendedStatus: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: colors.success,
+  },
+  attendedStatusText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.background,
   },
 });
