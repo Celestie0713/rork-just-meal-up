@@ -173,9 +173,7 @@ export default function PostMealScreen() {
     }
   };
 
-  const isChoiceRequired = (event: PostMealEvent) => {
-    return event.type === 'invitation' && !selectedChoices[event.id];
-  };
+
 
   const renderPostMealEvent = (event: PostMealEvent) => {
     const isGroup = event.type === 'mealup';
@@ -184,14 +182,14 @@ export default function PostMealScreen() {
     const choiceDisplay = dateChoice ? getChoiceDisplay(dateChoice) : null;
     const userSelectedChoice = selectedChoices[event.id];
     const hasUserMadeChoice = !!userSelectedChoice;
-    const requiresChoice = isChoiceRequired(event);
+
     
     return (
       <TouchableOpacity 
         key={event.id} 
-        style={[styles.eventCard, requiresChoice && styles.disabledContainer]}
+        style={styles.eventCard}
         onPress={() => handleEventPress(event)}
-        disabled={!isGroup || requiresChoice}
+        disabled={!isGroup}
       >
         {event.imageUrl && (
           <Image source={{ uri: event.imageUrl }} style={styles.eventImage} />
@@ -201,7 +199,6 @@ export default function PostMealScreen() {
             {event.type === 'invitation' ? (
               <TouchableOpacity 
                 onPress={() => {
-                  if (requiresChoice) return;
                   const invitationId = event.id.replace('invitation-', '');
                   const invitation = mockInvitations.find(inv => inv.id === invitationId);
                   if (invitation) {
@@ -211,8 +208,7 @@ export default function PostMealScreen() {
                     }
                   }
                 }}
-                style={[styles.profileContainer, requiresChoice && styles.disabledContainer]}
-                disabled={requiresChoice}
+                style={styles.profileContainer}
               >
                 {(() => {
                   const invitationId = event.id.replace('invitation-', '');
@@ -297,12 +293,11 @@ export default function PostMealScreen() {
                   </View>
                 ) : (
                   <TouchableOpacity 
-                    style={[styles.upgradePromptInline, requiresChoice && styles.disabledContainer]}
-                    onPress={requiresChoice ? undefined : handleUpgradeToPremium}
-                    disabled={requiresChoice}
+                    style={styles.upgradePromptInline}
+                    onPress={handleUpgradeToPremium}
                   >
-                    <Star size={14} color={requiresChoice ? colors.textLight : colors.premium} />
-                    <Text style={[styles.upgradeTextInline, requiresChoice && styles.disabledText]}>
+                    <Star size={14} color={colors.premium} />
+                    <Text style={styles.upgradeTextInline}>
                       Upgrade to Premium to see your date's choice
                     </Text>
                   </TouchableOpacity>
@@ -311,11 +306,6 @@ export default function PostMealScreen() {
               
               <View style={styles.userChoicesSection}>
                 <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
-                {!hasUserMadeChoice && (
-                  <View style={styles.choiceRequiredNotice}>
-                    <Text style={styles.choiceRequiredText}>Please select one option to continue</Text>
-                  </View>
-                )}
                 
                 <TouchableOpacity 
                   style={[
@@ -824,21 +814,7 @@ const styles = StyleSheet.create({
   disabledText: {
     color: colors.textLight,
   },
-  choiceRequiredNotice: {
-    backgroundColor: '#FFF3CD',
-    borderWidth: 1,
-    borderColor: '#FFEAA7',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    marginBottom: 8,
-  },
-  choiceRequiredText: {
-    fontSize: 12,
-    color: '#856404',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
+
   selectedChoiceButton: {
     backgroundColor: colors.primary,
     borderColor: colors.primary,
