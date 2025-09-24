@@ -244,8 +244,8 @@ export default function PostMealScreen() {
               <View style={styles.dateChoiceSection}>
                 <View style={styles.dateChoiceHeader}>
                   <View style={styles.dateChoiceHeaderContent}>
-                    <Text style={styles.dateChoiceText}>Your date chose:</Text>
                     <Star size={14} color={colors.premium} />
+                    <Text style={styles.dateChoiceText}>Your date chose:</Text>
                   </View>
                 </View>
                 {isPremium && choiceDisplay ? (
