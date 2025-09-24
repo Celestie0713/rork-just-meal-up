@@ -206,7 +206,7 @@ export default function PostMealScreen() {
             </View>
           ) : (
             <View style={styles.choicesContainer}>
-              {isPremium && choiceDisplay ? (
+              {isPremium && choiceDisplay && (
                 <View style={styles.premiumSection}>
                   <View style={styles.premiumHeader}>
                     <Crown size={16} color={colors.premium} />
@@ -221,33 +221,35 @@ export default function PostMealScreen() {
                     </Text>
                   </View>
                 </View>
-              ) : (
-                <>
-                  <TouchableOpacity style={styles.choiceButton}>
-                    <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
-                    <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.choiceButton}>
-                    <Text style={styles.choiceButtonText}>Let&apos;s do next round</Text>
-                    <Text style={styles.choiceSubtext}>(Next date)</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity style={styles.choiceButton}>
-                    <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
-                    <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
-                  </TouchableOpacity>
-                  
-                  {!isPremium && (
-                    <View style={styles.upgradePrompt}>
-                      <Crown size={14} color={colors.premium} />
-                      <Text style={styles.upgradeText}>
-                        Upgrade to Premium to see your date&apos;s choice
-                      </Text>
-                    </View>
-                  )}
-                </>
               )}
+              
+              <View style={styles.userChoicesSection}>
+                <Text style={styles.userChoicesTitle}>Your next course: 1 on 1 time🎈</Text>
+                
+                <TouchableOpacity style={styles.choiceButton}>
+                  <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
+                  <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.choiceButton}>
+                  <Text style={styles.choiceButtonText}>Let&apos;s do next round</Text>
+                  <Text style={styles.choiceSubtext}>(Next date)</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity style={styles.choiceButton}>
+                  <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
+                  <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
+                </TouchableOpacity>
+                
+                {!isPremium && (
+                  <View style={styles.upgradePrompt}>
+                    <Crown size={14} color={colors.premium} />
+                    <Text style={styles.upgradeText}>
+                      Upgrade to Premium to see your date&apos;s choice
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
           )}
         </View>
@@ -494,6 +496,17 @@ const styles = StyleSheet.create({
   upgradeText: {
     fontSize: 12,
     color: colors.textLight,
+    textAlign: 'center',
+  },
+  userChoicesSection: {
+    gap: 8,
+    marginTop: 16,
+  },
+  userChoicesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
     textAlign: 'center',
   },
 });
