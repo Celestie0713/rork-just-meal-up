@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '800',
-    color: Colors.text,
+    color: '#000000',
   },
   notificationButton: {
     padding: 8,
