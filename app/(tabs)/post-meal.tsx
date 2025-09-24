@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, ChevronRight, Crown } from 'lucide-react-native';
+import { Calendar, MapPin, Users, Clock, ChevronRight, Star } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
@@ -209,7 +209,7 @@ export default function PostMealScreen() {
               {isPremium && choiceDisplay && (
                 <View style={styles.premiumSection}>
                   <View style={styles.premiumHeader}>
-                    <Crown size={16} color={colors.premium} />
+                    <Star size={16} color={colors.premium} />
                     <Text style={styles.premiumText}>Your date chose:</Text>
                   </View>
                   <View style={[styles.choiceButton, styles.selectedChoice]}>
@@ -243,7 +243,7 @@ export default function PostMealScreen() {
                 
                 {!isPremium && (
                   <View style={styles.upgradePrompt}>
-                    <Crown size={14} color={colors.premium} />
+                    <Star size={14} color={colors.premium} />
                     <Text style={styles.upgradeText}>
                       Upgrade to Premium to see your date&apos;s choice
                     </Text>
