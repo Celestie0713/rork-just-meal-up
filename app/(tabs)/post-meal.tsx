@@ -17,7 +17,7 @@ const colors = {
   surface: '#F8F8F8',
   success: '#4CAF50',
   warning: '#FFA726',
-  premium: '#FFD700',
+  premium: '#FF8C00',
 } as const;
 
 type PostMealEvent = {
