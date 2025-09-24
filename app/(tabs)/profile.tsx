@@ -431,7 +431,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={LANGUAGE_OPTIONS}
-            keyExtractor={(item, index) => `language-${index}-${item}`}
+            keyExtractor={(item, index) => `language-option-${index}-${item.replace(/\s+/g, '-')}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.preferredEthnicity?.includes(item) || false;
               return (
@@ -467,7 +467,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={INCOME_LEVELS}
-            keyExtractor={(item, index) => `income-${index}-${item}`}
+            keyExtractor={(item, index) => `income-level-${index}-${item.replace(/\s+/g, '-')}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.incomeLevel === item;
               return (
@@ -503,7 +503,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={LANGUAGE_OPTIONS.filter(option => option !== 'No preference')}
-            keyExtractor={(item, index) => `personal-language-${index}-${item}`}
+            keyExtractor={(item, index) => `personal-language-${index}-${item.replace(/\s+/g, '-')}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.ethnicity === item;
               return (
@@ -539,7 +539,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={PREFERRED_INCOME_LEVELS}
-            keyExtractor={(item, index) => `preferred-income-${index}-${item}`}
+            keyExtractor={(item, index) => `preferred-income-level-${index}-${item.replace(/\s+/g, '-')}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.preferredIncomeLevel === item;
               return (
