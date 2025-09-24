@@ -326,7 +326,7 @@ export default function ProfileScreen() {
         </Text>
         <View style={styles.picturesGrid}>
           {photos.map((photo, index) => (
-            <View key={index} style={styles.pictureContainer}>
+            <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.pictureContainer}>
               <Image source={{ uri: photo }} style={styles.pictureImage} />
               {isEditing && (
                 <TouchableOpacity 
@@ -431,7 +431,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={LANGUAGE_OPTIONS}
-            keyExtractor={(item) => item}
+            keyExtractor={(item, index) => `language-${index}-${item}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.preferredEthnicity?.includes(item) || false;
               return (
@@ -467,7 +467,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={INCOME_LEVELS}
-            keyExtractor={(item) => item}
+            keyExtractor={(item, index) => `income-${index}-${item}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.incomeLevel === item;
               return (
@@ -503,7 +503,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={LANGUAGE_OPTIONS.filter(option => option !== 'No preference')}
-            keyExtractor={(item) => item}
+            keyExtractor={(item, index) => `personal-language-${index}-${item}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.ethnicity === item;
               return (
@@ -539,7 +539,7 @@ export default function ProfileScreen() {
           
           <FlatList
             data={PREFERRED_INCOME_LEVELS}
-            keyExtractor={(item) => item}
+            keyExtractor={(item, index) => `preferred-income-${index}-${item}`}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.preferredIncomeLevel === item;
               return (
