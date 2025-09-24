@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
   premiumText: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: '#000000',
   },
   selectedChoice: {
     backgroundColor: colors.premium,
