@@ -542,6 +542,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   inlineButton: {
-    marginLeft: -2,
+    marginLeft: -6,
   },
 });
