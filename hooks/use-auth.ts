@@ -17,12 +17,12 @@ const mockCurrentUser: User = {
   location: 'San Francisco, CA',
   membershipTier: 'premium',
   isOnline: true,
-  ethnicity: 'Asian',
+  ethnicity: 'English',
   preferences: {
     ageRange: [25, 35],
     maxDistance: 25,
     cuisinePreferences: ['Italian', 'Japanese', 'Mexican'],
-    preferredEthnicity: ['Asian', 'Mixed/Multiracial'],
+    preferredEthnicity: ['English', 'Cantonese'],
     incomeLevel: '$75k - $100k',
     preferredIncomeLevel: '$50k - $100k'
   }

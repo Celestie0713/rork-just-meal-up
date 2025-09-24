@@ -9,17 +9,21 @@ import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700
 
 const LANGUAGE_OPTIONS = [
   'English',
+  'Cantonese',
+  'Mandarin',
   'Spanish',
   'French',
   'German',
   'Italian',
   'Portuguese',
-  'Chinese',
   'Japanese',
   'Korean',
   'Arabic',
   'Russian',
   'Hindi',
+  'Vietnamese',
+  'Thai',
+  'Tagalog',
   'Other',
   'No preference'
 ];
