@@ -7,15 +7,19 @@ import { useAuth } from '@/hooks/use-auth';
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 
-const ETHNICITY_OPTIONS = [
-  'Asian',
-  'Black/African American',
-  'Hispanic/Latino',
-  'White/Caucasian',
-  'Middle Eastern',
-  'Native American',
-  'Pacific Islander',
-  'Mixed/Multiracial',
+const LANGUAGE_OPTIONS = [
+  'English',
+  'Spanish',
+  'French',
+  'German',
+  'Italian',
+  'Portuguese',
+  'Chinese',
+  'Japanese',
+  'Korean',
+  'Arabic',
+  'Russian',
+  'Hindi',
   'Other',
   'No preference'
 ];
@@ -54,10 +58,10 @@ export default function ProfileScreen() {
   });
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState(user);
-  const [showEthnicityModal, setShowEthnicityModal] = useState(false);
+  const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [showPersonalIncomeModal, setShowPersonalIncomeModal] = useState(false);
-  const [showPersonalEthnicityModal, setShowPersonalEthnicityModal] = useState(false);
+  const [showPersonalLanguageModal, setShowPersonalLanguageModal] = useState(false);
   const [showPreferredIncomeModal, setShowPreferredIncomeModal] = useState(false);
 
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
@@ -186,19 +190,19 @@ export default function ProfileScreen() {
     }
   };
 
-  const toggleEthnicity = (ethnicity: string) => {
+  const toggleLanguage = (language: string) => {
     if (!editedUser) return;
     
-    const currentEthnicities = editedUser.preferences.preferredEthnicity || [];
-    const updatedEthnicities = currentEthnicities.includes(ethnicity)
-      ? currentEthnicities.filter(e => e !== ethnicity)
-      : [...currentEthnicities, ethnicity];
+    const currentLanguages = editedUser.preferences.preferredEthnicity || [];
+    const updatedLanguages = currentLanguages.includes(language)
+      ? currentLanguages.filter(e => e !== language)
+      : [...currentLanguages, language];
     
     setEditedUser({
       ...editedUser,
       preferences: {
         ...editedUser.preferences,
-        preferredEthnicity: updatedEthnicities
+        preferredEthnicity: updatedLanguages
       }
     });
   };
@@ -216,14 +220,14 @@ export default function ProfileScreen() {
     setShowPersonalIncomeModal(false);
   };
 
-  const setPersonalEthnicity = (ethnicity: string) => {
+  const setPersonalLanguage = (language: string) => {
     if (!editedUser) return;
     
     setEditedUser({
       ...editedUser,
-      ethnicity: ethnicity
+      ethnicity: language
     });
-    setShowPersonalEthnicityModal(false);
+    setShowPersonalLanguageModal(false);
   };
 
   const setPreferredIncomeLevel = (income: string) => {
@@ -419,13 +423,13 @@ export default function ProfileScreen() {
     }
   };
 
-  const renderEthnicityModal = () => (
-    <Modal visible={showEthnicityModal} transparent animationType="slide">
+  const renderLanguageModal = () => (
+    <Modal visible={showLanguageModal} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Preferred Ethnicity</Text>
-            <TouchableOpacity onPress={() => setShowEthnicityModal(false)}>
+            <Text style={styles.modalTitle}>Preferred language</Text>
+            <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
@@ -433,14 +437,14 @@ export default function ProfileScreen() {
           <Text style={styles.modalSubtitle}>Select all that apply (optional)</Text>
           
           <FlatList
-            data={ETHNICITY_OPTIONS}
+            data={LANGUAGE_OPTIONS}
             keyExtractor={(item) => item}
             renderItem={({ item }) => {
               const isSelected = editedUser?.preferences.preferredEthnicity?.includes(item) || false;
               return (
                 <TouchableOpacity
                   style={[styles.optionItem, isSelected && styles.selectedOption]}
-                  onPress={() => toggleEthnicity(item)}
+                  onPress={() => toggleLanguage(item)}
                 >
                   <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
                     {item}
@@ -491,28 +495,28 @@ export default function ProfileScreen() {
     </Modal>
   );
 
-  const renderPersonalEthnicityModal = () => (
-    <Modal visible={showPersonalEthnicityModal} transparent animationType="slide">
+  const renderPersonalLanguageModal = () => (
+    <Modal visible={showPersonalLanguageModal} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Your Ethnicity</Text>
-            <TouchableOpacity onPress={() => setShowPersonalEthnicityModal(false)}>
+            <Text style={styles.modalTitle}>Your Language</Text>
+            <TouchableOpacity onPress={() => setShowPersonalLanguageModal(false)}>
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
           
-          <Text style={styles.modalSubtitle}>Select your ethnicity (optional)</Text>
+          <Text style={styles.modalSubtitle}>Select your language (optional)</Text>
           
           <FlatList
-            data={ETHNICITY_OPTIONS.filter(option => option !== 'No preference')}
+            data={LANGUAGE_OPTIONS.filter(option => option !== 'No preference')}
             keyExtractor={(item) => item}
             renderItem={({ item }) => {
               const isSelected = editedUser?.ethnicity === item;
               return (
                 <TouchableOpacity
                   style={[styles.optionItem, isSelected && styles.selectedOption]}
-                  onPress={() => setPersonalEthnicity(item)}
+                  onPress={() => setPersonalLanguage(item)}
                 >
                   <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
                     {item}
@@ -616,11 +620,11 @@ export default function ProfileScreen() {
           <View style={styles.personalInfoRow}>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowPersonalEthnicityModal(true)}
+              onPress={() => isEditing && setShowPersonalLanguageModal(true)}
               disabled={!isEditing}
             >
               <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Ethnicity</Text>
+                <Text style={styles.preferenceLabel}>Language</Text>
                 {isEditing && <Edit3 size={16} color={Colors.primary} />}
               </View>
               <Text style={styles.preferenceValue}>
@@ -670,11 +674,11 @@ export default function ProfileScreen() {
           <View style={styles.personalInfoRow}>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowEthnicityModal(true)}
+              onPress={() => isEditing && setShowLanguageModal(true)}
               disabled={!isEditing}
             >
               <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Preferred Ethnicity</Text>
+                <Text style={styles.preferenceLabel}>Preferred language</Text>
                 {isEditing && <Edit3 size={16} color={Colors.primary} />}
               </View>
               <Text style={styles.preferenceValue}>
@@ -705,9 +709,9 @@ export default function ProfileScreen() {
         {renderTabContent()}
       </ScrollView>
       
-      {renderEthnicityModal()}
+      {renderLanguageModal()}
       {renderPersonalIncomeModal()}
-      {renderPersonalEthnicityModal()}
+      {renderPersonalLanguageModal()}
       {renderPreferredIncomeModal()}
     </SafeAreaView>
   );
