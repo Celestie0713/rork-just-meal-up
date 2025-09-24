@@ -1,7 +1,7 @@
-import React, { useMemo } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, ChevronRight, Star } from 'lucide-react-native';
+import { Calendar, MapPin, Users, Clock, ChevronRight, Star, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
@@ -57,9 +57,26 @@ function isPostMeal(date: Date, time: string): boolean {
 }
 
 export default function PostMealScreen() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const handleUpgradeToPremium = () => {
+    setShowUpgradeModal(true);
+  };
+
+  const confirmUpgrade = async () => {
+    try {
+      await updateUser({ membershipTier: 'premium' });
+      setShowUpgradeModal(false);
+      setShowSuccessModal(true);
+    } catch (error) {
+      console.error('Failed to upgrade:', error);
+      setShowUpgradeModal(false);
+    }
+  };
 
   const getDateChoice = (invitationId: string) => {
     const invitation = mockInvitations.find(inv => inv.id === invitationId);
@@ -262,12 +279,15 @@ export default function PostMealScreen() {
                     <Text style={styles.noDecisionText}>No decision yet</Text>
                   </View>
                 ) : (
-                  <View style={styles.upgradePromptInline}>
+                  <TouchableOpacity 
+                    style={styles.upgradePromptInline}
+                    onPress={handleUpgradeToPremium}
+                  >
                     <Star size={14} color={colors.premium} />
                     <Text style={styles.upgradeTextInline}>
                       Upgrade to Premium to see your date's choice
                     </Text>
-                  </View>
+                  </TouchableOpacity>
                 )}
               </View>
               
@@ -330,6 +350,68 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>• Help improve the community by sharing your thoughts</Text>
         </View>
       </ScrollView>
+
+      {/* Upgrade Modal */}
+      <Modal
+        visible={showUpgradeModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowUpgradeModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Upgrade to Premium</Text>
+              <TouchableOpacity 
+                onPress={() => setShowUpgradeModal(false)}
+                style={styles.closeButton}
+              >
+                <X size={24} color={colors.textLight} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalDescription}>
+              Unlock premium features including seeing your date&apos;s choices and more!
+            </Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.cancelButton}
+                onPress={() => setShowUpgradeModal(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.upgradeButton}
+                onPress={confirmUpgrade}
+              >
+                <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Success Modal */}
+      <Modal
+        visible={showSuccessModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowSuccessModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Success! 🎉</Text>
+            <Text style={styles.modalDescription}>
+              You&apos;ve been upgraded to Premium!
+            </Text>
+            <TouchableOpacity 
+              style={styles.upgradeButton}
+              onPress={() => setShowSuccessModal(false)}
+            >
+              <Text style={styles.upgradeButtonText}>Great!</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -607,6 +689,77 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 3,
     color: 'transparent',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalDescription: {
+    fontSize: 16,
+    color: colors.textLight,
+    lineHeight: 22,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.textLight,
+    alignItems: 'center',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  upgradeButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: colors.premium,
+    alignItems: 'center',
+  },
+  upgradeButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.background,
   },
 
 });
