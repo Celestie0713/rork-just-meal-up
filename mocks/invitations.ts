@@ -55,7 +55,7 @@ export const mockInvitations: MealInvitation[] = [
     venue: {
       name: 'Burger Palace',
       address: '789 Pine Road, Uptown',
-      cuisine: 'American',
+      cuisine: 'Burger',
       placeId: 'mock_place_3'
     },
     status: 'completed',

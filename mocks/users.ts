@@ -119,7 +119,7 @@ export const mockUsers: User[] = [
     preferences: {
       ageRange: [24, 32],
       maxDistance: 18,
-      cuisinePreferences: ['Japanese', 'Modern American', 'Brunch'],
+      cuisinePreferences: ['Japanese', 'Brunch'],
       preferredEthnicity: ['English', 'Mandarin']
     }
   },
@@ -180,7 +180,7 @@ export const mockUsers: User[] = [
     preferences: {
       ageRange: [28, 40],
       maxDistance: 28,
-      cuisinePreferences: ['Cocktail Bar', 'Steakhouse', 'Modern American'],
+      cuisinePreferences: ['Cocktail Bar', 'Steakhouse'],
       preferredEthnicity: ['English', 'Cantonese']
     }
   },
