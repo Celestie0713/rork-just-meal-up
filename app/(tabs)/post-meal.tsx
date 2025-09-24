@@ -166,7 +166,29 @@ export default function PostMealScreen() {
         )}
         <View style={styles.eventContent}>
           <View style={styles.eventHeader}>
-            <Text style={styles.eventTitle}>{event.title}</Text>
+            {event.type === 'invitation' ? (
+              <View style={styles.titleContainer}>
+                <Text style={styles.eventTitle}>Dinner with </Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    const invitationId = event.id.replace('invitation-', '');
+                    const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                    if (invitation) {
+                      const inviter = mockUsers.find(u => u.id === invitation.inviterId);
+                      if (inviter) {
+                        router.push(`/user-profile?userId=${inviter.id}`);
+                      }
+                    }
+                  }}
+                >
+                  <Text style={[styles.eventTitle, styles.clickableName]}>
+                    {event.title.replace('Dinner with ', '')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <Text style={styles.eventTitle}>{event.title}</Text>
+            )}
             <View style={styles.eventTypeTag}>
               <Text style={styles.eventTypeText}>
                 {event.type === 'invitation' ? 'Date' : 'Group'}
@@ -368,6 +390,16 @@ const styles = StyleSheet.create({
     color: colors.text,
     flex: 1,
     marginRight: 12,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  clickableName: {
+    color: colors.primary,
+    textDecorationLine: 'underline',
   },
   eventTypeTag: {
     backgroundColor: colors.primary,
