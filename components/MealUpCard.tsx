@@ -83,7 +83,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
               onPress={handlePrevImage}
               testID={`prev-image-${mealUp.id}`}
             >
-              <ChevronLeft size={24} color="white" />
+              <ChevronLeft size={24} color="#333" />
             </TouchableOpacity>
             
             <TouchableOpacity 
@@ -91,7 +91,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
               onPress={handleNextImage}
               testID={`next-image-${mealUp.id}`}
             >
-              <ChevronRight size={24} color="white" />
+              <ChevronRight size={24} color="#333" />
             </TouchableOpacity>
             
             <View style={styles.imageIndicators}>
@@ -312,22 +312,32 @@ const styles = StyleSheet.create({
     left: 12,
     top: '50%',
     marginTop: -20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 20,
     padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   rightArrow: {
     position: 'absolute',
     right: 12,
     top: '50%',
     marginTop: -20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 20,
     padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   imageIndicators: {
     position: 'absolute',

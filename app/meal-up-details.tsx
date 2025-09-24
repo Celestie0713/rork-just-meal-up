@@ -145,7 +145,7 @@ export default function MealUpDetailsScreen() {
                 onPress={handlePrevImage}
                 testID="prev-image-details"
               >
-                <ChevronLeft size={28} color="white" />
+                <ChevronLeft size={28} color="#333" />
               </TouchableOpacity>
               
               <TouchableOpacity 
@@ -153,7 +153,7 @@ export default function MealUpDetailsScreen() {
                 onPress={handleNextImage}
                 testID="next-image-details"
               >
-                <ChevronRight size={28} color="white" />
+                <ChevronRight size={28} color="#333" />
               </TouchableOpacity>
               
               <View style={styles.imageIndicators}>
@@ -607,22 +607,32 @@ const styles = StyleSheet.create({
     left: 20,
     top: '50%',
     marginTop: -24,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 24,
     padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   rightArrow: {
     position: 'absolute',
     right: 20,
     top: '50%',
     marginTop: -24,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
     borderRadius: 24,
     padding: 8,
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
   imageIndicators: {
     position: 'absolute',

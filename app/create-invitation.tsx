@@ -10,7 +10,7 @@ import {
   Alert
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Send, AlertCircle } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, Send, AlertCircle, User } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { GooglePlacesService } from '@/services/google-places';
@@ -291,6 +291,22 @@ export default function CreateInvitationScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Profile Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Your Profile</Text>
+          <View style={styles.profileCard}>
+            <View style={styles.profileImageContainer}>
+              <User size={32} color={Colors.primary} />
+            </View>
+            <View style={styles.profileInfo}>
+              <TouchableOpacity onPress={() => router.push('/user-profile?userId=1')}>
+                <Text style={styles.profileName}>You</Text>
+              </TouchableOpacity>
+              <Text style={styles.profileSubtext}>Sending invitation</Text>
+            </View>
+          </View>
+        </View>
+
         {/* Restaurant Info */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Restaurant</Text>
@@ -641,5 +657,34 @@ const styles = StyleSheet.create({
     color: '#15803D',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  profileCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImageContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255, 165, 0, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginBottom: 2,
+  },
+  profileSubtext: {
+    fontSize: 14,
+    color: Colors.textLight,
   },
 });
