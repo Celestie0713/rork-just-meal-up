@@ -167,26 +167,38 @@ export default function PostMealScreen() {
         <View style={styles.eventContent}>
           <View style={styles.eventHeader}>
             {event.type === 'invitation' ? (
-              <View style={styles.titleContainer}>
-                <Text style={styles.eventTitle}>Dinner with </Text>
-                <TouchableOpacity 
-                  onPress={() => {
-                    const invitationId = event.id.replace('invitation-', '');
-                    const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                    if (invitation) {
-                      const inviter = mockUsers.find(u => u.id === invitation.inviterId);
-                      if (inviter) {
-                        router.push(`/user-profile?userId=${inviter.id}`);
-                      }
+              <TouchableOpacity 
+                onPress={() => {
+                  const invitationId = event.id.replace('invitation-', '');
+                  const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                  if (invitation) {
+                    const inviter = mockUsers.find(u => u.id === invitation.inviterId);
+                    if (inviter) {
+                      router.push(`/user-profile?userId=${inviter.id}`);
                     }
-                  }}
-                  style={styles.inlineButton}
-                >
-                  <Text style={[styles.eventTitle, styles.clickableName]}>
-                    {event.title.replace('Dinner with ', '')}
-                  </Text>
-                </TouchableOpacity>
-              </View>
+                  }
+                }}
+                style={styles.profileContainer}
+              >
+                {(() => {
+                  const invitationId = event.id.replace('invitation-', '');
+                  const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                  const inviter = invitation ? mockUsers.find(u => u.id === invitation.inviterId) : null;
+                  return (
+                    <View style={styles.profileInfo}>
+                      {inviter?.photos?.[0] && (
+                        <Image 
+                          source={{ uri: inviter.photos[0] }} 
+                          style={styles.profileImage} 
+                        />
+                      )}
+                      <Text style={[styles.eventTitle, styles.clickableName]}>
+                        {event.title.replace('Dinner with ', '')}
+                      </Text>
+                    </View>
+                  );
+                })()}
+              </TouchableOpacity>
             ) : (
               <Text style={styles.eventTitle}>{event.title}</Text>
             )}
@@ -392,11 +404,20 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
+  profileContainer: {
     flex: 1,
     marginRight: 12,
+  },
+  profileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  profileImage: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
   },
   clickableName: {
     color: colors.primary,
@@ -541,7 +562,5 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     textAlign: 'center',
   },
-  inlineButton: {
-    marginLeft: -6,
-  },
+
 });
