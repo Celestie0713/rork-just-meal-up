@@ -68,7 +68,7 @@ export default function PostMealScreen() {
       .forEach(invitation => {
         const inviter = mockUsers.find(u => u.id === invitation.inviterId);
         events.push({
-          id: invitation.id,
+          id: `invitation-${invitation.id}`,
           type: 'invitation',
           title: `Dinner with ${inviter?.name || 'Someone'}`,
           venue: invitation.venue.name,
@@ -87,7 +87,7 @@ export default function PostMealScreen() {
       )
       .forEach(mealUp => {
         events.push({
-          id: mealUp.id,
+          id: `mealup-${mealUp.id}`,
           type: 'mealup',
           title: mealUp.title,
           venue: mealUp.venue.name,
@@ -114,8 +114,10 @@ export default function PostMealScreen() {
 
   const handleEventPress = (event: PostMealEvent) => {
     if (event.type === 'mealup') {
+      // Extract the original meal up ID by removing the prefix
+      const mealUpId = event.id.replace('mealup-', '');
       // Navigate to attendees page for group events
-      router.push(`/meal-up-attendees?mealUpId=${event.id}`);
+      router.push(`/meal-up-attendees?mealUpId=${mealUpId}`);
     }
   };
 
