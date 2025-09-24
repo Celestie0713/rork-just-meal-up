@@ -216,7 +216,7 @@ export default function UserProfileScreen() {
           
           <View style={styles.personalInfoRow}>
             <View style={styles.halfPreferenceItem}>
-              <Text style={styles.preferenceLabel}>Ethnicity</Text>
+              <Text style={styles.preferenceLabel}>Language</Text>
               <Text style={styles.preferenceValue}>
                 {user.ethnicity || 'Not specified'}
               </Text>
@@ -241,7 +241,7 @@ export default function UserProfileScreen() {
           
           <View style={styles.personalInfoRow}>
             <View style={styles.halfPreferenceItem}>
-              <Text style={styles.preferenceLabel}>Preferred Ethnicity</Text>
+              <Text style={styles.preferenceLabel}>Preferred Language</Text>
               <Text style={styles.preferenceValue}>
                 {user.preferences.preferredEthnicity?.length 
                   ? user.preferences.preferredEthnicity.join(', ')

@@ -13,10 +13,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
+    ethnicity: 'English, Mandarin',
     preferences: {
       ageRange: [23, 30],
       maxDistance: 20,
-      cuisinePreferences: ['Farm-to-table', 'Italian', 'Asian']
+      cuisinePreferences: ['Farm-to-table', 'Italian', 'Asian'],
+      preferredEthnicity: ['English', 'Cantonese']
     }
   },
   {
@@ -31,10 +33,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'organizer',
     isOnline: true,
+    ethnicity: 'English, Cantonese',
     preferences: {
       ageRange: [24, 32],
       maxDistance: 20,
-      cuisinePreferences: ['Farm-to-table', 'Vegan', 'Mediterranean']
+      cuisinePreferences: ['Farm-to-table', 'Vegan', 'Mediterranean'],
+      preferredEthnicity: ['English', 'Mandarin']
     }
   },
   {
@@ -50,10 +54,12 @@ export const mockUsers: User[] = [
     membershipTier: 'premium',
     isOnline: false,
     lastSeen: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
+    ethnicity: 'English, Mandarin',
     preferences: {
       ageRange: [25, 35],
       maxDistance: 30,
-      cuisinePreferences: ['French', 'Italian', 'Asian Fusion']
+      cuisinePreferences: ['French', 'Italian', 'Asian Fusion'],
+      preferredEthnicity: ['English', 'Cantonese']
     }
   },
   {
@@ -68,10 +74,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'free',
     isOnline: true,
+    ethnicity: 'English, Cantonese',
     preferences: {
       ageRange: [26, 34],
       maxDistance: 15,
-      cuisinePreferences: ['Korean', 'Thai', 'Mexican']
+      cuisinePreferences: ['Korean', 'Thai', 'Mexican'],
+      preferredEthnicity: ['English', 'Mandarin']
     }
   },
   {
@@ -86,10 +94,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
+    ethnicity: 'English, Mandarin',
     preferences: {
       ageRange: [28, 38],
       maxDistance: 25,
-      cuisinePreferences: ['Fine Dining', 'Wine Bar', 'French']
+      cuisinePreferences: ['Fine Dining', 'Wine Bar', 'French'],
+      preferredEthnicity: ['English', 'Cantonese']
     }
   },
   {
@@ -105,10 +115,12 @@ export const mockUsers: User[] = [
     membershipTier: 'organizer',
     isOnline: false,
     lastSeen: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
+    ethnicity: 'English, Cantonese',
     preferences: {
       ageRange: [24, 32],
       maxDistance: 18,
-      cuisinePreferences: ['Japanese', 'Modern American', 'Brunch']
+      cuisinePreferences: ['Japanese', 'Modern American', 'Brunch'],
+      preferredEthnicity: ['English', 'Mandarin']
     }
   },
   {
@@ -123,10 +135,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
+    ethnicity: 'English, Mandarin',
     preferences: {
       ageRange: [25, 35],
       maxDistance: 22,
-      cuisinePreferences: ['Ramen', 'Burgers', 'Pizza']
+      cuisinePreferences: ['Ramen', 'Burgers', 'Pizza'],
+      preferredEthnicity: ['English', 'Cantonese']
     }
   },
   {
@@ -141,10 +155,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'free',
     isOnline: true,
+    ethnicity: 'English, Cantonese',
     preferences: {
       ageRange: [25, 33],
       maxDistance: 12,
-      cuisinePreferences: ['Vegetarian', 'Indian', 'Smoothie Bowls']
+      cuisinePreferences: ['Vegetarian', 'Indian', 'Smoothie Bowls'],
+      preferredEthnicity: ['English', 'Mandarin']
     }
   },
   {
@@ -160,10 +176,12 @@ export const mockUsers: User[] = [
     membershipTier: 'premium',
     isOnline: false,
     lastSeen: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+    ethnicity: 'English, Mandarin',
     preferences: {
       ageRange: [28, 40],
       maxDistance: 28,
-      cuisinePreferences: ['Cocktail Bar', 'Steakhouse', 'Modern American']
+      cuisinePreferences: ['Cocktail Bar', 'Steakhouse', 'Modern American'],
+      preferredEthnicity: ['English', 'Cantonese']
     }
   },
   {
@@ -178,10 +196,12 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'free',
     isOnline: true,
+    ethnicity: 'English, Cantonese',
     preferences: {
       ageRange: [22, 30],
       maxDistance: 15,
-      cuisinePreferences: ['Dessert', 'Brunch', 'Fusion']
+      cuisinePreferences: ['Dessert', 'Brunch', 'Fusion'],
+      preferredEthnicity: ['English', 'Mandarin']
     }
   }
 ];
