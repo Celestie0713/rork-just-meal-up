@@ -84,5 +84,57 @@ export const mockMealUps: MealUp[] = [
       paymentType: 'organizer_pays',
       description: 'Workshop fee includes all ingredients, tools, and sake tasting. Organizer covers the cost - just bring yourself!'
     }
+  },
+  {
+    id: '4',
+    organizerId: '3',
+    title: 'Italian Cooking Class',
+    description: 'Master the art of authentic Italian pasta making in this hands-on cooking experience.',
+    date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
+    time: '6:00 PM',
+    venue: {
+      name: 'Nonna\'s Kitchen',
+      address: '234 Little Italy St, San Francisco, CA',
+      cuisine: 'Italian'
+    },
+    maxAttendees: 12,
+    currentAttendees: ['1', '2', '5', '6', '7'],
+    ticketPrice: 75,
+    imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=800&h=400&fit=crop'
+    ],
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Class includes all ingredients and a 3-course meal. Each person pays for their own experience.'
+    }
+  },
+  {
+    id: '5',
+    organizerId: '2',
+    title: 'Rooftop BBQ Social',
+    description: 'Summer BBQ with city views, great food, and even better company!',
+    date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
+    time: '4:00 PM',
+    venue: {
+      name: 'Sky Deck Lounge',
+      address: '567 High Rise Ave, San Francisco, CA',
+      cuisine: 'BBQ'
+    },
+    maxAttendees: 20,
+    currentAttendees: ['1', '3', '4', '5', '6', '8', '9', '10'],
+    ticketPrice: 45,
+    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop'
+    ],
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'BBQ feast with drinks included. We\'ll split the total bill evenly among all attendees.'
+    }
   }
 ];

@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Wine, Coffee, HelpCircle, ChefHat, Cake, Utensils } from 'lucide-react-native';
-
+import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react-native';
+import { mockInvitations } from '@/mocks/invitations';
+import { mockMealUps } from '@/mocks/meal-ups';
+import { mockUsers } from '@/mocks/users';
+import type { MealInvitation, MealUp } from '@/types/user';
 
 const colors = {
   primary: '#FF6B35',
@@ -15,167 +18,180 @@ const colors = {
   premium: '#FFD700',
 } as const;
 
-type MealMenuChoice = 'second-course' | 'appetizer' | 'deciding' | null;
-type RelationshipChoice = 'exclusive' | 'friends' | 'undecided' | null;
+type PostMealEvent = {
+  id: string;
+  type: 'invitation' | 'mealup';
+  title: string;
+  venue: string;
+  address: string;
+  date: Date;
+  time: string;
+  attendees?: string[];
+  imageUrl?: string;
+  cuisine: string;
+};
+
+function parseDateTime(date: Date, time: string): Date {
+  const [timeStr, period] = time.split(' ');
+  const [hours, minutes] = timeStr.split(':').map(Number);
+  
+  let hour24 = hours;
+  if (period === 'PM' && hours !== 12) {
+    hour24 += 12;
+  } else if (period === 'AM' && hours === 12) {
+    hour24 = 0;
+  }
+  
+  const dateTime = new Date(date);
+  dateTime.setHours(hour24, minutes, 0, 0);
+  return dateTime;
+}
+
+function isPostMeal(date: Date, time: string): boolean {
+  const eventDateTime = parseDateTime(date, time);
+  const now = new Date();
+  const tenHoursAfter = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
+  return now >= tenHoursAfter;
+}
 
 export default function PostMealScreen() {
-  const [mealChoice, setMealChoice] = useState<MealMenuChoice>(null);
-  const [relationshipChoice, setRelationshipChoice] = useState<RelationshipChoice>(null);
-  const [showRelationshipMenu, setShowRelationshipMenu] = useState(false);
+  const postMealEvents = useMemo(() => {
+    const events: PostMealEvent[] = [];
+    
+    // Add completed invitations that are 10+ hours past
+    mockInvitations
+      .filter(invitation => 
+        (invitation.status === 'completed' || invitation.status === 'accepted') &&
+        isPostMeal(invitation.date, invitation.time)
+      )
+      .forEach(invitation => {
+        const inviter = mockUsers.find(u => u.id === invitation.inviterId);
+        events.push({
+          id: invitation.id,
+          type: 'invitation',
+          title: `Dinner with ${inviter?.name || 'Someone'}`,
+          venue: invitation.venue.name,
+          address: invitation.venue.address,
+          date: invitation.date,
+          time: invitation.time,
+          cuisine: invitation.venue.cuisine,
+        });
+      });
+    
+    // Add meal ups that are 10+ hours past and user attended
+    mockMealUps
+      .filter(mealUp => 
+        mealUp.currentAttendees.includes('1') && // Current user attended
+        isPostMeal(mealUp.date, mealUp.time)
+      )
+      .forEach(mealUp => {
+        events.push({
+          id: mealUp.id,
+          type: 'mealup',
+          title: mealUp.title,
+          venue: mealUp.venue.name,
+          address: mealUp.venue.address,
+          date: mealUp.date,
+          time: mealUp.time,
+          attendees: mealUp.currentAttendees,
+          imageUrl: mealUp.imageUrl,
+          cuisine: mealUp.venue.cuisine,
+        });
+      });
+    
+    // Sort by date (most recent first)
+    return events.sort((a, b) => b.date.getTime() - a.date.getTime());
+  }, []);
 
-  const handleMealChoice = (choice: MealMenuChoice) => {
-    setMealChoice(choice);
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
-  const handleRelationshipChoice = (choice: RelationshipChoice) => {
-    setRelationshipChoice(choice);
+  const renderPostMealEvent = (event: PostMealEvent) => {
+    return (
+      <TouchableOpacity key={event.id} style={styles.eventCard}>
+        {event.imageUrl && (
+          <Image source={{ uri: event.imageUrl }} style={styles.eventImage} />
+        )}
+        <View style={styles.eventContent}>
+          <View style={styles.eventHeader}>
+            <Text style={styles.eventTitle}>{event.title}</Text>
+            <View style={styles.eventTypeTag}>
+              <Text style={styles.eventTypeText}>
+                {event.type === 'invitation' ? 'Date' : 'Group'}
+              </Text>
+            </View>
+          </View>
+          
+          <View style={styles.eventDetails}>
+            <View style={styles.eventDetailRow}>
+              <MapPin size={16} color={colors.textLight} />
+              <Text style={styles.eventDetailText}>{event.venue}</Text>
+            </View>
+            
+            <View style={styles.eventDetailRow}>
+              <Calendar size={16} color={colors.textLight} />
+              <Text style={styles.eventDetailText}>
+                {formatDate(event.date)} at {event.time}
+              </Text>
+            </View>
+            
+            {event.attendees && event.attendees.length > 1 && (
+              <View style={styles.eventDetailRow}>
+                <Users size={16} color={colors.textLight} />
+                <Text style={styles.eventDetailText}>
+                  {event.attendees.length} attendees
+                </Text>
+              </View>
+            )}
+          </View>
+          
+          <View style={styles.eventFooter}>
+            <Text style={styles.cuisineTag}>{event.cuisine}</Text>
+            <TouchableOpacity style={styles.reviewButton}>
+              <Star size={16} color={colors.primary} />
+              <Text style={styles.reviewButtonText}>Rate Experience</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <Text style={styles.title}>Post Meal Menu</Text>
-          <Text style={styles.subtitle}>How was your meal experience?</Text>
+          <Text style={styles.title}>Post Meal</Text>
+          <Text style={styles.subtitle}>
+            Your completed dining experiences (10+ hours after the meal)
+          </Text>
         </View>
 
-        {!showRelationshipMenu ? (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Meal Menu (10 hours after date)</Text>
-            <Text style={styles.sectionSubtitle}>Choose your next course with Sarah</Text>
-            
-            <TouchableOpacity 
-              style={[styles.choiceCard, mealChoice === 'second-course' && styles.selectedCard]}
-              onPress={() => handleMealChoice('second-course')}
-            >
-              <Wine size={24} color={colors.primary} />
-              <View style={styles.choiceContent}>
-                <Text style={styles.choiceTitle}>🥂 Second Course</Text>
-                <Text style={styles.choiceDescription}>Yes to second date</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.choiceCard, mealChoice === 'appetizer' && styles.selectedCard]}
-              onPress={() => handleMealChoice('appetizer')}
-            >
-              <Coffee size={24} color={colors.warning} />
-              <View style={styles.choiceContent}>
-                <Text style={styles.choiceTitle}>🍋 Just Appetizer</Text>
-                <Text style={styles.choiceDescription}>Stay friends</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.choiceCard, mealChoice === 'deciding' && styles.selectedCard]}
-              onPress={() => handleMealChoice('deciding')}
-            >
-              <HelpCircle size={24} color={colors.textLight} />
-              <View style={styles.choiceContent}>
-                <Text style={styles.choiceTitle}>🍷 Still Deciding</Text>
-                <Text style={styles.choiceDescription}>Not sure yet</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.relationshipButton}
-              onPress={() => setShowRelationshipMenu(true)}
-            >
-              <Text style={styles.relationshipButtonText}>Open Relationship Menu</Text>
-            </TouchableOpacity>
+        {postMealEvents.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Clock size={48} color={colors.textLight} />
+            <Text style={styles.emptyStateTitle}>No Post-Meal Events Yet</Text>
+            <Text style={styles.emptyStateText}>
+              Your completed meals will appear here 10 hours after the scheduled time.
+            </Text>
           </View>
         ) : (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Relationship Menu</Text>
-            <Text style={styles.sectionSubtitle}>Define your relationship with Sarah</Text>
-            
-            <TouchableOpacity 
-              style={[styles.choiceCard, relationshipChoice === 'exclusive' && styles.selectedCard]}
-              onPress={() => handleRelationshipChoice('exclusive')}
-            >
-              <ChefHat size={24} color={colors.primary} />
-              <View style={styles.choiceContent}>
-                <Text style={styles.choiceTitle}>🥂 Chef&apos;s Special</Text>
-                <Text style={styles.choiceDescription}>Let&apos;s Date Exclusively</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.choiceCard, relationshipChoice === 'friends' && styles.selectedCard]}
-              onPress={() => handleRelationshipChoice('friends')}
-            >
-              <Cake size={24} color={colors.warning} />
-              <View style={styles.choiceContent}>
-                <Text style={styles.choiceTitle}>🍰 Side Dish</Text>
-                <Text style={styles.choiceDescription}>Stay Friends</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={[styles.choiceCard, relationshipChoice === 'undecided' && styles.selectedCard]}
-              onPress={() => handleRelationshipChoice('undecided')}
-            >
-              <Utensils size={24} color={colors.textLight} />
-              <View style={styles.choiceContent}>
-                <Text style={styles.choiceTitle}>🥄 Undecided Palate</Text>
-                <Text style={styles.choiceDescription}>I Actually Don&apos;t Know</Text>
-              </View>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.backButton}
-              onPress={() => setShowRelationshipMenu(false)}
-            >
-              <Text style={styles.backButtonText}>Back to Meal Menu</Text>
-            </TouchableOpacity>
+          <View style={styles.eventsContainer}>
+            {postMealEvents.map(renderPostMealEvent)}
           </View>
         )}
 
-        <View style={styles.attendedSection}>
-          <Text style={styles.attendedTitle}>Attended Meal Ups</Text>
-          <Text style={styles.attendedSubtitle}>Your meal up history</Text>
-          
-          <View style={styles.attendedContainer}>
-            <View style={styles.attendedItem}>
-              <View style={styles.attendedInfo}>
-                <Text style={styles.attendedMealTitle}>Italian Night</Text>
-                <Text style={styles.attendedDate}>Dec 15, 2024</Text>
-                <Text style={styles.attendedVenue}>The Italian Corner</Text>
-              </View>
-              <View style={styles.attendedStatus}>
-                <Text style={styles.attendedStatusText}>Attended</Text>
-              </View>
-            </View>
-            
-            <View style={styles.attendedItem}>
-              <View style={styles.attendedInfo}>
-                <Text style={styles.attendedMealTitle}>Taco Tuesday</Text>
-                <Text style={styles.attendedDate}>Nov 28, 2024</Text>
-                <Text style={styles.attendedVenue}>El Mariachi</Text>
-              </View>
-              <View style={styles.attendedStatus}>
-                <Text style={styles.attendedStatusText}>Attended</Text>
-              </View>
-            </View>
-            
-            <View style={styles.attendedItem}>
-              <View style={styles.attendedInfo}>
-                <Text style={styles.attendedMealTitle}>Wine & Dine</Text>
-                <Text style={styles.attendedDate}>Nov 15, 2024</Text>
-                <Text style={styles.attendedVenue}>Vintage Cellar</Text>
-              </View>
-              <View style={styles.attendedStatus}>
-                <Text style={styles.attendedStatusText}>Attended</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
         <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>How it works:</Text>
-          <Text style={styles.infoText}>• Choices are revealed only when both users make their selection</Text>
-          <Text style={styles.infoText}>• You can have up to 4 dates before the Relationship Menu</Text>
-          <Text style={styles.infoText}>• Premium members can see the other person&apos;s choice first</Text>
+          <Text style={styles.infoTitle}>About Post Meal:</Text>
+          <Text style={styles.infoText}>• Events appear here 10 hours after the scheduled meal time</Text>
+          <Text style={styles.infoText}>• Rate your dining experiences and share feedback</Text>
+          <Text style={styles.infoText}>• Both individual dates and group meal ups are included</Text>
+          <Text style={styles.infoText}>• Help improve the community by sharing your thoughts</Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -203,72 +219,114 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 16,
     color: colors.textLight,
+    lineHeight: 22,
   },
-  section: {
-    marginBottom: 24,
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 40,
   },
-  sectionTitle: {
+  emptyStateTitle: {
     fontSize: 20,
     fontWeight: '600',
     color: colors.text,
-    marginBottom: 4,
+    marginTop: 16,
+    marginBottom: 8,
   },
-  sectionSubtitle: {
-    fontSize: 14,
+  emptyStateText: {
+    fontSize: 16,
     color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  eventsContainer: {
+    gap: 16,
+    marginBottom: 24,
+  },
+  eventCard: {
+    backgroundColor: colors.surface,
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  eventImage: {
+    width: '100%',
+    height: 120,
+    resizeMode: 'cover',
+  },
+  eventContent: {
+    padding: 16,
+  },
+  eventHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  eventTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.text,
+    flex: 1,
+    marginRight: 12,
+  },
+  eventTypeTag: {
+    backgroundColor: colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  eventTypeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.background,
+  },
+  eventDetails: {
+    gap: 8,
     marginBottom: 16,
   },
-  choiceCard: {
+  eventDetailRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: 'transparent',
+    gap: 8,
   },
-  selectedCard: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primary + '10',
-  },
-  choiceContent: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  choiceTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  choiceDescription: {
+  eventDetailText: {
     fontSize: 14,
     color: colors.textLight,
+    flex: 1,
   },
-  relationshipButton: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    padding: 16,
+  eventFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 8,
   },
-  relationshipButtonText: {
-    color: colors.background,
-    fontSize: 16,
-    fontWeight: '600',
+  cuisineTag: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: colors.primary,
+    backgroundColor: colors.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
   },
-  backButton: {
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
+  reviewButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    gap: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
-  backButtonText: {
-    color: colors.text,
-    fontSize: 16,
+  reviewButtonText: {
+    fontSize: 12,
     fontWeight: '600',
+    color: colors.primary,
   },
   infoSection: {
     backgroundColor: colors.surface,
@@ -286,58 +344,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textLight,
     marginBottom: 4,
-  },
-  attendedSection: {
-    marginBottom: 24,
-  },
-  attendedTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  attendedSubtitle: {
-    fontSize: 14,
-    color: colors.textLight,
-    marginBottom: 16,
-  },
-  attendedContainer: {
-    gap: 12,
-  },
-  attendedItem: {
-    flexDirection: 'row',
-    backgroundColor: colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  attendedInfo: {
-    flex: 1,
-  },
-  attendedMealTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 4,
-  },
-  attendedDate: {
-    fontSize: 14,
-    color: colors.textLight,
-    marginBottom: 2,
-  },
-  attendedVenue: {
-    fontSize: 14,
-    color: colors.textLight,
-  },
-  attendedStatus: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: colors.success,
-  },
-  attendedStatusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.background,
+    lineHeight: 20,
   },
 });

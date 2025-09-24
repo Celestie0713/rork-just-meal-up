@@ -75,5 +75,35 @@ export const mockInvitations: MealInvitation[] = [
     },
     status: 'declined',
     createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
+  },
+  {
+    id: '6',
+    inviterId: '3',
+    inviteeId: '1',
+    date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+    time: '7:30 PM',
+    venue: {
+      name: 'Wine & Dine',
+      address: '789 Vintage Street, Wine District',
+      cuisine: 'French',
+      placeId: 'mock_place_6'
+    },
+    status: 'completed',
+    createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: '7',
+    inviterId: '4',
+    inviteeId: '1',
+    date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
+    time: '6:00 PM',
+    venue: {
+      name: 'Sakura Sushi',
+      address: '456 Cherry Blossom Lane, Japan Town',
+      cuisine: 'Japanese',
+      placeId: 'mock_place_7'
+    },
+    status: 'completed',
+    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
   }
 ];
