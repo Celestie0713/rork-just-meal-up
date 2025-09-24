@@ -1,12 +1,13 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, Star, ChevronRight } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Calendar, MapPin, Users, Clock, ChevronRight, Crown } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import type { MealInvitation, MealUp } from '@/types/user';
+import { mockPostDateResponses } from '@/mocks/post-date-responses';
+import { useAuth } from '@/hooks/use-auth';
 
 const colors = {
   primary: '#FF6B35',
@@ -56,6 +57,32 @@ function isPostMeal(date: Date, time: string): boolean {
 }
 
 export default function PostMealScreen() {
+  const { user } = useAuth();
+  const insets = useSafeAreaInsets();
+  const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
+
+  const getDateChoice = (invitationId: string) => {
+    const invitation = mockInvitations.find(inv => inv.id === invitationId);
+    if (!invitation) return null;
+    
+    const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+    const response = mockPostDateResponses.find(r => r.mealId === invitationId && r.userId === dateUserId);
+    return response?.choice || null;
+  };
+
+  const getChoiceDisplay = (choice: string) => {
+    switch (choice) {
+      case 'buddy_pass':
+        return { text: 'Buddy pass ✅', subtext: '(Stay Friend)' };
+      case 'next_round':
+        return { text: "Let's do next round", subtext: '(Next date)' };
+      case 'fight_for_fries':
+        return { text: 'Fight for fries for life', subtext: '(Be my +1?)' };
+      default:
+        return null;
+    }
+  };
+
   const postMealEvents = useMemo(() => {
     const events: PostMealEvent[] = [];
     
@@ -123,6 +150,9 @@ export default function PostMealScreen() {
 
   const renderPostMealEvent = (event: PostMealEvent) => {
     const isGroup = event.type === 'mealup';
+    const invitationId = event.id.replace('invitation-', '');
+    const dateChoice = !isGroup ? getDateChoice(invitationId) : null;
+    const choiceDisplay = dateChoice ? getChoiceDisplay(dateChoice) : null;
     
     return (
       <TouchableOpacity 
@@ -176,20 +206,48 @@ export default function PostMealScreen() {
             </View>
           ) : (
             <View style={styles.choicesContainer}>
-              <TouchableOpacity style={styles.choiceButton}>
-                <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
-                <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.choiceButton}>
-                <Text style={styles.choiceButtonText}>Let's do next round</Text>
-                <Text style={styles.choiceSubtext}>(Next date)</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.choiceButton}>
-                <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
-                <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
-              </TouchableOpacity>
+              {isPremium && choiceDisplay ? (
+                <View style={styles.premiumSection}>
+                  <View style={styles.premiumHeader}>
+                    <Crown size={16} color={colors.premium} />
+                    <Text style={styles.premiumText}>Your date chose:</Text>
+                  </View>
+                  <View style={[styles.choiceButton, styles.selectedChoice]}>
+                    <Text style={[styles.choiceButtonText, styles.selectedChoiceText]}>
+                      {choiceDisplay.text}
+                    </Text>
+                    <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext]}>
+                      {choiceDisplay.subtext}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <>
+                  <TouchableOpacity style={styles.choiceButton}>
+                    <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
+                    <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.choiceButton}>
+                    <Text style={styles.choiceButtonText}>Let&apos;s do next round</Text>
+                    <Text style={styles.choiceSubtext}>(Next date)</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={styles.choiceButton}>
+                    <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
+                    <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
+                  </TouchableOpacity>
+                  
+                  {!isPremium && (
+                    <View style={styles.upgradePrompt}>
+                      <Crown size={14} color={colors.premium} />
+                      <Text style={styles.upgradeText}>
+                        Upgrade to Premium to see your date&apos;s choice
+                      </Text>
+                    </View>
+                  )}
+                </>
+              )}
             </View>
           )}
         </View>
@@ -198,7 +256,7 @@ export default function PostMealScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
           <Text style={styles.title}>Post Meal</Text>
@@ -229,7 +287,7 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>• Help improve the community by sharing your thoughts</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -396,5 +454,46 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     marginBottom: 4,
     lineHeight: 20,
+  },
+  premiumSection: {
+    gap: 12,
+  },
+  premiumHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 4,
+  },
+  premiumText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.premium,
+  },
+  selectedChoice: {
+    backgroundColor: colors.premium,
+    borderColor: colors.premium,
+  },
+  selectedChoiceText: {
+    color: colors.background,
+  },
+  selectedChoiceSubtext: {
+    color: colors.background,
+    opacity: 0.8,
+  },
+  upgradePrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  upgradeText: {
+    fontSize: 12,
+    color: colors.textLight,
+    textAlign: 'center',
   },
 });
