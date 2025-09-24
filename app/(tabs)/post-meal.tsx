@@ -150,10 +150,7 @@ export default function PostMealScreen() {
             )}
           </View>
           
-          <View style={styles.eventFooter}>
-            <Text style={styles.cuisineTag}>{event.cuisine}</Text>
-          </View>
-          
+
           <View style={styles.choicesContainer}>
             <TouchableOpacity style={styles.choiceButton}>
               <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
@@ -312,20 +309,7 @@ const styles = StyleSheet.create({
     color: colors.textLight,
     flex: 1,
   },
-  eventFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  cuisineTag: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.primary,
-    backgroundColor: colors.primary + '15',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
+
   choicesContainer: {
     gap: 8,
     marginTop: 12,
