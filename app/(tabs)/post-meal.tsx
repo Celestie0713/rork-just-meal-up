@@ -247,7 +247,7 @@ export default function PostMealScreen() {
               )}
               
               <View style={styles.userChoicesSection}>
-                <Text style={styles.userChoicesTitle}>What&apos;s your choice? 🤘</Text>
+                <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
                 
                 <TouchableOpacity style={styles.choiceButton}>
                   <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
