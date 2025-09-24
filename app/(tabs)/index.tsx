@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Search, Filter, RefreshCw, MapPin as MapPinIcon, Bell } from 'lucide-react-native';
+import { Search, Filter, RefreshCw, MapPin as MapPinIcon, Heart } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
@@ -188,7 +188,7 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <Bell size={24} color={Colors.text} />
+            <Heart size={24} color={Colors.text} />
           </TouchableOpacity>
         </View>
         
