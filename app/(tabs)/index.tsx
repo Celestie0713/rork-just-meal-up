@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Search, Filter, RefreshCw, MapPin as MapPinIcon } from 'lucide-react-native';
+import { Search, Filter, RefreshCw, MapPin as MapPinIcon, Bell } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
@@ -98,6 +98,14 @@ export default function SearchScreen() {
     }
   };
 
+  const handleNotificationPress = () => {
+    Alert.alert(
+      'Notifications',
+      'You have 3 new notifications:\n\n• Sarah invited you to dinner at Olive Garden\n• New restaurant "Pasta Palace" opened nearby\n• Your meal request was accepted by Mike',
+      [{ text: 'OK' }]
+    );
+  };
+
   const filteredUsers = mockUsers.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     user.location.toLowerCase().includes(searchQuery.toLowerCase())
@@ -177,6 +185,12 @@ export default function SearchScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
+        <View style={styles.titleContainer}>
+          <Text style={styles.title}>Just Meal Up</Text>
+          <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
+            <Bell size={24} color={Colors.text} />
+          </TouchableOpacity>
+        </View>
         
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
@@ -239,12 +253,21 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     backgroundColor: '#FFF8E7',
   },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
   title: {
     fontSize: 28,
     fontWeight: '800',
     color: Colors.text,
-    marginBottom: 16,
-    textAlign: 'center',
+  },
+  notificationButton: {
+    padding: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 165, 0, 0.1)',
   },
   subtitle: {
     fontSize: 16,
