@@ -399,7 +399,6 @@ const styles = StyleSheet.create({
   },
   clickableName: {
     color: colors.primary,
-    textDecorationLine: 'underline',
   },
   eventTypeTag: {
     backgroundColor: colors.primary,
