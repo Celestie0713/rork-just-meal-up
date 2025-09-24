@@ -62,7 +62,7 @@ export default function MealUpAttendeesScreen() {
     <View style={styles.container}>
       <Stack.Screen 
         options={{ 
-          title: 'Who\'s Going',
+          title: 'Your next course: 1 on 1 time🎈',
           headerStyle: {
             backgroundColor: Colors.background,
           },
