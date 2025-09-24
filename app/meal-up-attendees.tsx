@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Alert } from 'react-native';
 import { useLocalSearchParams, Stack, router } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Users } from 'lucide-react-native';
 import { UserCard } from '@/components/UserCard';
+import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -16,12 +17,12 @@ export default function MealUpAttendeesScreen() {
   
   if (!mealUp) {
     return (
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <Stack.Screen options={{ title: 'Attendees' }} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>Meal up not found</Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
   
@@ -42,11 +43,23 @@ export default function MealUpAttendeesScreen() {
     console.log('Opening user profile:', user.name);
     router.push(`/user-profile?userId=${user.id}`);
   };
+
+  const handleVoiceSend = (duration: number, audioUri?: string) => {
+    console.log('Voice message sent:', { duration, audioUri });
+    Alert.alert(
+      'Voice Message Sent!',
+      `Your ${duration} second voice message has been sent to all attendees.`
+    );
+  };
+
+  const handleVoiceCancel = () => {
+    console.log('Voice recording cancelled');
+  };
   
 
   
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Stack.Screen 
         options={{ 
           title: 'Who\'s Going',
@@ -87,13 +100,23 @@ export default function MealUpAttendeesScreen() {
         />
       </View>
       
+      <View style={styles.voiceSection}>
+        <Text style={styles.voiceSectionTitle}>Send Voice Message to All</Text>
+        <View style={styles.voiceRecorderContainer}>
+          <VoiceRecorder 
+            onSend={handleVoiceSend}
+            onCancel={handleVoiceCancel}
+          />
+        </View>
+      </View>
+      
       {allParticipants.length === 0 && (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No participants yet</Text>
           <Text style={styles.emptySubtext}>Be the first to join this meal up!</Text>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -166,5 +189,22 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     textAlign: 'center',
     marginTop: 8,
+  },
+  voiceSection: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: Colors.surface,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+  },
+  voiceSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  voiceRecorderContainer: {
+    alignItems: 'center',
   },
 });

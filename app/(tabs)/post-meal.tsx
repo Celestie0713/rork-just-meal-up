@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, Star } from 'lucide-react-native';
+import { Calendar, MapPin, Users, Clock, Star, ChevronRight } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -111,9 +112,23 @@ export default function PostMealScreen() {
     });
   };
 
+  const handleEventPress = (event: PostMealEvent) => {
+    if (event.type === 'mealup') {
+      // Navigate to attendees page for group events
+      router.push(`/meal-up-attendees?mealUpId=${event.id}`);
+    }
+  };
+
   const renderPostMealEvent = (event: PostMealEvent) => {
+    const isGroup = event.type === 'mealup';
+    
     return (
-      <TouchableOpacity key={event.id} style={styles.eventCard}>
+      <TouchableOpacity 
+        key={event.id} 
+        style={styles.eventCard}
+        onPress={() => handleEventPress(event)}
+        disabled={!isGroup}
+      >
         {event.imageUrl && (
           <Image source={{ uri: event.imageUrl }} style={styles.eventImage} />
         )}
@@ -150,23 +165,31 @@ export default function PostMealScreen() {
             )}
           </View>
           
-
-          <View style={styles.choicesContainer}>
-            <TouchableOpacity style={styles.choiceButton}>
-              <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
-              <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.choiceButton}>
-              <Text style={styles.choiceButtonText}>Let's do next round</Text>
-              <Text style={styles.choiceSubtext}>(Next date)</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.choiceButton}>
-              <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
-              <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
-            </TouchableOpacity>
-          </View>
+          {isGroup ? (
+            <View style={styles.groupActionContainer}>
+              <View style={styles.groupActionContent}>
+                <Text style={styles.groupActionText}>Tap to view attendees and send voice notes</Text>
+                <ChevronRight size={20} color={colors.primary} />
+              </View>
+            </View>
+          ) : (
+            <View style={styles.choicesContainer}>
+              <TouchableOpacity style={styles.choiceButton}>
+                <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
+                <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.choiceButton}>
+                <Text style={styles.choiceButtonText}>Let's do next round</Text>
+                <Text style={styles.choiceSubtext}>(Next date)</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.choiceButton}>
+                <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
+                <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </TouchableOpacity>
     );
@@ -332,6 +355,27 @@ const styles = StyleSheet.create({
   choiceSubtext: {
     fontSize: 12,
     color: colors.textLight,
+  },
+  groupActionContainer: {
+    marginTop: 12,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+  },
+  groupActionContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  groupActionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.primary,
+    flex: 1,
+    marginRight: 8,
   },
   infoSection: {
     backgroundColor: colors.surface,
