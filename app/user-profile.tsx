@@ -71,7 +71,7 @@ export default function UserProfileScreen() {
 
   const renderTabBar = () => {
     const tabs = [
-      { id: 'food' as TabType, label: 'Food Preferences', icon: Utensils },
+      { id: 'food' as TabType, label: 'Food to bribe me with', icon: Utensils },
       { id: 'pictures' as TabType, label: 'Pictures', icon: Camera },
       { id: 'mealups' as TabType, label: 'Meal ups', icon: Users },
     ];
