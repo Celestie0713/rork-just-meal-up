@@ -243,7 +243,10 @@ export default function PostMealScreen() {
             <View style={styles.choicesContainer}>
               <View style={styles.dateChoiceSection}>
                 <View style={styles.dateChoiceHeader}>
-                  <Text style={styles.dateChoiceText}>Your date chose:</Text>
+                  <View style={styles.dateChoiceHeaderContent}>
+                    <Text style={styles.dateChoiceText}>Your date chose:</Text>
+                    <Star size={14} color={colors.premium} />
+                  </View>
                 </View>
                 {isPremium && choiceDisplay ? (
                   <View style={[styles.choiceButton, styles.selectedChoice]}>
@@ -518,6 +521,11 @@ const styles = StyleSheet.create({
   },
   dateChoiceHeader: {
     marginBottom: 4,
+  },
+  dateChoiceHeaderContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   dateChoiceText: {
     fontSize: 14,
