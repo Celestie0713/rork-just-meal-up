@@ -180,6 +180,7 @@ export default function PostMealScreen() {
                       }
                     }
                   }}
+                  style={styles.inlineButton}
                 >
                   <Text style={[styles.eventTitle, styles.clickableName]}>
                     {event.title.replace('Dinner with ', '')}
@@ -393,7 +394,7 @@ const styles = StyleSheet.create({
   },
   titleContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'baseline',
     flex: 1,
     marginRight: 12,
   },
@@ -539,5 +540,8 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 8,
     textAlign: 'center',
+  },
+  inlineButton: {
+    marginLeft: -2,
   },
 });
