@@ -614,7 +614,6 @@ const styles = StyleSheet.create({
   },
   clickableName: {
     color: colors.primary,
-    textDecorationLine: 'underline',
   },
   inviterAge: {
     fontSize: 14,
@@ -636,7 +635,6 @@ const styles = StyleSheet.create({
   },
   clickableText: {
     color: colors.primary,
-    textDecorationLine: 'underline',
   },
   actionButtons: {
     flexDirection: 'row',
