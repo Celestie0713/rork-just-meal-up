@@ -62,6 +62,7 @@ export default function PostMealScreen() {
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
 
   const handleUpgradeToPremium = () => {
     setShowUpgradeModal(true);
@@ -156,6 +157,13 @@ export default function PostMealScreen() {
     });
   };
 
+  const handleChoiceSelect = (eventId: string, choice: string) => {
+    setSelectedChoices(prev => ({
+      ...prev,
+      [eventId]: choice
+    }));
+  };
+
   const handleEventPress = (event: PostMealEvent) => {
     if (event.type === 'mealup') {
       // Extract the original meal up ID by removing the prefix
@@ -165,18 +173,25 @@ export default function PostMealScreen() {
     }
   };
 
+  const isChoiceRequired = (event: PostMealEvent) => {
+    return event.type === 'invitation' && !selectedChoices[event.id];
+  };
+
   const renderPostMealEvent = (event: PostMealEvent) => {
     const isGroup = event.type === 'mealup';
     const invitationId = event.id.replace('invitation-', '');
     const dateChoice = !isGroup ? getDateChoice(invitationId) : null;
     const choiceDisplay = dateChoice ? getChoiceDisplay(dateChoice) : null;
+    const userSelectedChoice = selectedChoices[event.id];
+    const hasUserMadeChoice = !!userSelectedChoice;
+    const requiresChoice = isChoiceRequired(event);
     
     return (
       <TouchableOpacity 
         key={event.id} 
-        style={styles.eventCard}
+        style={[styles.eventCard, requiresChoice && styles.disabledContainer]}
         onPress={() => handleEventPress(event)}
-        disabled={!isGroup}
+        disabled={!isGroup || requiresChoice}
       >
         {event.imageUrl && (
           <Image source={{ uri: event.imageUrl }} style={styles.eventImage} />
@@ -186,6 +201,7 @@ export default function PostMealScreen() {
             {event.type === 'invitation' ? (
               <TouchableOpacity 
                 onPress={() => {
+                  if (requiresChoice) return;
                   const invitationId = event.id.replace('invitation-', '');
                   const invitation = mockInvitations.find(inv => inv.id === invitationId);
                   if (invitation) {
@@ -195,7 +211,8 @@ export default function PostMealScreen() {
                     }
                   }
                 }}
-                style={styles.profileContainer}
+                style={[styles.profileContainer, requiresChoice && styles.disabledContainer]}
+                disabled={requiresChoice}
               >
                 {(() => {
                   const invitationId = event.id.replace('invitation-', '');
@@ -280,11 +297,12 @@ export default function PostMealScreen() {
                   </View>
                 ) : (
                   <TouchableOpacity 
-                    style={styles.upgradePromptInline}
-                    onPress={handleUpgradeToPremium}
+                    style={[styles.upgradePromptInline, requiresChoice && styles.disabledContainer]}
+                    onPress={requiresChoice ? undefined : handleUpgradeToPremium}
+                    disabled={requiresChoice}
                   >
-                    <Star size={14} color={colors.premium} />
-                    <Text style={styles.upgradeTextInline}>
+                    <Star size={14} color={requiresChoice ? colors.textLight : colors.premium} />
+                    <Text style={[styles.upgradeTextInline, requiresChoice && styles.disabledText]}>
                       Upgrade to Premium to see your date's choice
                     </Text>
                   </TouchableOpacity>
@@ -293,23 +311,62 @@ export default function PostMealScreen() {
               
               <View style={styles.userChoicesSection}>
                 <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
+                {!hasUserMadeChoice && (
+                  <View style={styles.choiceRequiredNotice}>
+                    <Text style={styles.choiceRequiredText}>Please select one option to continue</Text>
+                  </View>
+                )}
                 
-                <TouchableOpacity style={styles.choiceButton}>
-                  <Text style={styles.choiceButtonText}>Buddy pass ✅</Text>
-                  <Text style={styles.choiceSubtext}>(Stay Friend)</Text>
+                <TouchableOpacity 
+                  style={[
+                    styles.choiceButton,
+                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButton
+                  ]}
+                  onPress={() => handleChoiceSelect(event.id, 'buddy_pass')}
+                >
+                  <Text style={[
+                    styles.choiceButtonText,
+                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
+                  ]}>Buddy pass ✅</Text>
+                  <Text style={[
+                    styles.choiceSubtext,
+                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
+                  ]}>(Stay Friend)</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.choiceButton}>
-                  <Text style={styles.choiceButtonText}>Let&apos;s do next round</Text>
-                  <Text style={styles.choiceSubtext}>(Next date)</Text>
+                <TouchableOpacity 
+                  style={[
+                    styles.choiceButton,
+                    userSelectedChoice === 'next_round' && styles.selectedChoiceButton
+                  ]}
+                  onPress={() => handleChoiceSelect(event.id, 'next_round')}
+                >
+                  <Text style={[
+                    styles.choiceButtonText,
+                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
+                  ]}>Let&apos;s do next round</Text>
+                  <Text style={[
+                    styles.choiceSubtext,
+                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
+                  ]}>(Next date)</Text>
                 </TouchableOpacity>
                 
-                <TouchableOpacity style={styles.choiceButton}>
-                  <Text style={styles.choiceButtonText}>Fight for fries for life</Text>
-                  <Text style={styles.choiceSubtext}>(Be my +1?)</Text>
+                <TouchableOpacity 
+                  style={[
+                    styles.choiceButton,
+                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
+                  ]}
+                  onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                >
+                  <Text style={[
+                    styles.choiceButtonText,
+                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                  ]}>Fight for fries for life</Text>
+                  <Text style={[
+                    styles.choiceSubtext,
+                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                  ]}>(Be my +1?)</Text>
                 </TouchableOpacity>
-                
-
               </View>
             </View>
           )}
@@ -761,5 +818,32 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.background,
   },
-
+  disabledContainer: {
+    opacity: 0.5,
+  },
+  disabledText: {
+    color: colors.textLight,
+  },
+  choiceRequiredNotice: {
+    backgroundColor: '#FFF3CD',
+    borderWidth: 1,
+    borderColor: '#FFEAA7',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginBottom: 8,
+  },
+  choiceRequiredText: {
+    fontSize: 12,
+    color: '#856404',
+    textAlign: 'center',
+    fontWeight: '500',
+  },
+  selectedChoiceButton: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  selectedChoiceButtonText: {
+    color: colors.background,
+  },
 });
