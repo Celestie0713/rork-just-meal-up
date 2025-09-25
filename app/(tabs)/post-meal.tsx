@@ -777,9 +777,9 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
-                  // Navigate to create-invitation for next_round matches
+                  // Navigate to Search page with Places tab for next_round matches
                   if (matchResult?.matchType === 'next_round') {
-                    router.push('/create-invitation');
+                    router.push('/?tab=places');
                   }
                 }}
               >
