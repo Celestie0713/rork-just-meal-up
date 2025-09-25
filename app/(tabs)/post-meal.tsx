@@ -637,7 +637,15 @@ export default function PostMealScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Success! 🎉</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Success! 🎉</Text>
+              <TouchableOpacity 
+                onPress={() => setShowSuccessModal(false)}
+                style={styles.closeButton}
+              >
+                <X size={24} color={colors.textLight} />
+              </TouchableOpacity>
+            </View>
             <Text style={styles.modalDescription}>
               You&apos;ve been upgraded to Premium!
             </Text>
@@ -663,6 +671,15 @@ export default function PostMealScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, styles.matchModalContent]}>
+            <TouchableOpacity 
+              onPress={() => {
+                setShowMatchModal(false);
+                setMatchResult(null);
+              }}
+              style={styles.matchModalCloseButton}
+            >
+              <X size={24} color={colors.textLight} />
+            </TouchableOpacity>
             {matchResult?.matchType === 'fight_for_fries' ? (
               <>
                 <View style={styles.takenIconContainer}>
@@ -1267,6 +1284,13 @@ const styles = StyleSheet.create({
   },
   balloon: {
     fontSize: 40,
+  },
+  matchModalCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    padding: 4,
+    zIndex: 1,
   },
   finalizedChoiceButton: {
     backgroundColor: colors.success,
