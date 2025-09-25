@@ -282,7 +282,8 @@ export default function PostMealScreen() {
                         {isMatch && (
                           <TouchableOpacity 
                             style={styles.matchIcon}
-                            onPress={() => {
+                            onPress={(e) => {
+                              e.stopPropagation(); // Prevent event bubbling to profile container
                               const invitation = mockInvitations.find(inv => inv.id === invitationId);
                               if (invitation) {
                                 // Navigate to the match's profile (the other person)
@@ -290,6 +291,7 @@ export default function PostMealScreen() {
                                 const matchUserId = invitation.inviterId === currentUserId 
                                   ? invitation.inviteeId 
                                   : invitation.inviterId;
+                                console.log('Love icon clicked - navigating to match profile:', matchUserId);
                                 router.push(`/user-profile?userId=${matchUserId}`);
                               }
                             }}
