@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign } from 'l
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
+import { useChat } from '@/hooks/use-chat';
 import type { User } from '@/types/user';
 
 interface ChatData {
@@ -48,6 +49,7 @@ const mockChats: ChatData[] = [
 ];
 
 export default function MessagesScreen() {
+  const { getAvailableChats, isLoaded } = useChat();
   const params = useLocalSearchParams<{
     placeName?: string;
     placeAddress?: string;
@@ -65,7 +67,8 @@ export default function MessagesScreen() {
     mealUpImage?: string;
   }>();
   
-  const [chats] = useState<ChatData[]>(mockChats);
+  const [chats, setChats] = useState<ChatData[]>(mockChats);
+  const [filteredChats, setFilteredChats] = useState<ChatData[]>(mockChats);
   const [isInvitationMode, setIsInvitationMode] = useState<boolean>(false);
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
   const [invitationData, setInvitationData] = useState<any>(null);
@@ -94,6 +97,15 @@ export default function MessagesScreen() {
       });
     }
   }, [params]);
+  
+  // Filter chats based on removed profiles
+  React.useEffect(() => {
+    if (isLoaded) {
+      const availableChats = getAvailableChats(chats);
+      setFilteredChats(availableChats);
+      console.log(`Filtered chats: ${availableChats.length} out of ${chats.length} total chats`);
+    }
+  }, [chats, getAvailableChats, isLoaded]);
 
   const handleChatPress = (user: User) => {
     if (isInvitationMode && invitationData) {
@@ -271,11 +283,11 @@ export default function MessagesScreen() {
       )}
       
       <FlatList
-        data={chats}
+        data={filteredChats}
         renderItem={renderChatItem}
         keyExtractor={(item) => item.user.id}
         style={styles.chatsList}
-        contentContainerStyle={chats.length === 0 ? styles.emptyContainer : styles.chatsContent}
+        contentContainerStyle={filteredChats.length === 0 ? styles.emptyContainer : styles.chatsContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyState}
       />

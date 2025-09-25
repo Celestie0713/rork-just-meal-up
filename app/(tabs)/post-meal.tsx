@@ -9,6 +9,7 @@ import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
 import { mockPostDateResponses } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
+import { useChat } from '@/hooks/use-chat';
 
 const colors = {
   primary: '#FF6B35',
@@ -59,6 +60,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
+  const { checkAndRemoveNonMatchingProfiles } = useChat();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -217,13 +219,30 @@ export default function PostMealScreen() {
     }));
     
     // Record the timestamp when the choice was made
-    setChoiceTimestamps(prev => ({
-      ...prev,
-      [eventId]: now
-    }));
+    setChoiceTimestamps(prev => {
+      const updated = {
+        ...prev,
+        [eventId]: now
+      };
+      
+      // Check and remove non-matching profiles after updating timestamps
+      setTimeout(() => {
+        const userChoices: Record<string, { choice: string; timestamp: Date }> = {};
+        Object.entries(updated).forEach(([id, timestamp]) => {
+          const selectedChoice = id === eventId ? choice : selectedChoices[id];
+          if (selectedChoice) {
+            userChoices[id] = { choice: selectedChoice, timestamp };
+          }
+        });
+        checkAndRemoveNonMatchingProfiles(userChoices);
+      }, 100);
+      
+      return updated;
+    });
     
     console.log(`Choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
     console.log('Event will be automatically removed in 24 hours');
+    console.log('Non-matching profiles will be removed from chat after 24 hours');
     
     // Check for match after user makes a choice
     const invitationId = eventId.replace('invitation-', '');
@@ -552,6 +571,7 @@ export default function PostMealScreen() {
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>• Events appear here 10 hours after the scheduled meal time</Text>
           <Text style={styles.infoText}>• Once you make a decision, the date will be automatically removed within 24 hours</Text>
+          <Text style={styles.infoText}>• If you and your date don&apos;t match, their profile will disappear from your chat list after 24 hours</Text>
           <Text style={styles.infoText}>• Both individual dates and group meal ups are included</Text>
           <Text style={styles.infoText}>• Help improve the community by sharing your thoughts</Text>
         </View>
