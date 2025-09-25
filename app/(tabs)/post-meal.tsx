@@ -231,6 +231,10 @@ export default function PostMealScreen() {
     const choiceDisplay = dateChoice ? getChoiceDisplay(dateChoice) : null;
     const userSelectedChoice = selectedChoices[event.id];
     const hasUserMadeChoice = !!userSelectedChoice;
+    
+    // Check if there's a match (both users chose the same option)
+    const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
+    const isTaken = isMatch && userSelectedChoice === 'fight_for_fries';
 
     
     return (
@@ -271,9 +275,29 @@ export default function PostMealScreen() {
                           style={styles.profileImage} 
                         />
                       )}
-                      <Text style={[styles.eventTitle, styles.clickableName]}>
-                        {event.title.replace('Dinner with ', '')}
-                      </Text>
+                      <View style={styles.nameContainer}>
+                        <Text style={[styles.eventTitle, styles.clickableName]}>
+                          {event.title.replace('Dinner with ', '')}
+                        </Text>
+                        {isMatch && (
+                          <TouchableOpacity 
+                            style={styles.matchIcon}
+                            onPress={() => {
+                              const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                              if (invitation) {
+                                const inviter = mockUsers.find(u => u.id === invitation.inviterId);
+                                if (inviter) {
+                                  router.push(`/user-profile?userId=${inviter.id}`);
+                                }
+                              }
+                            }}
+                          >
+                            <View style={styles.takenIconSmall}>
+                              <Text style={styles.takenIconSmallText}>T</Text>
+                            </View>
+                          </TouchableOpacity>
+                        )}
+                      </View>
                     </View>
                   );
                 })()}
@@ -707,6 +731,29 @@ const styles = StyleSheet.create({
   },
   clickableName: {
     color: colors.primary,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  matchIcon: {
+    padding: 2,
+  },
+  takenIconSmall: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: colors.background,
+  },
+  takenIconSmallText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.background,
   },
   eventTypeTag: {
     backgroundColor: colors.primary,
