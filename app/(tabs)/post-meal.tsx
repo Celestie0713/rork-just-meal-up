@@ -286,15 +286,15 @@ export default function PostMealScreen() {
                               e.stopPropagation(); // Prevent event bubbling to profile container
                               const invitation = mockInvitations.find(inv => inv.id === invitationId);
                               if (invitation) {
-                                // Navigate to the match's profile (the other person)
                                 const currentUserId = '1'; // Current user ID (Alex Chen)
-                                // Find the other person in the match (not the current user)
-                                const matchUserId = invitation.inviterId === currentUserId 
-                                  ? invitation.inviteeId 
-                                  : invitation.inviterId;
-                                console.log('Love icon clicked - current user:', currentUserId, 'navigating to match user:', matchUserId);
+                                // The love icon next to the other person's name should navigate to the current user's profile
+                                // This creates the "mutual match" effect where each person's love icon leads to their partner
+                                console.log('Love icon clicked!');
+                                console.log('Invitation ID:', invitationId);
                                 console.log('Invitation details:', invitation);
-                                router.push(`/user-profile?userId=${matchUserId}`);
+                                console.log('Current user ID:', currentUserId);
+                                console.log('Navigating to current user profile:', currentUserId);
+                                router.push(`/user-profile?userId=${currentUserId}`);
                               }
                             }}
                           >
