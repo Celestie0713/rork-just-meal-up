@@ -1220,7 +1220,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     fontSize: 10,
     fontWeight: '600',
-    color: colors.success,
+    color: '#FF5C00',
   },
   finalizedBuddyPassButton: {
     backgroundColor: '#FF5C00',
