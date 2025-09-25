@@ -400,68 +400,76 @@ export default function PostMealScreen() {
               <View style={styles.userChoicesSection}>
                 <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
                 
-                <TouchableOpacity 
-                  style={[
-                    styles.choiceButton,
-                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButton,
-                    isChoiceFinalized && userSelectedChoice !== 'buddy_pass' && styles.disabledChoiceButton
-                  ]}
-                  onPress={() => handleChoiceSelect(event.id, 'buddy_pass')}
-                  disabled={isChoiceFinalized}
-                >
-                  <Text style={[
-                    styles.choiceButtonText,
-                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText,
-                    isChoiceFinalized && userSelectedChoice !== 'buddy_pass' && styles.disabledChoiceText
-                  ]}>Buddy pass ✅</Text>
-                  <Text style={[
-                    styles.choiceSubtext,
-                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText,
-                    isChoiceFinalized && userSelectedChoice !== 'buddy_pass' && styles.disabledChoiceText
-                  ]}>(Stay Friend)</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[
-                    styles.choiceButton,
-                    userSelectedChoice === 'next_round' && styles.selectedChoiceButton,
-                    isChoiceFinalized && userSelectedChoice !== 'next_round' && styles.disabledChoiceButton
-                  ]}
-                  onPress={() => handleChoiceSelect(event.id, 'next_round')}
-                  disabled={isChoiceFinalized}
-                >
-                  <Text style={[
-                    styles.choiceButtonText,
-                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText,
-                    isChoiceFinalized && userSelectedChoice !== 'next_round' && styles.disabledChoiceText
-                  ]}>Let&apos;s do next round</Text>
-                  <Text style={[
-                    styles.choiceSubtext,
-                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText,
-                    isChoiceFinalized && userSelectedChoice !== 'next_round' && styles.disabledChoiceText
-                  ]}>(Next date)</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[
-                    styles.choiceButton,
-                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
-                    isChoiceFinalized && userSelectedChoice !== 'fight_for_fries' && styles.disabledChoiceButton
-                  ]}
-                  onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
-                  disabled={isChoiceFinalized}
-                >
-                  <Text style={[
-                    styles.choiceButtonText,
-                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                    isChoiceFinalized && userSelectedChoice !== 'fight_for_fries' && styles.disabledChoiceText
-                  ]}>Fight for fries for life</Text>
-                  <Text style={[
-                    styles.choiceSubtext,
-                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                    isChoiceFinalized && userSelectedChoice !== 'fight_for_fries' && styles.disabledChoiceText
-                  ]}>(Be my +1?)</Text>
-                </TouchableOpacity>
+                {/* Only show selected choice if finalized, otherwise show all choices */}
+                {!isChoiceFinalized ? (
+                  <>
+                    <TouchableOpacity 
+                      style={[
+                        styles.choiceButton,
+                        userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButton
+                      ]}
+                      onPress={() => handleChoiceSelect(event.id, 'buddy_pass')}
+                    >
+                      <Text style={[
+                        styles.choiceButtonText,
+                        userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
+                      ]}>Buddy pass ✅</Text>
+                      <Text style={[
+                        styles.choiceSubtext,
+                        userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
+                      ]}>(Stay Friend)</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[
+                        styles.choiceButton,
+                        userSelectedChoice === 'next_round' && styles.selectedChoiceButton
+                      ]}
+                      onPress={() => handleChoiceSelect(event.id, 'next_round')}
+                    >
+                      <Text style={[
+                        styles.choiceButtonText,
+                        userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
+                      ]}>Let&apos;s do next round</Text>
+                      <Text style={[
+                        styles.choiceSubtext,
+                        userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
+                      ]}>(Next date)</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[
+                        styles.choiceButton,
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
+                      ]}
+                      onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                    >
+                      <Text style={[
+                        styles.choiceButtonText,
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                      ]}>Fight for fries for life</Text>
+                      <Text style={[
+                        styles.choiceSubtext,
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                      ]}>(Be my +1?)</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  /* Show only the selected choice when finalized */
+                  <View style={[styles.choiceButton, styles.finalizedChoiceButton]}>
+                    <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
+                      {userSelectedChoice === 'buddy_pass' && 'Buddy pass ✅'}
+                      {userSelectedChoice === 'next_round' && "Let's do next round"}
+                      {userSelectedChoice === 'fight_for_fries' && 'Fight for fries for life'}
+                    </Text>
+                    <Text style={[styles.choiceSubtext, styles.finalizedChoiceText]}>
+                      {userSelectedChoice === 'buddy_pass' && '(Stay Friend)'}
+                      {userSelectedChoice === 'next_round' && '(Next date)'}
+                      {userSelectedChoice === 'fight_for_fries' && '(Be my +1?)'}
+                    </Text>
+                    <Text style={styles.finalizedLabel}>Your Choice</Text>
+                  </View>
+                )}
               </View>
             </View>
           )}
@@ -1147,5 +1155,25 @@ const styles = StyleSheet.create({
   },
   balloon: {
     fontSize: 40,
+  },
+  finalizedChoiceButton: {
+    backgroundColor: colors.success,
+    borderColor: colors.success,
+    position: 'relative',
+  },
+  finalizedChoiceText: {
+    color: colors.background,
+  },
+  finalizedLabel: {
+    position: 'absolute',
+    top: -8,
+    right: 8,
+    backgroundColor: colors.background,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.success,
   },
 });
