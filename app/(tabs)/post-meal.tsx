@@ -735,15 +735,15 @@ const styles = StyleSheet.create({
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
   matchIcon: {
     padding: 2,
   },
   takenIconSmall: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
     borderColor: colors.background,
   },
   takenIconSmallText: {
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '700',
     color: colors.background,
   },
