@@ -12,7 +12,18 @@ type RemovedProfile = {
   userId: string;
   invitationId: string;
   removedAt: Date;
-  reason: 'no_match' | 'expired';
+  reason: 'no_match' | 'expired' | 'mixed_signals_no_chat';
+};
+
+type MixedSignalsCase = {
+  userId: string;
+  invitationId: string;
+  popupShownAt: Date;
+  chatDetected: boolean;
+};
+
+type MixedSignalsState = {
+  [userId: string]: MixedSignalsCase;
 };
 
 type RemovedProfilesState = {
@@ -22,6 +33,7 @@ type RemovedProfilesState = {
 export const [ChatProvider, useChat] = createContextHook(() => {
   const [chats, setChats] = useState<ChatState>({});
   const [removedProfiles, setRemovedProfiles] = useState<RemovedProfilesState>({});
+  const [mixedSignalsCases, setMixedSignalsCases] = useState<MixedSignalsState>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
   const addVoiceMessage = useCallback((chatId: string, message: VoiceMessage) => {
@@ -29,14 +41,40 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       ...prev,
       [chatId]: [...(prev[chatId] || []), message]
     }));
-  }, []);
+    
+    // Check if this is a mixed signals case and mark chat as detected
+    const userId = chatId; // Assuming chatId is the userId
+    if (mixedSignalsCases[userId] && !mixedSignalsCases[userId].chatDetected) {
+      setMixedSignalsCases(prev => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          chatDetected: true
+        }
+      }));
+      console.log(`Chat detected for mixed signals case with user ${userId}`);
+    }
+  }, [mixedSignalsCases]);
 
   const addSystemMessage = useCallback((chatId: string, message: SystemMessage) => {
     setChats(prev => ({
       ...prev,
       [chatId]: [...(prev[chatId] || []), message]
     }));
-  }, []);
+    
+    // Check if this is a mixed signals case and mark chat as detected
+    const userId = chatId; // Assuming chatId is the userId
+    if (mixedSignalsCases[userId] && !mixedSignalsCases[userId].chatDetected) {
+      setMixedSignalsCases(prev => ({
+        ...prev,
+        [userId]: {
+          ...prev[userId],
+          chatDetected: true
+        }
+      }));
+      console.log(`Chat detected for mixed signals case with user ${userId}`);
+    }
+  }, [mixedSignalsCases]);
 
   const getChatMessages = useCallback((chatId: string): ChatMessage[] => {
     return chats[chatId] || [];
@@ -73,7 +111,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     }
   }, [removedProfiles, isLoaded]);
 
-  const removeProfileFromChat = useCallback((userId: string, invitationId: string, reason: 'no_match' | 'expired') => {
+  const removeProfileFromChat = useCallback((userId: string, invitationId: string, reason: 'no_match' | 'expired' | 'mixed_signals_no_chat') => {
     const removedProfile: RemovedProfile = {
       userId,
       invitationId,
@@ -129,14 +167,35 @@ export const [ChatProvider, useChat] = createContextHook(() => {
           const isMatch = userChoice.choice === dateChoice;
           
           if (!isMatch) {
-            // Remove the profile from chat if it's not a match
-            removeProfileFromChat(dateUserId, invitationId, 'no_match');
-            console.log(`Removing non-matching profile ${dateUserId} from chat after 24 hours`);
+            // Check for mixed signals case: one wants next_round, other wants fight_for_fries
+            const isMixedSignals = (userChoice.choice === 'next_round' && dateChoice === 'fight_for_fries') ||
+                                 (userChoice.choice === 'fight_for_fries' && dateChoice === 'next_round');
+            
+            if (isMixedSignals) {
+              // Check if this is a mixed signals case that was already tracked
+              const mixedSignalsCase = mixedSignalsCases[dateUserId];
+              if (mixedSignalsCase && !mixedSignalsCase.chatDetected) {
+                // No chat detected after mixed signals popup - remove profile
+                removeProfileFromChat(dateUserId, invitationId, 'mixed_signals_no_chat');
+                console.log(`Removing mixed signals profile ${dateUserId} from chat - no chat detected after 24 hours`);
+                
+                // Clean up the mixed signals case
+                setMixedSignalsCases(prev => {
+                  const updated = { ...prev };
+                  delete updated[dateUserId];
+                  return updated;
+                });
+              }
+            } else {
+              // Regular no match case
+              removeProfileFromChat(dateUserId, invitationId, 'no_match');
+              console.log(`Removing non-matching profile ${dateUserId} from chat after 24 hours`);
+            }
           }
         }
       }
     });
-  }, [removeProfileFromChat]);
+  }, [removeProfileFromChat, mixedSignalsCases, setMixedSignalsCases]);
 
   // Periodic check to remove expired profiles (runs every hour)
   useEffect(() => {
@@ -159,6 +218,54 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return allChats.filter(chat => !isProfileRemoved(chat.user.id));
   }, [isProfileRemoved]);
 
+  const trackMixedSignalsCase = useCallback((userId: string, invitationId: string) => {
+    const mixedSignalsCase: MixedSignalsCase = {
+      userId,
+      invitationId,
+      popupShownAt: new Date(),
+      chatDetected: false
+    };
+    
+    setMixedSignalsCases(prev => ({
+      ...prev,
+      [userId]: mixedSignalsCase
+    }));
+    
+    console.log(`Tracking mixed signals case for user ${userId}`);
+  }, []);
+
+  // Periodic check for mixed signals cases without chat activity
+  useEffect(() => {
+    if (!isLoaded) return;
+    
+    const checkMixedSignalsCases = () => {
+      const now = new Date();
+      const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+      
+      Object.entries(mixedSignalsCases).forEach(([userId, mixedCase]) => {
+        const timeSincePopup = now.getTime() - mixedCase.popupShownAt.getTime();
+        
+        if (timeSincePopup >= twentyFourHoursInMs && !mixedCase.chatDetected) {
+          // Remove profile if no chat detected after 24 hours
+          removeProfileFromChat(userId, mixedCase.invitationId, 'mixed_signals_no_chat');
+          console.log(`Removing mixed signals profile ${userId} - no chat detected after 24 hours`);
+          
+          // Clean up the mixed signals case
+          setMixedSignalsCases(prev => {
+            const updated = { ...prev };
+            delete updated[userId];
+            return updated;
+          });
+        }
+      });
+    };
+    
+    // Check every hour
+    const interval = setInterval(checkMixedSignalsCases, 60 * 60 * 1000);
+    
+    return () => clearInterval(interval);
+  }, [isLoaded, mixedSignalsCases, removeProfileFromChat]);
+
   return useMemo(() => ({
     addVoiceMessage,
     addSystemMessage,
@@ -168,6 +275,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     isProfileRemoved,
     checkAndRemoveNonMatchingProfiles,
     getAvailableChats,
+    trackMixedSignalsCase,
     isLoaded
-  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, isLoaded]);
+  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, isLoaded]);
 });

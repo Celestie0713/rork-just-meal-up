@@ -60,7 +60,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase } = useChat();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -270,6 +270,16 @@ export default function PostMealScreen() {
         dateChoice,
         eventId
       });
+      
+      // Track mixed signals case when popup is shown
+      if (matchType === 'mixed_signals') {
+        const invitation = mockInvitations.find(inv => inv.id === invitationId);
+        if (invitation) {
+          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+          trackMixedSignalsCase(dateUserId, invitationId);
+          console.log(`Started tracking mixed signals case for user ${dateUserId}`);
+        }
+      }
       
       setShowMatchModal(true);
       
