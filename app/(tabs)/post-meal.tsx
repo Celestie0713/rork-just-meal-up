@@ -287,7 +287,7 @@ export default function PostMealScreen() {
                               const invitation = mockInvitations.find(inv => inv.id === invitationId);
                               if (invitation) {
                                 // Navigate to the match's profile (the other person)
-                                const currentUserId = '1'; // Current user ID
+                                const currentUserId = '1'; // Current user ID (Alex Chen)
                                 const matchUserId = invitation.inviterId === currentUserId 
                                   ? invitation.inviteeId 
                                   : invitation.inviterId;
@@ -297,7 +297,7 @@ export default function PostMealScreen() {
                             }}
                           >
                             <View style={styles.loveIconContainer}>
-                              <Heart size={28} color="#FF1744" fill="#FF1744" />
+                              <Heart size={32} color="#FF1744" fill="#FF1744" />
                               <Text style={styles.loveIconText}>T</Text>
                             </View>
                           </TouchableOpacity>
@@ -749,8 +749,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 32,
-    height: 28,
+    width: 36,
+    height: 32,
   },
   loveIconText: {
     position: 'absolute',
