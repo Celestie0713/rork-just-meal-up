@@ -498,7 +498,7 @@ export default function PostMealScreen() {
                   /* Show only the selected choice when finalized */
                   <View style={[
                     styles.choiceButton, 
-                    userSelectedChoice === 'buddy_pass' ? styles.finalizedBuddyPassButton : styles.finalizedChoiceButton
+                    styles.finalizedBuddyPassButton
                   ]}>
                     <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
                       {userSelectedChoice === 'buddy_pass' && 'Buddy pass ✅'}
