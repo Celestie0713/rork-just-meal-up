@@ -845,15 +845,15 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   selectedChoice: {
-    backgroundColor: colors.premium,
-    borderColor: colors.premium,
+    backgroundColor: '#FF8533',
+    borderColor: '#FF8533',
   },
   selectedChoiceText: {
-    color: '#000000',
+    color: '#FFFFFF',
   },
   selectedChoiceSubtext: {
-    color: '#000000',
-    opacity: 0.8,
+    color: '#FFFFFF',
+    opacity: 0.9,
   },
   upgradePrompt: {
     flexDirection: 'row',
