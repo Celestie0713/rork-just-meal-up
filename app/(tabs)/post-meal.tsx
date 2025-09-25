@@ -294,6 +294,9 @@ export default function PostMealScreen() {
                           >
                             <View style={styles.takenIconSmall}>
                               <Text style={styles.takenIconSmallText}>T</Text>
+                              <View style={styles.loveHeart}>
+                                <Heart size={8} color="#FF1744" fill="#FF1744" />
+                              </View>
                             </View>
                           </TouchableOpacity>
                         )}
@@ -749,11 +752,21 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: '#000000',
+    position: 'relative',
   },
   takenIconSmallText: {
     fontSize: 10,
     fontWeight: '700',
     color: '#000000',
+  },
+  loveHeart: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    width: 10,
+    height: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   eventTypeTag: {
     backgroundColor: colors.primary,
