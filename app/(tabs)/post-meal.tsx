@@ -64,6 +64,7 @@ export default function PostMealScreen() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
+  const [finalizedChoices, setFinalizedChoices] = useState<Record<string, boolean>>({});
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
@@ -168,9 +169,20 @@ export default function PostMealScreen() {
   };
 
   const handleChoiceSelect = (eventId: string, choice: string) => {
+    // Don't allow changes if already finalized
+    if (finalizedChoices[eventId]) {
+      return;
+    }
+
     setSelectedChoices(prev => ({
       ...prev,
       [eventId]: choice
+    }));
+    
+    // Mark this choice as finalized
+    setFinalizedChoices(prev => ({
+      ...prev,
+      [eventId]: true
     }));
     
     // Check for match after user makes a choice
@@ -231,6 +243,7 @@ export default function PostMealScreen() {
     const choiceDisplay = dateChoice ? getChoiceDisplay(dateChoice) : null;
     const userSelectedChoice = selectedChoices[event.id];
     const hasUserMadeChoice = !!userSelectedChoice;
+    const isChoiceFinalized = finalizedChoices[event.id];
     
     // Check if there's a match (both users chose the same option)
     const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
@@ -390,51 +403,63 @@ export default function PostMealScreen() {
                 <TouchableOpacity 
                   style={[
                     styles.choiceButton,
-                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButton
+                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButton,
+                    isChoiceFinalized && userSelectedChoice !== 'buddy_pass' && styles.disabledChoiceButton
                   ]}
                   onPress={() => handleChoiceSelect(event.id, 'buddy_pass')}
+                  disabled={isChoiceFinalized}
                 >
                   <Text style={[
                     styles.choiceButtonText,
-                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
+                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText,
+                    isChoiceFinalized && userSelectedChoice !== 'buddy_pass' && styles.disabledChoiceText
                   ]}>Buddy pass ✅</Text>
                   <Text style={[
                     styles.choiceSubtext,
-                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
+                    userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText,
+                    isChoiceFinalized && userSelectedChoice !== 'buddy_pass' && styles.disabledChoiceText
                   ]}>(Stay Friend)</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={[
                     styles.choiceButton,
-                    userSelectedChoice === 'next_round' && styles.selectedChoiceButton
+                    userSelectedChoice === 'next_round' && styles.selectedChoiceButton,
+                    isChoiceFinalized && userSelectedChoice !== 'next_round' && styles.disabledChoiceButton
                   ]}
                   onPress={() => handleChoiceSelect(event.id, 'next_round')}
+                  disabled={isChoiceFinalized}
                 >
                   <Text style={[
                     styles.choiceButtonText,
-                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
+                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText,
+                    isChoiceFinalized && userSelectedChoice !== 'next_round' && styles.disabledChoiceText
                   ]}>Let&apos;s do next round</Text>
                   <Text style={[
                     styles.choiceSubtext,
-                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
+                    userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText,
+                    isChoiceFinalized && userSelectedChoice !== 'next_round' && styles.disabledChoiceText
                   ]}>(Next date)</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity 
                   style={[
                     styles.choiceButton,
-                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
+                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
+                    isChoiceFinalized && userSelectedChoice !== 'fight_for_fries' && styles.disabledChoiceButton
                   ]}
                   onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                  disabled={isChoiceFinalized}
                 >
                   <Text style={[
                     styles.choiceButtonText,
-                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                    isChoiceFinalized && userSelectedChoice !== 'fight_for_fries' && styles.disabledChoiceText
                   ]}>Fight for fries for life</Text>
                   <Text style={[
                     styles.choiceSubtext,
-                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                    userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                    isChoiceFinalized && userSelectedChoice !== 'fight_for_fries' && styles.disabledChoiceText
                   ]}>(Be my +1?)</Text>
                 </TouchableOpacity>
               </View>
@@ -1034,6 +1059,14 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   disabledText: {
+    color: colors.textLight,
+  },
+  disabledChoiceButton: {
+    backgroundColor: colors.surface,
+    borderColor: colors.textLight,
+    opacity: 0.5,
+  },
+  disabledChoiceText: {
     color: colors.textLight,
   },
 
