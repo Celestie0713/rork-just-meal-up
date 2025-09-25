@@ -65,6 +65,7 @@ export default function PostMealScreen() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
   const [finalizedChoices, setFinalizedChoices] = useState<Record<string, boolean>>({});
+  const [choiceTimestamps, setChoiceTimestamps] = useState<Record<string, Date>>({});
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
@@ -114,6 +115,8 @@ export default function PostMealScreen() {
 
   const postMealEvents = useMemo(() => {
     const events: PostMealEvent[] = [];
+    const now = new Date();
+    const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
     
     // Add completed invitations that are 10+ hours past
     mockInvitations
@@ -122,9 +125,22 @@ export default function PostMealScreen() {
         isPostMeal(invitation.date, invitation.time)
       )
       .forEach(invitation => {
+        const eventId = `invitation-${invitation.id}`;
+        const choiceTimestamp = choiceTimestamps[eventId];
+        
+        // If a choice was made, check if it's been less than 24 hours
+        if (choiceTimestamp) {
+          const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
+          if (timeSinceChoice >= twentyFourHoursInMs) {
+            // Remove from state if 24 hours have passed
+            console.log(`Removing event ${eventId} - 24 hours have passed since choice was made`);
+            return; // Skip this event
+          }
+        }
+        
         const inviter = mockUsers.find(u => u.id === invitation.inviterId);
         events.push({
-          id: `invitation-${invitation.id}`,
+          id: eventId,
           type: 'invitation',
           title: `Dinner with ${inviter?.name || 'Someone'}`,
           venue: invitation.venue.name,
@@ -142,8 +158,21 @@ export default function PostMealScreen() {
         isPostMeal(mealUp.date, mealUp.time)
       )
       .forEach(mealUp => {
+        const eventId = `mealup-${mealUp.id}`;
+        const choiceTimestamp = choiceTimestamps[eventId];
+        
+        // If a choice was made, check if it's been less than 24 hours
+        if (choiceTimestamp) {
+          const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
+          if (timeSinceChoice >= twentyFourHoursInMs) {
+            // Remove from state if 24 hours have passed
+            console.log(`Removing event ${eventId} - 24 hours have passed since choice was made`);
+            return; // Skip this event
+          }
+        }
+        
         events.push({
-          id: `mealup-${mealUp.id}`,
+          id: eventId,
           type: 'mealup',
           title: mealUp.title,
           venue: mealUp.venue.name,
@@ -158,7 +187,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, []);
+  }, [choiceTimestamps]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -174,6 +203,8 @@ export default function PostMealScreen() {
       return;
     }
 
+    const now = new Date();
+    
     setSelectedChoices(prev => ({
       ...prev,
       [eventId]: choice
@@ -184,6 +215,15 @@ export default function PostMealScreen() {
       ...prev,
       [eventId]: true
     }));
+    
+    // Record the timestamp when the choice was made
+    setChoiceTimestamps(prev => ({
+      ...prev,
+      [eventId]: now
+    }));
+    
+    console.log(`Choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
+    console.log('Event will be automatically removed in 24 hours');
     
     // Check for match after user makes a choice
     const invitationId = eventId.replace('invitation-', '');
@@ -511,7 +551,7 @@ export default function PostMealScreen() {
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>• Events appear here 10 hours after the scheduled meal time</Text>
-          <Text style={styles.infoText}>• Rate your dining experiences and share feedback</Text>
+          <Text style={styles.infoText}>• Once you make a decision, the date will be automatically removed within 24 hours</Text>
           <Text style={styles.infoText}>• Both individual dates and group meal ups are included</Text>
           <Text style={styles.infoText}>• Help improve the community by sharing your thoughts</Text>
         </View>
