@@ -715,7 +715,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🎯</Text>
                 <Text style={styles.matchModalTitle}>You're both in for the Next Round!</Text>
                 <Text style={styles.matchModalDescription}>
-                  Ready for round two? You both want to keep the adventure going!
+                  You both want to keep the adventure going!
                 </Text>
               </>
             ) : matchResult?.matchType === 'mixed_signals' ? (
@@ -777,13 +777,17 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
+                  // Navigate to create-invitation for next_round matches
+                  if (matchResult?.matchType === 'next_round') {
+                    router.push('/create-invitation');
+                  }
                 }}
               >
                 <Text style={[
                   styles.upgradeButtonText,
                   !matchResult?.isMatch && styles.noMatchButtonText
                 ]}>
-                  {matchResult?.isMatch ? 'Amazing!' : 'Keep Looking'}
+                  {matchResult?.matchType === 'next_round' ? 'Invite to meal' : matchResult?.isMatch ? 'Amazing!' : 'Keep Looking'}
                 </Text>
               </TouchableOpacity>
             )}
