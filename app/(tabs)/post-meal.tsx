@@ -456,7 +456,10 @@ export default function PostMealScreen() {
                   </>
                 ) : (
                   /* Show only the selected choice when finalized */
-                  <View style={[styles.choiceButton, styles.finalizedChoiceButton]}>
+                  <View style={[
+                    styles.choiceButton, 
+                    userSelectedChoice === 'buddy_pass' ? styles.finalizedBuddyPassButton : styles.finalizedChoiceButton
+                  ]}>
                     <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
                       {userSelectedChoice === 'buddy_pass' && 'Buddy pass ✅'}
                       {userSelectedChoice === 'next_round' && "Let's do next round"}
@@ -467,7 +470,10 @@ export default function PostMealScreen() {
                       {userSelectedChoice === 'next_round' && '(Next date)'}
                       {userSelectedChoice === 'fight_for_fries' && '(Be my +1?)'}
                     </Text>
-                    <Text style={styles.finalizedLabel}>Your Choice</Text>
+                    <Text style={[
+                      styles.finalizedLabel,
+                      userSelectedChoice === 'buddy_pass' && styles.finalizedBuddyPassLabel
+                    ]}>Your Choice</Text>
                   </View>
                 )}
               </View>
@@ -1175,5 +1181,13 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '600',
     color: colors.success,
+  },
+  finalizedBuddyPassButton: {
+    backgroundColor: colors.warning,
+    borderColor: colors.warning,
+    position: 'relative',
+  },
+  finalizedBuddyPassLabel: {
+    color: colors.warning,
   },
 });
