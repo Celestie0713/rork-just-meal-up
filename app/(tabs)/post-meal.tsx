@@ -292,11 +292,9 @@ export default function PostMealScreen() {
                               }
                             }}
                           >
-                            <View style={styles.takenIconSmall}>
-                              <Text style={styles.takenIconSmallText}>T</Text>
-                              <View style={styles.loveHeart}>
-                                <Heart size={8} color="#FF1744" fill="#FF1744" />
-                              </View>
+                            <View style={styles.loveIconContainer}>
+                              <Heart size={16} color="#FF1744" fill="#FF1744" />
+                              <Text style={styles.loveIconText}>T</Text>
                             </View>
                           </TouchableOpacity>
                         )}
@@ -743,30 +741,20 @@ const styles = StyleSheet.create({
   matchIcon: {
     padding: 2,
   },
-  takenIconSmall: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#000000',
+  loveIconContainer: {
     position: 'relative',
-  },
-  takenIconSmallText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  loveHeart: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    width: 10,
-    height: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    width: 20,
+    height: 18,
+  },
+  loveIconText: {
+    position: 'absolute',
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    zIndex: 1,
   },
   eventTypeTag: {
     backgroundColor: colors.primary,
