@@ -1183,11 +1183,11 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   finalizedBuddyPassButton: {
-    backgroundColor: colors.warning,
-    borderColor: colors.warning,
+    backgroundColor: '#FF5C00',
+    borderColor: '#FF5C00',
     position: 'relative',
   },
   finalizedBuddyPassLabel: {
-    color: colors.warning,
+    color: '#FF5C00',
   },
 });
