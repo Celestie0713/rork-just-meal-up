@@ -287,18 +287,14 @@ export default function PostMealScreen() {
                               const invitation = mockInvitations.find(inv => inv.id === invitationId);
                               if (invitation) {
                                 const currentUserId = '1'; // Current user ID (Alex Chen)
-                                // Navigate to the match partner's profile
-                                // If current user is the inviter, navigate to invitee's profile, and vice versa
-                                const matchPartnerId = invitation.inviterId === currentUserId 
-                                  ? invitation.inviteeId 
-                                  : invitation.inviterId;
+                                // Navigate to the current user's profile (Alex Chen)
+                                // The love icon should always lead to the current user's profile
                                 console.log('Love icon clicked!');
                                 console.log('Invitation ID:', invitationId);
                                 console.log('Invitation details:', invitation);
                                 console.log('Current user ID:', currentUserId);
-                                console.log('Match partner ID:', matchPartnerId);
-                                console.log('Navigating to match partner profile:', matchPartnerId);
-                                router.push(`/user-profile?userId=${matchPartnerId}`);
+                                console.log('Navigating to current user profile:', currentUserId);
+                                router.push(`/user-profile?userId=${currentUserId}`);
                               }
                             }}
                           >
