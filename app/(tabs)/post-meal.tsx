@@ -288,10 +288,11 @@ export default function PostMealScreen() {
                               if (invitation) {
                                 // Navigate to the match's profile (the other person)
                                 const currentUserId = '1'; // Current user ID (Alex Chen)
-                                const matchUserId = invitation.inviterId === currentUserId 
-                                  ? invitation.inviteeId 
-                                  : invitation.inviterId;
-                                console.log('Love icon clicked - navigating to match profile:', matchUserId);
+                                // Navigate to the current user's profile (Alex Chen)
+                                // This is the match for the person whose name the love icon is next to
+                                const matchUserId = currentUserId;
+                                console.log('Love icon clicked - current user:', currentUserId, 'match user:', matchUserId);
+                                console.log('Invitation details:', invitation);
                                 router.push(`/user-profile?userId=${matchUserId}`);
                               }
                             }}
