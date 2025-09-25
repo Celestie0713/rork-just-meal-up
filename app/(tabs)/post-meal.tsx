@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal } from 'react-native';
+import React, { useMemo, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, ChevronRight, Star, X } from 'lucide-react-native';
+import { Calendar, MapPin, Users, Clock, ChevronRight, Star, X, Heart } from 'lucide-react-native';
 import { router } from 'expo-router';
+import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -63,6 +64,15 @@ export default function PostMealScreen() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
+  const [showMatchModal, setShowMatchModal] = useState(false);
+  const [matchResult, setMatchResult] = useState<{
+    isMatch: boolean;
+    isTaken: boolean;
+    userChoice: string;
+    dateChoice: string;
+  } | null>(null);
+  const confettiRef = useRef<any>(null);
+  const balloonAnimation = useRef(new Animated.Value(0)).current;
 
   const handleUpgradeToPremium = () => {
     setShowUpgradeModal(true);
@@ -162,6 +172,45 @@ export default function PostMealScreen() {
       ...prev,
       [eventId]: choice
     }));
+    
+    // Check for match after user makes a choice
+    const invitationId = eventId.replace('invitation-', '');
+    const dateChoice = getDateChoice(invitationId);
+    
+    if (dateChoice) {
+      const isMatch = choice === dateChoice;
+      const isTaken = choice === 'fight_for_fries' && dateChoice === 'fight_for_fries';
+      
+      setMatchResult({
+        isMatch,
+        isTaken,
+        userChoice: choice,
+        dateChoice
+      });
+      
+      setShowMatchModal(true);
+      
+      if (isMatch) {
+        // Trigger confetti for matches
+        setTimeout(() => {
+          confettiRef.current?.start();
+        }, 500);
+        
+        // Animate balloons
+        Animated.sequence([
+          Animated.timing(balloonAnimation, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(balloonAnimation, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          })
+        ]).start();
+      }
+    }
   };
 
   const handleEventPress = (event: PostMealEvent) => {
@@ -458,6 +507,108 @@ export default function PostMealScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+
+      {/* Match/No Match Modal */}
+      <Modal
+        visible={showMatchModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => {
+          setShowMatchModal(false);
+          setMatchResult(null);
+        }}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, styles.matchModalContent]}>
+            {matchResult?.isTaken ? (
+              <>
+                <View style={styles.takenIconContainer}>
+                  <View style={styles.takenIcon}>
+                    <Text style={styles.takenIconText}>T</Text>
+                  </View>
+                </View>
+                <Text style={styles.matchModalTitle}>Taken! 💕</Text>
+                <Text style={styles.matchModalDescription}>
+                  Two chopsticks finally found each other! Slurp slurp—it's a match!
+                </Text>
+              </>
+            ) : matchResult?.isMatch ? (
+              <>
+                <View style={styles.matchIconContainer}>
+                  <Heart size={60} color={colors.primary} fill={colors.primary} />
+                  <Heart size={40} color={colors.primary} fill={colors.primary} style={styles.smallHeart} />
+                </View>
+                <Text style={styles.matchModalTitle}>It's a Match! 🥢</Text>
+                <Text style={styles.matchModalDescription}>
+                  Two chopsticks finally found each other! Slurp slurp—it's a match!
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.noMatchEmoji}>✨</Text>
+                <Text style={styles.matchModalTitle}>No Spark This Time ✨</Text>
+                <Text style={styles.matchModalDescription}>
+                  Go on to the next meal🍜
+                </Text>
+              </>
+            )}
+            
+            <TouchableOpacity 
+              style={[
+                styles.upgradeButton,
+                !matchResult?.isMatch && styles.noMatchButton
+              ]}
+              onPress={() => {
+                setShowMatchModal(false);
+                setMatchResult(null);
+              }}
+            >
+              <Text style={[
+                styles.upgradeButtonText,
+                !matchResult?.isMatch && styles.noMatchButtonText
+              ]}>
+                {matchResult?.isMatch ? 'Amazing!' : 'Keep Looking'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          {/* Animated Balloons */}
+          {matchResult?.isMatch && (
+            <Animated.View 
+              style={[
+                styles.balloonsContainer,
+                {
+                  transform: [{
+                    translateY: balloonAnimation.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [100, -200]
+                    })
+                  }],
+                  opacity: balloonAnimation.interpolate({
+                    inputRange: [0, 0.2, 0.8, 1],
+                    outputRange: [0, 1, 1, 0]
+                  })
+                }
+              ]}
+            >
+              <Text style={styles.balloon}>🎈</Text>
+              <Text style={styles.balloon}>🎈</Text>
+              <Text style={styles.balloon}>🎈</Text>
+            </Animated.View>
+          )}
+        </View>
+        
+        {/* Confetti */}
+        {matchResult?.isMatch && (
+          <ConfettiCannon
+            ref={confettiRef}
+            count={200}
+            origin={{x: -10, y: 0}}
+            autoStart={false}
+            fadeOut={true}
+          />
+        )}
       </Modal>
     </View>
   );
@@ -821,5 +972,76 @@ const styles = StyleSheet.create({
   },
   selectedChoiceButtonText: {
     color: colors.background,
+  },
+  matchModalContent: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  matchIconContainer: {
+    position: 'relative',
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  smallHeart: {
+    position: 'absolute',
+    top: -10,
+    right: -15,
+  },
+  takenIconContainer: {
+    marginBottom: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  takenIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.background,
+  },
+  takenIconText: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: colors.background,
+  },
+  noMatchEmoji: {
+    fontSize: 60,
+    marginBottom: 24,
+  },
+  matchModalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  matchModalDescription: {
+    fontSize: 16,
+    color: colors.textLight,
+    lineHeight: 22,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  noMatchButton: {
+    backgroundColor: colors.textLight,
+  },
+  noMatchButtonText: {
+    color: colors.background,
+  },
+  balloonsContainer: {
+    position: 'absolute',
+    bottom: 100,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingHorizontal: 50,
+  },
+  balloon: {
+    fontSize: 40,
   },
 });
