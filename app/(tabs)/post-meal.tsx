@@ -71,9 +71,10 @@ export default function PostMealScreen() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
-    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | null;
+    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | null;
     userChoice: string;
     dateChoice: string;
+    eventId?: string;
   } | null>(null);
   const confettiRef = useRef<any>(null);
   const balloonAnimation = useRef(new Animated.Value(0)).current;
@@ -250,13 +251,24 @@ export default function PostMealScreen() {
     
     if (dateChoice) {
       const isMatch = choice === dateChoice;
-      const matchType = isMatch ? choice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
+      let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | null = null;
+      
+      if (isMatch) {
+        matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
+      } else {
+        // Check for mixed signals case: one wants next_round, other wants fight_for_fries
+        if ((choice === 'next_round' && dateChoice === 'fight_for_fries') ||
+            (choice === 'fight_for_fries' && dateChoice === 'next_round')) {
+          matchType = 'mixed_signals';
+        }
+      }
       
       setMatchResult({
         isMatch,
         matchType,
         userChoice: choice,
-        dateChoice
+        dateChoice,
+        eventId
       });
       
       setShowMatchModal(true);
@@ -679,6 +691,14 @@ export default function PostMealScreen() {
                   Ready for round two? You both want to keep the adventure going!
                 </Text>
               </>
+            ) : matchResult?.matchType === 'mixed_signals' ? (
+              <>
+                <Text style={styles.noMatchEmoji}>🤔</Text>
+                <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in!</Text>
+                <Text style={styles.matchModalDescription}>
+                  Looks like you're on different pages. Time to chat it out!
+                </Text>
+              </>
             ) : matchResult?.isMatch ? (
               <>
                 <View style={styles.matchIconContainer}>
@@ -700,23 +720,46 @@ export default function PostMealScreen() {
               </>
             )}
             
-            <TouchableOpacity 
-              style={[
-                styles.upgradeButton,
-                !matchResult?.isMatch && styles.noMatchButton
-              ]}
-              onPress={() => {
-                setShowMatchModal(false);
-                setMatchResult(null);
-              }}
-            >
-              <Text style={[
-                styles.upgradeButtonText,
-                !matchResult?.isMatch && styles.noMatchButtonText
-              ]}>
-                {matchResult?.isMatch ? 'Amazing!' : 'Keep Looking'}
-              </Text>
-            </TouchableOpacity>
+            {matchResult?.matchType === 'mixed_signals' ? (
+              <TouchableOpacity 
+                style={[styles.upgradeButton, styles.chatButton]}
+                onPress={() => {
+                  setShowMatchModal(false);
+                  setMatchResult(null);
+                  // Navigate to chat page
+                  if (matchResult?.eventId) {
+                    const invitationId = matchResult.eventId.replace('invitation-', '');
+                    const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                    if (invitation) {
+                      const otherUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                      router.push(`/chat?userId=${otherUserId}`);
+                    }
+                  }
+                }}
+              >
+                <Text style={styles.upgradeButtonText}>
+                  Chat
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity 
+                style={[
+                  styles.upgradeButton,
+                  !matchResult?.isMatch && styles.noMatchButton
+                ]}
+                onPress={() => {
+                  setShowMatchModal(false);
+                  setMatchResult(null);
+                }}
+              >
+                <Text style={[
+                  styles.upgradeButtonText,
+                  !matchResult?.isMatch && styles.noMatchButtonText
+                ]}>
+                  {matchResult?.isMatch ? 'Amazing!' : 'Keep Looking'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           
           {/* Animated Balloons */}
@@ -1209,6 +1252,9 @@ const styles = StyleSheet.create({
   },
   noMatchButtonText: {
     color: colors.background,
+  },
+  chatButton: {
+    backgroundColor: colors.primary,
   },
   balloonsContainer: {
     position: 'absolute',
