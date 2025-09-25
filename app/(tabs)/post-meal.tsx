@@ -67,7 +67,7 @@ export default function PostMealScreen() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
-    isTaken: boolean;
+    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | null;
     userChoice: string;
     dateChoice: string;
   } | null>(null);
@@ -179,11 +179,11 @@ export default function PostMealScreen() {
     
     if (dateChoice) {
       const isMatch = choice === dateChoice;
-      const isTaken = choice === 'fight_for_fries' && dateChoice === 'fight_for_fries';
+      const matchType = isMatch ? choice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
       
       setMatchResult({
         isMatch,
-        isTaken,
+        matchType,
         userChoice: choice,
         dateChoice
       });
@@ -234,7 +234,7 @@ export default function PostMealScreen() {
     
     // Check if there's a match (both users chose the same option)
     const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
-    const isTaken = isMatch && userSelectedChoice === 'fight_for_fries';
+    const matchType = isMatch ? userSelectedChoice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
 
     
     return (
@@ -279,7 +279,7 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-                        {isMatch && (
+                        {isMatch && matchType === 'fight_for_fries' && (
                           <TouchableOpacity 
                             style={styles.matchIcon}
                             onPress={(e) => {
@@ -552,7 +552,7 @@ export default function PostMealScreen() {
       >
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, styles.matchModalContent]}>
-            {matchResult?.isTaken ? (
+            {matchResult?.matchType === 'fight_for_fries' ? (
               <>
                 <View style={styles.takenIconContainer}>
                   <View style={styles.takenIcon}>
@@ -562,6 +562,22 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalTitle}>Taken! 💕</Text>
                 <Text style={styles.matchModalDescription}>
                   Two chopsticks finally found each other! Slurp slurp—it's a match!
+                </Text>
+              </>
+            ) : matchResult?.matchType === 'buddy_pass' ? (
+              <>
+                <Text style={styles.noMatchEmoji}>🍻</Text>
+                <Text style={styles.matchModalTitle}>Congrats—you just unlocked a new friend!</Text>
+                <Text style={styles.matchModalDescription}>
+                  Great minds think alike! You both chose to stay friends.
+                </Text>
+              </>
+            ) : matchResult?.matchType === 'next_round' ? (
+              <>
+                <Text style={styles.noMatchEmoji}>🎯</Text>
+                <Text style={styles.matchModalTitle}>You're both in for the Next Round!</Text>
+                <Text style={styles.matchModalDescription}>
+                  Ready for round two? You both want to keep the adventure going!
                 </Text>
               </>
             ) : matchResult?.isMatch ? (
