@@ -111,24 +111,29 @@ export default function ChatScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft size={24} color={Colors.text} />
         </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.headerContent}
-          onPress={() => router.push(`/user-profile?userId=${chatUser.id}`)}
-          testID="chat-header-name"
-        >
+        <View style={styles.headerContent}>
           <View style={styles.headerTitleContainer}>
-            <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
+            <TouchableOpacity 
+              onPress={() => router.push(`/user-profile?userId=${chatUser.id}`)}
+              testID="chat-header-name"
+            >
+              <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
+            </TouchableOpacity>
             {isMatched && (
-              <View style={styles.loveIconContainer}>
+              <TouchableOpacity 
+                style={styles.loveIconContainer}
+                onPress={() => router.push(`/user-profile?userId=${currentUserId}`)}
+                testID="chat-love-icon"
+              >
                 <Heart size={16} color="#FF1744" fill="#FF1744" />
                 <Text style={styles.loveIconText}>T</Text>
-              </View>
+              </TouchableOpacity>
             )}
           </View>
           <Text style={styles.headerSubtitle}>
             {chatUser.isOnline ? 'Online' : 'Voice messages only'}
           </Text>
-        </TouchableOpacity>
+        </View>
         <View style={styles.placeholder} />
       </View>
       
