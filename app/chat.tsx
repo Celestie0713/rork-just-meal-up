@@ -122,7 +122,7 @@ export default function ChatScreen() {
             {isMatched && (
               <TouchableOpacity 
                 style={styles.loveIconContainer}
-                onPress={() => router.push(`/user-profile?userId=${currentUserId}`)}
+                onPress={() => router.push(`/user-profile?userId=${chatUser.id}`)}
                 testID="chat-love-icon"
               >
                 <Heart size={16} color="#FF1744" fill="#FF1744" />
