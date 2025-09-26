@@ -324,6 +324,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     addMatchedProfile,
     isProfileMatched,
     getMatchType,
+    matchedProfiles,
     isLoaded
-  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, addMatchedProfile, isProfileMatched, getMatchType, isLoaded]);
+  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, addMatchedProfile, isProfileMatched, getMatchType, matchedProfiles, isLoaded]);
 });

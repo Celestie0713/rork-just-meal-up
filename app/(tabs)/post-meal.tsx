@@ -60,7 +60,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, getMatchType, matchedProfiles } = useChat();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -206,6 +206,22 @@ export default function PostMealScreen() {
       return;
     }
 
+    // Check if user is trying to choose "fight_for_fries" but is already matched with someone else
+    if (choice === 'fight_for_fries') {
+      // Check if user is already matched with "fight_for_fries" with another user
+      const currentUserId = '1'; // Current user ID
+      const existingMatch = Object.values(matchedProfiles).find((match: any) => 
+        match.matchType === 'fight_for_fries' && match.userId !== currentUserId
+      );
+      
+      if (existingMatch) {
+        // User is already matched with someone else for "fight_for_fries"
+        console.log('User is already matched with fight_for_fries with another user');
+        // You could show a message here that they're already taken
+        return;
+      }
+    }
+
     const now = new Date();
     
     setSelectedChoices(prev => ({
@@ -261,6 +277,11 @@ export default function PostMealScreen() {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
           addMatchedProfile(dateUserId, invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
+          
+          // If it's a "fight_for_fries" match, both users are now taken and cannot choose this option with others
+          if (matchType === 'fight_for_fries') {
+            console.log(`Both users are now matched with fight_for_fries and cannot choose this option with others`);
+          }
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
@@ -380,31 +401,35 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-                        {isMatch && matchType === 'fight_for_fries' && (
-                          <TouchableOpacity 
-                            style={styles.matchIcon}
-                            onPress={(e) => {
-                              e.stopPropagation(); // Prevent event bubbling to profile container
-                              const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                              if (invitation) {
-                                const currentUserId = '1'; // Current user ID (Alex Chen)
-                                // Navigate to the current user's profile (Alex Chen)
-                                // The love icon should always lead to the current user's profile
+                        {(() => {
+                          // Check if this profile is matched with fight_for_fries
+                          const invitationId = event.id.replace('invitation-', '');
+                          const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                          const dateUserId = invitation ? (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId) : null;
+                          const matchType = dateUserId ? getMatchType(dateUserId) : null;
+                          const isMatched = matchType === 'fight_for_fries';
+                          
+                          return isMatched && (
+                            <TouchableOpacity 
+                              style={styles.matchIcon}
+                              onPress={(e) => {
+                                e.stopPropagation(); // Prevent event bubbling to profile container
+                                const currentUserId = '1'; // Current user ID
+                                // Navigate to the current user's profile
                                 console.log('Love icon clicked!');
                                 console.log('Invitation ID:', invitationId);
-                                console.log('Invitation details:', invitation);
                                 console.log('Current user ID:', currentUserId);
                                 console.log('Navigating to current user profile:', currentUserId);
                                 router.push(`/user-profile?userId=${currentUserId}`);
-                              }
-                            }}
-                          >
-                            <View style={styles.loveIconContainer}>
-                              <Heart size={32} color="#FF1744" fill="#FF1744" />
-                              <Text style={styles.loveIconText}>T</Text>
-                            </View>
-                          </TouchableOpacity>
-                        )}
+                              }}
+                            >
+                              <View style={styles.loveIconContainer}>
+                                <Heart size={32} color="#FF1744" fill="#FF1744" />
+                                <Text style={styles.loveIconText}>T</Text>
+                              </View>
+                            </TouchableOpacity>
+                          );
+                        })()}
                       </View>
                     </View>
                   );
@@ -525,22 +550,41 @@ export default function PostMealScreen() {
                       ]}>(Next date)</Text>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity 
-                      style={[
-                        styles.choiceButton,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
-                      ]}
-                      onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
-                    >
-                      <Text style={[
-                        styles.choiceButtonText,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
-                      ]}>Fight for fries for life</Text>
-                      <Text style={[
-                        styles.choiceSubtext,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
-                      ]}>(Be my +1?)</Text>
-                    </TouchableOpacity>
+                    {(() => {
+                      // Check if user is already matched with "fight_for_fries" with another user
+                      const currentUserId = '1'; // Current user ID
+                      const existingFightForFriesMatch = Object.values(matchedProfiles).find((match: any) => 
+                        match.matchType === 'fight_for_fries'
+                      );
+                      
+                      const isDisabled = existingFightForFriesMatch && (existingFightForFriesMatch as any).userId !== event.id.replace('invitation-', '');
+                      
+                      return (
+                        <TouchableOpacity 
+                          style={[
+                            styles.choiceButton,
+                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
+                            isDisabled && styles.disabledChoiceButton
+                          ]}
+                          onPress={() => !isDisabled && handleChoiceSelect(event.id, 'fight_for_fries')}
+                          disabled={!!isDisabled}
+                        >
+                          <Text style={[
+                            styles.choiceButtonText,
+                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                            isDisabled && styles.disabledChoiceText
+                          ]}>Fight for fries for life</Text>
+                          <Text style={[
+                            styles.choiceSubtext,
+                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                            isDisabled && styles.disabledChoiceText
+                          ]}>(Be my +1?)</Text>
+                          {!!isDisabled && (
+                            <Text style={styles.disabledLabel}>Already taken</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })()}
                   </>
                 ) : (
                   /* Show only the selected choice when finalized */
@@ -1223,6 +1267,18 @@ const styles = StyleSheet.create({
   },
   disabledChoiceText: {
     color: colors.textLight,
+  },
+  disabledLabel: {
+    position: 'absolute',
+    top: -8,
+    right: 8,
+    backgroundColor: colors.textLight,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 8,
+    fontSize: 10,
+    fontWeight: '600',
+    color: colors.background,
   },
 
   selectedChoiceButton: {
