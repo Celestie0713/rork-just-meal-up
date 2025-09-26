@@ -76,6 +76,7 @@ export default function ProfileScreen() {
   const [showPersonalIncomeModal, setShowPersonalIncomeModal] = useState(false);
   const [showPersonalLanguageModal, setShowPersonalLanguageModal] = useState(false);
   const [showPreferredIncomeModal, setShowPreferredIncomeModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('food');
@@ -603,7 +604,40 @@ export default function ProfileScreen() {
     </Modal>
   );
 
-
+  const renderSettingsModal = () => (
+    <Modal visible={showSettingsModal} transparent animationType="slide">
+      <View style={styles.modalOverlay}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Settings</Text>
+            <TouchableOpacity onPress={() => setShowSettingsModal(false)}>
+              <X size={24} color={Colors.text} />
+            </TouchableOpacity>
+          </View>
+          
+          <View style={styles.settingsContent}>
+            {loveMatchUserId && (
+              <TouchableOpacity 
+                style={styles.settingsItem}
+                onPress={() => {
+                  setShowSettingsModal(false);
+                  handleRemoveLoveMatch();
+                }}
+              >
+                <Heart size={20} color={Colors.textLight} />
+                <Text style={styles.settingsItemText}>Remove Love Match</Text>
+              </TouchableOpacity>
+            )}
+            
+            <TouchableOpacity style={styles.settingsItem}>
+              <Settings size={20} color={Colors.textLight} />
+              <Text style={styles.settingsItemText}>Account Settings</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -620,7 +654,10 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <View style={styles.normalHeader}>
-              <TouchableOpacity style={styles.settingsButton}>
+              <TouchableOpacity 
+                style={styles.settingsButton}
+                onPress={() => setShowSettingsModal(true)}
+              >
                 <Settings size={24} color={Colors.text} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
@@ -635,27 +672,18 @@ export default function ProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {loveMatchUserId && (
-              <View style={styles.loveIconContainer}>
-                <TouchableOpacity 
-                  style={styles.profileLoveIcon}
-                  onPress={() => {
-                    router.push({
-                      pathname: '/user-profile',
-                      params: { userId: loveMatchUserId }
-                    });
-                  }}
-                  testID="profile-love-icon"
-                >
-                  <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.removeLoveIcon}
-                  onPress={handleRemoveLoveMatch}
-                  testID="remove-love-icon"
-                >
-                  <X size={16} color="#666" />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity 
+                style={styles.profileLoveIcon}
+                onPress={() => {
+                  router.push({
+                    pathname: '/user-profile',
+                    params: { userId: loveMatchUserId }
+                  });
+                }}
+                testID="profile-love-icon"
+              >
+                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
+              </TouchableOpacity>
             )}
           </View>
           <View style={styles.nameContainer}>
@@ -776,6 +804,7 @@ export default function ProfileScreen() {
       {renderPersonalIncomeModal()}
       {renderPersonalLanguageModal()}
       {renderPreferredIncomeModal()}
+      {renderSettingsModal()}
     </SafeAreaView>
   );
 }
@@ -852,14 +881,10 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
-  loveIconContainer: {
+  profileLoveIcon: {
     position: 'absolute',
     bottom: -4,
     right: -4,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-  },
-  profileLoveIcon: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     padding: 8,
@@ -868,17 +893,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
-  },
-  removeLoveIcon: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
-    padding: 4,
-    marginLeft: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   nameContainer: {
     flexDirection: 'row',
@@ -1354,5 +1368,21 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
     marginLeft: 8,
+  },
+  settingsContent: {
+    paddingBottom: 20,
+  },
+  settingsItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.surface,
+  },
+  settingsItemText: {
+    fontSize: 16,
+    color: Colors.text,
+    marginLeft: 12,
   },
 });
