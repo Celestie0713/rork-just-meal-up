@@ -56,8 +56,13 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
             onPress={() => {
               // If there's a love icon (match), clicking the name should lead to current user's profile
               // Otherwise, lead to the other user's profile
-              const targetUserId = isMatched ? currentUser?.id : user.id;
-              router.push(`/user-profile?userId=${targetUserId}`);
+              if (isMatched) {
+                // For matched profiles, clicking should lead to current user's own profile
+                router.push(`/user-profile?userId=${currentUser?.id}`);
+              } else {
+                // For non-matched profiles, clicking should lead to the other user's profile
+                router.push(`/user-profile?userId=${user.id}`);
+              }
             }}
             testID={`chat-name-${user.id}`}
             style={styles.nameContainer}
