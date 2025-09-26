@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   profileLoveIcon: {
     position: 'absolute',
-    top: -4,
+    bottom: -4,
     right: -4,
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
