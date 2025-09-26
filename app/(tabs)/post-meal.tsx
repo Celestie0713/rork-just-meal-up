@@ -411,25 +411,7 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-                        {/* Show love icon only if both users chose 'fight_for_fries' */}
-                        {isMatch && matchType === 'fight_for_fries' && (() => {
-                          const invitationId = event.id.replace('invitation-', '');
-                          const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                          const otherUserId = invitation ? (invitation.inviterId === '0' ? invitation.inviteeId : invitation.inviterId) : null;
-                          const hasMutualMatch = otherUserId && hasMutualLoveMatch('0', otherUserId);
-                          
-                          return hasMutualMatch ? (
-                            <TouchableOpacity 
-                              style={styles.loveIconContainer}
-                              onPress={() => {
-                                router.push(`/user-profile?userId=${otherUserId}`);
-                              }}
-                            >
-                              <Heart size={14} color="#FF1744" fill="#FF1744" />
-                              <Text style={styles.loveIconText}>T</Text>
-                            </TouchableOpacity>
-                          ) : null;
-                        })()}
+
                       </View>
                     </View>
                   );
@@ -576,7 +558,7 @@ export default function PostMealScreen() {
                             isDisabled && styles.disabledChoiceText
                           ]}>(Be my +1?)</Text>
                           {isDisabled && (
-                            <Text style={styles.disabledLabel}>Look, don't touch</Text>
+                            <Text style={styles.disabledLabel}>Already Taken</Text>
                           )}
                         </TouchableOpacity>
                       );
@@ -992,21 +974,7 @@ const styles = StyleSheet.create({
   matchIcon: {
     padding: 2,
   },
-  loveIconContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 18,
-    height: 14,
-  },
-  loveIconText: {
-    position: 'absolute',
-    fontSize: 7,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    zIndex: 1,
-  },
+
   eventTypeTag: {
     backgroundColor: colors.primary,
     paddingHorizontal: 8,

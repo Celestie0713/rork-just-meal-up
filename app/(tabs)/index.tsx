@@ -112,7 +112,7 @@ export default function SearchScreen() {
   );
 
   const renderUser = ({ item }: { item: User }) => (
-    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} showLoveIcon={true} />
+    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
   );
 
   const renderPlace = ({ item }: { item: Place }) => (

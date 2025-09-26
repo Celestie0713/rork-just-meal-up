@@ -6,7 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
-import { getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
+
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 
@@ -58,7 +58,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
-  const currentLoveMatch = getCurrentUserLoveMatch();
+
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
     Montserrat_600SemiBold,
@@ -597,29 +597,6 @@ export default function ProfileScreen() {
           <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
-            {currentLoveMatch && (
-              <View style={styles.loveIconWithRemove}>
-                <TouchableOpacity 
-                  style={styles.profileLoveIconContainer}
-                  onPress={() => {
-                    router.push(`/user-profile?userId=${currentLoveMatch}`);
-                  }}
-                  testID="profile-love-icon"
-                >
-                  <Heart size={16} color="#FF1744" fill="#FF1744" />
-                  <Text style={styles.profileLoveIconText}>T</Text>
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.removeLoveIconButton}
-                  onPress={() => {
-                    removeMatchedProfile(currentLoveMatch);
-                  }}
-                  testID="remove-love-icon"
-                >
-                  <X size={12} color="#FF1744" />
-                </TouchableOpacity>
-              </View>
-            )}
           </View>
           
           <View style={styles.locationContainer}>
@@ -821,33 +798,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text,
   },
-  profileLoveIconContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 20,
-    height: 16,
-  },
-  profileLoveIconText: {
-    position: 'absolute',
-    fontSize: 8,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    zIndex: 1,
-  },
-  loveIconWithRemove: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  removeLoveIconButton: {
-    backgroundColor: 'rgba(255, 23, 68, 0.1)',
-    borderRadius: 10,
-    padding: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',

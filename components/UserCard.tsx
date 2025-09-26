@@ -5,7 +5,7 @@ import { MapPin, Crown, Star, Heart, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
 import { router } from 'expo-router';
-import { hasMutualLoveMatchUpdated, getCurrentUserLoveMatch, removeLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
+
 
 import type { User } from '@/types/user';
 
@@ -14,36 +14,12 @@ interface UserCardProps {
   onPress: () => void;
   isGridView?: boolean;
   showOrganizerBadge?: boolean;
-  showLoveIcon?: boolean;
+
 }
 
-export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false, showLoveIcon = false }: UserCardProps) {
+export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
   const { isProfileMatched, matchedProfiles } = useChat();
-  const [refreshKey, setRefreshKey] = useState<number>(0);
-  const currentLoveMatch = getCurrentUserLoveMatch();
-  const userHasMutualMatch = hasMutualLoveMatchUpdated('0', user.id);
-  
-  useEffect(() => {
-    const unsubscribe = subscribeLoveMatchChanges(() => {
-      setRefreshKey(prev => prev + 1);
-    });
-    return unsubscribe;
-  }, []);
-  
-  const handleRemoveLoveMatch = (e: any) => {
-    e.stopPropagation();
-    removeLoveMatch('0', user.id);
-  };
-  
-  // Show love icon if:
-  // 1. This is Alex Chen (current user) and he has a love match
-  // 2. This user has a mutual love match with Alex Chen
-  // 3. This user has a love match with someone else (to show they're taken)
-  const shouldShowLoveIcon = showLoveIcon && (
-    (user.id === '0' && !!currentLoveMatch) || // Alex Chen has a love match
-    userHasMutualMatch || // This user has mutual match with Alex
-    (user.id === '2' && !!currentLoveMatch) // Emma Rodriguez is taken with Alex
-  );
+
 
   
   const getMembershipIcon = () => {
@@ -67,39 +43,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         <View style={styles.onlineIndicator}>
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
-        
-        {shouldShowLoveIcon && (
-          <View style={styles.loveIconContainer}>
-            <TouchableOpacity 
-              style={styles.heartButton}
-              onPress={() => {
-                // If this is Alex Chen (current user) and he has a love match, navigate to his match's profile
-                if (user.id === '0' && currentLoveMatch) {
-                  router.push(`/user-profile?userId=${currentLoveMatch}`);
-                } else if (userHasMutualMatch) {
-                  // If this user has a mutual match with current user, navigate to current user's profile
-                  router.push('/user-profile?userId=0');
-                } else {
-                  // This user is taken with someone else, navigate to their profile to see who they're with
-                  router.push(`/user-profile?userId=${user.id}`);
-                }
-              }}
-              testID={`love-icon-${user.id}`}
-            >
-              <Heart size={16} color="#FF1744" fill="#FF1744" />
-              <Text style={styles.loveIconText}>T</Text>
-            </TouchableOpacity>
-            {(userHasMutualMatch || (user.id === '0' && currentLoveMatch)) && (
-              <TouchableOpacity 
-                style={styles.crossButton}
-                onPress={handleRemoveLoveMatch}
-                testID={`remove-love-${user.id}`}
-              >
-                <X size={8} color="#FFFFFF" strokeWidth={3} />
-              </TouchableOpacity>
-            )}
-          </View>
-        )}
+
       </View>
       
       <View style={[styles.content, isGridView && styles.gridContent]}>
@@ -278,37 +222,5 @@ const styles = StyleSheet.create({
     gap: 4,
     flex: 1,
   },
-  loveIconContainer: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  heartButton: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 20,
-    height: 16,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 10,
-    padding: 2,
-  },
-  loveIconText: {
-    position: 'absolute',
-    fontSize: 8,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    zIndex: 1,
-  },
-  crossButton: {
-    backgroundColor: '#FF1744',
-    borderRadius: 8,
-    width: 14,
-    height: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
 });

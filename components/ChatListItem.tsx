@@ -5,7 +5,7 @@ import { Heart, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
-import { hasMutualLoveMatchUpdated, removeLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
+
 import type { User } from '@/types/user';
 
 interface ChatListItemProps {
@@ -20,20 +20,7 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
   const { isProfileMatched } = useChat();
   const { user: currentUser } = useAuth();
   const isMatched = isProfileMatched(user.id);
-  const [refreshKey, setRefreshKey] = useState<number>(0);
-  const hasMutualMatch = hasMutualLoveMatchUpdated('0', user.id);
-  
-  useEffect(() => {
-    const unsubscribe = subscribeLoveMatchChanges(() => {
-      setRefreshKey(prev => prev + 1);
-    });
-    return unsubscribe;
-  }, []);
-  
-  const handleRemoveLoveMatch = (e: any) => {
-    e.stopPropagation();
-    removeLoveMatch('0', user.id);
-  };
+
   
   const formatTime = (date: Date) => {
     const now = new Date();
@@ -67,36 +54,7 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
       
       <View style={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity 
-            onPress={() => {
-              // If there's a mutual love match, clicking the name should lead to current user's profile
-              // Otherwise, lead to the other user's profile
-              if (hasMutualMatch) {
-                // For mutual love matches, clicking should lead to current user's own profile
-                router.push(`/user-profile?userId=${currentUser?.id}`);
-              } else {
-                // For non-matched profiles, clicking should lead to the other user's profile
-                router.push(`/user-profile?userId=${user.id}`);
-              }
-            }}
-            testID={`chat-name-${user.id}`}
-            style={styles.nameContainer}
-          >
-            <Text style={[styles.name, styles.clickableName]} numberOfLines={1}>{user.name}</Text>
-            {hasMutualMatch && (
-              <View style={styles.loveIconContainer}>
-                <Heart size={14} color="#FF1744" fill="#FF1744" />
-                <Text style={styles.loveIconText}>T</Text>
-                <TouchableOpacity 
-                  style={styles.crossButton}
-                  onPress={handleRemoveLoveMatch}
-                  testID={`remove-love-${user.id}`}
-                >
-                  <X size={10} color="#FFFFFF" strokeWidth={3} />
-                </TouchableOpacity>
-              </View>
-            )}
-          </TouchableOpacity>
+          <Text style={styles.name} numberOfLines={1}>{user.name}</Text>
           {lastMessageTime && (
             <Text style={styles.time}>{formatTime(lastMessageTime)}</Text>
           )}
@@ -160,9 +118,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
   },
-  clickableName: {
-    color: Colors.primary,
-  },
+
   time: {
     fontSize: 12,
     color: Colors.textLight,
@@ -193,37 +149,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
   },
-  nameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    flex: 1,
-  },
-  loveIconContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 32,
-    height: 14,
-    flexDirection: 'row',
-    gap: 2,
-  },
-  loveIconText: {
-    position: 'absolute',
-    fontSize: 7,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    zIndex: 1,
-    left: 2,
-  },
-  crossButton: {
-    backgroundColor: '#FF1744',
-    borderRadius: 8,
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 4,
-  },
+
 });
