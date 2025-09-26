@@ -413,10 +413,9 @@ export default function PostMealScreen() {
                               const invitationId = event.id.replace('invitation-', '');
                               const invitation = mockInvitations.find(inv => inv.id === invitationId);
                               if (invitation) {
-                                const inviter = mockUsers.find(u => u.id === invitation.inviterId);
-                                if (inviter) {
-                                  router.push(`/user-profile?userId=${inviter.id}`);
-                                }
+                                // Navigate to the match's profile (the other person, not necessarily the inviter)
+                                const matchUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                                router.push(`/user-profile?userId=${matchUserId}`);
                               }
                             }}
                           >
