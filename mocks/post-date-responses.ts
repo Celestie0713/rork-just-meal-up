@@ -14,7 +14,7 @@ export const mockPostDateResponses: PostDateResponse[] = [
   {
     userId: '3', // Marcus Johnson  
     mealId: '6', // Wine & Dine date
-    choice: 'buddy_pass', // This will match if user also chooses 'buddy_pass'
+    choice: 'fight_for_fries', // Fight for fries for life
     timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 3 days ago + 12 hours
   },
   {
