@@ -4,6 +4,7 @@ import { router } from 'expo-router';
 import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
+import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
 
 interface ChatListItemProps {
@@ -16,6 +17,7 @@ interface ChatListItemProps {
 
 export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount = 0, onPress }: ChatListItemProps) {
   const { isProfileMatched } = useChat();
+  const { user: currentUser } = useAuth();
   const isMatched = isProfileMatched(user.id);
   
   const formatTime = (date: Date) => {
@@ -51,7 +53,12 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
       <View style={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity 
-            onPress={() => router.push(`/user-profile?userId=${user.id}`)}
+            onPress={() => {
+              // If there's a love icon (match), clicking the name should lead to current user's profile
+              // Otherwise, lead to the other user's profile
+              const targetUserId = isMatched ? currentUser?.id : user.id;
+              router.push(`/user-profile?userId=${targetUserId}`);
+            }}
             testID={`chat-name-${user.id}`}
             style={styles.nameContainer}
           >
