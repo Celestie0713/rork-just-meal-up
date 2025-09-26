@@ -108,13 +108,8 @@ function notifyLoveMatchChange() {
 export function getCurrentUserLoveMatch(): string | null {
   // Alex Chen (id: '0') has a mutual fight_for_fries match with Emma Rodriguez (id: '2')
   const matchUserId = '2';
-  const matchKey = `0-${matchUserId}`;
   
-  if (removedLoveMatches.has(matchKey)) {
-    return null;
-  }
-  
-  return hasMutualLoveMatch('0', matchUserId) ? matchUserId : null;
+  return hasMutualLoveMatchUpdated('0', matchUserId) ? matchUserId : null;
 }
 
 // Remove a love match
