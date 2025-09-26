@@ -405,7 +405,12 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-
+                        {/* Show love icon if both users chose the same option */}
+                        {isMatch && (
+                          <View style={styles.loveIconContainer}>
+                            <Heart size={20} color={colors.primary} fill={colors.primary} />
+                          </View>
+                        )}
                       </View>
                     </View>
                   );
