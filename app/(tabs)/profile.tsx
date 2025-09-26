@@ -4,6 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
+import { useChat } from '@/hooks/use-chat';
+import { mockUsers } from '@/mocks/users';
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 
@@ -54,6 +56,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
+  const { matchedProfiles, isProfileMatched } = useChat();
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
     Montserrat_600SemiBold,
@@ -590,7 +593,22 @@ export default function ProfileScreen() {
 
         <View style={styles.profileSection}>
           <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-          <Text style={styles.name}>{user.name}, {user.age}</Text>
+          <View style={styles.nameContainer}>
+            <Text style={styles.name}>{user.name}, {user.age}</Text>
+            {Object.keys(matchedProfiles).length > 0 && (
+              <TouchableOpacity 
+                style={styles.profileLoveIconContainer}
+                onPress={() => {
+                  const matchedUserId = Object.keys(matchedProfiles)[0];
+                  router.push(`/user-profile?userId=${matchedUserId}`);
+                }}
+                testID="profile-love-icon"
+              >
+                <Heart size={16} color="#FF1744" fill="#FF1744" />
+                <Text style={styles.profileLoveIconText}>T</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.textLight} />
@@ -779,11 +797,32 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 16,
   },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
   name: {
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: 8,
+  },
+  profileLoveIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 20,
+    height: 16,
+  },
+  profileLoveIconText: {
+    position: 'absolute',
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    zIndex: 1,
   },
   locationContainer: {
     flexDirection: 'row',
