@@ -6,6 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
+import { getCurrentUserLoveMatch, getMatchedUserId } from '@/mocks/post-date-responses';
 
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
@@ -58,6 +59,9 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
+  
+  // Check if current user has a love match
+  const loveMatchUserId = getCurrentUserLoveMatch();
 
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
@@ -594,7 +598,23 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.profileSection}>
-          <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
+          <View style={styles.profileImageContainer}>
+            <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
+            {loveMatchUserId && (
+              <TouchableOpacity 
+                style={styles.profileLoveIcon}
+                onPress={() => {
+                  router.push({
+                    pathname: '/user-profile',
+                    params: { userId: loveMatchUserId }
+                  });
+                }}
+                testID="profile-love-icon"
+              >
+                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
+              </TouchableOpacity>
+            )}
+          </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
           </View>
@@ -780,11 +800,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 24,
   },
+  profileImageContainer: {
+    position: 'relative',
+    marginBottom: 16,
+  },
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 16,
+  },
+  profileLoveIcon: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 20,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
   nameContainer: {
     flexDirection: 'row',
