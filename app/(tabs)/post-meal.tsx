@@ -120,6 +120,7 @@ export default function PostMealScreen() {
     const events: PostMealEvent[] = [];
     const now = new Date();
     const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+    const sevenDaysInMs = 7 * 24 * 60 * 60 * 1000;
     
     // Add completed invitations that are 10+ hours past
     mockInvitations
@@ -130,6 +131,8 @@ export default function PostMealScreen() {
       .forEach(invitation => {
         const eventId = `invitation-${invitation.id}`;
         const choiceTimestamp = choiceTimestamps[eventId];
+        const eventDateTime = parseDateTime(invitation.date, invitation.time);
+        const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
         
         // If a choice was made, check if it's been less than 24 hours
         if (choiceTimestamp) {
@@ -137,6 +140,14 @@ export default function PostMealScreen() {
           if (timeSinceChoice >= twentyFourHoursInMs) {
             // Remove from state if 24 hours have passed
             console.log(`Removing event ${eventId} - 24 hours have passed since choice was made`);
+            return; // Skip this event
+          }
+        } else {
+          // If no choice was made, check if 7 days have passed since the event became available (10 hours after meal)
+          const timeSinceAvailable = now.getTime() - tenHoursAfterEvent.getTime();
+          if (timeSinceAvailable >= sevenDaysInMs) {
+            // Remove from state if 7 days have passed without a choice
+            console.log(`Removing event ${eventId} - 7 days have passed without a choice`);
             return; // Skip this event
           }
         }
@@ -163,6 +174,8 @@ export default function PostMealScreen() {
       .forEach(mealUp => {
         const eventId = `mealup-${mealUp.id}`;
         const choiceTimestamp = choiceTimestamps[eventId];
+        const eventDateTime = parseDateTime(mealUp.date, mealUp.time);
+        const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
         
         // If a choice was made, check if it's been less than 24 hours
         if (choiceTimestamp) {
@@ -170,6 +183,14 @@ export default function PostMealScreen() {
           if (timeSinceChoice >= twentyFourHoursInMs) {
             // Remove from state if 24 hours have passed
             console.log(`Removing event ${eventId} - 24 hours have passed since choice was made`);
+            return; // Skip this event
+          }
+        } else {
+          // If no choice was made, check if 7 days have passed since the event became available (10 hours after meal)
+          const timeSinceAvailable = now.getTime() - tenHoursAfterEvent.getTime();
+          if (timeSinceAvailable >= sevenDaysInMs) {
+            // Remove from state if 7 days have passed without a choice
+            console.log(`Removing event ${eventId} - 7 days have passed without a choice`);
             return; // Skip this event
           }
         }
