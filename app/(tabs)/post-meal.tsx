@@ -578,9 +578,9 @@ export default function PostMealScreen() {
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
-          <Text style={styles.infoText}>All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
-          <Text style={styles.infoText}>Once an option is selected, it will disappear from this page within 24 hours.</Text>
-          <Text style={styles.infoText}>If there is no option is selected, it will disappear within 7 days.</Text>
+          <Text style={styles.infoText}>1. All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
+          <Text style={styles.infoText}>2. Once an option is selected, it will disappear from this page within 24 hours.</Text>
+          <Text style={styles.infoText}>3. If there is no option is selected, it will disappear within 7 days.</Text>
         </View>
       </ScrollView>
 
