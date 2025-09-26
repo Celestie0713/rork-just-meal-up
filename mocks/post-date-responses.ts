@@ -8,13 +8,13 @@ export const mockPostDateResponses: PostDateResponse[] = [
   {
     userId: '2', // Emma Rodriguez
     mealId: '4', // Burger Palace date
-    choice: 'fight_for_fries', // This will create mixed signals if user chooses 'next_round'
+    choice: 'fight_for_fries', // This will create a match if user also chooses 'fight_for_fries'
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 2 days ago + 12 hours
   },
   {
     userId: '3', // Marcus Johnson  
     mealId: '6', // Wine & Dine date
-    choice: 'fight_for_fries', // Fight for fries for life
+    choice: 'fight_for_fries', // Fight for fries for life - will create a match if user also chooses 'fight_for_fries'
     timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 3 days ago + 12 hours
   },
   {
@@ -22,5 +22,22 @@ export const mockPostDateResponses: PostDateResponse[] = [
     mealId: '7', // Sakura Sushi date
     choice: 'next_round', // This will create mixed signals if user chooses 'fight_for_fries'
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 5 days ago + 12 hours
+  }
+];
+
+// Pre-populate some matched profiles for demonstration
+// In a real app, these would be created when matches occur
+export const mockMatchedProfiles = [
+  {
+    userId: '2', // Emma Rodriguez - matched with fight_for_fries
+    invitationId: '4',
+    matchType: 'fight_for_fries' as const,
+    matchedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+  },
+  {
+    userId: '6', // David Park - matched with buddy_pass
+    invitationId: '8',
+    matchType: 'buddy_pass' as const,
+    matchedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
   }
 ];

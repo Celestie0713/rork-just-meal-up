@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
 import type { ChatMessage, VoiceMessage, SystemMessage } from '@/types/user';
-import { mockPostDateResponses } from '@/mocks/post-date-responses';
+import { mockPostDateResponses, mockMatchedProfiles } from '@/mocks/post-date-responses';
 import { mockInvitations } from '@/mocks/invitations';
 
 type ChatState = {
@@ -30,10 +30,22 @@ type RemovedProfilesState = {
   [userId: string]: RemovedProfile;
 };
 
+type MatchedProfile = {
+  userId: string;
+  invitationId: string;
+  matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
+  matchedAt: Date;
+};
+
+type MatchedProfilesState = {
+  [userId: string]: MatchedProfile;
+};
+
 export const [ChatProvider, useChat] = createContextHook(() => {
   const [chats, setChats] = useState<ChatState>({});
   const [removedProfiles, setRemovedProfiles] = useState<RemovedProfilesState>({});
   const [mixedSignalsCases, setMixedSignalsCases] = useState<MixedSignalsState>({});
+  const [matchedProfiles, setMatchedProfiles] = useState<MatchedProfilesState>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
   const addVoiceMessage = useCallback((chatId: string, message: VoiceMessage) => {
@@ -87,20 +99,29 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     }));
   }, []);
 
-  // Load removed profiles from storage on initialization
+  // Load removed profiles and matched profiles from storage on initialization
   useEffect(() => {
-    const loadRemovedProfiles = async () => {
+    const loadData = async () => {
       try {
         // For now, we'll use in-memory storage
         // In a real app, you would use a proper storage solution
         console.log('Loading removed profiles from storage...');
+        
+        // Initialize with mock matched profiles for demonstration
+        const initialMatchedProfiles: MatchedProfilesState = {};
+        mockMatchedProfiles.forEach(match => {
+          initialMatchedProfiles[match.userId] = match;
+        });
+        setMatchedProfiles(initialMatchedProfiles);
+        console.log('Initialized matched profiles:', initialMatchedProfiles);
+        
         setIsLoaded(true);
       } catch (error) {
-        console.error('Failed to load removed profiles:', error);
+        console.error('Failed to load data:', error);
         setIsLoaded(true);
       }
     };
-    loadRemovedProfiles();
+    loadData();
   }, []);
 
   // Save removed profiles to storage whenever it changes
@@ -234,6 +255,30 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     console.log(`Tracking mixed signals case for user ${userId}`);
   }, []);
 
+  const addMatchedProfile = useCallback((userId: string, invitationId: string, matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round') => {
+    const matchedProfile: MatchedProfile = {
+      userId,
+      invitationId,
+      matchType,
+      matchedAt: new Date()
+    };
+    
+    setMatchedProfiles(prev => ({
+      ...prev,
+      [userId]: matchedProfile
+    }));
+    
+    console.log(`Profile ${userId} marked as matched with type: ${matchType}`);
+  }, []);
+
+  const isProfileMatched = useCallback((userId: string): boolean => {
+    return !!matchedProfiles[userId];
+  }, [matchedProfiles]);
+
+  const getMatchType = useCallback((userId: string): 'fight_for_fries' | 'buddy_pass' | 'next_round' | null => {
+    return matchedProfiles[userId]?.matchType || null;
+  }, [matchedProfiles]);
+
   // Periodic check for mixed signals cases without chat activity
   useEffect(() => {
     if (!isLoaded) return;
@@ -276,6 +321,9 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     checkAndRemoveNonMatchingProfiles,
     getAvailableChats,
     trackMixedSignalsCase,
+    addMatchedProfile,
+    isProfileMatched,
+    getMatchType,
     isLoaded
-  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, isLoaded]);
+  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, addMatchedProfile, isProfileMatched, getMatchType, isLoaded]);
 });

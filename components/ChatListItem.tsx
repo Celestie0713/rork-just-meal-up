@@ -1,7 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
+import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { useChat } from '@/hooks/use-chat';
 import type { User } from '@/types/user';
 
 interface ChatListItemProps {
@@ -13,6 +15,9 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount = 0, onPress }: ChatListItemProps) {
+  const { isProfileMatched } = useChat();
+  const isMatched = isProfileMatched(user.id);
+  
   const formatTime = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
@@ -48,8 +53,15 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
           <TouchableOpacity 
             onPress={() => router.push(`/user-profile?userId=${user.id}`)}
             testID={`chat-name-${user.id}`}
+            style={styles.nameContainer}
           >
             <Text style={[styles.name, styles.clickableName]} numberOfLines={1}>{user.name}</Text>
+            {isMatched && (
+              <View style={styles.loveIconContainer}>
+                <Heart size={14} color="#FF1744" fill="#FF1744" />
+                <Text style={styles.loveIconText}>T</Text>
+              </View>
+            )}
           </TouchableOpacity>
           {lastMessageTime && (
             <Text style={styles.time}>{formatTime(lastMessageTime)}</Text>
@@ -146,5 +158,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.background,
+  },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  loveIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 18,
+    height: 14,
+  },
+  loveIconText: {
+    position: 'absolute',
+    fontSize: 7,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    zIndex: 1,
   },
 });

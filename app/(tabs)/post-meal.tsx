@@ -60,7 +60,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile } = useChat();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -255,6 +255,13 @@ export default function PostMealScreen() {
       
       if (isMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
+        // Track the match
+        const invitation = mockInvitations.find(inv => inv.id === invitationId);
+        if (invitation) {
+          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+          addMatchedProfile(dateUserId, invitationId, matchType);
+          console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
+        }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
         if ((choice === 'next_round' && dateChoice === 'fight_for_fries') ||

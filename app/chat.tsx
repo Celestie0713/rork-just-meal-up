@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Heart } from 'lucide-react-native';
 import { VoiceMessageBubble } from '@/components/VoiceMessageBubble';
 import { SystemMessageBubble } from '@/components/SystemMessageBubble';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
@@ -43,13 +43,14 @@ const mockMessages: ChatMessage[] = [
 
 export default function ChatScreen() {
   const params = useLocalSearchParams<{ userId: string }>();
-  const { getChatMessages, addVoiceMessage, initializeChat } = useChat();
+  const { getChatMessages, addVoiceMessage, initializeChat, isProfileMatched } = useChat();
   const currentUserId = '1';
   const chatId = `${currentUserId}-${params.userId}`;
   
   const messages = getChatMessages(chatId);
   
   const chatUser = mockUsers.find(user => user.id === params.userId);
+  const isMatched = chatUser ? isProfileMatched(chatUser.id) : false;
   
   useEffect(() => {
     if (messages.length === 0) {
@@ -115,7 +116,15 @@ export default function ChatScreen() {
           onPress={() => router.push(`/user-profile?userId=${chatUser.id}`)}
           testID="chat-header-name"
         >
-          <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
+            {isMatched && (
+              <View style={styles.loveIconContainer}>
+                <Heart size={16} color="#FF1744" fill="#FF1744" />
+                <Text style={styles.loveIconText}>T</Text>
+              </View>
+            )}
+          </View>
           <Text style={styles.headerSubtitle}>
             {chatUser.isOnline ? 'Online' : 'Voice messages only'}
           </Text>
@@ -200,5 +209,26 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: Colors.textLight,
+  },
+  headerTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    justifyContent: 'center',
+  },
+  loveIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 20,
+    height: 16,
+  },
+  loveIconText: {
+    position: 'absolute',
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    zIndex: 1,
   },
 });

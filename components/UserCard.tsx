@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Crown, Star } from 'lucide-react-native';
+import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { useChat } from '@/hooks/use-chat';
 import type { User } from '@/types/user';
 
 interface UserCardProps {
@@ -13,6 +14,9 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
+  const { isProfileMatched } = useChat();
+  const isMatched = isProfileMatched(user.id);
+  
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
       return <Crown size={16} color={Colors.organizer} />;
@@ -38,9 +42,17 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
       
       <View style={[styles.content, isGridView && styles.gridContent]}>
         <View style={styles.header}>
-          <Text style={[styles.name, isGridView && styles.gridName]} numberOfLines={1}>
-            {user.name}, {user.age}
-          </Text>
+          <View style={styles.nameRow}>
+            <Text style={[styles.name, isGridView && styles.gridName]} numberOfLines={1}>
+              {user.name}, {user.age}
+            </Text>
+            {isMatched && (
+              <View style={styles.loveIconContainer}>
+                <Heart size={16} color="#FF1744" fill="#FF1744" />
+                <Text style={styles.loveIconText}>T</Text>
+              </View>
+            )}
+          </View>
           <View style={styles.badgeContainer}>
             {showOrganizerBadge && (
               <View style={styles.organizerBadge}>
@@ -202,5 +214,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     marginLeft: 4,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
+  loveIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 20,
+    height: 16,
+  },
+  loveIconText: {
+    position: 'absolute',
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    zIndex: 1,
   },
 });
