@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Crown, Star } from 'lucide-react-native';
+import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { useChat } from '@/hooks/use-chat';
+import { router } from 'expo-router';
 
 import type { User } from '@/types/user';
 
@@ -11,9 +13,11 @@ interface UserCardProps {
   onPress: () => void;
   isGridView?: boolean;
   showOrganizerBadge?: boolean;
+  showLoveIcon?: boolean;
 }
 
-export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
+export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false, showLoveIcon = false }: UserCardProps) {
+  const { isProfileMatched } = useChat();
 
   
   const getMembershipIcon = () => {
@@ -37,6 +41,20 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         <View style={styles.onlineIndicator}>
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
+        
+        {showLoveIcon && isProfileMatched(user.id) && (
+          <TouchableOpacity 
+            style={styles.loveIconContainer}
+            onPress={() => {
+              // Navigate to current user's profile (Alex Chen)
+              router.push('/user-profile?userId=0');
+            }}
+            testID={`love-icon-${user.id}`}
+          >
+            <Heart size={16} color="#FF1744" fill="#FF1744" />
+            <Text style={styles.loveIconText}>T</Text>
+          </TouchableOpacity>
+        )}
       </View>
       
       <View style={[styles.content, isGridView && styles.gridContent]}>
@@ -216,11 +234,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   loveIconContainer: {
-    position: 'relative',
+    position: 'absolute',
+    top: 12,
+    left: 12,
     alignItems: 'center',
     justifyContent: 'center',
     width: 20,
     height: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 10,
+    padding: 2,
   },
   loveIconText: {
     position: 'absolute',
