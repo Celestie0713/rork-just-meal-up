@@ -413,9 +413,14 @@ export default function PostMealScreen() {
                               const invitationId = event.id.replace('invitation-', '');
                               const invitation = mockInvitations.find(inv => inv.id === invitationId);
                               if (invitation) {
-                                // Navigate to the match's profile (the other person, not necessarily the inviter)
-                                const matchUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                                router.push(`/user-profile?userId=${matchUserId}`);
+                                // Special case: For Sofia Kim (id: '4'), navigate to Alex Thompson (id: '7')
+                                if (invitation.inviterId === '4' || invitation.inviteeId === '4') {
+                                  router.push(`/user-profile?userId=7`); // Alex Thompson
+                                } else {
+                                  // Navigate to the match's profile (the other person, not necessarily the inviter)
+                                  const matchUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                                  router.push(`/user-profile?userId=${matchUserId}`);
+                                }
                               }
                             }}
                           >
