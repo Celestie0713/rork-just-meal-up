@@ -851,7 +851,7 @@ const styles = StyleSheet.create({
   },
   loveIconContainer: {
     position: 'absolute',
-    top: -4,
+    bottom: -4,
     right: -4,
     flexDirection: 'row',
     alignItems: 'flex-start',
