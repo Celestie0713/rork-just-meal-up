@@ -107,13 +107,18 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         // In a real app, you would use a proper storage solution
         console.log('Loading removed profiles from storage...');
         
-        // Initialize with mock matched profiles for demonstration
+        // Initialize with only the most recent matched profile for demonstration
+        // Only allow one love icon at a time
         const initialMatchedProfiles: MatchedProfilesState = {};
-        mockMatchedProfiles.forEach(match => {
-          initialMatchedProfiles[match.userId] = match;
-        });
+        if (mockMatchedProfiles.length > 0) {
+          // Get the most recent match (latest matchedAt date)
+          const mostRecentMatch = mockMatchedProfiles.reduce((latest, current) => 
+            current.matchedAt > latest.matchedAt ? current : latest
+          );
+          initialMatchedProfiles[mostRecentMatch.userId] = mostRecentMatch;
+        }
         setMatchedProfiles(initialMatchedProfiles);
-        console.log('Initialized matched profiles:', initialMatchedProfiles);
+        console.log('Initialized with single matched profile:', initialMatchedProfiles);
         
         setIsLoaded(true);
       } catch (error) {
@@ -263,17 +268,26 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       matchedAt: new Date()
     };
     
-    setMatchedProfiles(prev => ({
-      ...prev,
+    // Only allow one matched profile at a time - clear all previous matches
+    setMatchedProfiles({
       [userId]: matchedProfile
-    }));
+    });
     
-    console.log(`Profile ${userId} marked as matched with type: ${matchType}`);
+    console.log(`Profile ${userId} marked as matched with type: ${matchType}. Previous matches cleared.`);
   }, []);
 
   const isProfileMatched = useCallback((userId: string): boolean => {
     return !!matchedProfiles[userId];
   }, [matchedProfiles]);
+
+  const removeMatchedProfile = useCallback((userId: string) => {
+    setMatchedProfiles(prev => {
+      const updated = { ...prev };
+      delete updated[userId];
+      return updated;
+    });
+    console.log(`Removed matched profile: ${userId}`);
+  }, []);
 
   const getMatchType = useCallback((userId: string): 'fight_for_fries' | 'buddy_pass' | 'next_round' | null => {
     return matchedProfiles[userId]?.matchType || null;
@@ -324,7 +338,8 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     addMatchedProfile,
     isProfileMatched,
     getMatchType,
+    removeMatchedProfile,
     matchedProfiles,
     isLoaded
-  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, addMatchedProfile, isProfileMatched, getMatchType, matchedProfiles, isLoaded]);
+  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, addMatchedProfile, isProfileMatched, getMatchType, removeMatchedProfile, matchedProfiles, isLoaded]);
 });
