@@ -578,11 +578,9 @@ export default function PostMealScreen() {
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
-          <Text style={styles.infoText}>• Events appear here 10 hours after the scheduled meal time</Text>
-          <Text style={styles.infoText}>• Once you make a decision, the date will be automatically removed within 24 hours</Text>
-          <Text style={styles.infoText}>• If you and your date don&apos;t match, their profile will disappear from your chat list after 24 hours</Text>
-          <Text style={styles.infoText}>• Both individual dates and group meal ups are included</Text>
-          <Text style={styles.infoText}>• Help improve the community by sharing your thoughts</Text>
+          <Text style={styles.infoText}>All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
+          <Text style={styles.infoText}>Once an option is selected, it will disappear from this page within 24 hours.</Text>
+          <Text style={styles.infoText}>If there is no option is selected, it will disappear within 7 days.</Text>
         </View>
       </ScrollView>
 
