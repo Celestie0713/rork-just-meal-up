@@ -110,7 +110,7 @@ export default function PostMealScreen() {
       case 'next_round':
         return { text: "Let's do next round", subtext: '(Next date)' };
       case 'fight_for_fries':
-        return { text: 'Marcus Johnson', subtext: '(Be my +1?)' };
+        return { text: 'Fight for fries for life', subtext: '(Be my +1?)' };
       default:
         return null;
     }
@@ -531,7 +531,7 @@ export default function PostMealScreen() {
                     <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
                       {userSelectedChoice === 'buddy_pass' && 'Buddy pass ✅'}
                       {userSelectedChoice === 'next_round' && "Let's do next round"}
-                      {userSelectedChoice === 'fight_for_fries' && 'Marcus Johnson'}
+                      {userSelectedChoice === 'fight_for_fries' && 'Fight for fries for life'}
                     </Text>
                     <Text style={[styles.choiceSubtext, styles.finalizedChoiceText]}>
                       {userSelectedChoice === 'buddy_pass' && '(Stay Friend)'}
