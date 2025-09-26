@@ -419,7 +419,8 @@ export default function PostMealScreen() {
                               }
                             }}
                           >
-                            <Heart size={20} color={colors.primary} fill={colors.primary} />
+                            <Heart size={14} color="#FF1744" fill="#FF1744" />
+                            <Text style={styles.loveIconText}>T</Text>
                           </TouchableOpacity>
                         )}
                       </View>
@@ -973,12 +974,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 36,
-    height: 32,
+    width: 18,
+    height: 14,
   },
   loveIconText: {
     position: 'absolute',
-    fontSize: 12,
+    fontSize: 7,
     fontWeight: '700',
     color: '#FFFFFF',
     textAlign: 'center',
