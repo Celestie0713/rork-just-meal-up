@@ -700,7 +700,7 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'next_round' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🎯</Text>
-                <Text style={styles.matchModalTitle}>Ready for round two?</Text>
+                <Text style={styles.matchModalTitle}>You're both in for the Next Round!</Text>
                 <Text style={styles.matchModalDescription}>
                   You both want to keep the adventure going!
                 </Text>
@@ -753,6 +753,20 @@ export default function PostMealScreen() {
               >
                 <Text style={styles.upgradeButtonText}>
                   Chat
+                </Text>
+              </TouchableOpacity>
+            ) : matchResult?.matchType === 'next_round' ? (
+              <TouchableOpacity 
+                style={[styles.upgradeButton]}
+                onPress={() => {
+                  setShowMatchModal(false);
+                  setMatchResult(null);
+                  // Navigate to search places page
+                  router.push('/(tabs)/?tab=places');
+                }}
+              >
+                <Text style={styles.upgradeButtonText}>
+                  Invite to meal
                 </Text>
               </TouchableOpacity>
             ) : (
