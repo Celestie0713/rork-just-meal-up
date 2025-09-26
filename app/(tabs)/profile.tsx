@@ -6,6 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
+import { getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 
@@ -57,6 +58,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
+  const currentLoveMatch = getCurrentUserLoveMatch();
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
     Montserrat_600SemiBold,
@@ -595,13 +597,12 @@ export default function ProfileScreen() {
           <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
-            {Object.keys(matchedProfiles).length > 0 && (
+            {currentLoveMatch && (
               <View style={styles.loveIconWithRemove}>
                 <TouchableOpacity 
                   style={styles.profileLoveIconContainer}
                   onPress={() => {
-                    const matchedUserId = Object.keys(matchedProfiles)[0];
-                    router.push(`/user-profile?userId=${matchedUserId}`);
+                    router.push(`/user-profile?userId=${currentLoveMatch}`);
                   }}
                   testID="profile-love-icon"
                 >
@@ -611,8 +612,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity 
                   style={styles.removeLoveIconButton}
                   onPress={() => {
-                    const matchedUserId = Object.keys(matchedProfiles)[0];
-                    removeMatchedProfile(matchedUserId);
+                    removeMatchedProfile(currentLoveMatch);
                   }}
                   testID="remove-love-icon"
                 >

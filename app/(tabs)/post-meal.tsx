@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import { mockPostDateResponses } from '@/mocks/post-date-responses';
+import { mockPostDateResponses, hasMutualLoveMatch, getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 
@@ -227,18 +227,12 @@ export default function PostMealScreen() {
       return;
     }
 
-    // Check if user is already matched and trying to choose the same option with another user
-    const hasExistingMatch = Object.keys(matchedProfiles).length > 0;
-    if (hasExistingMatch && choice === 'fight_for_fries') {
-      // Get the existing match details
-      const existingMatchUserId = Object.keys(matchedProfiles)[0];
-      const existingMatch = matchedProfiles[existingMatchUserId];
-      
-      if (existingMatch.matchType === 'fight_for_fries') {
-        console.log('User is already taken with fight_for_fries match. Cannot choose same option with another user.');
-        // Show an alert or toast message
-        return;
-      }
+    // Check if user already has a mutual love match and trying to choose fight_for_fries with another user
+    const currentLoveMatch = getCurrentUserLoveMatch();
+    if (currentLoveMatch && choice === 'fight_for_fries') {
+      console.log('User is already taken with a mutual love match. Cannot choose fight_for_fries with another user.');
+      // Show an alert or toast message
+      return;
     }
 
     const now = new Date();
@@ -417,29 +411,25 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-                        {/* Show love icon if both users chose the same option */}
-                        {isMatch && (
-                          <TouchableOpacity 
-                            style={styles.loveIconContainer}
-                            onPress={() => {
-                              const invitationId = event.id.replace('invitation-', '');
-                              const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                              if (invitation) {
-                                // Special case: For Sofia Kim (id: '4'), navigate to Alex Thompson (id: '7')
-                                if (invitation.inviterId === '4' || invitation.inviteeId === '4') {
-                                  router.push(`/user-profile?userId=7`); // Alex Thompson
-                                } else {
-                                  // Navigate to the match's profile (the other person, not necessarily the inviter)
-                                  const matchUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                                  router.push(`/user-profile?userId=${matchUserId}`);
-                                }
-                              }
-                            }}
-                          >
-                            <Heart size={14} color="#FF1744" fill="#FF1744" />
-                            <Text style={styles.loveIconText}>T</Text>
-                          </TouchableOpacity>
-                        )}
+                        {/* Show love icon only if both users chose 'fight_for_fries' */}
+                        {isMatch && matchType === 'fight_for_fries' && (() => {
+                          const invitationId = event.id.replace('invitation-', '');
+                          const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                          const otherUserId = invitation ? (invitation.inviterId === '0' ? invitation.inviteeId : invitation.inviterId) : null;
+                          const hasMutualMatch = otherUserId && hasMutualLoveMatch('0', otherUserId);
+                          
+                          return hasMutualMatch ? (
+                            <TouchableOpacity 
+                              style={styles.loveIconContainer}
+                              onPress={() => {
+                                router.push(`/user-profile?userId=${otherUserId}`);
+                              }}
+                            >
+                              <Heart size={14} color="#FF1744" fill="#FF1744" />
+                              <Text style={styles.loveIconText}>T</Text>
+                            </TouchableOpacity>
+                          ) : null;
+                        })()}
                       </View>
                     </View>
                   );
@@ -561,9 +551,9 @@ export default function PostMealScreen() {
                     </TouchableOpacity>
                     
                     {(() => {
-                      // Check if user is already matched and trying to choose the same option with another user
-                      const hasExistingMatch = Object.keys(matchedProfiles).length > 0;
-                      const isDisabled = hasExistingMatch && Object.values(matchedProfiles)[0]?.matchType === 'fight_for_fries';
+                      // Check if user already has a mutual love match
+                      const currentLoveMatch = getCurrentUserLoveMatch();
+                      const isDisabled = !!currentLoveMatch;
                       
                       return (
                         <TouchableOpacity 

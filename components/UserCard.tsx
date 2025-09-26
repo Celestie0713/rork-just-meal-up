@@ -5,6 +5,7 @@ import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
 import { router } from 'expo-router';
+import { hasMutualLoveMatch, getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
 
 import type { User } from '@/types/user';
 
@@ -18,6 +19,18 @@ interface UserCardProps {
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false, showLoveIcon = false }: UserCardProps) {
   const { isProfileMatched, matchedProfiles } = useChat();
+  const currentLoveMatch = getCurrentUserLoveMatch();
+  const userHasMutualMatch = hasMutualLoveMatch('0', user.id);
+  
+  // Show love icon if:
+  // 1. This is Alex Chen (current user) and he has a love match
+  // 2. This user has a mutual love match with Alex Chen
+  // 3. This user has a love match with someone else (to show they're taken)
+  const shouldShowLoveIcon = showLoveIcon && (
+    (user.id === '0' && !!currentLoveMatch) || // Alex Chen has a love match
+    userHasMutualMatch || // This user has mutual match with Alex
+    (user.id === '2' && !!currentLoveMatch) // Emma Rodriguez is taken with Alex
+  );
 
   
   const getMembershipIcon = () => {
@@ -42,12 +55,18 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
         
-        {showLoveIcon && (isProfileMatched(user.id) || (user.id === '0' && Object.keys(matchedProfiles).length > 0)) && (
+        {shouldShowLoveIcon && (
           <TouchableOpacity 
             style={styles.loveIconContainer}
             onPress={() => {
-              // Navigate to current user's profile (Alex Chen)
-              router.push('/user-profile?userId=0');
+              // If this user has a mutual match with current user, navigate to current user's profile
+              // Otherwise, navigate to the user who is taken with someone else
+              if (userHasMutualMatch) {
+                router.push('/user-profile?userId=0');
+              } else {
+                // This user is taken with someone else, navigate to their profile to see who they're with
+                router.push(`/user-profile?userId=${user.id}`);
+              }
             }}
             testID={`love-icon-${user.id}`}
           >

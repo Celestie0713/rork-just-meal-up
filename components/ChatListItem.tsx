@@ -5,6 +5,7 @@ import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
+import { hasMutualLoveMatch } from '@/mocks/post-date-responses';
 import type { User } from '@/types/user';
 
 interface ChatListItemProps {
@@ -19,6 +20,7 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
   const { isProfileMatched } = useChat();
   const { user: currentUser } = useAuth();
   const isMatched = isProfileMatched(user.id);
+  const hasMutualMatch = hasMutualLoveMatch('0', user.id);
   
   const formatTime = (date: Date) => {
     const now = new Date();
@@ -54,10 +56,10 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
         <View style={styles.header}>
           <TouchableOpacity 
             onPress={() => {
-              // If there's a love icon (match), clicking the name should lead to current user's profile
+              // If there's a mutual love match, clicking the name should lead to current user's profile
               // Otherwise, lead to the other user's profile
-              if (isMatched) {
-                // For matched profiles, clicking should lead to current user's own profile
+              if (hasMutualMatch) {
+                // For mutual love matches, clicking should lead to current user's own profile
                 router.push(`/user-profile?userId=${currentUser?.id}`);
               } else {
                 // For non-matched profiles, clicking should lead to the other user's profile
@@ -68,7 +70,7 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
             style={styles.nameContainer}
           >
             <Text style={[styles.name, styles.clickableName]} numberOfLines={1}>{user.name}</Text>
-            {isMatched && (
+            {hasMutualMatch && (
               <View style={styles.loveIconContainer}>
                 <Heart size={14} color="#FF1744" fill="#FF1744" />
                 <Text style={styles.loveIconText}>T</Text>
