@@ -17,7 +17,7 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false, showLoveIcon = false }: UserCardProps) {
-  const { isProfileMatched } = useChat();
+  const { isProfileMatched, matchedProfiles } = useChat();
 
   
   const getMembershipIcon = () => {
@@ -42,7 +42,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
         
-        {showLoveIcon && isProfileMatched(user.id) && (
+        {showLoveIcon && (isProfileMatched(user.id) || (user.id === '0' && Object.keys(matchedProfiles).length > 0)) && (
           <TouchableOpacity 
             style={styles.loveIconContainer}
             onPress={() => {
