@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { router } from 'expo-router';
-import { hasMutualLoveMatchUpdated } from '@/mocks/post-date-responses';
+import { hasMutualLoveMatchUpdated, getMatchedUserId } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 
 import type { User } from '@/types/user';
@@ -24,10 +24,14 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   const hasLoveMatch = currentUser ? hasMutualLoveMatchUpdated(currentUser.id, user.id) : false;
   
   const handleLoveIconPress = () => {
-    router.push({
-      pathname: '/user-profile',
-      params: { userId: user.id }
-    });
+    // Navigate to the matched user's profile, not this user's profile
+    const matchedUserId = getMatchedUserId(user.id);
+    if (matchedUserId) {
+      router.push({
+        pathname: '/user-profile',
+        params: { userId: matchedUserId }
+      });
+    }
   };
   
   const getMembershipIcon = () => {

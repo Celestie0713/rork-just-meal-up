@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
-import { hasMutualLoveMatchUpdated } from '@/mocks/post-date-responses';
+import { hasMutualLoveMatchUpdated, getMatchedUserId } from '@/mocks/post-date-responses';
 
 import type { User } from '@/types/user';
 
@@ -23,11 +23,14 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
   const hasLoveMatch = currentUser ? hasMutualLoveMatchUpdated(currentUser.id, user.id) : false;
   
   const handleLoveIconPress = () => {
-    // Navigate to the matched user's profile
-    router.push({
-      pathname: '/user-profile',
-      params: { userId: user.id }
-    });
+    // Navigate to the matched user's profile, not this user's profile
+    const matchedUserId = getMatchedUserId(user.id);
+    if (matchedUserId) {
+      router.push({
+        pathname: '/user-profile',
+        params: { userId: matchedUserId }
+      });
+    }
   };
   
   const formatTime = (date: Date) => {

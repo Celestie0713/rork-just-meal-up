@@ -146,3 +146,19 @@ export function hasMutualLoveMatchUpdated(userId1: string, userId2: string): boo
   
   return hasMutualLoveMatch(userId1, userId2);
 }
+
+// Get the matched user ID for a given user (who they have a love match with)
+export function getMatchedUserId(userId: string): string | null {
+  // For Alex Chen (id: '0'), the match is Emma Rodriguez (id: '2')
+  if (userId === '0') {
+    return hasMutualLoveMatchUpdated('0', '2') ? '2' : null;
+  }
+  
+  // For Emma Rodriguez (id: '2'), the match is Alex Chen (id: '0')
+  if (userId === '2') {
+    return hasMutualLoveMatchUpdated('0', '2') ? '0' : null;
+  }
+  
+  // No other matches defined in mock data
+  return null;
+}
