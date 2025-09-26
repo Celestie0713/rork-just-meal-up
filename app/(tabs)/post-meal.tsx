@@ -558,7 +558,7 @@ export default function PostMealScreen() {
                             isDisabled && styles.disabledChoiceText
                           ]}>(Be my +1?)</Text>
                           {isDisabled && (
-                            <Text style={styles.disabledLabel}>Already Taken</Text>
+                            <Text style={styles.disabledLabel}>Look but don't touch</Text>
                           )}
                         </TouchableOpacity>
                       );
