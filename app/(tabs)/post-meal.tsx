@@ -721,7 +721,7 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'mixed_signals' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🤔</Text>
-                <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in!</Text>
+                <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in😅 Small matter</Text>
                 <Text style={styles.matchModalDescription}>
                   Time to chat it out!
                 </Text>
