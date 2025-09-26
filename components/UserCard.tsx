@@ -59,9 +59,11 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
           <TouchableOpacity 
             style={styles.loveIconContainer}
             onPress={() => {
-              // If this user has a mutual match with current user, navigate to current user's profile
-              // Otherwise, navigate to the user who is taken with someone else
-              if (userHasMutualMatch) {
+              // If this is Alex Chen (current user) and he has a love match, navigate to his match's profile
+              if (user.id === '0' && currentLoveMatch) {
+                router.push(`/user-profile?userId=${currentLoveMatch}`);
+              } else if (userHasMutualMatch) {
+                // If this user has a mutual match with current user, navigate to current user's profile
                 router.push('/user-profile?userId=0');
               } else {
                 // This user is taken with someone else, navigate to their profile to see who they're with
