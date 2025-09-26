@@ -5,6 +5,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
+import { getCurrentUserLoveMatch, hasMutualLoveMatch } from '@/mocks/post-date-responses';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TabType = 'food' | 'pictures' | 'mealups';
@@ -14,6 +15,9 @@ export default function UserProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('food');
   
   const user = mockUsers.find(u => u.id === userId);
+  const currentLoveMatch = getCurrentUserLoveMatch();
+  const isCurrentUserProfile = userId === '0'; // Alex Chen's profile
+  const hasLoveMatch = isCurrentUserProfile && currentLoveMatch;
   
   if (!user) {
     return (
@@ -194,7 +198,21 @@ export default function UserProfileScreen() {
 
         <View style={styles.profileSection}>
           <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-          <Text style={styles.name}>{user.name}, {user.age}</Text>
+          <View style={styles.nameContainer}>
+            <Text style={styles.name}>{user.name}, {user.age}</Text>
+            {hasLoveMatch && (
+              <TouchableOpacity 
+                style={styles.profileLoveIconContainer}
+                onPress={() => {
+                  router.push(`/user-profile?userId=${currentLoveMatch}`);
+                }}
+                testID="profile-love-icon"
+              >
+                <Heart size={16} color="#FF1744" fill="#FF1744" />
+                <Text style={styles.profileLoveIconText}>T</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.textLight} />
@@ -310,11 +328,32 @@ const styles = StyleSheet.create({
     borderRadius: 60,
     marginBottom: 16,
   },
+  nameContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
   name: {
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: 8,
+  },
+  profileLoveIconContainer: {
+    position: 'relative',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 20,
+    height: 16,
+  },
+  profileLoveIconText: {
+    position: 'absolute',
+    fontSize: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    zIndex: 1,
   },
   locationContainer: {
     flexDirection: 'row',
