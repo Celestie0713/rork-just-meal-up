@@ -710,7 +710,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🤔</Text>
                 <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in!</Text>
                 <Text style={styles.matchModalDescription}>
-                  Looks like you're on different pages. Time to chat it out!
+                  Time to chat it out!
                 </Text>
               </>
             ) : matchResult?.isMatch ? (
