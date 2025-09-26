@@ -35,7 +35,7 @@ export const mockMatchedProfiles = [
     matchedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
   },
   {
-    userId: '6', // David Park - matched with buddy_pass
+    userId: '6', // Isabella Chen - matched with buddy_pass
     invitationId: '8',
     matchType: 'buddy_pass' as const,
     matchedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago

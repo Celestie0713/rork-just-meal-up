@@ -2,6 +2,28 @@ import type { User } from '@/types/user';
 
 export const mockUsers: User[] = [
   {
+    id: '0',
+    name: 'Alex Chen',
+    age: 28,
+    bio: 'Food enthusiast who believes the best conversations happen over great meals. Love trying new cuisines and meeting interesting people!',
+    photos: [
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
+      'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop'
+    ],
+    location: 'San Francisco, CA',
+    membershipTier: 'premium',
+    isOnline: true,
+    ethnicity: 'english, mandarin, cantonese',
+    preferences: {
+      ageRange: [25, 35],
+      maxDistance: 25,
+      cuisinePreferences: ['Italian', 'Japanese', 'Mexican'],
+      preferredEthnicity: ['english', 'mandarin', 'cantonese'],
+      incomeLevel: '$75k - $100k',
+      preferredIncomeLevel: '$50k - $100k'
+    }
+  },
+  {
     id: '1',
     name: 'Sarah Johnson',
     age: 25,

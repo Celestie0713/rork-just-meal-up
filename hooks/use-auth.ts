@@ -6,7 +6,7 @@ import type { User } from '@/types/user';
 const CURRENT_USER_KEY = 'current_user';
 
 const mockCurrentUser: User = {
-  id: '1',
+  id: '0',
   name: 'Alex Chen',
   age: 28,
   bio: 'Food enthusiast who believes the best conversations happen over great meals. Love trying new cuisines and meeting interesting people!',
