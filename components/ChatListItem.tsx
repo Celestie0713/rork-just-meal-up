@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
-import { Heart } from 'lucide-react-native';
+import { Heart, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
-import { hasMutualLoveMatch } from '@/mocks/post-date-responses';
+import { hasMutualLoveMatchUpdated, removeLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 import type { User } from '@/types/user';
 
 interface ChatListItemProps {
@@ -20,7 +20,20 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
   const { isProfileMatched } = useChat();
   const { user: currentUser } = useAuth();
   const isMatched = isProfileMatched(user.id);
-  const hasMutualMatch = hasMutualLoveMatch('0', user.id);
+  const [refreshKey, setRefreshKey] = useState<number>(0);
+  const hasMutualMatch = hasMutualLoveMatchUpdated('0', user.id);
+  
+  useEffect(() => {
+    const unsubscribe = subscribeLoveMatchChanges(() => {
+      setRefreshKey(prev => prev + 1);
+    });
+    return unsubscribe;
+  }, []);
+  
+  const handleRemoveLoveMatch = (e: any) => {
+    e.stopPropagation();
+    removeLoveMatch('0', user.id);
+  };
   
   const formatTime = (date: Date) => {
     const now = new Date();
@@ -74,6 +87,13 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
               <View style={styles.loveIconContainer}>
                 <Heart size={14} color="#FF1744" fill="#FF1744" />
                 <Text style={styles.loveIconText}>T</Text>
+                <TouchableOpacity 
+                  style={styles.crossButton}
+                  onPress={handleRemoveLoveMatch}
+                  testID={`remove-love-${user.id}`}
+                >
+                  <X size={10} color="#FFFFFF" strokeWidth={3} />
+                </TouchableOpacity>
               </View>
             )}
           </TouchableOpacity>
@@ -183,8 +203,10 @@ const styles = StyleSheet.create({
     position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
-    width: 18,
+    width: 32,
     height: 14,
+    flexDirection: 'row',
+    gap: 2,
   },
   loveIconText: {
     position: 'absolute',
@@ -193,5 +215,15 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     zIndex: 1,
+    left: 2,
+  },
+  crossButton: {
+    backgroundColor: '#FF1744',
+    borderRadius: 8,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 4,
   },
 });

@@ -84,8 +84,65 @@ export function hasMutualLoveMatch(userId1: string, userId2: string): boolean {
   return false;
 }
 
+// State to track removed love matches
+let removedLoveMatches: Set<string> = new Set();
+
+// Listeners for love match changes
+type LoveMatchListener = () => void;
+let listeners: LoveMatchListener[] = [];
+
+// Subscribe to love match changes
+export function subscribeLoveMatchChanges(listener: LoveMatchListener): () => void {
+  listeners.push(listener);
+  return () => {
+    listeners = listeners.filter(l => l !== listener);
+  };
+}
+
+// Notify all listeners of love match changes
+function notifyLoveMatchChange() {
+  listeners.forEach(listener => listener());
+}
+
 // Get the current user's love match (only one allowed)
 export function getCurrentUserLoveMatch(): string | null {
   // Alex Chen (id: '0') has a mutual fight_for_fries match with Emma Rodriguez (id: '2')
-  return hasMutualLoveMatch('0', '2') ? '2' : null;
+  const matchUserId = '2';
+  const matchKey = `0-${matchUserId}`;
+  
+  if (removedLoveMatches.has(matchKey)) {
+    return null;
+  }
+  
+  return hasMutualLoveMatch('0', matchUserId) ? matchUserId : null;
+}
+
+// Remove a love match
+export function removeLoveMatch(userId1: string, userId2: string): void {
+  const matchKey1 = `${userId1}-${userId2}`;
+  const matchKey2 = `${userId2}-${userId1}`;
+  
+  removedLoveMatches.add(matchKey1);
+  removedLoveMatches.add(matchKey2);
+  
+  console.log(`Love match removed between ${userId1} and ${userId2}`);
+  notifyLoveMatchChange();
+}
+
+// Check if a love match has been removed
+export function isLoveMatchRemoved(userId1: string, userId2: string): boolean {
+  const matchKey1 = `${userId1}-${userId2}`;
+  const matchKey2 = `${userId2}-${userId1}`;
+  
+  return removedLoveMatches.has(matchKey1) || removedLoveMatches.has(matchKey2);
+}
+
+// Updated hasMutualLoveMatch function to check for removed matches
+export function hasMutualLoveMatchUpdated(userId1: string, userId2: string): boolean {
+  // Check if the match has been removed
+  if (isLoveMatchRemoved(userId1, userId2)) {
+    return false;
+  }
+  
+  return hasMutualLoveMatch(userId1, userId2);
 }

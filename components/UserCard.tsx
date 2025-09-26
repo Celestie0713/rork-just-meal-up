@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
+import { MapPin, Crown, Star, Heart, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useChat } from '@/hooks/use-chat';
 import { router } from 'expo-router';
-import { hasMutualLoveMatch, getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
+import { hasMutualLoveMatchUpdated, getCurrentUserLoveMatch, removeLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 
 import type { User } from '@/types/user';
 
@@ -19,8 +19,21 @@ interface UserCardProps {
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false, showLoveIcon = false }: UserCardProps) {
   const { isProfileMatched, matchedProfiles } = useChat();
+  const [refreshKey, setRefreshKey] = useState<number>(0);
   const currentLoveMatch = getCurrentUserLoveMatch();
-  const userHasMutualMatch = hasMutualLoveMatch('0', user.id);
+  const userHasMutualMatch = hasMutualLoveMatchUpdated('0', user.id);
+  
+  useEffect(() => {
+    const unsubscribe = subscribeLoveMatchChanges(() => {
+      setRefreshKey(prev => prev + 1);
+    });
+    return unsubscribe;
+  }, []);
+  
+  const handleRemoveLoveMatch = (e: any) => {
+    e.stopPropagation();
+    removeLoveMatch('0', user.id);
+  };
   
   // Show love icon if:
   // 1. This is Alex Chen (current user) and he has a love match
@@ -56,25 +69,36 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         </View>
         
         {shouldShowLoveIcon && (
-          <TouchableOpacity 
-            style={styles.loveIconContainer}
-            onPress={() => {
-              // If this is Alex Chen (current user) and he has a love match, navigate to his match's profile
-              if (user.id === '0' && currentLoveMatch) {
-                router.push(`/user-profile?userId=${currentLoveMatch}`);
-              } else if (userHasMutualMatch) {
-                // If this user has a mutual match with current user, navigate to current user's profile
-                router.push('/user-profile?userId=0');
-              } else {
-                // This user is taken with someone else, navigate to their profile to see who they're with
-                router.push(`/user-profile?userId=${user.id}`);
-              }
-            }}
-            testID={`love-icon-${user.id}`}
-          >
-            <Heart size={16} color="#FF1744" fill="#FF1744" />
-            <Text style={styles.loveIconText}>T</Text>
-          </TouchableOpacity>
+          <View style={styles.loveIconContainer}>
+            <TouchableOpacity 
+              style={styles.heartButton}
+              onPress={() => {
+                // If this is Alex Chen (current user) and he has a love match, navigate to his match's profile
+                if (user.id === '0' && currentLoveMatch) {
+                  router.push(`/user-profile?userId=${currentLoveMatch}`);
+                } else if (userHasMutualMatch) {
+                  // If this user has a mutual match with current user, navigate to current user's profile
+                  router.push('/user-profile?userId=0');
+                } else {
+                  // This user is taken with someone else, navigate to their profile to see who they're with
+                  router.push(`/user-profile?userId=${user.id}`);
+                }
+              }}
+              testID={`love-icon-${user.id}`}
+            >
+              <Heart size={16} color="#FF1744" fill="#FF1744" />
+              <Text style={styles.loveIconText}>T</Text>
+            </TouchableOpacity>
+            {(userHasMutualMatch || (user.id === '0' && currentLoveMatch)) && (
+              <TouchableOpacity 
+                style={styles.crossButton}
+                onPress={handleRemoveLoveMatch}
+                testID={`remove-love-${user.id}`}
+              >
+                <X size={8} color="#FFFFFF" strokeWidth={3} />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </View>
       
@@ -258,6 +282,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  heartButton: {
     alignItems: 'center',
     justifyContent: 'center',
     width: 20,
@@ -273,5 +302,13 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     zIndex: 1,
+  },
+  crossButton: {
+    backgroundColor: '#FF1744',
+    borderRadius: 8,
+    width: 14,
+    height: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
