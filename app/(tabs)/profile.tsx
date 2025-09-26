@@ -278,9 +278,10 @@ export default function ProfileScreen() {
             text: 'Remove',
             style: 'destructive',
             onPress: () => {
-              removeLoveMatch(user.id, loveMatchUserId);
-              // Force immediate state update
+              // Force immediate state update first
               setLoveMatchUserId(null);
+              // Then remove from the backend/mock
+              removeLoveMatch(user.id, loveMatchUserId);
               console.log('Love match removed from profile page');
             }
           }
