@@ -20,7 +20,7 @@ export const mockPostDateResponses: PostDateResponse[] = [
   {
     userId: '4', // Sofia Kim
     mealId: '7', // Sakura Sushi date
-    choice: 'next_round', // This will create mixed signals if user chooses 'fight_for_fries'
+    choice: 'fight_for_fries', // This will create a match if user also chooses 'fight_for_fries'
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 5 days ago + 12 hours
   }
 ];
