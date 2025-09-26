@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
-import { Heart, X } from 'lucide-react-native';
+import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
+import { hasMutualLoveMatchUpdated } from '@/mocks/post-date-responses';
 
 import type { User } from '@/types/user';
 
@@ -17,10 +17,18 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount = 0, onPress }: ChatListItemProps) {
-  const { isProfileMatched } = useChat();
   const { user: currentUser } = useAuth();
-  const isMatched = isProfileMatched(user.id);
-
+  
+  // Check if this user has a mutual love match with current user
+  const hasLoveMatch = currentUser ? hasMutualLoveMatchUpdated(currentUser.id, user.id) : false;
+  
+  const handleLoveIconPress = () => {
+    // Navigate to the matched user's profile
+    router.push({
+      pathname: '/user-profile',
+      params: { userId: user.id }
+    });
+  };
   
   const formatTime = (date: Date) => {
     const now = new Date();
@@ -64,11 +72,22 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
           <Text style={styles.lastMessage} numberOfLines={1}>
             {lastMessage || 'No messages yet'}
           </Text>
-          {unreadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
-            </View>
-          )}
+          <View style={styles.rightSection}>
+            {hasLoveMatch && (
+              <TouchableOpacity 
+                style={styles.loveIcon} 
+                onPress={handleLoveIconPress}
+                testID={`chat-love-icon-${user.id}`}
+              >
+                <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+              </TouchableOpacity>
+            )}
+            {unreadCount > 0 && (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </TouchableOpacity>
@@ -149,5 +168,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
   },
-
+  rightSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  loveIcon: {
+    backgroundColor: 'rgba(255, 105, 180, 0.1)',
+    borderRadius: 12,
+    padding: 4,
+  },
 });
