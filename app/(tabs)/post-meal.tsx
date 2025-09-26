@@ -407,9 +407,21 @@ export default function PostMealScreen() {
                         </Text>
                         {/* Show love icon if both users chose the same option */}
                         {isMatch && (
-                          <View style={styles.loveIconContainer}>
+                          <TouchableOpacity 
+                            style={styles.loveIconContainer}
+                            onPress={() => {
+                              const invitationId = event.id.replace('invitation-', '');
+                              const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                              if (invitation) {
+                                const inviter = mockUsers.find(u => u.id === invitation.inviterId);
+                                if (inviter) {
+                                  router.push(`/user-profile?userId=${inviter.id}`);
+                                }
+                              }
+                            }}
+                          >
                             <Heart size={20} color={colors.primary} fill={colors.primary} />
-                          </View>
+                          </TouchableOpacity>
                         )}
                       </View>
                     </View>
