@@ -227,7 +227,19 @@ export default function PostMealScreen() {
       return;
     }
 
-
+    // Check if user is already matched and trying to choose the same option with another user
+    const hasExistingMatch = Object.keys(matchedProfiles).length > 0;
+    if (hasExistingMatch && choice === 'fight_for_fries') {
+      // Get the existing match details
+      const existingMatchUserId = Object.keys(matchedProfiles)[0];
+      const existingMatch = matchedProfiles[existingMatchUserId];
+      
+      if (existingMatch.matchType === 'fight_for_fries') {
+        console.log('User is already taken with fight_for_fries match. Cannot choose same option with another user.');
+        // Show an alert or toast message
+        return;
+      }
+    }
 
     const now = new Date();
     
@@ -548,22 +560,37 @@ export default function PostMealScreen() {
                       ]}>(Next date)</Text>
                     </TouchableOpacity>
                     
-                    <TouchableOpacity 
-                      style={[
-                        styles.choiceButton,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
-                      ]}
-                      onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
-                    >
-                      <Text style={[
-                        styles.choiceButtonText,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
-                      ]}>Fight for fries for life</Text>
-                      <Text style={[
-                        styles.choiceSubtext,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
-                      ]}>(Be my +1?)</Text>
-                    </TouchableOpacity>
+                    {(() => {
+                      // Check if user is already matched and trying to choose the same option with another user
+                      const hasExistingMatch = Object.keys(matchedProfiles).length > 0;
+                      const isDisabled = hasExistingMatch && Object.values(matchedProfiles)[0]?.matchType === 'fight_for_fries';
+                      
+                      return (
+                        <TouchableOpacity 
+                          style={[
+                            styles.choiceButton,
+                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
+                            isDisabled && styles.disabledChoiceButton
+                          ]}
+                          onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                          disabled={isDisabled}
+                        >
+                          <Text style={[
+                            styles.choiceButtonText,
+                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                            isDisabled && styles.disabledChoiceText
+                          ]}>Fight for fries for life</Text>
+                          <Text style={[
+                            styles.choiceSubtext,
+                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                            isDisabled && styles.disabledChoiceText
+                          ]}>(Be my +1?)</Text>
+                          {isDisabled && (
+                            <Text style={styles.disabledLabel}>Already Taken</Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })()}
                   </>
                 ) : (
                   /* Show only the selected choice when finalized */
@@ -1251,7 +1278,8 @@ const styles = StyleSheet.create({
   disabledChoiceButton: {
     backgroundColor: colors.surface,
     borderColor: colors.textLight,
-    opacity: 0.5,
+    opacity: 0.6,
+    position: 'relative',
   },
   disabledChoiceText: {
     color: colors.textLight,

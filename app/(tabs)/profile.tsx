@@ -56,7 +56,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
-  const { matchedProfiles, isProfileMatched } = useChat();
+  const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
     Montserrat_600SemiBold,
@@ -596,17 +596,29 @@ export default function ProfileScreen() {
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
             {Object.keys(matchedProfiles).length > 0 && (
-              <TouchableOpacity 
-                style={styles.profileLoveIconContainer}
-                onPress={() => {
-                  const matchedUserId = Object.keys(matchedProfiles)[0];
-                  router.push(`/user-profile?userId=${matchedUserId}`);
-                }}
-                testID="profile-love-icon"
-              >
-                <Heart size={16} color="#FF1744" fill="#FF1744" />
-                <Text style={styles.profileLoveIconText}>T</Text>
-              </TouchableOpacity>
+              <View style={styles.loveIconWithRemove}>
+                <TouchableOpacity 
+                  style={styles.profileLoveIconContainer}
+                  onPress={() => {
+                    const matchedUserId = Object.keys(matchedProfiles)[0];
+                    router.push(`/user-profile?userId=${matchedUserId}`);
+                  }}
+                  testID="profile-love-icon"
+                >
+                  <Heart size={16} color="#FF1744" fill="#FF1744" />
+                  <Text style={styles.profileLoveIconText}>T</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeLoveIconButton}
+                  onPress={() => {
+                    const matchedUserId = Object.keys(matchedProfiles)[0];
+                    removeMatchedProfile(matchedUserId);
+                  }}
+                  testID="remove-love-icon"
+                >
+                  <X size={12} color="#FF1744" />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           
@@ -823,6 +835,18 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     textAlign: 'center',
     zIndex: 1,
+  },
+  loveIconWithRemove: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  removeLoveIconButton: {
+    backgroundColor: 'rgba(255, 23, 68, 0.1)',
+    borderRadius: 10,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   locationContainer: {
     flexDirection: 'row',
