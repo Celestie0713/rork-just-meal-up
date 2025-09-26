@@ -6,7 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
-import { getCurrentUserLoveMatch, getMatchedUserId } from '@/mocks/post-date-responses';
+import { getCurrentUserLoveMatch, getMatchedUserId, removeLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
@@ -61,7 +61,7 @@ export default function ProfileScreen() {
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
   
   // Check if current user has a love match
-  const loveMatchUserId = getCurrentUserLoveMatch();
+  const [loveMatchUserId, setLoveMatchUserId] = useState<string | null>(getCurrentUserLoveMatch());
 
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
@@ -81,6 +81,14 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const [newFoodItem, setNewFoodItem] = useState('');
   const [editedBio, setEditedBio] = useState(user?.bio || '');
+
+  // Subscribe to love match changes
+  React.useEffect(() => {
+    const unsubscribe = subscribeLoveMatchChanges(() => {
+      setLoveMatchUserId(getCurrentUserLoveMatch());
+    });
+    return unsubscribe;
+  }, []);
 
   if (!user || !fontsLoaded) {
     return (
@@ -254,6 +262,29 @@ export default function ProfileScreen() {
       }
     });
     setShowPreferredIncomeModal(false);
+  };
+
+  const handleRemoveLoveMatch = () => {
+    if (loveMatchUserId && user) {
+      Alert.alert(
+        'Remove Love Match',
+        'Are you sure you want to remove this love match? This action cannot be undone.',
+        [
+          {
+            text: 'Cancel',
+            style: 'cancel'
+          },
+          {
+            text: 'Remove',
+            style: 'destructive',
+            onPress: () => {
+              removeLoveMatch(user.id, loveMatchUserId);
+              console.log('Love match removed from profile page');
+            }
+          }
+        ]
+      );
+    }
   };
 
 
@@ -601,18 +632,27 @@ export default function ProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {loveMatchUserId && (
-              <TouchableOpacity 
-                style={styles.profileLoveIcon}
-                onPress={() => {
-                  router.push({
-                    pathname: '/user-profile',
-                    params: { userId: loveMatchUserId }
-                  });
-                }}
-                testID="profile-love-icon"
-              >
-                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-              </TouchableOpacity>
+              <View style={styles.loveIconContainer}>
+                <TouchableOpacity 
+                  style={styles.profileLoveIcon}
+                  onPress={() => {
+                    router.push({
+                      pathname: '/user-profile',
+                      params: { userId: loveMatchUserId }
+                    });
+                  }}
+                  testID="profile-love-icon"
+                >
+                  <Heart size={24} color="#FF69B4" fill="#FF69B4" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeLoveIcon}
+                  onPress={handleRemoveLoveMatch}
+                  testID="remove-love-icon"
+                >
+                  <X size={16} color="#666" />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           <View style={styles.nameContainer}>
@@ -809,10 +849,14 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
-  profileLoveIcon: {
+  loveIconContainer: {
     position: 'absolute',
     top: -4,
     right: -4,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  profileLoveIcon: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     padding: 8,
@@ -821,6 +865,17 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  removeLoveIcon: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 12,
+    padding: 4,
+    marginLeft: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
   nameContainer: {
     flexDirection: 'row',
