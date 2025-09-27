@@ -279,17 +279,31 @@ export default function ProfileScreen() {
             text: 'Remove',
             style: 'destructive',
             onPress: () => {
-              // Force immediate state update first
-              setLoveMatchUserId(null);
-              // Remove from the backend/mock
+              console.log('Removing love match:', loveMatchUserId);
+              // Remove from the backend/mock first
               removeLoveMatch(user.id, loveMatchUserId);
               // Also remove from chat matched profiles
               removeMatchedProfile(loveMatchUserId);
+              // Force immediate state update after backend removal
+              setLoveMatchUserId(null);
               console.log('Love match removed from profile page');
             }
           }
         ]
       );
+    }
+  };
+
+  const handleDirectRemoveLoveMatch = () => {
+    if (loveMatchUserId && user) {
+      console.log('Direct removing love match:', loveMatchUserId);
+      // Remove from the backend/mock first
+      removeLoveMatch(user.id, loveMatchUserId);
+      // Also remove from chat matched profiles
+      removeMatchedProfile(loveMatchUserId);
+      // Force immediate state update after backend removal
+      setLoveMatchUserId(null);
+      console.log('Love match directly removed from profile page');
     }
   };
 
@@ -689,7 +703,7 @@ export default function ProfileScreen() {
                 </TouchableOpacity>
                 <TouchableOpacity 
                   style={styles.removeLoveIconButton}
-                  onPress={handleRemoveLoveMatch}
+                  onPress={handleDirectRemoveLoveMatch}
                   testID="remove-love-icon"
                 >
                   <X size={12} color="#666" />
