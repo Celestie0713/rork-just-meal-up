@@ -308,11 +308,11 @@ export default function PostMealScreen() {
           addMatchedProfile(dateUserId, invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           
-          // If it's a next_round match, increment the meal counter
+          // If it's a next_round match, initialize meal counter to 1 (first meal)
           if (matchType === 'next_round') {
             setMealCounters(prev => ({
               ...prev,
-              [dateUserId]: (prev[dateUserId] || 1) + 1
+              [dateUserId]: 1
             }));
           }
         }
@@ -491,6 +491,7 @@ export default function PostMealScreen() {
         const invitation = mockInvitations.find(inv => inv.id === invitationId);
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+          // Start with Meal 1, then increment based on subsequent matches
           return mealCounters[dateUserId] || 1;
         }
       }
