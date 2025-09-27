@@ -91,10 +91,18 @@ export default function ProfileScreen() {
     return unsubscribe;
   }, []);
 
-  if (!user || !fontsLoaded) {
+  if (!user) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text>Loading...</Text>
+        <Text>Loading user...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (!fontsLoaded) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>Loading fonts...</Text>
       </SafeAreaView>
     );
   }
