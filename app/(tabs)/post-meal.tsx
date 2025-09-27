@@ -93,11 +93,11 @@ export default function PostMealScreen() {
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
 
-  // Update current time every minute for timer display
+  // Update current time every second for timer display
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTime(new Date());
-    }, 60000); // Update every minute
+    }, 1000); // Update every second
 
     return () => clearInterval(interval);
   }, []);
@@ -571,18 +571,14 @@ export default function PostMealScreen() {
   };
 
   const formatTimeRemaining = (milliseconds: number) => {
-    if (milliseconds <= 0) return '0h 0m';
+    if (milliseconds <= 0) return '00:00:00';
     
-    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
-    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
-    const days = Math.floor(hours / 24);
-    const remainingHours = hours % 24;
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
     
-    if (days > 0) {
-      return `${days}d ${remainingHours}h`;
-    } else {
-      return `${hours}h ${minutes}m`;
-    }
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
   };
 
   const renderPostMealEvent = (event: PostMealEvent) => {
