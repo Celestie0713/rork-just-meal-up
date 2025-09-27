@@ -35,6 +35,16 @@ type PostMealEvent = {
   cuisine: string;
 };
 
+type MixedSignalsExtension = {
+  userId: string;
+  invitationId: string;
+  startedAt: Date;
+  userChoice: string;
+  dateChoice: string;
+  hasUserReDecided: boolean;
+  hasDateReDecided: boolean;
+};
+
 function parseDateTime(date: Date, time: string): Date {
   const [timeStr, period] = time.split(' ');
   const [hours, minutes] = timeStr.split(':').map(Number);
@@ -72,7 +82,7 @@ export default function PostMealScreen() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
-    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'no_decision' | null;
+    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | 'no_decision' | null;
     userChoice: string;
     dateChoice: string | null;
     eventId?: string;
@@ -80,6 +90,8 @@ export default function PostMealScreen() {
   const confettiRef = useRef<any>(null);
   const balloonAnimation = useRef(new Animated.Value(0)).current;
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
+  const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
 
   // Update current time every minute for timer display
   useEffect(() => {
@@ -166,10 +178,39 @@ export default function PostMealScreen() {
               console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
             }
           } else {
-            // For non-matches: profile disappears immediately from post meal page
-            // and chat will also be removed (handled in useChat hook)
-            console.log(`Removing event ${eventId} - both parties decided but no match`);
-            return; // Skip this event
+            // Check for mixed signals case: one wants next_round, other wants fight_for_fries
+            const isMixedSignals = (userChoice === 'next_round' && dateChoice === 'fight_for_fries') ||
+                                 (userChoice === 'fight_for_fries' && dateChoice === 'next_round');
+            
+            if (isMixedSignals) {
+              // Check if we already have an extension for this case
+              const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+              const extensionKey = `${invitationId}-${dateUserId}`;
+              const extension = mixedSignalsExtensions[extensionKey];
+              
+              if (extension) {
+                // Check if 24 hours have passed since the extension started
+                const timeSinceExtension = now.getTime() - extension.startedAt.getTime();
+                const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+                
+                if (timeSinceExtension >= twentyFourHoursInMs) {
+                  // Extension period is over, remove the profile
+                  console.log(`Removing event ${eventId} - mixed signals extension period ended`);
+                  return; // Skip this event
+                }
+                // Extension is still active, keep the event
+              } else {
+                // For non-matches: profile disappears immediately from post meal page
+                // and chat will also be removed (handled in useChat hook)
+                console.log(`Removing event ${eventId} - both parties decided but no match`);
+                return; // Skip this event
+              }
+            } else {
+              // For non-matches: profile disappears immediately from post meal page
+              // and chat will also be removed (handled in useChat hook)
+              console.log(`Removing event ${eventId} - both parties decided but no match`);
+              return; // Skip this event
+            }
           }
         } else {
           // If not both parties decided, check if 7 days have passed since the event became available
@@ -236,7 +277,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -304,7 +345,7 @@ export default function PostMealScreen() {
     
     if (dateChoice) {
       const isMatch = choice === dateChoice;
-      let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | null = null;
+      let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | null = null;
       
       if (isMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
@@ -330,7 +371,36 @@ export default function PostMealScreen() {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
         if ((choice === 'next_round' && dateChoice === 'fight_for_fries') ||
             (choice === 'fight_for_fries' && dateChoice === 'next_round')) {
-          matchType = 'mixed_signals';
+          
+          const invitation = mockInvitations.find(inv => inv.id === invitationId);
+          if (invitation) {
+            const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+            const extensionKey = `${invitationId}-${dateUserId}`;
+            
+            // Check if we already have an extension for this case
+            if (mixedSignalsExtensions[extensionKey]) {
+              matchType = 'mixed_signals_extension';
+            } else {
+              // Start a new 24-hour extension period
+              const extension: MixedSignalsExtension = {
+                userId: dateUserId,
+                invitationId,
+                startedAt: new Date(),
+                userChoice: choice,
+                dateChoice,
+                hasUserReDecided: false,
+                hasDateReDecided: false
+              };
+              
+              setMixedSignalsExtensions(prev => ({
+                ...prev,
+                [extensionKey]: extension
+              }));
+              
+              matchType = 'mixed_signals_extension';
+              console.log(`Started 24-hour extension for mixed signals case: ${extensionKey}`);
+            }
+          }
         }
         // Note: For non-matches, the profile will be removed from post meal and chat immediately
         // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
@@ -345,7 +415,7 @@ export default function PostMealScreen() {
       });
       
       // Track mixed signals case when popup is shown
-      if (matchType === 'mixed_signals') {
+      if (matchType === 'mixed_signals_extension') {
         const invitation = mockInvitations.find(inv => inv.id === invitationId);
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
@@ -928,12 +998,14 @@ export default function PostMealScreen() {
                   You both want to keep the adventure going!
                 </Text>
               </>
-            ) : matchResult?.matchType === 'mixed_signals' ? (
+            ) : matchResult?.matchType === 'mixed_signals' || matchResult?.matchType === 'mixed_signals_extension' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🤔</Text>
                 <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in🌹Small matter</Text>
                 <Text style={styles.matchModalDescription}>
-                  Time to chat it out!
+                  {matchResult?.matchType === 'mixed_signals_extension' 
+                    ? 'You both get another 24 hours to make a decision. Time to chat it out!' 
+                    : 'Time to chat it out!'}
                 </Text>
               </>
             ) : matchResult?.matchType === 'no_decision' ? (
@@ -985,7 +1057,7 @@ export default function PostMealScreen() {
               </>
             )}
             
-            {matchResult?.matchType === 'mixed_signals' ? (
+            {matchResult?.matchType === 'mixed_signals_extension' ? (
               <TouchableOpacity 
                 style={[styles.upgradeButton, styles.chatButton]}
                 onPress={() => {
