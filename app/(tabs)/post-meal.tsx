@@ -156,6 +156,8 @@ export default function PostMealScreen() {
             const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
             if (timeSinceChoice >= twentyFourHoursInMs) {
               console.log(`Removing event ${eventId} - 24 hours have passed since both parties decided`);
+              // Note: For matches, profile disappears from post meal but chat remains available
+              // For non-matches, both profile and chat disappear (handled in useChat hook)
               return; // Skip this event
             }
           }
@@ -312,6 +314,8 @@ export default function PostMealScreen() {
             (choice === 'fight_for_fries' && dateChoice === 'next_round')) {
           matchType = 'mixed_signals';
         }
+        // Note: For non-matches, the profile will be removed from chat after 24 hours
+        // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
       }
       
       setMatchResult({
@@ -739,7 +743,9 @@ export default function PostMealScreen() {
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>1. All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
           <Text style={styles.infoText}>2. Both parties have 7 days to make a decision. If one makes a decision but the other hasn't, the 7-day countdown continues.</Text>
-          <Text style={styles.infoText}>3. Once both parties make decisions (match or no match), the profile will disappear within 24 hours.</Text>
+          <Text style={styles.infoText}>3. Once both parties make decisions, the profile will disappear within 24 hours.</Text>
+          <Text style={styles.infoText}>4. For matches: The profile disappears from Post Meal but the chat remains available in Messages.</Text>
+          <Text style={styles.infoText}>5. For non-matches: Both the profile and chat will be removed after 24 hours.</Text>
         </View>
       </ScrollView>
 
@@ -911,7 +917,7 @@ export default function PostMealScreen() {
                     if (event) {
                       const timerInfo = getTimeRemaining(eventId, event.date, event.time);
                       const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
-                      return `\n\nThis profile will disappear in ${timeRemaining}.`;
+                      return `\n\nThis profile will disappear in ${timeRemaining}. The chat will also be removed.`;
                     }
                     return '';
                   })()}
