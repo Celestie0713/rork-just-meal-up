@@ -71,9 +71,9 @@ export default function PostMealScreen() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
-    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | null;
+    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'no_decision' | null;
     userChoice: string;
-    dateChoice: string;
+    dateChoice: string | null;
     eventId?: string;
   } | null>(null);
   const confettiRef = useRef<any>(null);
@@ -341,6 +341,17 @@ export default function PostMealScreen() {
           })
         ]).start();
       }
+    } else {
+      // Date hasn't made a decision yet - show the "no decision yet" popup
+      setMatchResult({
+        isMatch: false,
+        matchType: 'no_decision',
+        userChoice: choice,
+        dateChoice: null,
+        eventId
+      });
+      
+      setShowMatchModal(true);
     }
   };
 
@@ -753,15 +764,23 @@ export default function PostMealScreen() {
                   Time to chat it out!
                 </Text>
               </>
+            ) : matchResult?.matchType === 'no_decision' ? (
+              <>
+                <Text style={styles.noMatchEmoji}>🥩</Text>
+                <Text style={styles.matchModalTitle}>Chill, they&apos;re just marinating their thoughts 🥩😏</Text>
+                <Text style={styles.matchModalDescription}>
+                  Your date hasn&apos;t made their choice yet. Give them some time to decide!
+                </Text>
+              </>
             ) : matchResult?.isMatch ? (
               <>
                 <View style={styles.matchIconContainer}>
                   <Heart size={60} color={colors.primary} fill={colors.primary} />
                   <Heart size={40} color={colors.primary} fill={colors.primary} style={styles.smallHeart} />
                 </View>
-                <Text style={styles.matchModalTitle}>It's a Match! 🥢</Text>
+                <Text style={styles.matchModalTitle}>It&apos;s a Match! 🥢</Text>
                 <Text style={styles.matchModalDescription}>
-                  Two chopsticks finally found each other! Slurp slurp—it's a match!
+                  Two chopsticks finally found each other! Slurp slurp—it&apos;s a match!
                 </Text>
               </>
             ) : (
@@ -807,6 +826,18 @@ export default function PostMealScreen() {
               >
                 <Text style={styles.upgradeButtonText}>
                   Invite to meal
+                </Text>
+              </TouchableOpacity>
+            ) : matchResult?.matchType === 'no_decision' ? (
+              <TouchableOpacity 
+                style={[styles.upgradeButton, styles.noMatchButton]}
+                onPress={() => {
+                  setShowMatchModal(false);
+                  setMatchResult(null);
+                }}
+              >
+                <Text style={[styles.upgradeButtonText, styles.noMatchButtonText]}>
+                  Got it
                 </Text>
               </TouchableOpacity>
             ) : (
