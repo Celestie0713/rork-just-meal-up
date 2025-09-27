@@ -477,7 +477,7 @@ export default function PostMealScreen() {
                   </View>
                 ) : isPremium ? (
                   <View style={styles.noDecisionContainer}>
-                    <Text style={styles.noDecisionText}>No decision yet</Text>
+                    <Text style={styles.noDecisionText}>Chill, they're just marinating their thoughts 🥩😏</Text>
                   </View>
                 ) : (
                   <TouchableOpacity 
