@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Share, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, CreditCard, Info } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -219,36 +219,7 @@ export default function MealUpDetailsScreen() {
             <Text style={styles.description}>{mealUp.description}</Text>
           </View>
           
-          <View style={styles.pricingSection}>
-            <View style={styles.sectionHeader}>
-              <CreditCard size={20} color={Colors.primary} />
-              <Text style={styles.sectionTitle}>Pricing Details</Text>
-            </View>
-            <View style={styles.pricingCard}>
-              <View style={styles.pricingRow}>
-                <Text style={styles.pricingLabel}>Includes Food:</Text>
-                <Text style={styles.pricingValue}>
-                  {mealUp.priceDetails.includesFood ? 'Yes' : 'No'}
-                </Text>
-              </View>
-              <View style={styles.pricingRow}>
-                <Text style={styles.pricingLabel}>Payment:</Text>
-                <Text style={styles.pricingValue}>
-                  {mealUp.priceDetails.paymentType === 'go_dutch' && 'Go Dutch'}
-                  {mealUp.priceDetails.paymentType === 'organizer_pays' && 'Organizer Pays'}
-                  {mealUp.priceDetails.paymentType === 'individual_pays' && 'Individual Pays'}
-                </Text>
-              </View>
-              {mealUp.priceDetails.description && (
-                <View style={styles.pricingDescriptionContainer}>
-                  <Info size={16} color={Colors.primary} />
-                  <Text style={styles.pricingDescription}>
-                    {mealUp.priceDetails.description}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
+
           
           <TouchableOpacity 
             style={styles.attendeesSection}
@@ -497,45 +468,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
   },
-  pricingSection: {
-    marginBottom: 24,
-  },
-  pricingCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-  },
-  pricingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  pricingLabel: {
-    fontSize: 16,
-    color: Colors.text,
-    fontWeight: '500',
-  },
-  pricingValue: {
-    fontSize: 16,
-    color: Colors.primary,
-    fontWeight: '600',
-  },
-  pricingDescriptionContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginTop: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  pricingDescription: {
-    fontSize: 14,
-    color: Colors.textLight,
-    lineHeight: 20,
-    marginLeft: 8,
-    flex: 1,
-  },
+
   bottomPadding: {
     height: 100,
   },
