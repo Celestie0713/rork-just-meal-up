@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Share, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -219,7 +219,27 @@ export default function MealUpDetailsScreen() {
             <Text style={styles.description}>{mealUp.description}</Text>
           </View>
           
-
+          <View style={styles.includedSection}>
+            <Text style={styles.sectionTitle}>What's included with this price?</Text>
+            <View style={styles.includedList}>
+              <View style={styles.includedItem}>
+                <Check size={16} color={Colors.success} />
+                <Text style={styles.includedText}>Full course meal</Text>
+              </View>
+              <View style={styles.includedItem}>
+                <Check size={16} color={Colors.success} />
+                <Text style={styles.includedText}>Welcome drink</Text>
+              </View>
+              <View style={styles.includedItem}>
+                <Check size={16} color={Colors.success} />
+                <Text style={styles.includedText}>Service charge</Text>
+              </View>
+              <View style={styles.includedItem}>
+                <Check size={16} color={Colors.success} />
+                <Text style={styles.includedText}>Shared dining experience</Text>
+              </View>
+            </View>
+          </View>
           
           <TouchableOpacity 
             style={styles.attendeesSection}
@@ -442,6 +462,23 @@ const styles = StyleSheet.create({
   },
   descriptionSection: {
     marginBottom: 24,
+  },
+  includedSection: {
+    marginBottom: 24,
+  },
+  includedList: {
+    marginTop: 12,
+    gap: 12,
+  },
+  includedItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  includedText: {
+    fontSize: 16,
+    color: Colors.text,
+    flex: 1,
   },
   description: {
     fontSize: 16,
