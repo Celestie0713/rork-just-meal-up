@@ -29,9 +29,10 @@ export default function CreateMealUpScreen() {
     },
     maxAttendees: '',
     ticketPrice: '',
-    paymentType: 'go_dutch' as 'go_dutch' | 'organizer_pays' | 'individual_pays',
+    whatsIncluded: '',
     includesFood: true,
-    priceDescription: '',
+    includesDrinks: false,
+    includesService: false,
   });
 
   const handleInputChange = (field: string, value: string) => {
@@ -84,11 +85,7 @@ export default function CreateMealUpScreen() {
     );
   };
 
-  const paymentOptions = [
-    { value: 'go_dutch', label: 'Go Dutch', description: 'Everyone pays for their own meal' },
-    { value: 'organizer_pays', label: 'I\'ll Pay', description: 'You cover the entire bill' },
-    { value: 'individual_pays', label: 'Individual Pays', description: 'Each person pays individually' },
-  ];
+
 
   return (
     <KeyboardAvoidingView 
@@ -226,7 +223,7 @@ export default function CreateMealUpScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Payment</Text>
+            <Text style={styles.sectionTitle}>What's included?</Text>
             
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Ticket Price (Optional)</Text>
@@ -244,45 +241,99 @@ export default function CreateMealUpScreen() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Payment Method</Text>
-              {paymentOptions.map((option) => (
-                <TouchableOpacity
-                  key={option.value}
-                  style={[
-                    styles.paymentOption,
-                    formData.paymentType === option.value && styles.paymentOptionSelected,
-                  ]}
-                  onPress={() => handleInputChange('paymentType', option.value)}
-                >
-                  <View style={styles.paymentOptionContent}>
-                    <Text style={[
-                      styles.paymentOptionTitle,
-                      formData.paymentType === option.value && styles.paymentOptionTitleSelected,
-                    ]}>
-                      {option.label}
-                    </Text>
-                    <Text style={[
-                      styles.paymentOptionDescription,
-                      formData.paymentType === option.value && styles.paymentOptionDescriptionSelected,
-                    ]}>
-                      {option.description}
-                    </Text>
-                  </View>
-                  <View style={[
-                    styles.radio,
-                    formData.paymentType === option.value && styles.radioSelected,
-                  ]} />
-                </TouchableOpacity>
-              ))}
+              <Text style={styles.label}>Inclusions</Text>
+              
+              <TouchableOpacity
+                style={[
+                  styles.checkboxOption,
+                  formData.includesFood && styles.checkboxOptionSelected,
+                ]}
+                onPress={() => setFormData(prev => ({ ...prev, includesFood: !prev.includesFood }))}
+              >
+                <View style={styles.checkboxOptionContent}>
+                  <Text style={[
+                    styles.checkboxOptionTitle,
+                    formData.includesFood && styles.checkboxOptionTitleSelected,
+                  ]}>
+                    Food
+                  </Text>
+                  <Text style={[
+                    styles.checkboxOptionDescription,
+                    formData.includesFood && styles.checkboxOptionDescriptionSelected,
+                  ]}>
+                    Meal is included in the price
+                  </Text>
+                </View>
+                <View style={[
+                  styles.checkbox,
+                  formData.includesFood && styles.checkboxSelected,
+                ]} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.checkboxOption,
+                  formData.includesDrinks && styles.checkboxOptionSelected,
+                ]}
+                onPress={() => setFormData(prev => ({ ...prev, includesDrinks: !prev.includesDrinks }))}
+              >
+                <View style={styles.checkboxOptionContent}>
+                  <Text style={[
+                    styles.checkboxOptionTitle,
+                    formData.includesDrinks && styles.checkboxOptionTitleSelected,
+                  ]}>
+                    Drinks
+                  </Text>
+                  <Text style={[
+                    styles.checkboxOptionDescription,
+                    formData.includesDrinks && styles.checkboxOptionDescriptionSelected,
+                  ]}>
+                    Beverages are included in the price
+                  </Text>
+                </View>
+                <View style={[
+                  styles.checkbox,
+                  formData.includesDrinks && styles.checkboxSelected,
+                ]} />
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.checkboxOption,
+                  formData.includesService && styles.checkboxOptionSelected,
+                ]}
+                onPress={() => setFormData(prev => ({ ...prev, includesService: !prev.includesService }))}
+              >
+                <View style={styles.checkboxOptionContent}>
+                  <Text style={[
+                    styles.checkboxOptionTitle,
+                    formData.includesService && styles.checkboxOptionTitleSelected,
+                  ]}>
+                    Service & Tips
+                  </Text>
+                  <Text style={[
+                    styles.checkboxOptionDescription,
+                    formData.includesService && styles.checkboxOptionDescriptionSelected,
+                  ]}>
+                    Service charges and tips are covered
+                  </Text>
+                </View>
+                <View style={[
+                  styles.checkbox,
+                  formData.includesService && styles.checkboxSelected,
+                ]} />
+              </TouchableOpacity>
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Price Description</Text>
+              <Text style={styles.label}>Additional Details</Text>
               <TextInput
-                style={styles.input}
-                placeholder="What's included with this price?"
-                value={formData.priceDescription}
-                onChangeText={(value) => handleInputChange('priceDescription', value)}
+                style={[styles.input, styles.textArea]}
+                placeholder="Describe what else is included or any special arrangements..."
+                value={formData.whatsIncluded}
+                onChangeText={(value) => handleInputChange('whatsIncluded', value)}
+                multiline
+                numberOfLines={3}
                 placeholderTextColor={Colors.textLight}
               />
             </View>
@@ -367,7 +418,7 @@ const styles = StyleSheet.create({
   halfWidth: {
     width: '48%',
   },
-  paymentOption: {
+  checkboxOption: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -378,38 +429,38 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  paymentOptionSelected: {
+  checkboxOptionSelected: {
     borderColor: Colors.primary,
     backgroundColor: `${Colors.primary}10`,
   },
-  paymentOptionContent: {
+  checkboxOptionContent: {
     flex: 1,
   },
-  paymentOptionTitle: {
+  checkboxOptionTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
     marginBottom: 4,
   },
-  paymentOptionTitleSelected: {
+  checkboxOptionTitleSelected: {
     color: Colors.primary,
   },
-  paymentOptionDescription: {
+  checkboxOptionDescription: {
     fontSize: 14,
     color: Colors.textLight,
   },
-  paymentOptionDescriptionSelected: {
+  checkboxOptionDescriptionSelected: {
     color: Colors.primary,
   },
-  radio: {
+  checkbox: {
     width: 20,
     height: 20,
-    borderRadius: 10,
+    borderRadius: 4,
     borderWidth: 2,
     borderColor: Colors.border,
     marginLeft: 12,
   },
-  radioSelected: {
+  checkboxSelected: {
     borderColor: Colors.primary,
     backgroundColor: Colors.primary,
   },
