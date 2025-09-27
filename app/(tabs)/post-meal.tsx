@@ -151,15 +151,17 @@ export default function PostMealScreen() {
         const bothPartiesDecided = userChoice && dateChoice;
         
         if (bothPartiesDecided) {
-          // If both parties decided, profile disappears in 24 hours from when the second decision was made
-          if (choiceTimestamp) {
-            const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
-            if (timeSinceChoice >= twentyFourHoursInMs) {
-              console.log(`Removing event ${eventId} - 24 hours have passed since both parties decided`);
-              // Note: For matches, profile disappears from post meal but chat remains available
-              // For non-matches, both profile and chat disappear (handled in useChat hook)
-              return; // Skip this event
-            }
+          // If both parties decided, check if it's a match
+          const isMatch = userChoice === dateChoice;
+          
+          if (isMatch) {
+            // For matches: profile stays on the post-meal page (no removal)
+            console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
+          } else {
+            // For non-matches: profile disappears immediately from post meal page
+            // and chat will also be removed (handled in useChat hook)
+            console.log(`Removing event ${eventId} - both parties decided but no match`);
+            return; // Skip this event
           }
         } else {
           // If not both parties decided, check if 7 days have passed since the event became available
@@ -286,8 +288,7 @@ export default function PostMealScreen() {
     });
     
     console.log(`Choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
-    console.log('Event will be automatically removed in 24 hours');
-    console.log('Non-matching profiles will be removed from chat after 24 hours');
+    console.log('Waiting for other party to make their decision...');
     
     // Check for match after user makes a choice
     const invitationId = eventId.replace('invitation-', '');
@@ -314,7 +315,7 @@ export default function PostMealScreen() {
             (choice === 'fight_for_fries' && dateChoice === 'next_round')) {
           matchType = 'mixed_signals';
         }
-        // Note: For non-matches, the profile will be removed from chat after 24 hours
+        // Note: For non-matches, the profile will be removed from post meal and chat immediately
         // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
       }
       
@@ -397,15 +398,25 @@ export default function PostMealScreen() {
       const userChoice = selectedChoices[eventId];
       const bothPartiesDecided = userChoice && dateChoice;
       
-      if (bothPartiesDecided && choiceTimestamp) {
-        // If both parties decided, show 24 hour countdown from when user made their choice
-        const twentyFourHoursAfterChoice = new Date(choiceTimestamp.getTime() + (24 * 60 * 60 * 1000));
-        const timeLeft = twentyFourHoursAfterChoice.getTime() - now.getTime();
-        return {
-          timeLeft: Math.max(0, timeLeft),
-          type: 'both_decided' as const,
-          totalTime: 24 * 60 * 60 * 1000
-        };
+      if (bothPartiesDecided) {
+        // If both parties decided, check if it's a match
+        const isMatch = userChoice === dateChoice;
+        
+        if (isMatch) {
+          // For matches: no timer needed, profile stays permanently
+          return {
+            timeLeft: Infinity,
+            type: 'match_permanent' as const,
+            totalTime: Infinity
+          };
+        } else {
+          // For non-matches: profile should already be removed, but if still showing, no timer
+          return {
+            timeLeft: 0,
+            type: 'no_match_removed' as const,
+            totalTime: 0
+          };
+        }
       } else {
         // If not both parties decided, show 7 day countdown from when event became available
         const sevenDaysAfterAvailable = new Date(tenHoursAfterEvent.getTime() + (7 * 24 * 60 * 60 * 1000));
@@ -529,20 +540,27 @@ export default function PostMealScreen() {
                   {event.type === 'invitation' ? 'Date' : 'Group'}
                 </Text>
               </View>
-              {!isGroup && (
+              {!isGroup && timerInfo.type !== 'match_permanent' && (
                 <View style={[
                   styles.timerContainer,
                   isExpired && styles.expiredTimer,
-                  (timerInfo.type === 'choice_made' || timerInfo.type === 'both_decided') && styles.choiceMadeTimer
+                  (timerInfo.type === 'choice_made') && styles.choiceMadeTimer,
+                  timerInfo.type === 'match_permanent' && styles.matchPermanentTimer
                 ]}>
-                  <Timer size={12} color={isExpired ? '#FF4444' : (timerInfo.type === 'choice_made' || timerInfo.type === 'both_decided') ? '#FFA726' : colors.textLight} />
+                  <Timer size={12} color={isExpired ? '#FF4444' : (timerInfo.type === 'choice_made') ? '#FFA726' : timerInfo.type === 'match_permanent' ? colors.success : colors.textLight} />
                   <Text style={[
                     styles.timerText,
                     isExpired && styles.expiredTimerText,
-                    (timerInfo.type === 'choice_made' || timerInfo.type === 'both_decided') && styles.choiceMadeTimerText
+                    (timerInfo.type === 'choice_made') && styles.choiceMadeTimerText,
+                    timerInfo.type === 'match_permanent' && styles.matchPermanentTimerText
                   ]}>
-                    {timeRemaining}
+                    {timerInfo.type === 'match_permanent' ? 'Match!' : timeRemaining}
                   </Text>
+                </View>
+              )}
+              {!isGroup && timerInfo.type === 'match_permanent' && (
+                <View style={styles.matchIndicator}>
+                  <Text style={styles.matchIndicatorText}>Match! 💕</Text>
                 </View>
               )}
             </View>
@@ -743,9 +761,9 @@ export default function PostMealScreen() {
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>1. All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
           <Text style={styles.infoText}>2. Both parties have 7 days to make a decision. If one makes a decision but the other hasn't, the 7-day countdown continues.</Text>
-          <Text style={styles.infoText}>3. Once both parties make decisions, the profile will disappear within 24 hours.</Text>
-          <Text style={styles.infoText}>4. For matches: The profile disappears from Post Meal but the chat remains available in Messages.</Text>
-          <Text style={styles.infoText}>5. For non-matches: Both the profile and chat will be removed after 24 hours.</Text>
+          <Text style={styles.infoText}>3. Once both parties make decisions:</Text>
+          <Text style={styles.infoText}>   • For matches: The profile stays on Post Meal and chat remains available in Messages.</Text>
+          <Text style={styles.infoText}>   • For non-matches: Both the profile and chat are removed immediately.</Text>
         </View>
       </ScrollView>
 
@@ -888,7 +906,7 @@ export default function PostMealScreen() {
                     if (event) {
                       const timerInfo = getTimeRemaining(eventId, event.date, event.time);
                       const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
-                      return `\n\nBoth parties have ${timeRemaining} to make a decision. Once both decide, this profile will disappear within 24 hours.`;
+                      return `\n\nBoth parties have ${timeRemaining} to make a decision. Once both decide, matches will stay while non-matches will be removed.`;
                     }
                     return '';
                   })()}
@@ -917,7 +935,7 @@ export default function PostMealScreen() {
                     if (event) {
                       const timerInfo = getTimeRemaining(eventId, event.date, event.time);
                       const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
-                      return `\n\nThis profile will disappear in ${timeRemaining}. The chat will also be removed.`;
+                      return `\n\nThis profile and chat have been removed immediately as there was no match.`;
                     }
                     return '';
                   })()}
@@ -1567,5 +1585,23 @@ const styles = StyleSheet.create({
   },
   finalizedBuddyPassLabel: {
     color: '#FF5C00',
+  },
+  matchPermanentTimer: {
+    backgroundColor: '#E8F5E8',
+    borderColor: colors.success,
+  },
+  matchPermanentTimerText: {
+    color: colors.success,
+  },
+  matchIndicator: {
+    backgroundColor: colors.success,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  matchIndicatorText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.background,
   },
 });
