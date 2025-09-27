@@ -1,20 +1,29 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter } from 'lucide-react-native';
+import { Search, Filter, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
+import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
 
 export default function EventsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const { user } = useAuth();
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
     router.push(`/meal-up-details?mealUpId=${mealUp.id}`);
   };
+
+  const handleCreateMealUp = () => {
+    console.log('Creating new meal up');
+    router.push('/create-meal-up');
+  };
+
+  const isPaidMember = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
 
   const filteredMealUps = mockMealUps.filter(mealUp => 
     mealUp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -34,8 +43,17 @@ export default function EventsScreen() {
         colors={Gradients.secondary}
         style={styles.header}
       >
-        <Text style={styles.title}>Meal Ups</Text>
-        <Text style={styles.subtitle}>Join group dining experiences</Text>
+        <View style={styles.titleContainer}>
+          <View style={styles.titleSection}>
+            <Text style={styles.title}>Meal Ups</Text>
+            <Text style={styles.subtitle}>Join group dining experiences</Text>
+          </View>
+          {isPaidMember && (
+            <TouchableOpacity style={styles.addButton} onPress={handleCreateMealUp}>
+              <Plus size={24} color="#FFFFFF" />
+            </TouchableOpacity>
+          )}
+        </View>
         
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
@@ -73,7 +91,16 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingVertical: 24,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 20,
+  },
+  titleSection: {
+    alignItems: 'center',
+    flex: 1,
   },
   title: {
     fontSize: 28,
@@ -86,13 +113,28 @@ const styles = StyleSheet.create({
     color: '#000000',
     fontWeight: '500',
   },
+  addButton: {
+    backgroundColor: Colors.primary,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
   listContent: {
     paddingBottom: 20,
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 20,
     width: '100%',
   },
   searchInputContainer: {
