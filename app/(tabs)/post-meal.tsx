@@ -540,21 +540,19 @@ export default function PostMealScreen() {
                   {event.type === 'invitation' ? 'Date' : 'Group'}
                 </Text>
               </View>
-              {!isGroup && timerInfo.type !== 'match_permanent' && (
+              {!isGroup && timerInfo.type !== 'match_permanent' && timerInfo.type !== 'no_match_removed' && (
                 <View style={[
                   styles.timerContainer,
                   isExpired && styles.expiredTimer,
-                  (timerInfo.type === 'choice_made') && styles.choiceMadeTimer,
-                  timerInfo.type === 'match_permanent' && styles.matchPermanentTimer
+                  (timerInfo.type === 'choice_made') && styles.choiceMadeTimer
                 ]}>
-                  <Timer size={12} color={isExpired ? '#FF4444' : (timerInfo.type === 'choice_made') ? '#FFA726' : timerInfo.type === 'match_permanent' ? colors.success : colors.textLight} />
+                  <Timer size={12} color={isExpired ? '#FF4444' : (timerInfo.type === 'choice_made') ? '#FFA726' : colors.textLight} />
                   <Text style={[
                     styles.timerText,
                     isExpired && styles.expiredTimerText,
-                    (timerInfo.type === 'choice_made') && styles.choiceMadeTimerText,
-                    timerInfo.type === 'match_permanent' && styles.matchPermanentTimerText
+                    (timerInfo.type === 'choice_made') && styles.choiceMadeTimerText
                   ]}>
-                    {timerInfo.type === 'match_permanent' ? 'Match!' : timeRemaining}
+                    {timeRemaining}
                   </Text>
                 </View>
               )}
