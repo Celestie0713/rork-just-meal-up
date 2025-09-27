@@ -82,7 +82,7 @@ export default function PostMealScreen() {
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [matchResult, setMatchResult] = useState<{
     isMatch: boolean;
-    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | 'no_decision' | null;
+    matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | 'no_decision' | 'match_permanent' | null;
     userChoice: string;
     dateChoice: string | null;
     eventId?: string;
@@ -476,7 +476,7 @@ export default function PostMealScreen() {
     
     if (dateChoice) {
       const isMatch = choice === dateChoice;
-      let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | null = null;
+      let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | 'match_permanent' | null = null;
       
       if (isMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
