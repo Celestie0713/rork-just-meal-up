@@ -287,7 +287,139 @@ export default function PostMealScreen() {
     });
   };
 
+  const handleMixedSignalsExtensionChoice = (eventId: string, choice: string) => {
+    const invitationId = eventId.replace('invitation-', '');
+    const invitation = mockInvitations.find(inv => inv.id === invitationId);
+    
+    if (!invitation) return;
+    
+    const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+    const extensionKey = `${invitationId}-${dateUserId}`;
+    const extension = mixedSignalsExtensions[extensionKey];
+    
+    if (!extension) return;
+    
+    const now = new Date();
+    
+    // Update the extended choice
+    setExtendedChoices(prev => ({
+      ...prev,
+      [eventId]: choice
+    }));
+    
+    // Mark user as having re-decided
+    setMixedSignalsExtensions(prev => ({
+      ...prev,
+      [extensionKey]: {
+        ...extension,
+        hasUserReDecided: true,
+        userChoice: choice
+      }
+    }));
+    
+    // Mark this choice as finalized
+    setFinalizedChoices(prev => ({
+      ...prev,
+      [eventId]: true
+    }));
+    
+    // Record the timestamp when the choice was made
+    setChoiceTimestamps(prev => ({
+      ...prev,
+      [eventId]: now
+    }));
+    
+    console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
+    
+    // For now, we'll assume the date also makes a decision (in a real app, this would come from the server)
+    // Simulate the date making a decision after a short delay
+    setTimeout(() => {
+      const dateExtendedChoice = choice === 'next_round' ? 'fight_for_fries' : 'next_round'; // Opposite choice for demo
+      
+      // Check if both parties have now made their extended decisions
+      const isExtendedMatch = choice === dateExtendedChoice;
+      let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | null = null;
+      
+      if (isExtendedMatch) {
+        matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
+        
+        // Track the match
+        addMatchedProfile(dateUserId, invitationId, matchType);
+        console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
+        
+        // If it's a next_round match, initialize meal counter to 1 (first meal)
+        if (matchType === 'next_round') {
+          setMealCounters(prev => ({
+            ...prev,
+            [dateUserId]: 1
+          }));
+        }
+      } else {
+        // Still no match after extension - remove profile and chat
+        console.log(`No match after extension period for ${eventId} - removing profile and chat`);
+        const userChoices: Record<string, { choice: string; timestamp: Date }> = {
+          [eventId]: { choice, timestamp: now }
+        };
+        checkAndRemoveNonMatchingProfiles(userChoices);
+      }
+      
+      // Clear the extension
+      setMixedSignalsExtensions(prev => {
+        const updated = { ...prev };
+        delete updated[extensionKey];
+        return updated;
+      });
+      
+      setMatchResult({
+        isMatch: isExtendedMatch,
+        matchType,
+        userChoice: choice,
+        dateChoice: dateExtendedChoice,
+        eventId
+      });
+      
+      setShowMatchModal(true);
+      
+      if (isExtendedMatch) {
+        // Trigger confetti for matches
+        setTimeout(() => {
+          confettiRef.current?.start();
+        }, 500);
+        
+        // Animate balloons
+        Animated.sequence([
+          Animated.timing(balloonAnimation, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(balloonAnimation, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+          })
+        ]).start();
+      }
+    }, 1000); // Simulate 1 second delay for date's decision
+  };
+
   const handleChoiceSelect = (eventId: string, choice: string) => {
+    // Check if this is a mixed signals extension case
+    const invitationId = eventId.replace('invitation-', '');
+    const invitation = mockInvitations.find(inv => inv.id === invitationId);
+    
+    if (invitation) {
+      const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+      const extensionKey = `${invitationId}-${dateUserId}`;
+      const extension = mixedSignalsExtensions[extensionKey];
+      
+      if (extension) {
+        // This is a mixed signals extension case - handle differently
+        handleMixedSignalsExtensionChoice(eventId, choice);
+        return;
+      }
+    }
+    
     // Don't allow changes if already finalized
     if (finalizedChoices[eventId]) {
       return;
@@ -340,7 +472,6 @@ export default function PostMealScreen() {
     console.log('Waiting for other party to make their decision...');
     
     // Check for match after user makes a choice
-    const invitationId = eventId.replace('invitation-', '');
     const dateChoice = getDateChoice(invitationId);
     
     if (dateChoice) {
@@ -350,7 +481,6 @@ export default function PostMealScreen() {
       if (isMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
         // Track the match
-        const invitation = mockInvitations.find(inv => inv.id === invitationId);
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
           addMatchedProfile(dateUserId, invitationId, matchType);
@@ -372,7 +502,6 @@ export default function PostMealScreen() {
         if ((choice === 'next_round' && dateChoice === 'fight_for_fries') ||
             (choice === 'fight_for_fries' && dateChoice === 'next_round')) {
           
-          const invitation = mockInvitations.find(inv => inv.id === invitationId);
           if (invitation) {
             const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
             const extensionKey = `${invitationId}-${dateUserId}`;
@@ -416,7 +545,6 @@ export default function PostMealScreen() {
       
       // Track mixed signals case when popup is shown
       if (matchType === 'mixed_signals_extension') {
-        const invitation = mockInvitations.find(inv => inv.id === invitationId);
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
           trackMixedSignalsCase(dateUserId, invitationId);
