@@ -15,7 +15,7 @@ const mockCurrentUser: User = {
     'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop'
   ],
   location: 'San Francisco, CA',
-  membershipTier: 'premium',
+  membershipTier: 'free',
   isOnline: true,
   ethnicity: 'english, mandarin, cantonese',
   preferences: {

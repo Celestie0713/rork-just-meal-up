@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Filter, Plus } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -19,8 +19,30 @@ export default function EventsScreen() {
   };
 
   const handleCreateMealUp = () => {
-    console.log('Creating new meal up');
-    router.push('/create-meal-up');
+    if (isPaidMember) {
+      console.log('Creating new meal up');
+      router.push('/create-meal-up');
+    } else {
+      // Show upgrade prompt for non-premium members
+      Alert.alert(
+        'Upgrade to Premium',
+        'Only premium members can organize meal ups. Upgrade now to start creating amazing dining experiences!',
+        [
+          {
+            text: 'Maybe Later',
+            style: 'cancel'
+          },
+          {
+            text: 'Upgrade Now',
+            onPress: () => {
+              console.log('User wants to upgrade');
+              // TODO: Navigate to upgrade screen
+              Alert.alert('Upgrade', 'Upgrade feature coming soon!');
+            }
+          }
+        ]
+      );
+    }
   };
 
   const isPaidMember = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -48,11 +70,9 @@ export default function EventsScreen() {
             <Text style={styles.title}>Meal Ups</Text>
             <Text style={styles.subtitle}>Join group dining experiences</Text>
           </View>
-          {isPaidMember && (
-            <TouchableOpacity style={styles.addButton} onPress={handleCreateMealUp}>
-              <Plus size={24} color="#FFFFFF" />
-            </TouchableOpacity>
-          )}
+          <TouchableOpacity style={styles.addButton} onPress={handleCreateMealUp}>
+            <Plus size={24} color="#FFFFFF" />
+          </TouchableOpacity>
         </View>
         
         <View style={styles.searchContainer}>
