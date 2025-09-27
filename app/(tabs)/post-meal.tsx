@@ -143,21 +143,27 @@ export default function PostMealScreen() {
         const choiceTimestamp = choiceTimestamps[eventId];
         const eventDateTime = parseDateTime(invitation.date, invitation.time);
         const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
+        const invitationId = invitation.id;
+        const dateChoice = getDateChoice(invitationId);
+        const userChoice = selectedChoices[eventId];
         
-        // If a choice was made, check if it's been less than 24 hours
-        if (choiceTimestamp) {
-          const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
-          if (timeSinceChoice >= twentyFourHoursInMs) {
-            // Remove from state if 24 hours have passed
-            console.log(`Removing event ${eventId} - 24 hours have passed since choice was made`);
-            return; // Skip this event
+        // Check if both parties have made decisions
+        const bothPartiesDecided = userChoice && dateChoice;
+        
+        if (bothPartiesDecided) {
+          // If both parties decided, profile disappears in 24 hours from when the second decision was made
+          if (choiceTimestamp) {
+            const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
+            if (timeSinceChoice >= twentyFourHoursInMs) {
+              console.log(`Removing event ${eventId} - 24 hours have passed since both parties decided`);
+              return; // Skip this event
+            }
           }
         } else {
-          // If no choice was made, check if 7 days have passed since the event became available (10 hours after meal)
+          // If not both parties decided, check if 7 days have passed since the event became available
           const timeSinceAvailable = now.getTime() - tenHoursAfterEvent.getTime();
           if (timeSinceAvailable >= sevenDaysInMs) {
-            // Remove from state if 7 days have passed without a choice
-            console.log(`Removing event ${eventId} - 7 days have passed without a choice`);
+            console.log(`Removing event ${eventId} - 7 days have passed without both parties deciding`);
             return; // Skip this event
           }
         }
@@ -187,19 +193,16 @@ export default function PostMealScreen() {
         const eventDateTime = parseDateTime(mealUp.date, mealUp.time);
         const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
         
-        // If a choice was made, check if it's been less than 24 hours
+        // For group events, we don't have date choices, so just use the original 7-day logic
         if (choiceTimestamp) {
           const timeSinceChoice = now.getTime() - choiceTimestamp.getTime();
           if (timeSinceChoice >= twentyFourHoursInMs) {
-            // Remove from state if 24 hours have passed
             console.log(`Removing event ${eventId} - 24 hours have passed since choice was made`);
             return; // Skip this event
           }
         } else {
-          // If no choice was made, check if 7 days have passed since the event became available (10 hours after meal)
           const timeSinceAvailable = now.getTime() - tenHoursAfterEvent.getTime();
           if (timeSinceAvailable >= sevenDaysInMs) {
-            // Remove from state if 7 days have passed without a choice
             console.log(`Removing event ${eventId} - 7 days have passed without a choice`);
             return; // Skip this event
           }
@@ -221,7 +224,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps]);
+  }, [choiceTimestamps, selectedChoices]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -382,24 +385,52 @@ export default function PostMealScreen() {
     const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
     const now = currentTime;
     
-    if (choiceTimestamp) {
-      // If choice was made, show 24 hour countdown
-      const twentyFourHoursAfterChoice = new Date(choiceTimestamp.getTime() + (24 * 60 * 60 * 1000));
-      const timeLeft = twentyFourHoursAfterChoice.getTime() - now.getTime();
-      return {
-        timeLeft: Math.max(0, timeLeft),
-        type: 'choice_made' as const,
-        totalTime: 24 * 60 * 60 * 1000
-      };
+    // For invitations, check if both parties have decided
+    const isInvitation = eventId.startsWith('invitation-');
+    if (isInvitation) {
+      const invitationId = eventId.replace('invitation-', '');
+      const dateChoice = getDateChoice(invitationId);
+      const userChoice = selectedChoices[eventId];
+      const bothPartiesDecided = userChoice && dateChoice;
+      
+      if (bothPartiesDecided && choiceTimestamp) {
+        // If both parties decided, show 24 hour countdown from when user made their choice
+        const twentyFourHoursAfterChoice = new Date(choiceTimestamp.getTime() + (24 * 60 * 60 * 1000));
+        const timeLeft = twentyFourHoursAfterChoice.getTime() - now.getTime();
+        return {
+          timeLeft: Math.max(0, timeLeft),
+          type: 'both_decided' as const,
+          totalTime: 24 * 60 * 60 * 1000
+        };
+      } else {
+        // If not both parties decided, show 7 day countdown from when event became available
+        const sevenDaysAfterAvailable = new Date(tenHoursAfterEvent.getTime() + (7 * 24 * 60 * 60 * 1000));
+        const timeLeft = sevenDaysAfterAvailable.getTime() - now.getTime();
+        return {
+          timeLeft: Math.max(0, timeLeft),
+          type: 'waiting_for_decision' as const,
+          totalTime: 7 * 24 * 60 * 60 * 1000
+        };
+      }
     } else {
-      // If no choice was made, show 7 day countdown from when event became available
-      const sevenDaysAfterAvailable = new Date(tenHoursAfterEvent.getTime() + (7 * 24 * 60 * 60 * 1000));
-      const timeLeft = sevenDaysAfterAvailable.getTime() - now.getTime();
-      return {
-        timeLeft: Math.max(0, timeLeft),
-        type: 'no_choice' as const,
-        totalTime: 7 * 24 * 60 * 60 * 1000
-      };
+      // For group events, use original logic
+      if (choiceTimestamp) {
+        const twentyFourHoursAfterChoice = new Date(choiceTimestamp.getTime() + (24 * 60 * 60 * 1000));
+        const timeLeft = twentyFourHoursAfterChoice.getTime() - now.getTime();
+        return {
+          timeLeft: Math.max(0, timeLeft),
+          type: 'choice_made' as const,
+          totalTime: 24 * 60 * 60 * 1000
+        };
+      } else {
+        const sevenDaysAfterAvailable = new Date(tenHoursAfterEvent.getTime() + (7 * 24 * 60 * 60 * 1000));
+        const timeLeft = sevenDaysAfterAvailable.getTime() - now.getTime();
+        return {
+          timeLeft: Math.max(0, timeLeft),
+          type: 'no_choice' as const,
+          totalTime: 7 * 24 * 60 * 60 * 1000
+        };
+      }
     }
   };
 
@@ -498,13 +529,13 @@ export default function PostMealScreen() {
                 <View style={[
                   styles.timerContainer,
                   isExpired && styles.expiredTimer,
-                  timerInfo.type === 'choice_made' && styles.choiceMadeTimer
+                  (timerInfo.type === 'choice_made' || timerInfo.type === 'both_decided') && styles.choiceMadeTimer
                 ]}>
-                  <Timer size={12} color={isExpired ? '#FF4444' : timerInfo.type === 'choice_made' ? '#FFA726' : colors.textLight} />
+                  <Timer size={12} color={isExpired ? '#FF4444' : (timerInfo.type === 'choice_made' || timerInfo.type === 'both_decided') ? '#FFA726' : colors.textLight} />
                   <Text style={[
                     styles.timerText,
                     isExpired && styles.expiredTimerText,
-                    timerInfo.type === 'choice_made' && styles.choiceMadeTimerText
+                    (timerInfo.type === 'choice_made' || timerInfo.type === 'both_decided') && styles.choiceMadeTimerText
                   ]}>
                     {timeRemaining}
                   </Text>
@@ -707,8 +738,8 @@ export default function PostMealScreen() {
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>1. All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
-          <Text style={styles.infoText}>2. Once an option is selected, it will disappear from this page within 24 hours.</Text>
-          <Text style={styles.infoText}>3. If there is no option is selected, it will disappear within 7 days.</Text>
+          <Text style={styles.infoText}>2. Both parties have 7 days to make a decision. If one makes a decision but the other hasn't, the 7-day countdown continues.</Text>
+          <Text style={styles.infoText}>3. Once both parties make decisions (match or no match), the profile will disappear within 24 hours.</Text>
         </View>
       </ScrollView>
 
@@ -851,7 +882,7 @@ export default function PostMealScreen() {
                     if (event) {
                       const timerInfo = getTimeRemaining(eventId, event.date, event.time);
                       const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
-                      return `\n\nThis profile will disappear in ${timeRemaining} if no decision is made.`;
+                      return `\n\nBoth parties have ${timeRemaining} to make a decision. Once both decide, this profile will disappear within 24 hours.`;
                     }
                     return '';
                   })()}
