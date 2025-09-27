@@ -91,21 +91,31 @@ export default function ProfileScreen() {
     return unsubscribe;
   }, []);
 
+  console.log('Profile screen render - user:', user);
+  console.log('Profile screen render - fontsLoaded:', fontsLoaded);
+
   if (!user) {
+    console.log('User not found, showing loading...');
     return (
       <SafeAreaView style={styles.container}>
-        <Text>Loading user...</Text>
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading user...</Text>
+        </View>
       </SafeAreaView>
     );
   }
 
-  if (!fontsLoaded) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>Loading fonts...</Text>
-      </SafeAreaView>
-    );
-  }
+  // Remove font loading requirement for now to debug
+  // if (!fontsLoaded) {
+  //   console.log('Fonts not loaded, showing loading...');
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <View style={styles.loadingContainer}>
+  //         <Text style={styles.loadingText}>Loading fonts...</Text>
+  //       </View>
+  //     </SafeAreaView>
+  //   );
+  // }
 
   const getMembershipInfo = () => {
     switch (user.membershipTier) {
@@ -1432,5 +1442,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
     marginLeft: 12,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.text,
   },
 });
