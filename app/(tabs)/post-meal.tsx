@@ -156,8 +156,15 @@ export default function PostMealScreen() {
           const isMatch = userChoice === dateChoice;
           
           if (isMatch) {
-            // For matches: profile stays on the post-meal page (no removal)
-            console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
+            // Special case: if both chose buddy_pass, treat it like a non-match for post-meal page
+            // but keep the chat available (handled in useChat hook)
+            if (userChoice === 'buddy_pass') {
+              console.log(`Event ${eventId} - buddy pass match, removing from post-meal page but keeping chat`);
+              return; // Skip this event (remove from post-meal page)
+            } else {
+              // For other matches: profile stays on the post-meal page (no removal)
+              console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
+            }
           } else {
             // For non-matches: profile disappears immediately from post meal page
             // and chat will also be removed (handled in useChat hook)
@@ -315,6 +322,9 @@ export default function PostMealScreen() {
               [dateUserId]: 1
             }));
           }
+          
+          // Special handling for buddy_pass: it's a match but profile gets removed from post-meal
+          // Chat remains available (handled in useChat hook)
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
@@ -410,12 +420,21 @@ export default function PostMealScreen() {
         const isMatch = userChoice === dateChoice;
         
         if (isMatch) {
-          // For matches: no timer needed, profile stays permanently
-          return {
-            timeLeft: Infinity,
-            type: 'match_permanent' as const,
-            totalTime: Infinity
-          };
+          // Special case: buddy_pass matches are removed from post-meal page
+          if (userChoice === 'buddy_pass') {
+            return {
+              timeLeft: 0,
+              type: 'no_match_removed' as const,
+              totalTime: 0
+            };
+          } else {
+            // For other matches: no timer needed, profile stays permanently
+            return {
+              timeLeft: Infinity,
+              type: 'match_permanent' as const,
+              totalTime: Infinity
+            };
+          }
         } else {
           // For non-matches: profile should already be removed, but if still showing, no timer
           return {
@@ -898,7 +917,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🍻</Text>
                 <Text style={styles.matchModalTitle}>Congrats—you just unlocked a new friend!</Text>
                 <Text style={styles.matchModalDescription}>
-                  Great minds think alike! You both chose to stay friends.
+                  Great minds think alike! You both chose to stay friends.{"\n\n"}Heads up: This profile will be removed from the Post Meal page, but your chat is still available in Messages.
                 </Text>
               </>
             ) : matchResult?.matchType === 'next_round' ? (

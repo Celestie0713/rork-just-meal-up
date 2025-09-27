@@ -192,7 +192,16 @@ export const [ChatProvider, useChat] = createContextHook(() => {
           // Check if it's a match
           const isMatch = userChoice.choice === dateChoice;
           
-          if (!isMatch) {
+          if (isMatch) {
+            // Special case: buddy_pass matches keep chat available but are removed from post-meal page
+            if (userChoice.choice === 'buddy_pass') {
+              console.log(`Buddy pass match with ${dateUserId} - keeping chat available`);
+              // Don't remove from chat for buddy_pass matches
+              return;
+            }
+            // Other matches (fight_for_fries, next_round) also keep chat available
+            console.log(`Match detected with ${dateUserId} - keeping chat available`);
+          } else {
             // Check for mixed signals case: one wants next_round, other wants fight_for_fries
             const isMixedSignals = (userChoice.choice === 'next_round' && dateChoice === 'fight_for_fries') ||
                                  (userChoice.choice === 'fight_for_fries' && dateChoice === 'next_round');
