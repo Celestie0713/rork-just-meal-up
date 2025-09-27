@@ -902,8 +902,84 @@ export default function PostMealScreen() {
               <View style={styles.userChoicesSection}>
                 <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
                 
-                {/* Only show selected choice if finalized, otherwise show all choices */}
-                {!isChoiceFinalized ? (
+                {/* Check if this is a mixed signals extension case where user can retake decision */}
+                {(() => {
+                  const invitationId = event.id.replace('invitation-', '');
+                  const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                  if (invitation) {
+                    const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                    const extensionKey = `${invitationId}-${dateUserId}`;
+                    const extension = mixedSignalsExtensions[extensionKey];
+                    
+                    // If there's an active extension and user hasn't re-decided, allow retaking decision
+                    if (extension && !extension.hasUserReDecided && timerInfo.type === 'mixed_signals_extension' && timerInfo.timeLeft > 0) {
+                      return (
+                        <>
+                          <View style={styles.retakeDecisionHeader}>
+                            <Text style={styles.retakeDecisionTitle}>🤔 Mixed signals detected!</Text>
+                            <Text style={styles.retakeDecisionSubtitle}>
+                              You chose &quot;{getChoiceDisplay(userSelectedChoice)?.text || userSelectedChoice}&quot; but your date chose &quot;{getChoiceDisplay(dateChoice || '')?.text || dateChoice}&quot;. 
+                              You both have {timeRemaining} to retake your decision.
+                            </Text>
+                          </View>
+                          
+                          <TouchableOpacity 
+                            style={[
+                              styles.choiceButton,
+                              extendedChoices[event.id] === 'buddy_pass' && styles.selectedChoiceButton
+                            ]}
+                            onPress={() => handleChoiceSelect(event.id, 'buddy_pass')}
+                          >
+                            <Text style={[
+                              styles.choiceButtonText,
+                              extendedChoices[event.id] === 'buddy_pass' && styles.selectedChoiceButtonText
+                            ]}>Buddy pass ✅</Text>
+                            <Text style={[
+                              styles.choiceSubtext,
+                              extendedChoices[event.id] === 'buddy_pass' && styles.selectedChoiceButtonText
+                            ]}>(Stay Friend)</Text>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity 
+                            style={[
+                              styles.choiceButton,
+                              extendedChoices[event.id] === 'next_round' && styles.selectedChoiceButton
+                            ]}
+                            onPress={() => handleChoiceSelect(event.id, 'next_round')}
+                          >
+                            <Text style={[
+                              styles.choiceButtonText,
+                              extendedChoices[event.id] === 'next_round' && styles.selectedChoiceButtonText
+                            ]}>Let&apos;s do next round</Text>
+                            <Text style={[
+                              styles.choiceSubtext,
+                              extendedChoices[event.id] === 'next_round' && styles.selectedChoiceButtonText
+                            ]}>(Next date)</Text>
+                          </TouchableOpacity>
+                          
+                          <TouchableOpacity 
+                            style={[
+                              styles.choiceButton,
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButton
+                            ]}
+                            onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                          >
+                            <Text style={[
+                              styles.choiceButtonText,
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText
+                            ]}>Fight for fries for life</Text>
+                            <Text style={[
+                              styles.choiceSubtext,
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText
+                            ]}>(Be my +1?)</Text>
+                          </TouchableOpacity>
+                        </>
+                      );
+                    }
+                  }
+                  
+                  // Show original choice if finalized or no extension
+                  return !isChoiceFinalized ? (
                   <>
                     <TouchableOpacity 
                       style={[
@@ -978,21 +1054,22 @@ export default function PostMealScreen() {
                     styles.finalizedBuddyPassButton
                   ]}>
                     <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
-                      {userSelectedChoice === 'buddy_pass' && 'Buddy pass ✅'}
-                      {userSelectedChoice === 'next_round' && "Let's do next round"}
-                      {userSelectedChoice === 'fight_for_fries' && 'Fight for fries for life'}
+                      {(extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && 'Buddy pass ✅'}
+                      {(extendedChoices[event.id] || userSelectedChoice) === 'next_round' && "Let's do next round"}
+                      {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && 'Fight for fries for life'}
                     </Text>
                     <Text style={[styles.choiceSubtext, styles.finalizedChoiceText]}>
-                      {userSelectedChoice === 'buddy_pass' && '(Stay Friend)'}
-                      {userSelectedChoice === 'next_round' && '(Next date)'}
-                      {userSelectedChoice === 'fight_for_fries' && '(Be my +1?)'}
+                      {(extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && '(Stay Friend)'}
+                      {(extendedChoices[event.id] || userSelectedChoice) === 'next_round' && '(Next date)'}
+                      {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && '(Be my +1?)'}
                     </Text>
                     <Text style={[
                       styles.finalizedLabel,
-                      userSelectedChoice === 'buddy_pass' && styles.finalizedBuddyPassLabel
-                    ]}>Your Choice</Text>
+                      (extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && styles.finalizedBuddyPassLabel
+                    ]}>{extendedChoices[event.id] ? 'New Choice' : 'Your Choice'}</Text>
                   </View>
-                )}
+                );
+                })()}
               </View>
             </View>
           )}
@@ -1880,5 +1957,26 @@ const styles = StyleSheet.create({
   },
   mixedSignalsTimerText: {
     color: '#FF6B35',
+  },
+  retakeDecisionHeader: {
+    backgroundColor: '#FFF0E6',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FF6B35',
+  },
+  retakeDecisionTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FF6B35',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  retakeDecisionSubtitle: {
+    fontSize: 14,
+    color: '#B8860B',
+    lineHeight: 20,
+    textAlign: 'center',
   },
 });
