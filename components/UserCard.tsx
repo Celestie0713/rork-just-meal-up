@@ -30,7 +30,8 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   }, []);
   
   // Check if this user has a mutual love match with current user
-  const hasLoveMatch = currentUser && loveMatchUserId === user.id;
+  // Show love icon on Alex Chen's card when he has a love match
+  const hasLoveMatch = currentUser && user.id === currentUser.id && loveMatchUserId !== null;
   
   const handleLoveIconPress = () => {
     // Navigate to the matched user's profile, not this user's profile
