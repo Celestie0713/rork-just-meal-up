@@ -1,7 +1,7 @@
-import React, { useMemo, useState, useRef } from 'react';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, ChevronRight, Star, X, Heart } from 'lucide-react-native';
+import { Calendar, MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
@@ -78,6 +78,16 @@ export default function PostMealScreen() {
   } | null>(null);
   const confettiRef = useRef<any>(null);
   const balloonAnimation = useRef(new Animated.Value(0)).current;
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // Update current time every minute for timer display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(new Date());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleUpgradeToPremium = () => {
     setShowUpgradeModal(true);
@@ -366,6 +376,48 @@ export default function PostMealScreen() {
 
 
 
+  const getTimeRemaining = (eventId: string, eventDate: Date, eventTime: string) => {
+    const choiceTimestamp = choiceTimestamps[eventId];
+    const eventDateTime = parseDateTime(eventDate, eventTime);
+    const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
+    const now = currentTime;
+    
+    if (choiceTimestamp) {
+      // If choice was made, show 24 hour countdown
+      const twentyFourHoursAfterChoice = new Date(choiceTimestamp.getTime() + (24 * 60 * 60 * 1000));
+      const timeLeft = twentyFourHoursAfterChoice.getTime() - now.getTime();
+      return {
+        timeLeft: Math.max(0, timeLeft),
+        type: 'choice_made' as const,
+        totalTime: 24 * 60 * 60 * 1000
+      };
+    } else {
+      // If no choice was made, show 7 day countdown from when event became available
+      const sevenDaysAfterAvailable = new Date(tenHoursAfterEvent.getTime() + (7 * 24 * 60 * 60 * 1000));
+      const timeLeft = sevenDaysAfterAvailable.getTime() - now.getTime();
+      return {
+        timeLeft: Math.max(0, timeLeft),
+        type: 'no_choice' as const,
+        totalTime: 7 * 24 * 60 * 60 * 1000
+      };
+    }
+  };
+
+  const formatTimeRemaining = (milliseconds: number) => {
+    if (milliseconds <= 0) return '0h 0m';
+    
+    const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+    const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+    const days = Math.floor(hours / 24);
+    const remainingHours = hours % 24;
+    
+    if (days > 0) {
+      return `${days}d ${remainingHours}h`;
+    } else {
+      return `${hours}h ${minutes}m`;
+    }
+  };
+
   const renderPostMealEvent = (event: PostMealEvent) => {
     const isGroup = event.type === 'mealup';
     const invitationId = event.id.replace('invitation-', '');
@@ -378,6 +430,11 @@ export default function PostMealScreen() {
     // Check if there's a match (both users chose the same option)
     const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
     const matchType = isMatch ? userSelectedChoice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
+    
+    // Get timer information
+    const timerInfo = getTimeRemaining(event.id, event.date, event.time);
+    const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
+    const isExpired = timerInfo.timeLeft <= 0;
 
     
     return (
@@ -431,10 +488,28 @@ export default function PostMealScreen() {
             ) : (
               <Text style={styles.eventTitle}>{event.title}</Text>
             )}
-            <View style={styles.eventTypeTag}>
-              <Text style={styles.eventTypeText}>
-                {event.type === 'invitation' ? 'Date' : 'Group'}
-              </Text>
+            <View style={styles.headerRight}>
+              <View style={styles.eventTypeTag}>
+                <Text style={styles.eventTypeText}>
+                  {event.type === 'invitation' ? 'Date' : 'Group'}
+                </Text>
+              </View>
+              {!isGroup && (
+                <View style={[
+                  styles.timerContainer,
+                  isExpired && styles.expiredTimer,
+                  timerInfo.type === 'choice_made' && styles.choiceMadeTimer
+                ]}>
+                  <Timer size={12} color={isExpired ? '#FF4444' : timerInfo.type === 'choice_made' ? '#FFA726' : colors.textLight} />
+                  <Text style={[
+                    styles.timerText,
+                    isExpired && styles.expiredTimerText,
+                    timerInfo.type === 'choice_made' && styles.choiceMadeTimerText
+                  ]}>
+                    {timeRemaining}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
           
@@ -770,6 +845,16 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalTitle}>Chill, they&apos;re just marinating their thoughts 🥩😏</Text>
                 <Text style={styles.matchModalDescription}>
                   Your date hasn&apos;t made their choice yet. Give them some time to decide!
+                  {matchResult?.eventId && (() => {
+                    const eventId = matchResult.eventId;
+                    const event = postMealEvents.find(e => e.id === eventId);
+                    if (event) {
+                      const timerInfo = getTimeRemaining(eventId, event.date, event.time);
+                      const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
+                      return `\n\nThis profile will disappear in ${timeRemaining} if no decision is made.`;
+                    }
+                    return '';
+                  })()}
                 </Text>
               </>
             ) : matchResult?.isMatch ? (
@@ -789,6 +874,16 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalTitle}>No Spark This Time ✨</Text>
                 <Text style={styles.matchModalDescription}>
                   Go on to the next meal🍜
+                  {matchResult?.eventId && (() => {
+                    const eventId = matchResult.eventId;
+                    const event = postMealEvents.find(e => e.id === eventId);
+                    if (event) {
+                      const timerInfo = getTimeRemaining(eventId, event.date, event.time);
+                      const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
+                      return `\n\nThis profile will disappear in ${timeRemaining}.`;
+                    }
+                    return '';
+                  })()}
                 </Text>
               </>
             )}
@@ -1006,6 +1101,10 @@ const styles = StyleSheet.create({
     padding: 2,
   },
 
+  headerRight: {
+    alignItems: 'flex-end',
+    gap: 8,
+  },
   eventTypeTag: {
     backgroundColor: colors.primary,
     paddingHorizontal: 8,
@@ -1016,6 +1115,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.background,
+  },
+  timerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: colors.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.textLight,
+  },
+  timerText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  expiredTimer: {
+    backgroundColor: '#FFE5E5',
+    borderColor: '#FF4444',
+  },
+  expiredTimerText: {
+    color: '#FF4444',
+  },
+  choiceMadeTimer: {
+    backgroundColor: '#FFF3E0',
+    borderColor: '#FFA726',
+  },
+  choiceMadeTimerText: {
+    color: '#FFA726',
   },
   eventDetails: {
     gap: 8,
