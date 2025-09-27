@@ -904,7 +904,7 @@ export default function PostMealScreen() {
                     if (event) {
                       const timerInfo = getTimeRemaining(eventId, event.date, event.time);
                       const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
-                      return `\n\nBoth parties have ${timeRemaining} to make a decision. Once both decide, matches will stay while non-matches will be removed.`;
+                      return `\n\nTime left to make a decision: ${timeRemaining}`;
                     }
                     return '';
                   })()}
