@@ -674,18 +674,27 @@ export default function ProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {loveMatchUserId && (
-              <TouchableOpacity 
-                style={styles.profileLoveIcon}
-                onPress={() => {
-                  router.push({
-                    pathname: '/user-profile',
-                    params: { userId: loveMatchUserId }
-                  });
-                }}
-                testID="profile-love-icon"
-              >
-                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-              </TouchableOpacity>
+              <View style={styles.profileLoveIcon}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    router.push({
+                      pathname: '/user-profile',
+                      params: { userId: loveMatchUserId }
+                    });
+                  }}
+                  testID="profile-love-icon"
+                  style={styles.loveIconButton}
+                >
+                  <Heart size={24} color="#FF69B4" fill="#FF69B4" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeLoveIconButton}
+                  onPress={handleRemoveLoveMatch}
+                  testID="remove-love-icon"
+                >
+                  <X size={12} color="#666" />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           <View style={styles.nameContainer}>
@@ -887,6 +896,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: -4,
     right: -4,
+  },
+  loveIconButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
     borderRadius: 20,
     padding: 8,
@@ -895,6 +906,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+  removeLoveIconButton: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    borderRadius: 8,
+    padding: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   nameContainer: {
     flexDirection: 'row',
