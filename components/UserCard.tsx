@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { router } from 'expo-router';
-import { hasMutualLoveMatchUpdated, getMatchedUserId } from '@/mocks/post-date-responses';
+import { getMatchedUserId, getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 
 import type { User } from '@/types/user';
@@ -19,9 +19,18 @@ interface UserCardProps {
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
   const { user: currentUser } = useAuth();
+  const [loveMatchUserId, setLoveMatchUserId] = React.useState<string | null>(getCurrentUserLoveMatch());
+  
+  // Subscribe to love match changes
+  React.useEffect(() => {
+    const unsubscribe = subscribeLoveMatchChanges(() => {
+      setLoveMatchUserId(getCurrentUserLoveMatch());
+    });
+    return unsubscribe;
+  }, []);
   
   // Check if this user has a mutual love match with current user
-  const hasLoveMatch = currentUser ? hasMutualLoveMatchUpdated(currentUser.id, user.id) : false;
+  const hasLoveMatch = currentUser && loveMatchUserId === user.id;
   
   const handleLoveIconPress = () => {
     // Navigate to the matched user's profile, not this user's profile
