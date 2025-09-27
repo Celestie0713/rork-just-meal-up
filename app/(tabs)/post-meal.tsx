@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Calendar, MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
+import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
 import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
@@ -61,6 +61,7 @@ function isPostMeal(date: Date, time: string): boolean {
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
   const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, getMatchType, matchedProfiles } = useChat();
+  const [mealCounters, setMealCounters] = useState<Record<string, number>>({});
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -307,7 +308,13 @@ export default function PostMealScreen() {
           addMatchedProfile(dateUserId, invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           
-
+          // If it's a next_round match, increment the meal counter
+          if (matchType === 'next_round') {
+            setMealCounters(prev => ({
+              ...prev,
+              [dateUserId]: (prev[dateUserId] || 1) + 1
+            }));
+          }
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
@@ -477,6 +484,19 @@ export default function PostMealScreen() {
     const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
     const matchType = isMatch ? userSelectedChoice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
     
+    // Get meal number for next_round matches
+    const getMealNumber = () => {
+      if (matchType === 'next_round' && !isGroup) {
+        const invitationId = event.id.replace('invitation-', '');
+        const invitation = mockInvitations.find(inv => inv.id === invitationId);
+        if (invitation) {
+          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+          return mealCounters[dateUserId] || 1;
+        }
+      }
+      return 1;
+    };
+    
     // Get timer information
     const timerInfo = getTimeRemaining(event.id, event.date, event.time);
     const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
@@ -535,11 +555,11 @@ export default function PostMealScreen() {
               <Text style={styles.eventTitle}>{event.title}</Text>
             )}
             <View style={styles.headerRight}>
-              <View style={styles.eventTypeTag}>
-                <Text style={styles.eventTypeText}>
-                  {event.type === 'invitation' ? 'Date' : 'Group'}
-                </Text>
-              </View>
+              {event.type === 'mealup' && (
+                <View style={styles.eventTypeTag}>
+                  <Text style={styles.eventTypeText}>Group</Text>
+                </View>
+              )}
               {!isGroup && timerInfo.type !== 'match_permanent' && timerInfo.type !== 'no_match_removed' && (
                 <View style={[
                   styles.timerContainer,
@@ -558,7 +578,11 @@ export default function PostMealScreen() {
               )}
               {!isGroup && timerInfo.type === 'match_permanent' && (
                 <View style={styles.matchIndicator}>
-                  <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                  {matchType === 'next_round' ? (
+                    <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
+                  ) : (
+                    <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                  )}
                 </View>
               )}
             </View>
@@ -571,7 +595,7 @@ export default function PostMealScreen() {
             </View>
             
             <View style={styles.eventDetailRow}>
-              <Calendar size={16} color={colors.textLight} />
+              <Clock size={16} color={colors.textLight} />
               <Text style={styles.eventDetailText}>
                 {formatDate(event.date)} at {event.time}
               </Text>
