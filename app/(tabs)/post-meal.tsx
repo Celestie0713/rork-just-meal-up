@@ -506,7 +506,32 @@ export default function PostMealScreen() {
             };
           }
         } else {
-          // For non-matches: profile should already be removed, but if still showing, no timer
+          // Check for mixed signals case: one wants next_round, other wants fight_for_fries
+          const isMixedSignals = (userChoice === 'next_round' && dateChoice === 'fight_for_fries') ||
+                               (userChoice === 'fight_for_fries' && dateChoice === 'next_round');
+          
+          if (isMixedSignals) {
+            // Check if we have an extension for this case
+            const invitation = mockInvitations.find(inv => inv.id === invitationId);
+            if (invitation) {
+              const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+              const extensionKey = `${invitationId}-${dateUserId}`;
+              const extension = mixedSignalsExtensions[extensionKey];
+              
+              if (extension) {
+                // Show 24-hour countdown from when the extension started
+                const twentyFourHoursAfterExtension = new Date(extension.startedAt.getTime() + (24 * 60 * 60 * 1000));
+                const timeLeft = twentyFourHoursAfterExtension.getTime() - now.getTime();
+                return {
+                  timeLeft: Math.max(0, timeLeft),
+                  type: 'mixed_signals_extension' as const,
+                  totalTime: 24 * 60 * 60 * 1000
+                };
+              }
+            }
+          }
+          
+          // For other non-matches: profile should already be removed, but if still showing, no timer
           return {
             timeLeft: 0,
             type: 'no_match_removed' as const,
@@ -654,13 +679,20 @@ export default function PostMealScreen() {
                 <View style={[
                   styles.timerContainer,
                   isExpired && styles.expiredTimer,
-                  (timerInfo.type === 'choice_made') && styles.choiceMadeTimer
+                  (timerInfo.type === 'choice_made') && styles.choiceMadeTimer,
+                  (timerInfo.type === 'mixed_signals_extension') && styles.mixedSignalsTimer
                 ]}>
-                  <Timer size={12} color={isExpired ? '#FF4444' : (timerInfo.type === 'choice_made') ? '#FFA726' : colors.textLight} />
+                  <Timer size={12} color={
+                    isExpired ? '#FF4444' : 
+                    (timerInfo.type === 'choice_made') ? '#FFA726' : 
+                    (timerInfo.type === 'mixed_signals_extension') ? '#FF6B35' :
+                    colors.textLight
+                  } />
                   <Text style={[
                     styles.timerText,
                     isExpired && styles.expiredTimerText,
-                    (timerInfo.type === 'choice_made') && styles.choiceMadeTimerText
+                    (timerInfo.type === 'choice_made') && styles.choiceMadeTimerText,
+                    (timerInfo.type === 'mixed_signals_extension') && styles.mixedSignalsTimerText
                   ]}>
                     {timeRemaining}
                   </Text>
@@ -1717,5 +1749,12 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: colors.background,
+  },
+  mixedSignalsTimer: {
+    backgroundColor: '#FFF0E6',
+    borderColor: '#FF6B35',
+  },
+  mixedSignalsTimerText: {
+    color: '#FF6B35',
   },
 });
