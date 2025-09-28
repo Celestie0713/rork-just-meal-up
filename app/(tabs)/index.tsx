@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { Search, Filter, RefreshCw, MapPin as MapPinIcon, Heart, Bell } from 'lucide-react-native';
+import { Search, Filter, RefreshCw, MapPin as MapPinIcon, Bell } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
@@ -114,7 +114,7 @@ export default function SearchScreen() {
   );
 
   const renderUser = ({ item }: { item: User }) => (
-    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} currentUserId="1" />
+    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
   );
 
   const renderPlace = ({ item }: { item: Place }) => (

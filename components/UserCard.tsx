@@ -14,7 +14,6 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
-  
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
       return <Crown size={16} color={Colors.organizer} />;

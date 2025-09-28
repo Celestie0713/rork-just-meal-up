@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import { mockPostDateResponses, hasMutualLoveMatch } from '@/mocks/post-date-responses';
+import { mockPostDateResponses, hasMutualLoveMatch, hasCurrentUserLoveMatch } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 
@@ -140,18 +140,10 @@ export default function PostMealScreen() {
     }
   };
 
-  // Check if current user already has a "fight for fries" match with someone
-  const hasExistingLoveMatch = () => {
-    // Check all users to see if current user has a mutual love match with anyone
-    const allUserIds = mockUsers.map(u => u.id).filter(id => id !== '1'); // Exclude current user
-    return allUserIds.some(userId => hasMutualLoveMatch('1', userId));
-  };
-
   // Check if "fight for fries" option should be disabled for a specific event
   const isFightForFriesDisabled = (eventId: string) => {
-    // Never disable the option - it should be available for all profiles before there's a match
-    // Once a match is made, the profile behavior is handled elsewhere in the code
-    return false;
+    // Disable if current user already has a love match with someone
+    return hasCurrentUserLoveMatch();
   };
 
   const postMealEvents = useMemo(() => {

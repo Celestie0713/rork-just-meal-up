@@ -84,3 +84,22 @@ export function hasMutualLoveMatch(userId1: string, userId2: string): boolean {
   return false;
 }
 
+// Get the current user's love match (if any)
+export function getCurrentUserLoveMatch(): string | null {
+  // Check all users to see if current user (id: '1') has a mutual love match with anyone
+  const allUserIds = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11']; // All other user IDs
+  
+  for (const userId of allUserIds) {
+    if (hasMutualLoveMatch('1', userId)) {
+      return userId;
+    }
+  }
+  
+  return null;
+}
+
+// Check if current user has any love match (used to disable fight_for_fries option)
+export function hasCurrentUserLoveMatch(): boolean {
+  return getCurrentUserLoveMatch() !== null;
+}
+
