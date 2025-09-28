@@ -120,14 +120,10 @@ export default function UserProfileScreen() {
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
-          What foods would make you say yes to a date? 🍕
+          Foods that would make them say yes to a date 🍕
         </Text>
         <View style={styles.foodContainer}>
-          {user.preferences.cuisinePreferences.map((food, index) => (
-            <View key={index} style={styles.foodTag}>
-              <Text style={styles.foodText}>{food}</Text>
-            </View>
-          ))}
+          {/* Don't show food tags for any user profile - keep it consistent */}
         </View>
         
         <TouchableOpacity 
