@@ -5,8 +5,13 @@ import type { PostDateResponse } from '@/types/user';
 // If there's no match after 24 hours, the profile will be removed from the chat list
 
 export const mockPostDateResponses: PostDateResponse[] = [
-  // No initial responses from other users - they will make choices through the Post Meal process
-  // This ensures love icons only appear after actual matches occur
+  {
+    userId: '2', // Sofia Kim
+    invitationId: 'inv-1',
+    choice: 'fight_for_fries',
+    timestamp: new Date('2024-01-15T20:30:00Z'),
+    mealNumber: 1
+  }
 ];
 
 // Mock data for current user's choices (Alex Chen - id: '1')
