@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { hasMutualLoveMatch } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
+import { useChat } from '@/hooks/use-chat';
 
 import type { User } from '@/types/user';
 
@@ -17,6 +17,7 @@ interface UserCardProps {
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
   const { user: currentUser } = useAuth();
+  const { matchedProfiles } = useChat();
   
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
@@ -28,8 +29,10 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     return null;
   };
   
-  // Check if this user has a mutual love match with current user
-  const hasLoveMatch = currentUser ? hasMutualLoveMatch(currentUser.id, user.id) : false;
+  // Check if this user has a fight_for_fries match with current user
+  const hasLoveMatch = Object.values(matchedProfiles).some(
+    profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
+  );
   
   // Debug logging only for Sofia Kim to check match status
   if (user.id === '5') { // Sofia Kim
@@ -37,7 +40,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     console.log('Current user:', currentUser?.id, currentUser?.name);
     console.log('Target user:', user.id, user.name);
     console.log('hasLoveMatch result:', hasLoveMatch);
-    console.log('hasMutualLoveMatch(1, 5):', hasMutualLoveMatch('1', '5'));
+    console.log('matchedProfiles:', matchedProfiles);
     console.log('=== End UserCard Debug ===');
   }
 

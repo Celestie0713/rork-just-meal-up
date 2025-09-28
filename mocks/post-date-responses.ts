@@ -71,23 +71,20 @@ export const mockMatchedProfiles = [
 ];
 
 // Utility function to check if two users have a mutual "fight for fries" match
+// This should only return true if the match was confirmed through the Post Meal process
 export function hasMutualLoveMatch(userId1: string, userId2: string): boolean {
-  // Find responses for both users
-  const user1Responses = userId1 === '1' ? mockCurrentUserResponses : mockPostDateResponses.filter(r => r.userId === userId1);
-  const user2Responses = userId2 === '1' ? mockCurrentUserResponses : mockPostDateResponses.filter(r => r.userId === userId2);
+  // Check if there's a confirmed match in the matched profiles
+  // This ensures the love icon only shows after the Post Meal matching process
+  const matchKey1 = userId1 === '1' ? userId2 : userId1;
+  const matchKey2 = userId2 === '1' ? userId1 : userId2;
   
-  // Check if they have matching meal IDs where both chose 'fight_for_fries'
-  for (const response1 of user1Responses) {
-    for (const response2 of user2Responses) {
-      if (response1.mealId === response2.mealId && 
-          response1.choice === 'fight_for_fries' && 
-          response2.choice === 'fight_for_fries') {
-        return true;
-      }
-    }
-  }
+  // Check if either user has the other as a fight_for_fries match
+  const hasMatch = mockMatchedProfiles.some(profile => 
+    (profile.userId === matchKey1 || profile.userId === matchKey2) && 
+    profile.matchType === 'fight_for_fries'
+  );
   
-  return false;
+  return hasMatch;
 }
 
 // Get the current user's love match (if any)

@@ -665,18 +665,21 @@ export default function ProfileScreen() {
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {/* Show love icon for Fight for fries for life match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
-              {mockUsers
-                .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
+              {Object.values(matchedProfiles)
+                .filter(profile => profile.matchType === 'fight_for_fries')
                 .slice(0, 1) // Show only one love icon for fight for fries match
-                .map((matchedUser) => {
+                .map((matchedProfile) => {
+                  const matchedUser = mockUsers.find(u => u.id === matchedProfile.userId);
+                  if (!matchedUser) return null;
+                  
                   console.log('Profile: Rendering love icon for matched user:', matchedUser.name);
                   return (
                     <TouchableOpacity 
-                      key={matchedUser.id}
+                      key={matchedProfile.userId}
                       style={styles.profileLoveIconWrapper}
                       onPress={() => {
                         // Navigate to matched user's profile
-                        router.push(`/user-profile?userId=${matchedUser.id}`);
+                        router.push(`/user-profile?userId=${matchedProfile.userId}`);
                       }}
                     >
                       <View style={styles.profileLoveIconBackground}>
