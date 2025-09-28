@@ -41,7 +41,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         
         {hasMutualLoveMatch(currentUserId, user.id) && (
           <View style={styles.imageLoveIcon}>
-            <Heart size={20} color="#FF69B4" fill="#FF69B4" />
+            <Heart size={24} color="#FF69B4" fill="#FF69B4" />
           </View>
         )}
 
@@ -226,14 +226,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 20,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
   },
 
 });
