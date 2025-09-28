@@ -24,9 +24,10 @@ export default function UserProfileScreen() {
   // Check if this user has a "fight_for_fries" match with current user
   const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
   
-  const handleRemoveLoveMatch = () => {
-    if (userId && hasLoveMatch) {
-      removeMatchedProfile(userId);
+  const handleNavigateToCurrentUser = () => {
+    if (currentUser) {
+      // Navigate back to current user's profile
+      router.push(`/user-profile?userId=${currentUser.id}`);
     }
   };
   
@@ -215,10 +216,12 @@ export default function UserProfileScreen() {
             {hasLoveMatch && (
               <TouchableOpacity 
                 style={styles.loveIconContainer}
-                onPress={handleRemoveLoveMatch}
-                testID="remove-love-match-button"
+                onPress={handleNavigateToCurrentUser}
+                testID="navigate-to-current-user-button"
               >
-                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
+                <View style={styles.loveIconBackground}>
+                  <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                </View>
               </TouchableOpacity>
             )}
           </View>
@@ -345,16 +348,25 @@ const styles = StyleSheet.create({
   },
   loveIconContainer: {
     position: 'absolute',
-    bottom: -8,
-    right: -8,
+    bottom: 8,
+    right: 8,
+    zIndex: 10,
+  },
+  loveIconBackground: {
     backgroundColor: Colors.background,
-    borderRadius: 20,
+    borderRadius: 16,
     padding: 8,
+    borderWidth: 2,
+    borderColor: '#FF69B4',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+    minWidth: 32,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   nameContainer: {
