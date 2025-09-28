@@ -7,10 +7,9 @@ import type { PostDateResponse } from '@/types/user';
 export const mockPostDateResponses: PostDateResponse[] = [
   {
     userId: '2', // Sofia Kim
-    invitationId: 'inv-1',
+    mealId: 'inv-1',
     choice: 'fight_for_fries',
-    timestamp: new Date('2024-01-15T20:30:00Z'),
-    mealNumber: 1
+    timestamp: new Date('2024-01-15T20:30:00Z')
   }
 ];
 
@@ -24,7 +23,7 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
 // Start with NO existing matches - users must go through the Post Meal process to create matches
 export const mockMatchedProfiles: {
   userId: string;
-  invitationId: string;
+  mealId: string;
   matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
   matchedAt: Date;
 }[] = [
