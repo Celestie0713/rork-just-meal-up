@@ -1,10 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
+import { MapPin, Crown, Star } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { router } from 'expo-router';
-import { getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 
 
 import type { User } from '@/types/user';
@@ -18,26 +16,6 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
-  const [loveMatchUserId, setLoveMatchUserId] = React.useState<string | null>(getCurrentUserLoveMatch());
-  
-  // Subscribe to love match changes
-  React.useEffect(() => {
-    const unsubscribe = subscribeLoveMatchChanges(() => {
-      setLoveMatchUserId(getCurrentUserLoveMatch());
-    });
-    return unsubscribe;
-  }, []);
-  
-  // Check if this user is the one the current user has a love match with
-  const hasLoveMatch = loveMatchUserId === user.id;
-  
-  const handleLoveIconPress = () => {
-    // Navigate to this user's profile since they are the love match
-    router.push({
-      pathname: '/user-profile',
-      params: { userId: user.id }
-    });
-  };
   
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
@@ -60,16 +38,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         <View style={styles.onlineIndicator}>
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
-        
-        {hasLoveMatch && (
-          <TouchableOpacity 
-            style={styles.loveIcon} 
-            onPress={handleLoveIconPress}
-            testID={`love-icon-${user.id}`}
-          >
-            <Heart size={20} color="#FF69B4" fill="#FF69B4" />
-          </TouchableOpacity>
-        )}
+
       </View>
       
       <View style={[styles.content, isGridView && styles.gridContent]}>
@@ -248,17 +217,5 @@ const styles = StyleSheet.create({
     gap: 4,
     flex: 1,
   },
-  loveIcon: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    padding: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
+
 });

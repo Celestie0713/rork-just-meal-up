@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Heart } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { VoiceMessageBubble } from '@/components/VoiceMessageBubble';
 import { SystemMessageBubble } from '@/components/SystemMessageBubble';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
@@ -43,14 +43,13 @@ const mockMessages: ChatMessage[] = [
 
 export default function ChatScreen() {
   const params = useLocalSearchParams<{ userId: string }>();
-  const { getChatMessages, addVoiceMessage, initializeChat, isProfileMatched } = useChat();
+  const { getChatMessages, addVoiceMessage, initializeChat } = useChat();
   const currentUserId = '1';
   const chatId = `${currentUserId}-${params.userId}`;
   
   const messages = getChatMessages(chatId);
   
   const chatUser = mockUsers.find(user => user.id === params.userId);
-  const isMatched = chatUser ? isProfileMatched(chatUser.id) : false;
   
   useEffect(() => {
     if (messages.length === 0) {
@@ -119,16 +118,7 @@ export default function ChatScreen() {
             >
               <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
             </TouchableOpacity>
-            {isMatched && (
-              <TouchableOpacity 
-                style={styles.loveIconContainer}
-                onPress={() => router.push(`/user-profile?userId=${chatUser.id}`)}
-                testID="chat-love-icon"
-              >
-                <Heart size={16} color="#FF1744" fill="#FF1744" />
-                <Text style={styles.loveIconText}>T</Text>
-              </TouchableOpacity>
-            )}
+
           </View>
           <Text style={styles.headerSubtitle}>
             {chatUser.isOnline ? 'Online' : 'Voice messages only'}
@@ -221,19 +211,5 @@ const styles = StyleSheet.create({
     gap: 4,
     justifyContent: 'center',
   },
-  loveIconContainer: {
-    position: 'relative',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 20,
-    height: 16,
-  },
-  loveIconText: {
-    position: 'absolute',
-    fontSize: 8,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    textAlign: 'center',
-    zIndex: 1,
-  },
+
 });
