@@ -114,7 +114,9 @@ export function getCurrentUserLoveMatch(): string | null {
     return null;
   }
   
-  return hasMutualLoveMatch('0', matchUserId) ? matchUserId : null;
+  const hasMatch = hasMutualLoveMatch('0', matchUserId);
+  
+  return hasMatch ? matchUserId : null;
 }
 
 // Remove a love match

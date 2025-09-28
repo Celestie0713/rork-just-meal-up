@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
-import { getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
+import { getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 
 import type { User } from '@/types/user';
 
@@ -17,9 +17,18 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount = 0, onPress }: ChatListItemProps) {
+  const [loveMatchUserId, setLoveMatchUserId] = React.useState<string | null>(getCurrentUserLoveMatch());
+  
+  // Subscribe to love match changes
+  React.useEffect(() => {
+    const unsubscribe = subscribeLoveMatchChanges(() => {
+      setLoveMatchUserId(getCurrentUserLoveMatch());
+    });
+    return unsubscribe;
+  }, []);
+  
   // Check if this user is the one the current user has a love match with
-  const currentUserLoveMatch = getCurrentUserLoveMatch();
-  const hasLoveMatch = currentUserLoveMatch === user.id;
+  const hasLoveMatch = loveMatchUserId === user.id;
   
   const handleLoveIconPress = () => {
     // Navigate to this user's profile since they are the love match
