@@ -30,17 +30,26 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   };
   
   // Check if this user has a fight_for_fries match with current user
+  // For search page, show love icon on both users when they have a mutual match
   const hasLoveMatch = Object.values(matchedProfiles).some(
     profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
-  );
+  ) || (currentUser?.id === user.id && Object.values(matchedProfiles).some(
+    profile => profile.matchType === 'fight_for_fries'
+  ));
   
-  // Debug logging only for Sofia Kim to check match status
-  if (user.id === '5') { // Sofia Kim
-    console.log('=== UserCard Debug for Sofia Kim ===');
+  // Debug logging for both Alex Chen and Sofia Kim to check match status
+  if (user.id === '5' || user.id === '1') { // Sofia Kim or Alex Chen
+    console.log(`=== UserCard Debug for ${user.name} ===`);
     console.log('Current user:', currentUser?.id, currentUser?.name);
     console.log('Target user:', user.id, user.name);
     console.log('hasLoveMatch result:', hasLoveMatch);
     console.log('matchedProfiles:', matchedProfiles);
+    console.log('First condition (profile.userId === user.id):', Object.values(matchedProfiles).some(
+      profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
+    ));
+    console.log('Second condition (currentUser?.id === user.id):', currentUser?.id === user.id && Object.values(matchedProfiles).some(
+      profile => profile.matchType === 'fight_for_fries'
+    ));
     console.log('=== End UserCard Debug ===');
   }
 

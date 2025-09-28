@@ -27,7 +27,13 @@ export const mockMatchedProfiles: {
   matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
   matchedAt: Date;
 }[] = [
-  // No initial matches - love icons will only appear after Post Meal matching process
+  // Sofia Kim has a fight_for_fries match (Fight for fries for life)
+  {
+    userId: '5', // Sofia Kim
+    mealId: '7',
+    matchType: 'fight_for_fries',
+    matchedAt: new Date('2024-01-15T20:30:00Z')
+  }
 ];
 
 // Utility function to check if two users have a mutual "fight for fries" match
