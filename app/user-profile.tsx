@@ -26,8 +26,8 @@ export default function UserProfileScreen() {
   
   const handleNavigateToCurrentUser = () => {
     if (currentUser) {
-      // Navigate back to current user's profile
-      router.push(`/user-profile?userId=${currentUser.id}`);
+      // Navigate back to current user's main profile tab instead of user-profile page
+      router.push('/(tabs)/profile');
     }
   };
   
