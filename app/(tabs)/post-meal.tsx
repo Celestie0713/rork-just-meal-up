@@ -342,12 +342,14 @@ export default function PostMealScreen() {
     
     console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
     
-    // For mixed signals extension, simulate the date making the same choice to create a match
-    // In a real app, this would come from the server when both users have made their extended decisions
-    setTimeout(() => {
-      const dateExtendedChoice = choice; // Same choice to create a match during extension
-      
-      // Check if both parties have now made their extended decisions
+    // Check if the date has made their extended choice
+    // In a real app, this would come from the server
+    // For now, we'll check if Sofia has made her second choice
+    // Since this is a demo, we'll simulate that Sofia hasn't made her second choice yet
+    const dateExtendedChoice = null; // Sofia hasn't made her second choice yet
+    
+    if (dateExtendedChoice) {
+      // Both parties have made their extended decisions
       const isExtendedMatch = choice === dateExtendedChoice;
       let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | null = null;
       
@@ -370,33 +372,24 @@ export default function PostMealScreen() {
             };
           });
         }
-      } else {
-        // Still no match after extension - remove profile and chat
-        console.log(`No match after extension period for ${eventId} - removing profile and chat`);
-        const userChoices: Record<string, { choice: string; timestamp: Date }> = {
-          [eventId]: { choice, timestamp: now }
-        };
-        checkAndRemoveNonMatchingProfiles(userChoices);
-      }
-      
-      // Clear the extension
-      setMixedSignalsExtensions(prev => {
-        const updated = { ...prev };
-        delete updated[extensionKey];
-        return updated;
-      });
-      
-      setMatchResult({
-        isMatch: isExtendedMatch,
-        matchType,
-        userChoice: choice,
-        dateChoice: dateExtendedChoice,
-        eventId
-      });
-      
-      setShowMatchModal(true);
-      
-      if (isExtendedMatch) {
+        
+        // Clear the extension
+        setMixedSignalsExtensions(prev => {
+          const updated = { ...prev };
+          delete updated[extensionKey];
+          return updated;
+        });
+        
+        setMatchResult({
+          isMatch: isExtendedMatch,
+          matchType,
+          userChoice: choice,
+          dateChoice: dateExtendedChoice,
+          eventId
+        });
+        
+        setShowMatchModal(true);
+        
         // Trigger confetti for matches
         setTimeout(() => {
           confettiRef.current?.start();
@@ -415,8 +408,45 @@ export default function PostMealScreen() {
             useNativeDriver: true,
           })
         ]).start();
+      } else {
+        // Still no match after extension - remove profile and chat
+        console.log(`No match after extension period for ${eventId} - removing profile and chat`);
+        const userChoices: Record<string, { choice: string; timestamp: Date }> = {
+          [eventId]: { choice, timestamp: now }
+        };
+        checkAndRemoveNonMatchingProfiles(userChoices);
+        
+        // Clear the extension
+        setMixedSignalsExtensions(prev => {
+          const updated = { ...prev };
+          delete updated[extensionKey];
+          return updated;
+        });
+        
+        setMatchResult({
+          isMatch: false,
+          matchType: null,
+          userChoice: choice,
+          dateChoice: dateExtendedChoice,
+          eventId
+        });
+        
+        setShowMatchModal(true);
       }
-    }, 1000); // Simulate 1 second delay for date's decision
+    } else {
+      // Date hasn't made their extended choice yet - show waiting message
+      console.log(`User made extended choice: ${choice}, waiting for date's decision`);
+      
+      setMatchResult({
+        isMatch: false,
+        matchType: 'no_decision',
+        userChoice: choice,
+        dateChoice: null,
+        eventId
+      });
+      
+      setShowMatchModal(true);
+    }
   };
 
   const handleChoiceSelect = (eventId: string, choice: string) => {
