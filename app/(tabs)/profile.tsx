@@ -87,6 +87,12 @@ export default function ProfileScreen() {
 
   console.log('Profile screen render - user:', user);
   console.log('Profile screen render - fontsLoaded:', fontsLoaded);
+  
+  // Debug: Check for matches
+  if (user) {
+    const matchedUsers = mockUsers.filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id));
+    console.log('Matched users for Alex Chen:', matchedUsers.map(u => ({ id: u.id, name: u.name })));
+  }
 
   if (!user) {
     console.log('User not found, showing loading...');
@@ -648,31 +654,30 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-
-          </View>
-          <View style={styles.nameContainer}>
-            <Text style={styles.name}>{user.name}, {user.age}</Text>
-            {/* Show love icons for matched users */}
-            <View style={styles.loveIconsContainer}>
+            {/* Show love icons for matched users at lower right of profile picture */}
+            <View style={styles.profileLoveIconsContainer}>
               {mockUsers
                 .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
                 .slice(0, 3) // Show max 3 love icons
                 .map((matchedUser, index) => (
                   <TouchableOpacity 
                     key={matchedUser.id}
-                    style={[styles.loveIconWrapper, { zIndex: 3 - index }]}
+                    style={[styles.profileLoveIconWrapper, { right: index * 16 }]}
                     onPress={() => {
                       // Navigate to matched user's profile
                       console.log('Navigate to matched user:', matchedUser.name);
                     }}
                   >
-                    <View style={styles.loveIconBackground}>
-                      <Heart size={14} color="#FF69B4" fill="#FF69B4" />
+                    <View style={styles.profileLoveIconBackground}>
+                      <Heart size={16} color="#FF69B4" fill="#FF69B4" />
                     </View>
                   </TouchableOpacity>
                 ))
               }
             </View>
+          </View>
+          <View style={styles.nameContainer}>
+            <Text style={styles.name}>{user.name}, {user.age}</Text>
           </View>
           
           <View style={styles.locationContainer}>
@@ -868,31 +873,32 @@ const styles = StyleSheet.create({
   },
 
   nameContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     marginBottom: 8,
   },
-  loveIconsContainer: {
+  profileLoveIconsContainer: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    marginLeft: 8,
   },
-  loveIconWrapper: {
-    marginLeft: -4,
+  profileLoveIconWrapper: {
+    position: 'absolute',
+    bottom: 0,
   },
-  loveIconBackground: {
+  profileLoveIconBackground: {
     backgroundColor: Colors.background,
-    borderRadius: 12,
-    padding: 4,
+    borderRadius: 14,
+    padding: 6,
     borderWidth: 2,
     borderColor: '#FF69B4',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   name: {
     fontSize: 24,
