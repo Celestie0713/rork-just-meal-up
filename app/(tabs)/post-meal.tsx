@@ -1328,7 +1328,7 @@ export default function PostMealScreen() {
                 }}
               >
                 <Text style={styles.upgradeButtonText}>
-                  Plan next meal
+                  Invite to eat
                 </Text>
               </TouchableOpacity>
             ) : matchResult?.matchType === 'no_decision' ? (
