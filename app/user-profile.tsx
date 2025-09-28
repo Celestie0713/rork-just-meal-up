@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
   },
   loveIconContainer: {
     position: 'absolute',
-    top: -8,
+    bottom: -8,
     right: -8,
     backgroundColor: Colors.background,
     borderRadius: 20,
