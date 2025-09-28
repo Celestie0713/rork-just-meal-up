@@ -180,8 +180,12 @@ export default function PostMealScreen() {
             if (userChoice === 'buddy_pass') {
               console.log(`Event ${eventId} - buddy pass match, removing from post-meal page but keeping chat`);
               return; // Skip this event (remove from post-meal page)
+            } else if (userChoice === 'next_round') {
+              // For next_round matches: profile stays on post-meal page and meal tracking continues
+              console.log(`Event ${eventId} - next_round match, keeping profile on post-meal page for meal tracking`);
+              // The profile will continue to show on post-meal page for future meal planning
             } else {
-              // For other matches: profile stays on the post-meal page (no removal)
+              // For fight_for_fries matches: profile stays on the post-meal page (no removal)
               console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
             }
           } else {
@@ -487,12 +491,17 @@ export default function PostMealScreen() {
           addMatchedProfile(dateUserId, invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           
-          // If it's a next_round match, initialize meal counter to 1 (first meal)
+          // If it's a next_round match, increment meal counter (or initialize to 2 for second meal)
           if (matchType === 'next_round') {
-            setMealCounters(prev => ({
-              ...prev,
-              [dateUserId]: 1
-            }));
+            setMealCounters(prev => {
+              const currentCount = prev[dateUserId] || 1; // Start with 1 if not set
+              const newCount = currentCount + 1; // Increment for next meal
+              console.log(`Incrementing meal counter for ${dateUserId}: ${currentCount} -> ${newCount}`);
+              return {
+                ...prev,
+                [dateUserId]: newCount
+              };
+            });
           }
           
           // Special handling for buddy_pass: it's a match but profile gets removed from post-meal
@@ -1309,12 +1318,12 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
-                  // Navigate to search places page
+                  // Navigate to search places page for next meal planning
                   router.push('/(tabs)/?tab=places');
                 }}
               >
                 <Text style={styles.upgradeButtonText}>
-                  Invite to meal
+                  Plan next meal
                 </Text>
               </TouchableOpacity>
             ) : matchResult?.matchType === 'no_decision' ? (
