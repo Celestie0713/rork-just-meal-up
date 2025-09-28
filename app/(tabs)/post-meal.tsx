@@ -100,6 +100,13 @@ export default function PostMealScreen() {
       const newLoveMatch = getCurrentUserLoveMatch();
       console.log('Love match changed in post-meal page:', newLoveMatch);
       setCurrentLoveMatch(newLoveMatch);
+      
+      // If love match is removed, reset finalized choices to allow new selections
+      if (!newLoveMatch) {
+        console.log('Love match removed, resetting finalized choices to allow new selections');
+        setFinalizedChoices({});
+        setSelectedChoices({});
+      }
     });
     return unsubscribe;
   }, []);
@@ -1043,6 +1050,7 @@ export default function PostMealScreen() {
                     
                     {(() => {
                       // Check if user already has a mutual love match
+                      // Only disable if there's an active love match (not removed)
                       const isDisabled = !!currentLoveMatch;
                       
                       return (
