@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import { mockPostDateResponses } from '@/mocks/post-date-responses';
+import { mockPostDateResponses, hasMutualLoveMatch } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 
@@ -138,6 +138,29 @@ export default function PostMealScreen() {
       default:
         return null;
     }
+  };
+
+  // Check if current user already has a "fight for fries" match with someone
+  const hasExistingLoveMatch = () => {
+    // Check all users to see if current user has a mutual love match with anyone
+    const allUserIds = mockUsers.map(u => u.id).filter(id => id !== '1'); // Exclude current user
+    return allUserIds.some(userId => hasMutualLoveMatch('1', userId));
+  };
+
+  // Check if "fight for fries" option should be disabled for a specific event
+  const isFightForFriesDisabled = (eventId: string) => {
+    // If user already has a love match, disable the option for all other profiles
+    if (hasExistingLoveMatch()) {
+      // Check if this specific event is the one with the existing match
+      const invitationId = eventId.replace('invitation-', '');
+      const invitation = mockInvitations.find(inv => inv.id === invitationId);
+      if (invitation) {
+        const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+        // If this is NOT the profile with the existing match, disable the option
+        return !hasMutualLoveMatch('1', dateUserId);
+      }
+    }
+    return false;
   };
 
   const postMealEvents = useMemo(() => {
@@ -961,18 +984,25 @@ export default function PostMealScreen() {
                           <TouchableOpacity 
                             style={[
                               styles.choiceButton,
-                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButton
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButton,
+                              isFightForFriesDisabled(event.id) && styles.disabledChoiceButton
                             ]}
-                            onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                            onPress={() => !isFightForFriesDisabled(event.id) && handleChoiceSelect(event.id, 'fight_for_fries')}
+                            disabled={isFightForFriesDisabled(event.id)}
                           >
                             <Text style={[
                               styles.choiceButtonText,
-                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                              isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                             ]}>Fight for fries for life</Text>
                             <Text style={[
                               styles.choiceSubtext,
-                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                              isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                             ]}>(Be my +1?)</Text>
+                            {isFightForFriesDisabled(event.id) && (
+                              <Text style={styles.disabledReasonText}>Already matched with someone</Text>
+                            )}
                           </TouchableOpacity>
                         </>
                       );
@@ -1019,18 +1049,25 @@ export default function PostMealScreen() {
                     <TouchableOpacity 
                       style={[
                         styles.choiceButton,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
+                        isFightForFriesDisabled(event.id) && styles.disabledChoiceButton
                       ]}
-                      onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                      onPress={() => !isFightForFriesDisabled(event.id) && handleChoiceSelect(event.id, 'fight_for_fries')}
+                      disabled={isFightForFriesDisabled(event.id)}
                     >
                       <Text style={[
                         styles.choiceButtonText,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                        isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                       ]}>Fight for fries for life</Text>
                       <Text style={[
                         styles.choiceSubtext,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
+                        isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                       ]}>(Be my +1?)</Text>
+                      {isFightForFriesDisabled(event.id) && (
+                        <Text style={styles.disabledReasonText}>Already matched with someone</Text>
+                      )}
                     </TouchableOpacity>
                   </>
                 ) : (
@@ -1949,5 +1986,19 @@ const styles = StyleSheet.create({
     color: '#B8860B',
     lineHeight: 20,
     textAlign: 'center',
+  },
+  disabledChoiceButton: {
+    backgroundColor: '#F5F5F5',
+    borderColor: '#E0E0E0',
+    opacity: 0.6,
+  },
+  disabledChoiceText: {
+    color: '#999999',
+  },
+  disabledReasonText: {
+    fontSize: 11,
+    color: '#FF6B35',
+    fontStyle: 'italic',
+    marginTop: 4,
   },
 });
