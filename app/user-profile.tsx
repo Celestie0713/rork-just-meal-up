@@ -5,7 +5,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
-import { hasMutualLoveMatchUpdated } from '@/mocks/post-date-responses';
+import { hasMutualLoveMatchUpdated, removeLoveMatch } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -203,9 +203,16 @@ export default function UserProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {hasLoveMatch && (
-              <View style={styles.profileLoveIcon}>
+              <TouchableOpacity 
+                style={styles.profileLoveIcon}
+                onPress={() => {
+                  if (currentUser) {
+                    removeLoveMatch(currentUser.id, user.id);
+                  }
+                }}
+              >
                 <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-              </View>
+              </TouchableOpacity>
             )}
           </View>
           <View style={styles.nameContainer}>

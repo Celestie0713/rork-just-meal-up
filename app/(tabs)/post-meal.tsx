@@ -97,7 +97,9 @@ export default function PostMealScreen() {
   // Subscribe to love match changes
   useEffect(() => {
     const unsubscribe = subscribeLoveMatchChanges(() => {
-      setCurrentLoveMatch(getCurrentUserLoveMatch());
+      const newLoveMatch = getCurrentUserLoveMatch();
+      console.log('Love match changed in post-meal page:', newLoveMatch);
+      setCurrentLoveMatch(newLoveMatch);
     });
     return unsubscribe;
   }, []);
