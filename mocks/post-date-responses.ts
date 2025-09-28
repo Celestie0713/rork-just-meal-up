@@ -6,8 +6,8 @@ import type { PostDateResponse } from '@/types/user';
 
 export const mockPostDateResponses: PostDateResponse[] = [
   {
-    userId: '2', // Sofia Kim
-    mealId: 'inv-1',
+    userId: '5', // Sofia Kim
+    mealId: '7',
     choice: 'fight_for_fries',
     timestamp: new Date('2024-01-15T20:30:00Z')
   }
