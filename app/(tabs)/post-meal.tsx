@@ -823,27 +823,29 @@ export default function PostMealScreen() {
                 </View>
               )}
               {!isGroup && timerInfo.type === 'match_permanent' && (
-                <View style={styles.matchIndicator}>
-                  {matchType === 'next_round' ? (
-                    <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
-                  ) : matchType === 'fight_for_fries' ? (
-                    <TouchableOpacity 
-                      onPress={() => {
-                        const invitationId = event.id.replace('invitation-', '');
-                        const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                        if (invitation) {
-                          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                          router.push(`/user-profile?userId=${dateUserId}`);
-                        }
-                      }}
-                      style={styles.loveIconButton}
-                    >
-                      <Heart size={20} color="#FF69B4" fill="#FF69B4" />
-                    </TouchableOpacity>
-                  ) : (
-                    <Text style={styles.matchIndicatorText}>Match! 💕</Text>
-                  )}
-                </View>
+                matchType === 'fight_for_fries' ? (
+                  <TouchableOpacity 
+                    onPress={() => {
+                      const invitationId = event.id.replace('invitation-', '');
+                      const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                      if (invitation) {
+                        const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                        router.push(`/user-profile?userId=${dateUserId}`);
+                      }
+                    }}
+                    style={styles.loveIconButton}
+                  >
+                    <Heart size={20} color="#FF69B4" fill="#FF69B4" />
+                  </TouchableOpacity>
+                ) : (
+                  <View style={styles.matchIndicator}>
+                    {matchType === 'next_round' ? (
+                      <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
+                    ) : (
+                      <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                    )}
+                  </View>
+                )
               )}
             </View>
           </View>
