@@ -2,7 +2,7 @@ import type { User } from '@/types/user';
 
 export const mockUsers: User[] = [
   {
-    id: '0',
+    id: '1',
     name: 'Alex Chen',
     age: 28,
     bio: 'Food enthusiast who believes the best conversations happen over great meals. Love trying new cuisines and meeting interesting people!',
@@ -24,7 +24,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '1',
+    id: '2',
     name: 'Sarah Johnson',
     age: 25,
     bio: 'Food enthusiast and amateur chef. Love trying new cuisines and meeting fellow foodies!',
@@ -44,7 +44,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '2',
+    id: '3',
     name: 'Emma Rodriguez',
     age: 26,
     bio: 'Passionate about sustainable dining and local ingredients. Always up for discovering hidden gems in the city!',
@@ -64,7 +64,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '3',
+    id: '4',
     name: 'Marcus Johnson',
     age: 31,
     bio: 'Chef by day, food explorer by night. Love sharing stories over good wine and even better company.',
@@ -85,7 +85,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '4',
+    id: '5',
     name: 'Sofia Kim',
     age: 29,
     bio: 'Travel writer with a serious case of wanderlust and an even more serious love for street food.',
@@ -105,7 +105,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '5',
+    id: '6',
     name: 'David Park',
     age: 33,
     bio: 'Wine sommelier who believes every meal tells a story. Looking for someone to share those stories with.',
@@ -125,7 +125,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '6',
+    id: '7',
     name: 'Isabella Chen',
     age: 27,
     bio: 'Food photographer capturing the art of dining. Always looking for the perfect shot and the perfect bite.',
@@ -146,7 +146,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '7',
+    id: '8',
     name: 'Alex Thompson',
     age: 30,
     bio: 'Startup founder who codes by day and explores the city\'s food scene by night. Always down for late-night eats.',
@@ -166,7 +166,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '8',
+    id: '9',
     name: 'Maya Patel',
     age: 28,
     bio: 'Yoga instructor with a passion for healthy, colorful food. Believes in mindful eating and great conversations.',
@@ -186,7 +186,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '9',
+    id: '10',
     name: 'James Wilson',
     age: 35,
     bio: 'Architect who appreciates good design in both buildings and food. Looking for someone who shares my love for craft cocktails.',
@@ -207,7 +207,7 @@ export const mockUsers: User[] = [
     }
   },
   {
-    id: '10',
+    id: '11',
     name: 'Zoe Martinez',
     age: 24,
     bio: 'Art student who sees food as another form of creative expression. Always excited to try something new and Instagram-worthy.',

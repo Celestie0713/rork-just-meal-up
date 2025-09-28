@@ -3,7 +3,7 @@ import type { MealInvitation } from '@/types/user';
 export const mockInvitations: MealInvitation[] = [
   {
     id: '1',
-    inviterId: '2',
+    inviterId: '3',
     inviteeId: '1',
     date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), // Tomorrow
     time: '7:00 PM',
@@ -18,7 +18,7 @@ export const mockInvitations: MealInvitation[] = [
   },
   {
     id: '2',
-    inviterId: '3',
+    inviterId: '4',
     inviteeId: '1',
     date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
     time: '12:30 PM',
@@ -33,7 +33,7 @@ export const mockInvitations: MealInvitation[] = [
   },
   {
     id: '3',
-    inviterId: '4',
+    inviterId: '5',
     inviteeId: '1',
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
     time: '6:30 PM',
@@ -48,7 +48,7 @@ export const mockInvitations: MealInvitation[] = [
   },
   {
     id: '4',
-    inviterId: '5',
+    inviterId: '6',
     inviteeId: '1',
     date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     time: '8:00 PM',
@@ -63,7 +63,7 @@ export const mockInvitations: MealInvitation[] = [
   },
   {
     id: '5',
-    inviterId: '6',
+    inviterId: '7',
     inviteeId: '1',
     date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Day after tomorrow
     time: '1:00 PM',
@@ -78,7 +78,7 @@ export const mockInvitations: MealInvitation[] = [
   },
   {
     id: '6',
-    inviterId: '3',
+    inviterId: '4',
     inviteeId: '1',
     date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
     time: '7:30 PM',
@@ -93,7 +93,7 @@ export const mockInvitations: MealInvitation[] = [
   },
   {
     id: '7',
-    inviterId: '4',
+    inviterId: '5',
     inviteeId: '1',
     date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
     time: '6:00 PM',

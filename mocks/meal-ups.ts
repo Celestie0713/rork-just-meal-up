@@ -3,7 +3,7 @@ import type { MealUp } from '@/types/user';
 export const mockMealUps: MealUp[] = [
   {
     id: '1',
-    organizerId: '2',
+    organizerId: '4',
     title: 'Farm-to-Table Dinner Experience',
     description: 'Join us for an intimate dinner featuring locally sourced ingredients and seasonal flavors. Perfect for meeting fellow food enthusiasts!',
     date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
@@ -14,7 +14,7 @@ export const mockMealUps: MealUp[] = [
       cuisine: 'Farm-to-table'
     },
     maxAttendees: 8,
-    currentAttendees: ['1', '3', '4'],
+    currentAttendees: ['1', '4', '5'],
     ticketPrice: 85,
     imageUrl: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&h=400&fit=crop',
     images: [
@@ -31,7 +31,7 @@ export const mockMealUps: MealUp[] = [
   },
   {
     id: '2',
-    organizerId: '2',
+    organizerId: '4',
     title: 'Wine & Tapas Social',
     description: 'Casual evening of Spanish tapas and wine pairings. Great for breaking the ice and making new connections!',
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
@@ -42,7 +42,7 @@ export const mockMealUps: MealUp[] = [
       cuisine: 'Spanish'
     },
     maxAttendees: 12,
-    currentAttendees: ['1', '5'],
+    currentAttendees: ['1', '6'],
     ticketPrice: 65,
     imageUrl: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
     images: [
@@ -59,7 +59,7 @@ export const mockMealUps: MealUp[] = [
   },
   {
     id: '3',
-    organizerId: '5',
+    organizerId: '6',
     title: 'Sushi Making Workshop',
     description: 'Learn the art of sushi making while meeting amazing people. All skill levels welcome!',
     date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
@@ -70,7 +70,7 @@ export const mockMealUps: MealUp[] = [
       cuisine: 'Japanese'
     },
     maxAttendees: 10,
-    currentAttendees: ['1', '2', '3', '4'],
+    currentAttendees: ['1', '3', '4', '5'],
     ticketPrice: 95,
     imageUrl: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&h=400&fit=crop',
     images: [
@@ -87,7 +87,7 @@ export const mockMealUps: MealUp[] = [
   },
   {
     id: '4',
-    organizerId: '3',
+    organizerId: '4',
     title: 'Italian Cooking Class',
     description: 'Master the art of authentic Italian pasta making in this hands-on cooking experience.',
     date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
@@ -98,7 +98,7 @@ export const mockMealUps: MealUp[] = [
       cuisine: 'Italian'
     },
     maxAttendees: 12,
-    currentAttendees: ['1', '2', '5', '6', '7'],
+    currentAttendees: ['1', '3', '6', '7', '8'],
     ticketPrice: 75,
     imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
     images: [
@@ -113,7 +113,7 @@ export const mockMealUps: MealUp[] = [
   },
   {
     id: '5',
-    organizerId: '2',
+    organizerId: '4',
     title: 'Rooftop BBQ Social',
     description: 'Summer BBQ with city views, great food, and even better company!',
     date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
@@ -124,7 +124,7 @@ export const mockMealUps: MealUp[] = [
       cuisine: 'BBQ'
     },
     maxAttendees: 20,
-    currentAttendees: ['1', '3', '4', '5', '6', '8', '9', '10'],
+    currentAttendees: ['1', '4', '5', '6', '7', '9', '10', '11'],
     ticketPrice: 45,
     imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
     images: [

@@ -17,31 +17,31 @@ interface ChatData {
 
 const mockChats: ChatData[] = [
   {
-    user: mockUsers.find(u => u.id === '2')!,
+    user: mockUsers.find(u => u.id === '5')!,
     lastMessage: '🎵 Voice message (8s)',
     lastMessageTime: new Date(Date.now() - 30 * 60 * 1000),
     unreadCount: 2,
   },
   {
-    user: mockUsers.find(u => u.id === '3')!,
+    user: mockUsers.find(u => u.id === '4')!,
     lastMessage: '🎵 Voice message (15s)',
     lastMessageTime: new Date(Date.now() - 2 * 60 * 60 * 1000),
     unreadCount: 0,
   },
   {
-    user: mockUsers.find(u => u.id === '4')!,
+    user: mockUsers.find(u => u.id === '5')!,
     lastMessage: '🎵 Voice message (23s)',
     lastMessageTime: new Date(Date.now() - 4 * 60 * 60 * 1000),
     unreadCount: 1,
   },
   {
-    user: mockUsers.find(u => u.id === '6')!,
+    user: mockUsers.find(u => u.id === '7')!,
     lastMessage: '🎵 Voice message (12s)',
     lastMessageTime: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
     unreadCount: 0,
   },
   {
-    user: mockUsers.find(u => u.id === '7')!,
+    user: mockUsers.find(u => u.id === '8')!,
     lastMessage: '🎵 Voice message (7s)',
     lastMessageTime: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     unreadCount: 3,
