@@ -47,28 +47,14 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
   }
 ];
 
-// Pre-populate some matched profiles for demonstration
-// In a real app, these would be created when matches occur
-export const mockMatchedProfiles = [
-  {
-    userId: '5', // Sofia Kim - matched with fight_for_fries (only one fight_for_fries match allowed)
-    invitationId: '7',
-    matchType: 'fight_for_fries' as const,
-    matchedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
-  },
-  {
-    userId: '3', // Emma Rodriguez - matched with next_round instead
-    invitationId: '4',
-    matchType: 'next_round' as const,
-    matchedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-  },
-  {
-    userId: '7', // Isabella Chen - matched with buddy_pass
-    invitationId: '8',
-    matchType: 'buddy_pass' as const,
-    matchedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
-  }
-];
+// Matched profiles will be created dynamically when matches occur through the Post Meal process
+// Start with empty array - matches are only added when both users make matching choices
+export const mockMatchedProfiles: {
+  userId: string;
+  invitationId: string;
+  matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
+  matchedAt: Date;
+}[] = [];
 
 // Utility function to check if two users have a mutual "fight for fries" match
 // This should only return true if the match was confirmed through the Post Meal process
