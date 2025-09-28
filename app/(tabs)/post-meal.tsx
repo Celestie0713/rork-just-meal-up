@@ -1275,7 +1275,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>✨</Text>
                 <Text style={styles.matchModalTitle}>No Spark This Time ✨</Text>
                 <Text style={styles.matchModalDescription}>
-                  Go on to the next meal🍜
+                  Not a match. Go on to the next meal🍜
                   {matchResult?.eventId && (() => {
                     const eventId = matchResult.eventId;
                     const event = postMealEvents.find(e => e.id === eventId);
