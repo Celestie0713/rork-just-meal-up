@@ -114,7 +114,7 @@ export default function SearchScreen() {
   );
 
   const renderUser = ({ item }: { item: User }) => (
-    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
+    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} currentUserId="1" />
   );
 
   const renderPlace = ({ item }: { item: Place }) => (

@@ -822,9 +822,13 @@ export default function PostMealScreen() {
                   {matchType === 'next_round' ? (
                     <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
                   ) : matchType === 'fight_for_fries' ? (
-                    <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                    <View style={styles.loveIconContainer}>
+                      <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                    </View>
                   ) : (
-                    <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                    <View style={styles.loveIconContainer}>
+                      <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                    </View>
                   )}
                 </View>
               )}
@@ -1912,6 +1916,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: colors.background,
+  },
+  loveIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   mixedSignalsTimer: {

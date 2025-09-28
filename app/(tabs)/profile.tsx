@@ -6,6 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
+import { hasMutualLoveMatch } from '@/mocks/post-date-responses';
 
 
 import { router } from 'expo-router';
@@ -651,6 +652,27 @@ export default function ProfileScreen() {
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
+            {/* Show love icons for matched users */}
+            <View style={styles.loveIconsContainer}>
+              {mockUsers
+                .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
+                .slice(0, 3) // Show max 3 love icons
+                .map((matchedUser, index) => (
+                  <TouchableOpacity 
+                    key={matchedUser.id}
+                    style={[styles.loveIconWrapper, { zIndex: 3 - index }]}
+                    onPress={() => {
+                      // Navigate to matched user's profile
+                      console.log('Navigate to matched user:', matchedUser.name);
+                    }}
+                  >
+                    <View style={styles.loveIconBackground}>
+                      <Heart size={14} color="#FF69B4" fill="#FF69B4" />
+                    </View>
+                  </TouchableOpacity>
+                ))
+              }
+            </View>
           </View>
           
           <View style={styles.locationContainer}>
@@ -851,6 +873,26 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     marginBottom: 8,
+  },
+  loveIconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+  },
+  loveIconWrapper: {
+    marginLeft: -4,
+  },
+  loveIconBackground: {
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 4,
+    borderWidth: 2,
+    borderColor: '#FF69B4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+    elevation: 2,
   },
   name: {
     fontSize: 24,

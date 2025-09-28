@@ -81,6 +81,7 @@ export default function MealUpAttendeesScreen() {
               user={item} 
               onPress={() => handleUserPress(item)}
               showOrganizerBadge={item.id === mealUp.organizerId}
+              currentUserId="1"
             />
           )}
           keyExtractor={(item) => item.id}
