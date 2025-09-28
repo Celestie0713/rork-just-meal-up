@@ -8,7 +8,7 @@ export const mockPostDateResponses: PostDateResponse[] = [
   {
     userId: '3', // Emma Rodriguez
     mealId: '4', // Burger Palace date
-    choice: 'fight_for_fries', // This will create a match if user also chooses 'fight_for_fries'
+    choice: 'next_round', // Changed to match Alex's choice for next_round match
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 2 days ago + 12 hours
   },
   {
@@ -30,7 +30,7 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
   {
     userId: '1', // Alex Chen
     mealId: '4', // Burger Palace date with Emma Rodriguez
-    choice: 'fight_for_fries', // This creates a mutual match with Emma
+    choice: 'next_round', // Changed from fight_for_fries to avoid multiple matches
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
   },
   {
@@ -42,7 +42,7 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
   {
     userId: '1', // Alex Chen
     mealId: '7', // Sakura Sushi date with Sofia Kim
-    choice: 'fight_for_fries', // This creates a mutual match with Sofia
+    choice: 'fight_for_fries', // This creates a mutual match with Sofia (only one fight_for_fries match)
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
   }
 ];
@@ -51,10 +51,16 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
 // In a real app, these would be created when matches occur
 export const mockMatchedProfiles = [
   {
-    userId: '5', // Sofia Kim - matched with fight_for_fries
+    userId: '5', // Sofia Kim - matched with fight_for_fries (only one fight_for_fries match allowed)
     invitationId: '7',
     matchType: 'fight_for_fries' as const,
     matchedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000) // 1 day ago
+  },
+  {
+    userId: '3', // Emma Rodriguez - matched with next_round instead
+    invitationId: '4',
+    matchType: 'next_round' as const,
+    matchedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
   },
   {
     userId: '7', // Isabella Chen - matched with buddy_pass
