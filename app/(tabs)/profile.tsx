@@ -329,7 +329,7 @@ export default function ProfileScreen() {
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
-          What foods would make me say yes to a date? 🍕
+          These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodContainer}>
           {isEditing && (
