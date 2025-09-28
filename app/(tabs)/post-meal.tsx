@@ -826,6 +826,20 @@ export default function PostMealScreen() {
                 <View style={styles.matchIndicator}>
                   {matchType === 'next_round' ? (
                     <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
+                  ) : matchType === 'fight_for_fries' ? (
+                    <TouchableOpacity 
+                      onPress={() => {
+                        const invitationId = event.id.replace('invitation-', '');
+                        const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                        if (invitation) {
+                          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                          router.push(`/user-profile?userId=${dateUserId}`);
+                        }
+                      }}
+                      style={styles.loveIconButton}
+                    >
+                      <Heart size={20} color={colors.background} fill={colors.background} />
+                    </TouchableOpacity>
                   ) : (
                     <Text style={styles.matchIndicatorText}>Match! 💕</Text>
                   )}
@@ -1950,6 +1964,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: colors.background,
+  },
+  loveIconButton: {
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   mixedSignalsTimer: {
     backgroundColor: '#FFF0E6',
