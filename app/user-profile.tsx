@@ -7,6 +7,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
 import { useAuth } from '@/hooks/use-auth';
+import { useChat } from '@/hooks/use-chat';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,8 +17,18 @@ export default function UserProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const { user: currentUser } = useAuth();
+  const { matchedProfiles, removeMatchedProfile, getMatchType } = useChat();
   
   const user = mockUsers.find(u => u.id === userId);
+  
+  // Check if this user has a "fight_for_fries" match with current user
+  const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
+  
+  const handleRemoveLoveMatch = () => {
+    if (userId && hasLoveMatch) {
+      removeMatchedProfile(userId);
+    }
+  };
   
 
   
@@ -201,7 +212,15 @@ export default function UserProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-
+            {hasLoveMatch && (
+              <TouchableOpacity 
+                style={styles.loveIconContainer}
+                onPress={handleRemoveLoveMatch}
+                testID="remove-love-match-button"
+              >
+                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
+              </TouchableOpacity>
+            )}
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
@@ -323,6 +342,19 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
+  },
+  loveIconContainer: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: Colors.background,
+    borderRadius: 20,
+    padding: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
 
   nameContainer: {

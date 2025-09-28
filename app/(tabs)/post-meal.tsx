@@ -142,7 +142,17 @@ export default function PostMealScreen() {
 
   // Check if "fight for fries" option should be disabled for a specific event
   const isFightForFriesDisabled = (eventId: string) => {
-    // Always return false - "Fight for fries for life" option is always available
+    // Check if current user already has a "fight_for_fries" match
+    const currentUserLoveMatch = Object.values(matchedProfiles).find(
+      profile => profile.matchType === 'fight_for_fries'
+    );
+    
+    if (currentUserLoveMatch) {
+      // If user has a love match, disable "fight for fries" for all other profiles
+      const invitationId = eventId.replace('invitation-', '');
+      return currentUserLoveMatch.invitationId !== invitationId;
+    }
+    
     return false;
   };
 
