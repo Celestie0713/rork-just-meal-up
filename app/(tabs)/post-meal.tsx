@@ -838,7 +838,7 @@ export default function PostMealScreen() {
                       }}
                       style={styles.loveIconButton}
                     >
-                      <Heart size={20} color={colors.background} fill={colors.background} />
+                      <Heart size={20} color="#FF69B4" fill="#FF69B4" />
                     </TouchableOpacity>
                   ) : (
                     <Text style={styles.matchIndicatorText}>Match! 💕</Text>
