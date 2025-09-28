@@ -149,9 +149,8 @@ export default function PostMealScreen() {
 
   // Check if "fight for fries" option should be disabled for a specific event
   const isFightForFriesDisabled = (eventId: string) => {
-    // If user already has a love match, disable the option for all other profiles
+    // Only disable if user already has a love match AND this is not the profile with the existing match
     if (hasExistingLoveMatch()) {
-      // Check if this specific event is the one with the existing match
       const invitationId = eventId.replace('invitation-', '');
       const invitation = mockInvitations.find(inv => inv.id === invitationId);
       if (invitation) {
@@ -160,6 +159,7 @@ export default function PostMealScreen() {
         return !hasMutualLoveMatch('1', dateUserId);
       }
     }
+    // If no existing love match, don't disable the option
     return false;
   };
 
