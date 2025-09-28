@@ -894,8 +894,8 @@ const styles = StyleSheet.create({
   },
   profileLoveIconsContainer: {
     position: 'absolute',
-    bottom: 4,
-    right: 4,
+    bottom: 8,
+    right: 8,
     flexDirection: 'row',
     alignItems: 'center',
     zIndex: 10,
