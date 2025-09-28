@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils, Settings } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -201,28 +201,33 @@ export default function UserProfileScreen() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButtonHeader}
-            onPress={() => router.back()}
-            testID="back-button"
-          >
-            <ArrowLeft size={24} color={Colors.text} />
-          </TouchableOpacity>
+          <View style={styles.normalHeader}>
+            <TouchableOpacity 
+              style={styles.backButtonHeader}
+              onPress={() => router.back()}
+              testID="back-button"
+            >
+              <ArrowLeft size={24} color={Colors.text} />
+            </TouchableOpacity>
+            <View style={styles.headerSpacer} />
+          </View>
         </View>
 
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {hasLoveMatch && (
-              <TouchableOpacity 
-                style={styles.loveIconContainer}
-                onPress={handleNavigateToCurrentUser}
-                testID="navigate-to-current-user-button"
-              >
-                <View style={styles.loveIconBackground}>
-                  <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                </View>
-              </TouchableOpacity>
+              <View style={styles.profileLoveIconsContainer}>
+                <TouchableOpacity 
+                  style={styles.profileLoveIconWrapper}
+                  onPress={handleNavigateToCurrentUser}
+                  testID="navigate-to-current-user-button"
+                >
+                  <View style={styles.profileLoveIconBackground}>
+                    <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                  </View>
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           <View style={styles.nameContainer}>
@@ -294,8 +299,6 @@ export default function UserProfileScreen() {
 
         {renderTabBar()}
         {renderTabContent()}
-        
-        <View style={styles.bottomPadding} />
       </ScrollView>
       
       <View style={styles.bottomBar}>
@@ -328,9 +331,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 16,
   },
+  normalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   backButtonHeader: {
     padding: 8,
-    alignSelf: 'flex-start',
+  },
+  headerSpacer: {
+    width: 40,
   },
   profileSection: {
     alignItems: 'center',
@@ -346,13 +356,18 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
-  loveIconContainer: {
+  profileLoveIconsContainer: {
     position: 'absolute',
     bottom: 8,
     right: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
     zIndex: 10,
   },
-  loveIconBackground: {
+  profileLoveIconWrapper: {
+    // Container for individual love icon
+  },
+  profileLoveIconBackground: {
     backgroundColor: Colors.background,
     borderRadius: 16,
     padding: 8,
@@ -370,12 +385,9 @@ const styles = StyleSheet.create({
   },
 
   nameContainer: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
     marginBottom: 8,
-    marginTop: 16,
   },
   name: {
     fontSize: 24,
@@ -398,6 +410,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginTop: 8,
     marginBottom: 8,
+    position: 'relative',
   },
   membershipBadge: {
     flexDirection: 'row',
@@ -406,6 +419,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 14,
     borderRadius: 25,
+    marginTop: 24,
+    alignSelf: 'center',
+    minWidth: 200,
+    maxWidth: 240,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -419,6 +436,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 2,
   },
   membershipBadgeText: {
     fontSize: 14,
@@ -598,9 +616,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: Colors.background,
-  },
-  bottomPadding: {
-    height: 100,
   },
   bottomBar: {
     position: 'absolute',
