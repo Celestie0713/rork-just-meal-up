@@ -91,10 +91,16 @@ export default function ProfileScreen() {
   // Debug: Check for matches
   if (user) {
     const matchedUsers = mockUsers.filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id));
+    console.log('=== PROFILE DEBUG ===');
+    console.log('Current user ID:', user.id);
     console.log('Matched users for Alex Chen:', matchedUsers.map(u => ({ id: u.id, name: u.name })));
     console.log('hasMutualLoveMatch(1, 5):', hasMutualLoveMatch('1', '5'));
     console.log('Current user responses:', mockCurrentUserResponses);
     console.log('Sofia Kim responses:', mockPostDateResponses.filter((r: any) => r.userId === '5'));
+    console.log('All post date responses:', mockPostDateResponses);
+    console.log('mockUsers length:', mockUsers.length);
+    console.log('Sofia Kim user data:', mockUsers.find(u => u.id === '5'));
+    console.log('=== END DEBUG ===');
   }
 
   if (!user) {
@@ -659,6 +665,20 @@ export default function ProfileScreen() {
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {/* Show love icon for Fight for fries for life match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
+              {/* Force render love icon for testing */}
+              {hasMutualLoveMatch('1', '5') && (
+                <TouchableOpacity 
+                  style={styles.profileLoveIconWrapper}
+                  onPress={() => {
+                    console.log('Navigate to Sofia Kim profile');
+                  }}
+                >
+                  <View style={styles.profileLoveIconBackground}>
+                    <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                  </View>
+                </TouchableOpacity>
+              )}
+              {/* Original dynamic rendering */}
               {mockUsers
                 .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
                 .slice(0, 1) // Show only one love icon for fight for fries match
@@ -885,25 +905,30 @@ const styles = StyleSheet.create({
   },
   profileLoveIconsContainer: {
     position: 'absolute',
-    bottom: 8,
-    right: 8,
+    bottom: 4,
+    right: 4,
     flexDirection: 'row',
     alignItems: 'center',
+    zIndex: 10,
   },
   profileLoveIconWrapper: {
-    // Remove absolute positioning since parent container handles it
+    // Container for individual love icon
   },
   profileLoveIconBackground: {
     backgroundColor: Colors.background,
-    borderRadius: 14,
-    padding: 6,
+    borderRadius: 16,
+    padding: 8,
     borderWidth: 2,
     borderColor: '#FF69B4',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+    minWidth: 32,
+    minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   name: {
     fontSize: 24,
