@@ -5,68 +5,25 @@ import type { PostDateResponse } from '@/types/user';
 // If there's no match after 24 hours, the profile will be removed from the chat list
 
 export const mockPostDateResponses: PostDateResponse[] = [
-  {
-    userId: '3', // Emma Rodriguez
-    mealId: '4', // Burger Palace date
-    choice: 'next_round', // Changed to match Alex's choice for next_round match
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 2 days ago + 12 hours
-  },
-  {
-    userId: '4', // Marcus Johnson  
-    mealId: '6', // Wine & Dine date
-    choice: 'next_round', // This will create a match if user also chooses 'next_round'
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 3 days ago + 12 hours
-  },
-  {
-    userId: '5', // Sofia Kim
-    mealId: '7', // Sakura Sushi date
-    choice: 'fight_for_fries', // This will create a match if user also chooses 'fight_for_fries'
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000 + 12 * 60 * 60 * 1000) // 5 days ago + 12 hours
-  }
+  // No initial responses from other users - they will make choices through the Post Meal process
+  // This ensures love icons only appear after actual matches occur
 ];
 
 // Mock data for current user's choices (Alex Chen - id: '1')
+// Start with NO previous choices - users must make choices through the Post Meal process
 export const mockCurrentUserResponses: PostDateResponse[] = [
-  {
-    userId: '1', // Alex Chen
-    mealId: '4', // Burger Palace date with Emma Rodriguez
-    choice: 'next_round', // Changed from fight_for_fries to avoid multiple matches
-    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
-  },
-  {
-    userId: '1', // Alex Chen
-    mealId: '6', // Wine & Dine date with Marcus Johnson
-    choice: 'buddy_pass', // This doesn't create a love match (Marcus chose next_round)
-    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
-  },
-  {
-    userId: '1', // Alex Chen
-    mealId: '7', // Sakura Sushi date with Sofia Kim
-    choice: 'fight_for_fries', // Match with Sofia Kim's choice
-    timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
-  }
+  // No initial responses - choices will be made through the Post Meal process
 ];
 
 // Matched profiles will be created dynamically when matches occur through the Post Meal process
-// Start with existing matches based on the current user responses
+// Start with NO existing matches - users must go through the Post Meal process to create matches
 export const mockMatchedProfiles: {
   userId: string;
   invitationId: string;
   matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
   matchedAt: Date;
 }[] = [
-  {
-    userId: '5', // Sofia Kim
-    invitationId: '7', // Sakura Sushi date
-    matchType: 'fight_for_fries', // Both Alex and Sofia chose fight_for_fries
-    matchedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago when match occurred
-  },
-  {
-    userId: '3', // Emma Rodriguez
-    invitationId: '4', // Burger Palace date
-    matchType: 'next_round', // Both Alex and Emma chose next_round
-    matchedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago when match occurred
-  }
+  // No initial matches - love icons will only appear after Post Meal matching process
 ];
 
 // Utility function to check if two users have a mutual "fight for fries" match
