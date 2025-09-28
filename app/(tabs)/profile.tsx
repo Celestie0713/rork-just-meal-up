@@ -6,7 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
-import { hasMutualLoveMatch } from '@/mocks/post-date-responses';
+import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
 
 
 import { router } from 'expo-router';
@@ -92,6 +92,9 @@ export default function ProfileScreen() {
   if (user) {
     const matchedUsers = mockUsers.filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id));
     console.log('Matched users for Alex Chen:', matchedUsers.map(u => ({ id: u.id, name: u.name })));
+    console.log('hasMutualLoveMatch(1, 5):', hasMutualLoveMatch('1', '5'));
+    console.log('Current user responses:', mockCurrentUserResponses);
+    console.log('Sofia Kim responses:', mockPostDateResponses.filter((r: any) => r.userId === '5'));
   }
 
   if (!user) {
@@ -659,20 +662,23 @@ export default function ProfileScreen() {
               {mockUsers
                 .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
                 .slice(0, 1) // Show only one love icon for fight for fries match
-                .map((matchedUser) => (
-                  <TouchableOpacity 
-                    key={matchedUser.id}
-                    style={styles.profileLoveIconWrapper}
-                    onPress={() => {
-                      // Navigate to matched user's profile
-                      console.log('Navigate to matched user:', matchedUser.name);
-                    }}
-                  >
-                    <View style={styles.profileLoveIconBackground}>
-                      <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                    </View>
-                  </TouchableOpacity>
-                ))
+                .map((matchedUser) => {
+                  console.log('Rendering love icon for matched user:', matchedUser.name);
+                  return (
+                    <TouchableOpacity 
+                      key={matchedUser.id}
+                      style={styles.profileLoveIconWrapper}
+                      onPress={() => {
+                        // Navigate to matched user's profile
+                        console.log('Navigate to matched user:', matchedUser.name);
+                      }}
+                    >
+                      <View style={styles.profileLoveIconBackground}>
+                        <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })
               }
             </View>
           </View>
@@ -885,9 +891,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   profileLoveIconWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
+    // Remove absolute positioning since parent container handles it
   },
   profileLoveIconBackground: {
     backgroundColor: Colors.background,
