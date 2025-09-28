@@ -360,10 +360,15 @@ export default function PostMealScreen() {
         
         // If it's a next_round match, initialize meal counter to 1 (first meal)
         if (matchType === 'next_round') {
-          setMealCounters(prev => ({
-            ...prev,
-            [dateUserId]: 1
-          }));
+          setMealCounters(prev => {
+            const currentCount = prev[dateUserId] || 0;
+            const newCount = currentCount + 1;
+            console.log(`Setting meal counter for ${dateUserId} (extension): ${currentCount} -> ${newCount}`);
+            return {
+              ...prev,
+              [dateUserId]: newCount
+            };
+          });
         }
       } else {
         // Still no match after extension - remove profile and chat
@@ -491,12 +496,12 @@ export default function PostMealScreen() {
           addMatchedProfile(dateUserId, invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           
-          // If it's a next_round match, increment meal counter (or initialize to 2 for second meal)
+          // If it's a next_round match, initialize or increment meal counter
           if (matchType === 'next_round') {
             setMealCounters(prev => {
-              const currentCount = prev[dateUserId] || 1; // Start with 1 if not set
-              const newCount = currentCount + 1; // Increment for next meal
-              console.log(`Incrementing meal counter for ${dateUserId}: ${currentCount} -> ${newCount}`);
+              const currentCount = prev[dateUserId] || 0; // Start with 0 if not set
+              const newCount = currentCount + 1; // Increment for next meal (starts at 1)
+              console.log(`Setting meal counter for ${dateUserId}: ${currentCount} -> ${newCount}`);
               return {
                 ...prev,
                 [dateUserId]: newCount
@@ -739,7 +744,7 @@ export default function PostMealScreen() {
         const invitation = mockInvitations.find(inv => inv.id === invitationId);
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-          // Start with Meal 1, then increment based on subsequent matches
+          // Return the current meal counter, which starts at 1 for first meal
           return mealCounters[dateUserId] || 1;
         }
       }
