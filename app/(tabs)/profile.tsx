@@ -669,14 +669,14 @@ export default function ProfileScreen() {
                 .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
                 .slice(0, 1) // Show only one love icon for fight for fries match
                 .map((matchedUser) => {
-                  console.log('Rendering love icon for matched user:', matchedUser.name);
+                  console.log('Profile: Rendering love icon for matched user:', matchedUser.name);
                   return (
                     <TouchableOpacity 
                       key={matchedUser.id}
                       style={styles.profileLoveIconWrapper}
                       onPress={() => {
                         // Navigate to matched user's profile
-                        console.log('Navigate to matched user:', matchedUser.name);
+                        router.push(`/user-profile?userId=${matchedUser.id}`);
                       }}
                     >
                       <View style={styles.profileLoveIconBackground}>

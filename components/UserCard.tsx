@@ -31,7 +31,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   // Check if this user has a mutual love match with current user
   const hasLoveMatch = currentUser ? hasMutualLoveMatch(currentUser.id, user.id) : false;
   
-  // Debug logging
+  // Debug logging only for Sofia Kim to check match status
   if (user.id === '5') { // Sofia Kim
     console.log('=== UserCard Debug for Sofia Kim ===');
     console.log('Current user:', currentUser?.id, currentUser?.name);
