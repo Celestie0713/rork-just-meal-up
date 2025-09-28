@@ -25,22 +25,22 @@ export const mockPostDateResponses: PostDateResponse[] = [
   }
 ];
 
-// Mock data for current user's choices (Alex Chen - id: '0')
+// Mock data for current user's choices (Alex Chen - id: '1')
 export const mockCurrentUserResponses: PostDateResponse[] = [
   {
-    userId: '0', // Alex Chen
+    userId: '1', // Alex Chen
     mealId: '4', // Burger Palace date with Emma Rodriguez
     choice: 'fight_for_fries', // This creates a mutual match with Emma
     timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago
   },
   {
-    userId: '0', // Alex Chen
+    userId: '1', // Alex Chen
     mealId: '6', // Wine & Dine date with Marcus Johnson
     choice: 'buddy_pass', // This doesn't create a love match (Marcus chose next_round)
     timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
   },
   {
-    userId: '0', // Alex Chen
+    userId: '1', // Alex Chen
     mealId: '7', // Sakura Sushi date with Sofia Kim
     choice: 'fight_for_fries', // This creates a mutual match with Sofia
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
@@ -67,8 +67,8 @@ export const mockMatchedProfiles = [
 // Utility function to check if two users have a mutual "fight for fries" match
 export function hasMutualLoveMatch(userId1: string, userId2: string): boolean {
   // Find responses for both users
-  const user1Responses = userId1 === '0' ? mockCurrentUserResponses : mockPostDateResponses.filter(r => r.userId === userId1);
-  const user2Responses = userId2 === '0' ? mockCurrentUserResponses : mockPostDateResponses.filter(r => r.userId === userId2);
+  const user1Responses = userId1 === '1' ? mockCurrentUserResponses : mockPostDateResponses.filter(r => r.userId === userId1);
+  const user2Responses = userId2 === '1' ? mockCurrentUserResponses : mockPostDateResponses.filter(r => r.userId === userId2);
   
   // Check if they have matching meal IDs where both chose 'fight_for_fries'
   for (const response1 of user1Responses) {
@@ -106,15 +106,15 @@ function notifyLoveMatchChange() {
 
 // Get the current user's love match (only one allowed)
 export function getCurrentUserLoveMatch(): string | null {
-  // Alex Chen (id: '0') has a mutual fight_for_fries match with Sofia Kim (id: '4')
+  // Alex Chen (id: '1') has a mutual fight_for_fries match with Sofia Kim (id: '4')
   const matchUserId = '4';
   
   // Check if the match has been removed first
-  if (isLoveMatchRemoved('0', matchUserId)) {
+  if (isLoveMatchRemoved('1', matchUserId)) {
     return null;
   }
   
-  const hasMatch = hasMutualLoveMatch('0', matchUserId);
+  const hasMatch = hasMutualLoveMatch('1', matchUserId);
   
   return hasMatch ? matchUserId : null;
 }
@@ -151,14 +151,14 @@ export function hasMutualLoveMatchUpdated(userId1: string, userId2: string): boo
 
 // Get the matched user ID for a given user (who they have a love match with)
 export function getMatchedUserId(userId: string): string | null {
-  // For Alex Chen (id: '0'), the match is Sofia Kim (id: '4')
-  if (userId === '0') {
-    return hasMutualLoveMatchUpdated('0', '4') ? '4' : null;
+  // For Alex Chen (id: '1'), the match is Sofia Kim (id: '4')
+  if (userId === '1') {
+    return hasMutualLoveMatchUpdated('1', '4') ? '4' : null;
   }
   
-  // For Sofia Kim (id: '4'), the match is Alex Chen (id: '0')
+  // For Sofia Kim (id: '4'), the match is Alex Chen (id: '1')
   if (userId === '4') {
-    return hasMutualLoveMatchUpdated('0', '4') ? '0' : null;
+    return hasMutualLoveMatchUpdated('1', '4') ? '1' : null;
   }
   
   // No other matches defined in mock data

@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import { mockPostDateResponses, hasMutualLoveMatch, getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
+import { mockPostDateResponses, hasMutualLoveMatch, getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 
@@ -92,6 +92,15 @@ export default function PostMealScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
+  const [currentLoveMatch, setCurrentLoveMatch] = useState<string | null>(getCurrentUserLoveMatch());
+
+  // Subscribe to love match changes
+  useEffect(() => {
+    const unsubscribe = subscribeLoveMatchChanges(() => {
+      setCurrentLoveMatch(getCurrentUserLoveMatch());
+    });
+    return unsubscribe;
+  }, []);
 
   // Update current time every second for timer display
   useEffect(() => {
@@ -426,7 +435,6 @@ export default function PostMealScreen() {
     }
 
     // Check if user already has a mutual love match and trying to choose fight_for_fries with another user
-    const currentLoveMatch = getCurrentUserLoveMatch();
     if (currentLoveMatch && choice === 'fight_for_fries') {
       console.log('User is already taken with a mutual love match. Cannot choose fight_for_fries with another user.');
       // Show an alert or toast message
@@ -1033,7 +1041,6 @@ export default function PostMealScreen() {
                     
                     {(() => {
                       // Check if user already has a mutual love match
-                      const currentLoveMatch = getCurrentUserLoveMatch();
                       const isDisabled = !!currentLoveMatch;
                       
                       return (
