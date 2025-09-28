@@ -654,15 +654,15 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            {/* Show love icons for matched users at lower right of profile picture */}
+            {/* Show love icon for Fight for fries for life match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
               {mockUsers
                 .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
-                .slice(0, 3) // Show max 3 love icons
-                .map((matchedUser, index) => (
+                .slice(0, 1) // Show only one love icon for fight for fries match
+                .map((matchedUser) => (
                   <TouchableOpacity 
                     key={matchedUser.id}
-                    style={[styles.profileLoveIconWrapper, { right: index * 16 }]}
+                    style={styles.profileLoveIconWrapper}
                     onPress={() => {
                       // Navigate to matched user's profile
                       console.log('Navigate to matched user:', matchedUser.name);
@@ -887,6 +887,7 @@ const styles = StyleSheet.create({
   profileLoveIconWrapper: {
     position: 'absolute',
     bottom: 0,
+    right: 0,
   },
   profileLoveIconBackground: {
     backgroundColor: Colors.background,
