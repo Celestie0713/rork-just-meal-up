@@ -3,8 +3,8 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
 import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { useAuth } from '@/hooks/use-auth';
-import { hasMutualLoveMatchUpdated, getMatchedUserId } from '@/mocks/post-date-responses';
+
+import { getCurrentUserLoveMatch } from '@/mocks/post-date-responses';
 
 import type { User } from '@/types/user';
 
@@ -17,20 +17,16 @@ interface ChatListItemProps {
 }
 
 export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount = 0, onPress }: ChatListItemProps) {
-  const { user: currentUser } = useAuth();
-  
-  // Check if this user has a mutual love match with current user
-  const hasLoveMatch = currentUser ? hasMutualLoveMatchUpdated(currentUser.id, user.id) : false;
+  // Check if this user is the one the current user has a love match with
+  const currentUserLoveMatch = getCurrentUserLoveMatch();
+  const hasLoveMatch = currentUserLoveMatch === user.id;
   
   const handleLoveIconPress = () => {
-    // Navigate to the matched user's profile, not this user's profile
-    const matchedUserId = getMatchedUserId(user.id);
-    if (matchedUserId) {
-      router.push({
-        pathname: '/user-profile',
-        params: { userId: matchedUserId }
-      });
-    }
+    // Navigate to this user's profile since they are the love match
+    router.push({
+      pathname: '/user-profile',
+      params: { userId: user.id }
+    });
   };
   
   const formatTime = (date: Date) => {

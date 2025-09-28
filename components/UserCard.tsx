@@ -4,8 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { router } from 'expo-router';
-import { getMatchedUserId, getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
-import { useAuth } from '@/hooks/use-auth';
+import { getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
+
 
 import type { User } from '@/types/user';
 
@@ -18,7 +18,6 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
-  const { user: currentUser } = useAuth();
   const [loveMatchUserId, setLoveMatchUserId] = React.useState<string | null>(getCurrentUserLoveMatch());
   
   // Subscribe to love match changes
@@ -29,24 +28,15 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     return unsubscribe;
   }, []);
   
-  // Check if this user has a mutual love match with current user
-  // Show love icon on both the current user's card and the matched user's card
-  const hasLoveMatch = currentUser && (
-    // Show on current user's card when they have a love match
-    (user.id === currentUser.id && loveMatchUserId !== null) ||
-    // Show on the matched user's card when current user has a love match with them
-    (loveMatchUserId === user.id)
-  );
+  // Check if this user is the one the current user has a love match with
+  const hasLoveMatch = loveMatchUserId === user.id;
   
   const handleLoveIconPress = () => {
-    // Navigate to the matched user's profile, not this user's profile
-    const matchedUserId = getMatchedUserId(user.id);
-    if (matchedUserId) {
-      router.push({
-        pathname: '/user-profile',
-        params: { userId: matchedUserId }
-      });
-    }
+    // Navigate to this user's profile since they are the love match
+    router.push({
+      pathname: '/user-profile',
+      params: { userId: user.id }
+    });
   };
   
   const getMembershipIcon = () => {
