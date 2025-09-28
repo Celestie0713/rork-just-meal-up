@@ -818,7 +818,7 @@ export default function PostMealScreen() {
                 </View>
               )}
               {!isGroup && timerInfo.type === 'match_permanent' && (
-                <View style={styles.matchIndicator}>
+                <View style={matchType === 'next_round' ? styles.matchIndicator : undefined}>
                   {matchType === 'next_round' ? (
                     <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
                   ) : matchType === 'fight_for_fries' ? (
