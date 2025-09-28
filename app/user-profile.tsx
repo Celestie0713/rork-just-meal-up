@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils, Settings } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils, Settings, Plus } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -129,6 +129,17 @@ export default function UserProfileScreen() {
             </View>
           ))}
         </View>
+        
+        <TouchableOpacity 
+          style={styles.addPlacesButton}
+          onPress={() => router.push({
+            pathname: '/(tabs)',
+            params: { tab: 'places' }
+          })}
+        >
+          <Plus size={20} color={Colors.primary} />
+          <Text style={styles.addPlacesButtonText}>Add favorite places</Text>
+        </TouchableOpacity>
       </View>
     );
   };
@@ -667,5 +678,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.background,
     fontWeight: '600',
+  },
+  addPlacesButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    marginTop: 20,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  addPlacesButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginLeft: 8,
   },
 });
