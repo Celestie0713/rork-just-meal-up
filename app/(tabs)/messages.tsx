@@ -29,7 +29,7 @@ const mockChats: ChatData[] = [
     unreadCount: 0,
   },
   {
-    user: mockUsers.find(u => u.id === '5')!,
+    user: mockUsers.find(u => u.id === '6')!,
     lastMessage: '🎵 Voice message (23s)',
     lastMessageTime: new Date(Date.now() - 4 * 60 * 60 * 1000),
     unreadCount: 1,
@@ -285,7 +285,7 @@ export default function MessagesScreen() {
       <FlatList
         data={filteredChats}
         renderItem={renderChatItem}
-        keyExtractor={(item) => item.user.id}
+        keyExtractor={(item, index) => `${item.user.id}-${index}`}
         style={styles.chatsList}
         contentContainerStyle={filteredChats.length === 0 ? styles.emptyContainer : styles.chatsContent}
         showsVerticalScrollIndicator={false}
