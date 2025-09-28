@@ -1,8 +1,10 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Crown, Star } from 'lucide-react-native';
+import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { hasMutualLoveMatch } from '@/mocks/post-date-responses';
+import { useAuth } from '@/hooks/use-auth';
 
 import type { User } from '@/types/user';
 
@@ -14,6 +16,8 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
+  const { user: currentUser } = useAuth();
+  
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
       return <Crown size={16} color={Colors.organizer} />;
@@ -23,6 +27,9 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     }
     return null;
   };
+  
+  // Check if this user has a mutual love match with current user
+  const hasLoveMatch = currentUser ? hasMutualLoveMatch(currentUser.id, user.id) : false;
 
   return (
     <TouchableOpacity style={[styles.container, isGridView && styles.gridContainer]} onPress={onPress} testID={`user-card-${user.id}`}>
@@ -35,6 +42,15 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         <View style={styles.onlineIndicator}>
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
+        
+        {/* Show love icon for Fight for fries for life match */}
+        {hasLoveMatch && (
+          <View style={styles.loveIconContainer}>
+            <View style={styles.loveIconBackground}>
+              <Heart size={isGridView ? 12 : 16} color="#FF69B4" fill="#FF69B4" />
+            </View>
+          </View>
+        )}
       </View>
       
       <View style={[styles.content, isGridView && styles.gridContent]}>
@@ -212,6 +228,24 @@ const styles = StyleSheet.create({
     gap: 4,
     flex: 1,
   },
-
-
+  loveIconContainer: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    zIndex: 10,
+  },
+  loveIconBackground: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: '#FF69B4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });
