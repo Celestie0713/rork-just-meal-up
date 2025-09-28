@@ -113,9 +113,12 @@ export default function SearchScreen() {
     user.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderUser = ({ item }: { item: User }) => (
-    <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
-  );
+  const renderUser = ({ item }: { item: User }) => {
+    console.log('Rendering user card for:', item.name, 'ID:', item.id);
+    return (
+      <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
+    );
+  };
 
   const renderPlace = ({ item }: { item: Place }) => (
     <PlaceCard 

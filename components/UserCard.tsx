@@ -30,6 +30,16 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   
   // Check if this user has a mutual love match with current user
   const hasLoveMatch = currentUser ? hasMutualLoveMatch(currentUser.id, user.id) : false;
+  
+  // Debug logging
+  if (user.id === '5') { // Sofia Kim
+    console.log('=== UserCard Debug for Sofia Kim ===');
+    console.log('Current user:', currentUser?.id, currentUser?.name);
+    console.log('Target user:', user.id, user.name);
+    console.log('hasLoveMatch result:', hasLoveMatch);
+    console.log('hasMutualLoveMatch(1, 5):', hasMutualLoveMatch('1', '5'));
+    console.log('=== End UserCard Debug ===');
+  }
 
   return (
     <TouchableOpacity style={[styles.container, isGridView && styles.gridContainer]} onPress={onPress} testID={`user-card-${user.id}`}>
