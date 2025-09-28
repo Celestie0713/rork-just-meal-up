@@ -5,7 +5,7 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
-import { hasMutualLoveMatchUpdated, removeLoveMatch } from '@/mocks/post-date-responses';
+
 import { useAuth } from '@/hooks/use-auth';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,8 +19,7 @@ export default function UserProfileScreen() {
   
   const user = mockUsers.find(u => u.id === userId);
   
-  // Check if this user has a mutual love match with current user
-  const hasLoveMatch = currentUser && user ? hasMutualLoveMatchUpdated(currentUser.id, user.id) : false;
+
   
   if (!user) {
     return (
@@ -202,18 +201,7 @@ export default function UserProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            {hasLoveMatch && (
-              <TouchableOpacity 
-                style={styles.profileLoveIcon}
-                onPress={() => {
-                  if (currentUser) {
-                    removeLoveMatch(currentUser.id, user.id);
-                  }
-                }}
-              >
-                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-              </TouchableOpacity>
-            )}
+
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
@@ -336,19 +324,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
-  profileLoveIcon: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
+
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',

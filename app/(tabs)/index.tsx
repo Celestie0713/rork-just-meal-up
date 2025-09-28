@@ -7,7 +7,7 @@ import { PlaceCard } from '@/components/PlaceCard';
 import { mockUsers } from '@/mocks/users';
 import { usePlaces } from '@/hooks/use-places';
 import { Colors } from '@/constants/colors';
-import { getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
+
 import type { User } from '@/types/user';
 import type { Place } from '@/types/place';
 
@@ -15,15 +15,7 @@ export default function SearchScreen() {
   const { tab } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'places'>(tab === 'places' ? 'places' : 'users');
-  const [loveMatchUserId, setLoveMatchUserId] = useState<string | null>(getCurrentUserLoveMatch());
-  
-  // Subscribe to love match changes
-  useEffect(() => {
-    const unsubscribe = subscribeLoveMatchChanges(() => {
-      setLoveMatchUserId(getCurrentUserLoveMatch());
-    });
-    return unsubscribe;
-  }, []);
+
   const {
     places,
     loading,
@@ -198,21 +190,7 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            {loveMatchUserId ? (
-              <TouchableOpacity 
-                onPress={() => {
-                  router.push({
-                    pathname: '/user-profile',
-                    params: { userId: loveMatchUserId }
-                  });
-                }}
-                style={styles.loveIconContainer}
-              >
-                <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-              </TouchableOpacity>
-            ) : (
-              <Bell size={24} color="#666666" />
-            )}
+            <Bell size={24} color="#666666" />
           </TouchableOpacity>
         </View>
         
@@ -295,11 +273,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#888888',
   },
-  loveIconContainer: {
-    backgroundColor: 'rgba(255, 105, 180, 0.1)',
-    borderRadius: 12,
-    padding: 4,
-  },
+
   subtitle: {
     fontSize: 16,
     color: '#FFFFFF',

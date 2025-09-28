@@ -107,18 +107,13 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         // In a real app, you would use a proper storage solution
         console.log('Loading removed profiles from storage...');
         
-        // Initialize with only the most recent matched profile for demonstration
-        // Only allow one love icon at a time
+        // Initialize with all matched profiles
         const initialMatchedProfiles: MatchedProfilesState = {};
-        if (mockMatchedProfiles.length > 0) {
-          // Get the most recent match (latest matchedAt date)
-          const mostRecentMatch = mockMatchedProfiles.reduce((latest, current) => 
-            current.matchedAt > latest.matchedAt ? current : latest
-          );
-          initialMatchedProfiles[mostRecentMatch.userId] = mostRecentMatch;
-        }
+        mockMatchedProfiles.forEach(profile => {
+          initialMatchedProfiles[profile.userId] = profile;
+        });
         setMatchedProfiles(initialMatchedProfiles);
-        console.log('Initialized with single matched profile:', initialMatchedProfiles);
+        console.log('Initialized with matched profiles:', initialMatchedProfiles);
         
         setIsLoaded(true);
       } catch (error) {
@@ -277,12 +272,12 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       matchedAt: new Date()
     };
     
-    // Only allow one matched profile at a time - clear all previous matches
-    setMatchedProfiles({
+    setMatchedProfiles(prev => ({
+      ...prev,
       [userId]: matchedProfile
-    });
+    }));
     
-    console.log(`Profile ${userId} marked as matched with type: ${matchType}. Previous matches cleared.`);
+    console.log(`Profile ${userId} marked as matched with type: ${matchType}`);
   }, []);
 
   const isProfileMatched = useCallback((userId: string): boolean => {

@@ -6,7 +6,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
-import { getCurrentUserLoveMatch, getMatchedUserId, removeLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
+
 
 import { router } from 'expo-router';
 import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
@@ -60,8 +60,7 @@ export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
   
-  // Check if current user has a love match
-  const [loveMatchUserId, setLoveMatchUserId] = useState<string | null>(getCurrentUserLoveMatch());
+
 
   const [fontsLoaded] = useFonts({
     Montserrat_400Regular,
@@ -83,13 +82,7 @@ export default function ProfileScreen() {
   const [newFoodItem, setNewFoodItem] = useState('');
   const [editedBio, setEditedBio] = useState(user?.bio || '');
 
-  // Subscribe to love match changes
-  React.useEffect(() => {
-    const unsubscribe = subscribeLoveMatchChanges(() => {
-      setLoveMatchUserId(getCurrentUserLoveMatch());
-    });
-    return unsubscribe;
-  }, []);
+
 
   console.log('Profile screen render - user:', user);
   console.log('Profile screen render - fontsLoaded:', fontsLoaded);
@@ -283,47 +276,7 @@ export default function ProfileScreen() {
     setShowPreferredIncomeModal(false);
   };
 
-  const handleRemoveLoveMatch = () => {
-    if (loveMatchUserId && user) {
-      Alert.alert(
-        'Remove Love Match',
-        'Are you sure you want to remove this love match? This action cannot be undone.',
-        [
-          {
-            text: 'Cancel',
-            style: 'cancel'
-          },
-          {
-            text: 'Remove',
-            style: 'destructive',
-            onPress: () => {
-              console.log('Removing love match:', loveMatchUserId);
-              // Remove from the backend/mock first
-              removeLoveMatch(user.id, loveMatchUserId);
-              // Also remove from chat matched profiles
-              removeMatchedProfile(loveMatchUserId);
-              // Force immediate state update after backend removal
-              setLoveMatchUserId(null);
-              console.log('Love match removed from profile page');
-            }
-          }
-        ]
-      );
-    }
-  };
 
-  const handleDirectRemoveLoveMatch = () => {
-    if (loveMatchUserId && user) {
-      console.log('Direct removing love match:', loveMatchUserId);
-      // Remove from the backend/mock first
-      removeLoveMatch(user.id, loveMatchUserId);
-      // Also remove from chat matched profiles
-      removeMatchedProfile(loveMatchUserId);
-      // Force immediate state update after backend removal
-      setLoveMatchUserId(null);
-      console.log('Love match directly removed from profile page');
-    }
-  };
 
 
 
@@ -650,18 +603,7 @@ export default function ProfileScreen() {
           </View>
           
           <View style={styles.settingsContent}>
-            {loveMatchUserId && (
-              <TouchableOpacity 
-                style={styles.settingsItem}
-                onPress={() => {
-                  setShowSettingsModal(false);
-                  handleRemoveLoveMatch();
-                }}
-              >
-                <Heart size={20} color={Colors.textLight} />
-                <Text style={styles.settingsItemText}>Remove Love Match</Text>
-              </TouchableOpacity>
-            )}
+
             
             <TouchableOpacity style={styles.settingsItem}>
               <Settings size={20} color={Colors.textLight} />
@@ -705,29 +647,7 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            {loveMatchUserId && (
-              <View style={styles.profileLoveIcon}>
-                <TouchableOpacity 
-                  onPress={() => {
-                    router.push({
-                      pathname: '/user-profile',
-                      params: { userId: loveMatchUserId }
-                    });
-                  }}
-                  testID="profile-love-icon"
-                  style={styles.loveIconButton}
-                >
-                  <Heart size={24} color="#FF69B4" fill="#FF69B4" />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.removeLoveIconButton}
-                  onPress={handleDirectRemoveLoveMatch}
-                  testID="remove-love-icon"
-                >
-                  <X size={12} color="#666" />
-                </TouchableOpacity>
-              </View>
-            )}
+
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
@@ -924,34 +844,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
-  profileLoveIcon: {
-    position: 'absolute',
-    bottom: -4,
-    right: -4,
-  },
-  loveIconButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 20,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  removeLoveIconButton: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 8,
-    padding: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
-    elevation: 2,
-  },
+
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',

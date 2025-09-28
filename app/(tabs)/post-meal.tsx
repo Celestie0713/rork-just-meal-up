@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import { mockPostDateResponses, hasMutualLoveMatch, getCurrentUserLoveMatch, subscribeLoveMatchChanges } from '@/mocks/post-date-responses';
+import { mockPostDateResponses } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 
@@ -92,24 +92,7 @@ export default function PostMealScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
-  const [currentLoveMatch, setCurrentLoveMatch] = useState<string | null>(getCurrentUserLoveMatch());
 
-  // Subscribe to love match changes
-  useEffect(() => {
-    const unsubscribe = subscribeLoveMatchChanges(() => {
-      const newLoveMatch = getCurrentUserLoveMatch();
-      console.log('Love match changed in post-meal page:', newLoveMatch);
-      setCurrentLoveMatch(newLoveMatch);
-      
-      // If love match is removed, reset finalized choices to allow new selections
-      if (!newLoveMatch) {
-        console.log('Love match removed, resetting finalized choices to allow new selections');
-        setFinalizedChoices({});
-        setSelectedChoices({});
-      }
-    });
-    return unsubscribe;
-  }, []);
 
   // Update current time every second for timer display
   useEffect(() => {
@@ -443,12 +426,7 @@ export default function PostMealScreen() {
       return;
     }
 
-    // Check if user already has a mutual love match and trying to choose fight_for_fries with another user
-    if (currentLoveMatch && choice === 'fight_for_fries') {
-      console.log('User is already taken with a mutual love match. Cannot choose fight_for_fries with another user.');
-      // Show an alert or toast message
-      return;
-    }
+
 
     const now = new Date();
     
@@ -840,29 +818,15 @@ export default function PostMealScreen() {
                 </View>
               )}
               {!isGroup && timerInfo.type === 'match_permanent' && (
-                matchType === 'fight_for_fries' ? (
-                  <TouchableOpacity 
-                    onPress={() => {
-                      const invitationId = event.id.replace('invitation-', '');
-                      const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                      if (invitation) {
-                        const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                        router.push(`/user-profile?userId=${dateUserId}`);
-                      }
-                    }}
-                    style={styles.loveIconButton}
-                  >
-                    <Heart size={20} color="#FF69B4" fill="#FF69B4" />
-                  </TouchableOpacity>
-                ) : (
-                  <View style={styles.matchIndicator}>
-                    {matchType === 'next_round' ? (
-                      <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
-                    ) : (
-                      <Text style={styles.matchIndicatorText}>Match! 💕</Text>
-                    )}
-                  </View>
-                )
+                <View style={styles.matchIndicator}>
+                  {matchType === 'next_round' ? (
+                    <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
+                  ) : matchType === 'fight_for_fries' ? (
+                    <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                  ) : (
+                    <Text style={styles.matchIndicatorText}>Match! 💕</Text>
+                  )}
+                </View>
               )}
             </View>
           </View>
@@ -1048,37 +1012,22 @@ export default function PostMealScreen() {
                       ]}>(Next date)</Text>
                     </TouchableOpacity>
                     
-                    {(() => {
-                      // Check if user already has a mutual love match
-                      // Only disable if there's an active love match (not removed)
-                      const isDisabled = !!currentLoveMatch;
-                      
-                      return (
-                        <TouchableOpacity 
-                          style={[
-                            styles.choiceButton,
-                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
-                            isDisabled && styles.disabledChoiceButton
-                          ]}
-                          onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
-                          disabled={isDisabled}
-                        >
-                          <Text style={[
-                            styles.choiceButtonText,
-                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                            isDisabled && styles.disabledChoiceText
-                          ]}>Fight for fries for life</Text>
-                          <Text style={[
-                            styles.choiceSubtext,
-                            userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                            isDisabled && styles.disabledChoiceText
-                          ]}>(Be my +1?)</Text>
-                          {isDisabled && (
-                            <Text style={styles.disabledLabel}>Look but don't touch</Text>
-                          )}
-                        </TouchableOpacity>
-                      );
-                    })()}
+                    <TouchableOpacity 
+                      style={[
+                        styles.choiceButton,
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
+                      ]}
+                      onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
+                    >
+                      <Text style={[
+                        styles.choiceButtonText,
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                      ]}>Fight for fries for life</Text>
+                      <Text style={[
+                        styles.choiceSubtext,
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
+                      ]}>(Be my +1?)</Text>
+                    </TouchableOpacity>
                   </>
                 ) : (
                   /* Show only the selected choice when finalized */
@@ -1828,27 +1777,7 @@ const styles = StyleSheet.create({
   disabledText: {
     color: colors.textLight,
   },
-  disabledChoiceButton: {
-    backgroundColor: colors.surface,
-    borderColor: colors.textLight,
-    opacity: 0.6,
-    position: 'relative',
-  },
-  disabledChoiceText: {
-    color: colors.textLight,
-  },
-  disabledLabel: {
-    position: 'absolute',
-    top: -8,
-    right: 8,
-    backgroundColor: colors.textLight,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-    fontSize: 10,
-    fontWeight: '600',
-    color: colors.background,
-  },
+
 
   selectedChoiceButton: {
     backgroundColor: colors.primary,
@@ -1984,11 +1913,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.background,
   },
-  loveIconButton: {
-    padding: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   mixedSignalsTimer: {
     backgroundColor: '#FFF0E6',
     borderColor: '#FF6B35',
