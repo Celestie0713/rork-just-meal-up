@@ -338,10 +338,10 @@ export default function PostMealScreen() {
     
     console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
     
-    // For now, we'll assume the date also makes a decision (in a real app, this would come from the server)
-    // Simulate the date making a decision after a short delay
+    // For mixed signals extension, simulate the date making the same choice to create a match
+    // In a real app, this would come from the server when both users have made their extended decisions
     setTimeout(() => {
-      const dateExtendedChoice = choice === 'next_round' ? 'fight_for_fries' : 'next_round'; // Opposite choice for demo
+      const dateExtendedChoice = choice; // Same choice to create a match during extension
       
       // Check if both parties have now made their extended decisions
       const isExtendedMatch = choice === dateExtendedChoice;

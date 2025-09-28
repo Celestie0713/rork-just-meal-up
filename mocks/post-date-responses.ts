@@ -48,13 +48,26 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
 ];
 
 // Matched profiles will be created dynamically when matches occur through the Post Meal process
-// Start with empty array - matches are only added when both users make matching choices
+// Start with existing matches based on the current user responses
 export const mockMatchedProfiles: {
   userId: string;
   invitationId: string;
   matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
   matchedAt: Date;
-}[] = [];
+}[] = [
+  {
+    userId: '5', // Sofia Kim
+    invitationId: '7', // Sakura Sushi date
+    matchType: 'fight_for_fries', // Both Alex and Sofia chose fight_for_fries
+    matchedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago when match occurred
+  },
+  {
+    userId: '3', // Emma Rodriguez
+    invitationId: '4', // Burger Palace date
+    matchType: 'next_round', // Both Alex and Emma chose next_round
+    matchedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000) // 2 days ago when match occurred
+  }
+];
 
 // Utility function to check if two users have a mutual "fight for fries" match
 // This should only return true if the match was confirmed through the Post Meal process
