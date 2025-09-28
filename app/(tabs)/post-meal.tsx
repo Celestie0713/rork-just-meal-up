@@ -142,18 +142,7 @@ export default function PostMealScreen() {
 
   // Check if "fight for fries" option should be disabled for a specific event
   const isFightForFriesDisabled = (eventId: string) => {
-    // Only disable if there's already a "fight_for_fries" match for this specific profile
-    const invitationId = eventId.replace('invitation-', '');
-    const invitation = mockInvitations.find(inv => inv.id === invitationId);
-    
-    if (invitation) {
-      const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-      const existingMatch = matchedProfiles[dateUserId];
-      
-      // Only disable if this specific profile already has a "fight_for_fries" match
-      return existingMatch?.matchType === 'fight_for_fries';
-    }
-    
+    // Don't disable the option - make it like a new post-meal page
     return false;
   };
 
@@ -978,25 +967,18 @@ export default function PostMealScreen() {
                           <TouchableOpacity 
                             style={[
                               styles.choiceButton,
-                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButton,
-                              isFightForFriesDisabled(event.id) && styles.disabledChoiceButton
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButton
                             ]}
-                            onPress={() => !isFightForFriesDisabled(event.id) && handleChoiceSelect(event.id, 'fight_for_fries')}
-                            disabled={isFightForFriesDisabled(event.id)}
+                            onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
                           >
                             <Text style={[
                               styles.choiceButtonText,
-                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                              isFightForFriesDisabled(event.id) && styles.disabledChoiceText
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText
                             ]}>Fight for fries for life</Text>
                             <Text style={[
                               styles.choiceSubtext,
-                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                              isFightForFriesDisabled(event.id) && styles.disabledChoiceText
+                              extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText
                             ]}>(Be my +1?)</Text>
-                            {isFightForFriesDisabled(event.id) && (
-                              <Text style={styles.disabledReasonText}>Already matched with someone</Text>
-                            )}
                           </TouchableOpacity>
                         </>
                       );
@@ -1043,25 +1025,18 @@ export default function PostMealScreen() {
                     <TouchableOpacity 
                       style={[
                         styles.choiceButton,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton,
-                        isFightForFriesDisabled(event.id) && styles.disabledChoiceButton
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButton
                       ]}
-                      onPress={() => !isFightForFriesDisabled(event.id) && handleChoiceSelect(event.id, 'fight_for_fries')}
-                      disabled={isFightForFriesDisabled(event.id)}
+                      onPress={() => handleChoiceSelect(event.id, 'fight_for_fries')}
                     >
                       <Text style={[
                         styles.choiceButtonText,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                        isFightForFriesDisabled(event.id) && styles.disabledChoiceText
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
                       ]}>Fight for fries for life</Text>
                       <Text style={[
                         styles.choiceSubtext,
-                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
-                        isFightForFriesDisabled(event.id) && styles.disabledChoiceText
+                        userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText
                       ]}>(Be my +1?)</Text>
-                      {isFightForFriesDisabled(event.id) && (
-                        <Text style={styles.disabledReasonText}>Already matched with someone</Text>
-                      )}
                     </TouchableOpacity>
                   </>
                 ) : (
