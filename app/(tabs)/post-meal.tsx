@@ -142,22 +142,8 @@ export default function PostMealScreen() {
 
   // Check if "fight for fries" option should be disabled for a specific event
   const isFightForFriesDisabled = (eventId: string) => {
-    // Only disable if current user already has a love match with someone else (not this specific person)
-    const invitationId = eventId.replace('invitation-', '');
-    const invitation = mockInvitations.find(inv => inv.id === invitationId);
-    if (!invitation) return false;
-    
-    const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-    
-    // Check if current user has a love match with anyone OTHER than this specific person
-    const allUserIds = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11'];
-    for (const userId of allUserIds) {
-      if (userId !== dateUserId && hasMutualLoveMatch('1', userId)) {
-        return true; // Disable because user has a love match with someone else
-      }
-    }
-    
-    return false; // Don't disable - user can still choose fight for fries with this person
+    // Always return false - "Fight for fries for life" option is always available
+    return false;
   };
 
   const postMealEvents = useMemo(() => {
