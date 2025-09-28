@@ -120,7 +120,7 @@ export default function UserProfileScreen() {
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
-          Foods that would make them say yes to a date 🍕
+          What foods would make you say yes to a date? 🍕
         </Text>
         <View style={styles.foodContainer}>
           {user.preferences.cuisinePreferences.map((food, index) => (
