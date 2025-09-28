@@ -42,7 +42,7 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
   {
     userId: '1', // Alex Chen
     mealId: '7', // Sakura Sushi date with Sofia Kim
-    choice: 'fight_for_fries', // This creates a mutual match with Sofia (only one fight_for_fries match)
+    choice: 'buddy_pass', // Changed from fight_for_fries to remove the match
     timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) // 5 days ago
   }
 ];

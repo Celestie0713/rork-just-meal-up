@@ -665,20 +665,6 @@ export default function ProfileScreen() {
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {/* Show love icon for Fight for fries for life match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
-              {/* Force render love icon for testing */}
-              {hasMutualLoveMatch('1', '5') && (
-                <TouchableOpacity 
-                  style={styles.profileLoveIconWrapper}
-                  onPress={() => {
-                    console.log('Navigate to Sofia Kim profile');
-                  }}
-                >
-                  <View style={styles.profileLoveIconBackground}>
-                    <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                  </View>
-                </TouchableOpacity>
-              )}
-              {/* Original dynamic rendering */}
               {mockUsers
                 .filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id))
                 .slice(0, 1) // Show only one love icon for fight for fries match
