@@ -122,9 +122,6 @@ export default function UserProfileScreen() {
         <Text style={styles.tabDescription}>
           These make me say YES to a date 🍕
         </Text>
-        <View style={styles.foodContainer}>
-          {/* Don't show food tags for any user profile - keep it consistent */}
-        </View>
         
         <TouchableOpacity 
           style={styles.addPlacesButton}
