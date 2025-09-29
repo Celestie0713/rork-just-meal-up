@@ -332,21 +332,6 @@ export default function ProfileScreen() {
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodContainer}>
-          {isEditing && (
-            <View style={styles.addFoodContainer}>
-              <TextInput
-                style={styles.foodInput}
-                placeholder="Add food item..."
-                placeholderTextColor={Colors.textLight}
-                value={newFoodItem}
-                onChangeText={setNewFoodItem}
-                onSubmitEditing={addFoodItem}
-              />
-              <TouchableOpacity style={styles.addFoodButton} onPress={addFoodItem}>
-                <Plus size={16} color={Colors.background} />
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
         
         <TouchableOpacity 
