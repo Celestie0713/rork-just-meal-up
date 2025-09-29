@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Crown, Star, Heart, MessageCircle, Camera, Users, Utensils, Settings, Plus } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, MessageCircle, Camera, Users, Utensils, Plus } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -17,15 +17,14 @@ export default function UserProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const { user: currentUser } = useAuth();
-  const { matchedProfiles, removeMatchedProfile, getMatchType } = useChat();
+  const { getMatchType } = useChat();
   
   const user = mockUsers.find(u => u.id === userId);
   
   // Check if this user has a "fight_for_fries" match with current user
   const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
   
-  // Check if current user is viewing their own profile
-  const isOwnProfile = currentUser && userId === currentUser.id;
+
   
   const handleNavigateToCurrentUser = () => {
     if (currentUser) {
@@ -50,41 +49,7 @@ export default function UserProfileScreen() {
     );
   }
 
-  const getMembershipInfo = () => {
-    switch (user.membershipTier) {
-      case 'organizer':
-        return {
-          icon: <Crown size={20} color={Colors.organizer} />,
-          title: 'Organizer Member',
-          gradient: Gradients.organizer,
-        };
-      case 'premium':
-        return {
-          icon: <Star size={20} color={Colors.premium} />,
-          title: 'Premium Member',
-          gradient: Gradients.premium,
-        };
-      default:
-        return {
-          icon: <Heart size={20} color={Colors.textLight} />,
-          title: 'Free Member',
-          gradient: ['#f0f0f0', '#e0e0e0'] as const,
-        };
-    }
-  };
 
-  const membershipInfo = getMembershipInfo();
-
-  const getMembershipColor = () => {
-    switch (user.membershipTier) {
-      case 'organizer':
-        return Colors.organizer;
-      case 'premium':
-        return Colors.primary;
-      default:
-        return Colors.surface;
-    }
-  };
 
   const handleStartChat = () => {
     router.push(`/chat?userId=${user.id}`);
@@ -405,51 +370,7 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginLeft: 4,
   },
-  membershipBadgeContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    position: 'relative',
-  },
-  membershipBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    borderRadius: 25,
-    marginTop: 24,
-    alignSelf: 'center',
-    minWidth: 200,
-    maxWidth: 240,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  membershipBadgeContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
-  },
-  membershipBadgeText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    marginLeft: 12,
-    textAlign: 'center',
-    letterSpacing: 0.8,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    textTransform: 'capitalize',
-  },
+
   personalInfoSection: {
     paddingHorizontal: 20,
     paddingBottom: 24,
