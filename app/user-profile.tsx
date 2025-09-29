@@ -246,17 +246,7 @@ export default function UserProfileScreen() {
             <Text style={styles.location}>{user.location}</Text>
           </View>
           
-          {/* Only show membership badge for own profile - this should be in Edit section */}
-          {isOwnProfile && (
-            <View style={styles.membershipBadgeContainer}>
-              <View style={[styles.membershipBadge, { backgroundColor: getMembershipColor() }]}>
-                <View style={styles.membershipBadgeContent}>
-                  {membershipInfo.icon}
-                  <Text style={styles.membershipBadgeText}>{membershipInfo.title}</Text>
-                </View>
-              </View>
-            </View>
-          )}
+
         </View>
 
         <View style={styles.personalInfoSection}>
