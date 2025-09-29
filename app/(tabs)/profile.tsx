@@ -700,14 +700,7 @@ export default function ProfileScreen() {
             <Text style={styles.location}>{user.location}</Text>
           </View>
           
-          <View style={styles.membershipBadgeContainer}>
-            <View style={[styles.membershipBadge, { backgroundColor: getMembershipColor() }]}>
-              <View style={styles.membershipBadgeContent}>
-                {membershipInfo.icon}
-                <Text style={styles.membershipBadgeText}>{membershipInfo.title}</Text>
-              </View>
-            </View>
-          </View>
+
         </View>
 
         <View style={styles.personalInfoSection}>
