@@ -24,6 +24,9 @@ export default function UserProfileScreen() {
   // Check if this user has a "fight_for_fries" match with current user
   const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
   
+  // Check if current user is viewing their own profile
+  const isOwnProfile = currentUser && userId === currentUser.id;
+  
   const handleNavigateToCurrentUser = () => {
     if (currentUser) {
       // Navigate back to current user's main profile tab instead of user-profile page
@@ -243,14 +246,17 @@ export default function UserProfileScreen() {
             <Text style={styles.location}>{user.location}</Text>
           </View>
           
-          <View style={styles.membershipBadgeContainer}>
-            <View style={[styles.membershipBadge, { backgroundColor: getMembershipColor() }]}>
-              <View style={styles.membershipBadgeContent}>
-                {membershipInfo.icon}
-                <Text style={styles.membershipBadgeText}>{membershipInfo.title}</Text>
+          {/* Only show membership badge for own profile - this should be in Edit section */}
+          {isOwnProfile && (
+            <View style={styles.membershipBadgeContainer}>
+              <View style={[styles.membershipBadge, { backgroundColor: getMembershipColor() }]}>
+                <View style={styles.membershipBadgeContent}>
+                  {membershipInfo.icon}
+                  <Text style={styles.membershipBadgeText}>{membershipInfo.title}</Text>
+                </View>
               </View>
             </View>
-          </View>
+          )}
         </View>
 
         <View style={styles.personalInfoSection}>
