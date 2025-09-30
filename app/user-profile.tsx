@@ -120,7 +120,7 @@ export default function UserProfileScreen() {
           
           <TouchableOpacity 
             style={styles.addPlaceButton}
-            onPress={() => router.push('/(tabs)')}
+            onPress={() => router.push('/(tabs)?tab=places')}
             testID="add-favorite-place-button"
           >
             <View style={styles.addPlaceIconContainer}>
