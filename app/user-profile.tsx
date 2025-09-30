@@ -102,10 +102,12 @@ export default function UserProfileScreen() {
               ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
               : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
             
+            const isLastInRow = (index + 1) % 3 === 0;
+            
             return (
               <TouchableOpacity 
                 key={place.place_id} 
-                style={styles.foodGridItem}
+                style={[styles.foodGridItem, isLastInRow && styles.foodGridItemLast]}
                 onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
               >
                 <Image 
@@ -119,7 +121,10 @@ export default function UserProfileScreen() {
           })}
           
           <TouchableOpacity 
-            style={styles.addPlaceButton}
+            style={[
+              styles.addPlaceButton,
+              (places.length % 3 === 0) && styles.addPlaceButtonLast
+            ]}
             onPress={() => router.push('/(tabs)?tab=places')}
             testID="add-favorite-place-button"
           >
@@ -568,6 +573,9 @@ const styles = StyleSheet.create({
     marginRight: '3.5%',
     marginBottom: 8,
   },
+  foodGridItemLast: {
+    marginRight: 0,
+  },
   foodImagePlaceholder: {
     width: 40,
     height: 40,
@@ -666,6 +674,9 @@ const styles = StyleSheet.create({
     borderStyle: 'dashed',
     marginRight: '3.5%',
     marginBottom: 8,
+  },
+  addPlaceButtonLast: {
+    marginRight: 0,
   },
   addPlaceIconContainer: {
     width: '70%',
