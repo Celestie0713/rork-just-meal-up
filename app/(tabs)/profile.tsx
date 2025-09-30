@@ -781,6 +781,8 @@ export default function ProfileScreen() {
 
         {renderTabBar()}
         {renderTabContent()}
+        
+        <View style={styles.scrollViewBottomPadding} />
       </ScrollView>
       
       {renderLanguageModal()}
@@ -789,25 +791,29 @@ export default function ProfileScreen() {
       {renderPreferredIncomeModal()}
       {renderSettingsModal()}
       
-      <View style={styles.bottomBar}>
-        <LinearGradient
-          colors={Gradients.primary}
-          style={styles.chatButton}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+      <View style={styles.fixedBottomButtonContainer}>
+        <TouchableOpacity 
+          onPress={() => router.push({
+            pathname: '/(tabs)',
+            params: { tab: 'places' }
+          })}
+          style={styles.bottomAddPlacesButton}
+          testID="add-favorite-places-button"
         >
-          <TouchableOpacity 
-            onPress={() => router.push({
-              pathname: '/(tabs)',
-              params: { tab: 'places' }
-            })}
-            style={styles.chatButtonInner}
-            testID="add-favorite-places-button"
+          <LinearGradient
+            colors={['#6C5CE7', '#A29BFE']}
+            style={styles.bottomAddPlacesGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
           >
-            <Plus size={20} color={Colors.background} />
-            <Text style={styles.chatButtonText}>Add favorite places</Text>
-          </TouchableOpacity>
-        </LinearGradient>
+            <View style={styles.bottomAddPlacesContent}>
+              <View style={styles.bottomAddPlacesIconContainer}>
+                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -1411,32 +1417,50 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.text,
   },
-  bottomBar: {
+  scrollViewBottomPadding: {
+    height: 100,
+  },
+  fixedBottomButtonContainer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    paddingBottom: 40,
     backgroundColor: Colors.background,
     borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 34,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
   },
-  chatButton: {
-    borderRadius: 25,
+  bottomAddPlacesButton: {
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
   },
-  chatButtonInner: {
+  bottomAddPlacesGradient: {
+    borderRadius: 28,
+  },
+  bottomAddPlacesContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
   },
-  chatButtonText: {
-    color: Colors.background,
-    fontSize: 16,
+  bottomAddPlacesIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 14,
+    padding: 10,
+    marginRight: 14,
+  },
+  bottomAddPlacesText: {
+    color: '#FFFFFF',
+    fontSize: 17,
     fontWeight: '700',
-    marginLeft: 8,
+    letterSpacing: 0.5,
   },
 });
