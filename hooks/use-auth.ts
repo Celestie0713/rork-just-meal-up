@@ -1,6 +1,6 @@
 import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { User } from '@/types/user';
 
 const CURRENT_USER_KEY = 'current_user';
@@ -54,17 +54,19 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
   };
 
   const updateUser = useCallback(async (updates: Partial<User>) => {
-    if (!user) return;
-    
-    const updatedUser = { ...user, ...updates };
-    setUser(updatedUser);
-    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
-  }, [user]);
+    setUser(prevUser => {
+      if (!prevUser) return prevUser;
+      
+      const updatedUser = { ...prevUser, ...updates };
+      AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  }, []);
 
-  return useMemo(() => ({
+  return {
     user,
     isLoading,
     updateUser,
     isAuthenticated: !!user,
-  }), [user, isLoading, updateUser]);
+  };
 });

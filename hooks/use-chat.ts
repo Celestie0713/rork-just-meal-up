@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import createContextHook from '@nkzw/create-context-hook';
 import type { ChatMessage, VoiceMessage, SystemMessage } from '@/types/user';
 import { mockPostDateResponses, mockMatchedProfiles } from '@/mocks/post-date-responses';
@@ -110,7 +110,12 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         // Initialize with all matched profiles
         const initialMatchedProfiles: MatchedProfilesState = {};
         mockMatchedProfiles.forEach(profile => {
-          initialMatchedProfiles[profile.userId] = profile;
+          initialMatchedProfiles[profile.userId] = {
+            userId: profile.userId,
+            invitationId: profile.mealId, // Map mealId to invitationId
+            matchType: profile.matchType,
+            matchedAt: profile.matchedAt
+          };
         });
         setMatchedProfiles(initialMatchedProfiles);
         console.log('Initialized with matched profiles:', initialMatchedProfiles);
@@ -329,7 +334,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return () => clearInterval(interval);
   }, [isLoaded, mixedSignalsCases, removeProfileFromChat]);
 
-  return useMemo(() => ({
+  return {
     addVoiceMessage,
     addSystemMessage,
     getChatMessages,
@@ -345,5 +350,5 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     removeMatchedProfile,
     matchedProfiles,
     isLoaded
-  }), [addVoiceMessage, addSystemMessage, getChatMessages, initializeChat, removeProfileFromChat, isProfileRemoved, checkAndRemoveNonMatchingProfiles, getAvailableChats, trackMixedSignalsCase, addMatchedProfile, isProfileMatched, getMatchType, removeMatchedProfile, matchedProfiles, isLoaded]);
+  };
 });
