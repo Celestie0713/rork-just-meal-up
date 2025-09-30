@@ -122,33 +122,30 @@ export default function UserProfileScreen() {
   };
 
   const renderMealUpsTab = () => {
+    const mealUps = [
+      { title: 'Italian Night', date: 'Dec 15, 2024', venue: 'The Italian Corner', status: 'Attended' },
+      { title: 'Sushi Social', date: 'Dec 20, 2024', venue: 'Sakura Sushi', status: 'Upcoming' },
+      { title: 'Brunch Meetup', date: 'Dec 25, 2024', venue: 'Cafe Central', status: 'Upcoming' },
+      { title: 'Pizza Party', date: 'Jan 5, 2025', venue: 'Tony\'s Pizza', status: 'Upcoming' },
+      { title: 'Thai Food Night', date: 'Jan 10, 2025', venue: 'Bangkok Garden', status: 'Upcoming' },
+      { title: 'BBQ Gathering', date: 'Jan 15, 2025', venue: 'Smokey Joe\'s', status: 'Upcoming' },
+    ];
+    
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
           {user.name}&apos;s meal up history
         </Text>
-        <View style={styles.mealUpsContainer}>
-          <View style={styles.mealUpItem}>
-            <View style={styles.mealUpInfo}>
-              <Text style={styles.mealUpTitle}>Italian Night</Text>
-              <Text style={styles.mealUpDate}>Dec 15, 2024</Text>
-              <Text style={styles.mealUpVenue}>The Italian Corner</Text>
+        <View style={styles.mealUpsGrid}>
+          {mealUps.map((mealUp, index) => (
+            <View key={index} style={styles.mealUpGridItem}>
+              <View style={styles.mealUpImagePlaceholder}>
+                <Users size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.mealUpGridTitle}>{mealUp.title}</Text>
+              <Text style={styles.mealUpGridDate}>{mealUp.date}</Text>
             </View>
-            <View style={styles.mealUpStatus}>
-              <Text style={styles.statusText}>Attended</Text>
-            </View>
-          </View>
-          
-          <View style={styles.mealUpItem}>
-            <View style={styles.mealUpInfo}>
-              <Text style={styles.mealUpTitle}>Sushi Social</Text>
-              <Text style={styles.mealUpDate}>Dec 20, 2024</Text>
-              <Text style={styles.mealUpVenue}>Sakura Sushi</Text>
-            </View>
-            <View style={styles.mealUpStatus}>
-              <Text style={styles.statusTextUpcoming}>Upcoming</Text>
-            </View>
-          </View>
+          ))}
         </View>
       </View>
     );
@@ -468,11 +465,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    gap: 4,
   },
   pictureContainer: {
-    width: '48%',
-    aspectRatio: 0.8,
-    marginBottom: 12,
+    width: '31.5%',
+    aspectRatio: 1,
+    marginBottom: 4,
   },
   pictureImage: {
     width: '100%',
@@ -530,16 +528,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: 4,
   },
   foodGridItem: {
-    width: '30%',
+    width: '31.5%',
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 8,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 4,
   },
   foodImagePlaceholder: {
     width: 40,
@@ -580,6 +579,46 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.background,
     fontWeight: '600',
+  },
+  mealUpsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  mealUpGridItem: {
+    width: '31.5%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 4,
+  },
+  mealUpImagePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  mealUpGridTitle: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 16,
+    marginBottom: 2,
+  },
+  mealUpGridDate: {
+    fontSize: 10,
+    fontWeight: '400',
+    color: Colors.textLight,
+    textAlign: 'center',
+    lineHeight: 14,
   },
 
 });
