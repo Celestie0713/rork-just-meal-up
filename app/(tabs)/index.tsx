@@ -93,45 +93,28 @@ export default function SearchScreen() {
     }
     
     try {
-      console.log('Showing confirmation alert');
-      Alert.alert(
-        'Add to Food to Bribe Me With?',
-        `Do you want to add "${place.name}" to your favorite places under "Food to bribe me with"?`,
-        [
-          { 
-            text: 'Cancel', 
-            style: 'cancel',
-            onPress: () => console.log('User cancelled adding place')
-          },
-          { 
-            text: 'Add', 
-            onPress: async () => {
-              console.log('=== USER CONFIRMED ADDING PLACE ===');
-              console.log('About to call addToFavorites...');
-              
-              // Add place to favorites using the favorites hook
-              const success = await addToFavorites(place);
-              
-              console.log('addToFavorites returned:', success);
-              
-              if (success) {
-                console.log('Place added to favorites successfully, showing success alert');
-                Alert.alert(
-                  'Added!',
-                  `${place.name} has been added to your "Food to bribe me with" list!`,
-                  [{ text: 'OK', onPress: () => console.log('Success confirmation dismissed') }]
-                );
-              } else {
-                console.log('Failed to add place to favorites, showing error alert');
-                Alert.alert('Error', 'Failed to add place to favorites. Please try again.');
-              }
-            }
-          }
-        ]
-      );
-      console.log('Confirmation alert displayed successfully');
+      console.log('=== DIRECTLY ADDING TO FAVORITES (SKIPPING CONFIRMATION) ===');
+      console.log('About to call addToFavorites...');
+      
+      // Add place to favorites using the favorites hook
+      const success = await addToFavorites(place);
+      
+      console.log('addToFavorites returned:', success);
+      
+      if (success) {
+        console.log('Place added to favorites successfully, showing success alert');
+        Alert.alert(
+          'Added!',
+          `${place.name} has been added to your "Food to bribe me with" list!`,
+          [{ text: 'OK', onPress: () => console.log('Success confirmation dismissed') }]
+        );
+      } else {
+        console.log('Failed to add place to favorites, showing error alert');
+        Alert.alert('Error', 'Failed to add place to favorites. Please try again.');
+      }
     } catch (error) {
-      console.error('Error showing confirmation alert:', error);
+      console.error('Error adding to favorites:', error);
+      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
     }
   };
 
