@@ -9,6 +9,7 @@ export interface User {
   isOnline: boolean;
   lastSeen?: Date;
   ethnicity?: string;
+  favoritePlaces?: string[]; // Array of place IDs
   preferences: {
     ageRange: [number, number];
     maxDistance: number;

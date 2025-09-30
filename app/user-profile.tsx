@@ -5,6 +5,8 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
+import { mockPlaces } from '@/mocks/places';
+import { GooglePlacesService } from '@/services/google-places';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
@@ -83,7 +85,10 @@ export default function UserProfileScreen() {
   };
 
   const renderFoodTab = () => {
-    const foodItems = user.preferences.cuisinePreferences || [];
+    const favoritePlaces = user.favoritePlaces || [];
+    const places = favoritePlaces.map(placeId => 
+      mockPlaces.find(place => place.place_id === placeId)
+    ).filter(Boolean);
     
     return (
       <View style={styles.tabContent}>
@@ -91,14 +96,23 @@ export default function UserProfileScreen() {
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodGrid}>
-          {foodItems.map((food, index) => (
-            <View key={index} style={styles.foodGridItem}>
-              <View style={styles.foodImagePlaceholder}>
-                <Utensils size={24} color={Colors.primary} />
+          {places.map((place, index) => {
+            if (!place) return null;
+            const photoUrl = place.photos?.[0] 
+              ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
+              : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
+            
+            return (
+              <View key={place.place_id} style={styles.foodGridItem}>
+                <Image 
+                  source={{ uri: photoUrl }} 
+                  style={styles.placeImage}
+                  resizeMode="cover"
+                />
+                <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
               </View>
-              <Text style={styles.foodLabel}>{food}</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     );
@@ -553,6 +567,12 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     lineHeight: 16,
+  },
+  placeImage: {
+    width: '100%',
+    height: '70%',
+    borderRadius: 8,
+    marginBottom: 8,
   },
 
   errorContainer: {
