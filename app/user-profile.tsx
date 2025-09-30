@@ -83,11 +83,23 @@ export default function UserProfileScreen() {
   };
 
   const renderFoodTab = () => {
+    const foodItems = user.preferences.cuisinePreferences || [];
+    
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
           These make me say YES to a date 🍕
         </Text>
+        <View style={styles.foodGrid}>
+          {foodItems.map((food, index) => (
+            <View key={index} style={styles.foodGridItem}>
+              <View style={styles.foodImagePlaceholder}>
+                <Utensils size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.foodLabel}>{food}</Text>
+            </View>
+          ))}
+        </View>
       </View>
     );
   };
@@ -513,6 +525,37 @@ const styles = StyleSheet.create({
   },
   scrollViewBottomPadding: {
     height: 40,
+  },
+  foodGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  foodGridItem: {
+    width: '30%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 8,
+  },
+  foodImagePlaceholder: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  foodLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 
   errorContainer: {
