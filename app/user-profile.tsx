@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -51,9 +51,7 @@ export default function UserProfileScreen() {
 
 
 
-  const handleStartChat = () => {
-    router.push(`/chat?userId=${user.id}`);
-  };
+
 
   const renderTabBar = () => {
     const tabs = [
@@ -257,30 +255,7 @@ export default function UserProfileScreen() {
         <View style={styles.scrollViewBottomPadding} />
       </ScrollView>
       
-      <View style={styles.fixedBottomButtonContainer}>
-        <TouchableOpacity 
-          onPress={() => router.push({
-            pathname: '/(tabs)',
-            params: { tab: 'places' }
-          })}
-          style={styles.bottomAddPlacesButton}
-          testID="add-favorite-places-button"
-        >
-          <LinearGradient
-            colors={['#6C5CE7', '#A29BFE']}
-            style={styles.bottomAddPlacesGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <View style={styles.bottomAddPlacesContent}>
-              <View style={styles.bottomAddPlacesIconContainer}>
-                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+
     </SafeAreaView>
   );
 }
@@ -537,19 +512,7 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   scrollViewBottomPadding: {
-    height: 100,
-  },
-  fixedBottomButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    paddingBottom: 40,
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
+    height: 40,
   },
 
   errorContainer: {
@@ -575,67 +538,5 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontWeight: '600',
   },
-  addPlacesButton: {
-    marginTop: 20,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#FF6B6B',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  addPlacesButtonGradient: {
-    borderRadius: 16,
-  },
-  addPlacesButtonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 24,
-  },
-  addPlacesIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 12,
-    padding: 8,
-    marginRight: 12,
-  },
-  addPlacesButtonText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#FFFFFF',
-    letterSpacing: 0.5,
-  },
-  bottomAddPlacesButton: {
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#6C5CE7',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  bottomAddPlacesGradient: {
-    borderRadius: 28,
-  },
-  bottomAddPlacesContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 28,
-  },
-  bottomAddPlacesIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 14,
-    padding: 10,
-    marginRight: 14,
-  },
-  bottomAddPlacesText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+
 });
