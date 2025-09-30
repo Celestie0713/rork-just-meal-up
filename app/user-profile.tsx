@@ -275,29 +275,29 @@ export default function UserProfileScreen() {
 
         {renderTabBar()}
         {renderTabContent()}
-      </ScrollView>
-      
-      <View style={styles.bottomBar}>
-        <TouchableOpacity 
-          onPress={handleStartChat}
-          style={styles.bottomAddPlacesButton}
-          testID="start-chat-button"
-        >
-          <LinearGradient
-            colors={['#6C5CE7', '#A29BFE']}
-            style={styles.bottomAddPlacesGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
+        
+        <View style={styles.bottomButtonContainer}>
+          <TouchableOpacity 
+            onPress={handleStartChat}
+            style={styles.bottomAddPlacesButton}
+            testID="start-chat-button"
           >
-            <View style={styles.bottomAddPlacesContent}>
-              <View style={styles.bottomAddPlacesIconContainer}>
-                <MapPin size={20} color="#FFFFFF" strokeWidth={2.5} />
+            <LinearGradient
+              colors={['#6C5CE7', '#A29BFE']}
+              style={styles.bottomAddPlacesGradient}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <View style={styles.bottomAddPlacesContent}>
+                <View style={styles.bottomAddPlacesIconContainer}>
+                  <MapPin size={20} color="#FFFFFF" strokeWidth={2.5} />
+                </View>
+                <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
               </View>
-              <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -553,17 +553,10 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
+  bottomButtonContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
-    paddingBottom: 34,
+    paddingVertical: 24,
+    paddingBottom: 40,
   },
 
   errorContainer: {
