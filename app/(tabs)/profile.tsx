@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
+import type { User } from '@/types/user';
 import { useChat } from '@/hooks/use-chat';
 import { useFavorites } from '@/hooks/use-favorites';
 import { mockUsers } from '@/mocks/users';
@@ -73,7 +74,14 @@ export default function ProfileScreen() {
     Montserrat_900Black,
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [editedUser, setEditedUser] = useState(user);
+  const [editedUser, setEditedUser] = useState<User | null>(null);
+
+  // Initialize editedUser only when user changes
+  useEffect(() => {
+    if (user) {
+      setEditedUser(user);
+    }
+  }, [user]);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [showPersonalIncomeModal, setShowPersonalIncomeModal] = useState(false);
@@ -234,7 +242,7 @@ export default function ProfileScreen() {
     if (editedUser && editedUser.photos.length > 1) {
       const updatedUser = {
         ...editedUser,
-        photos: editedUser.photos.filter((_, i) => i !== index)
+        photos: editedUser.photos.filter((_: string, i: number) => i !== index)
       };
       setEditedUser(updatedUser);
     } else {
@@ -247,7 +255,7 @@ export default function ProfileScreen() {
     
     const currentLanguages = editedUser.preferences.preferredEthnicity || [];
     const updatedLanguages = currentLanguages.includes(language)
-      ? currentLanguages.filter(e => e !== language)
+      ? currentLanguages.filter((e: string) => e !== language)
       : [...currentLanguages, language];
     
     setEditedUser({
@@ -337,7 +345,7 @@ export default function ProfileScreen() {
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodGrid}>
-          {places.map((place, index) => {
+          {places.map((place) => {
             if (!place) return null;
             const photoUrl = place.photos?.[0] 
               ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
@@ -361,7 +369,7 @@ export default function ProfileScreen() {
           
           <TouchableOpacity 
             style={styles.addPlaceButton}
-            onPress={() => router.push({ pathname: '/(tabs)', params: { tab: 'places' } })}
+            onPress={() => router.push('/(tabs)')}
             testID="add-favorite-place-button"
           >
             <View style={styles.addPlaceIconContainer}>
@@ -383,7 +391,7 @@ export default function ProfileScreen() {
           Show your best self! ({photos.length}/5)
         </Text>
         <View style={styles.picturesGrid}>
-          {photos.map((photo, index) => (
+          {photos.map((photo: string, index: number) => (
             <View key={`photo-${index}-${photo.slice(-10)}`} style={styles.pictureContainer}>
               <Image source={{ uri: photo }} style={styles.pictureImage} />
               {isEditing && (
