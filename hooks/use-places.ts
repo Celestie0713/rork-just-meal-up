@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 import { GooglePlacesService } from '@/services/google-places';
@@ -11,6 +11,7 @@ export function usePlaces() {
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
   const [locationPermission, setLocationPermission] = useState<Location.PermissionStatus | 'undetermined' | null>(null);
   const [hasLoadedInitialPlaces, setHasLoadedInitialPlaces] = useState(false);
+  const searchNearbyPlacesRef = useRef<((latitude: number, longitude: number, radius?: number, type?: string) => Promise<void>) | null>(null);
 
   const searchNearbyPlaces = useCallback(async (
     latitude: number,
@@ -31,6 +32,9 @@ export function usePlaces() {
       setLoading(false);
     }
   }, []);
+  
+  // Store the stable reference
+  searchNearbyPlacesRef.current = searchNearbyPlaces;
 
   const requestLocationPermission = useCallback(async () => {
     try {
@@ -97,11 +101,11 @@ export function usePlaces() {
 
   // Load initial places when location is available
   useEffect(() => {
-    if (location && !hasLoadedInitialPlaces) {
-      searchNearbyPlaces(location.coords.latitude, location.coords.longitude);
+    if (location && !hasLoadedInitialPlaces && searchNearbyPlacesRef.current) {
+      searchNearbyPlacesRef.current(location.coords.latitude, location.coords.longitude);
       setHasLoadedInitialPlaces(true);
     }
-  }, [location, hasLoadedInitialPlaces, searchNearbyPlaces]);
+  }, [location, hasLoadedInitialPlaces]);
 
   // Check initial permission status
   useEffect(() => {
@@ -139,8 +143,8 @@ export function usePlaces() {
 
   const searchPlacesByText = useCallback(async (query: string) => {
     if (!query.trim()) {
-      if (location) {
-        searchNearbyPlaces(location.coords.latitude, location.coords.longitude);
+      if (location && searchNearbyPlacesRef.current) {
+        searchNearbyPlacesRef.current(location.coords.latitude, location.coords.longitude);
       }
       return;
     }
@@ -161,13 +165,13 @@ export function usePlaces() {
     } finally {
       setLoading(false);
     }
-  }, [location, searchNearbyPlaces]);
+  }, [location]);
 
   const refreshNearbyPlaces = useCallback(async () => {
-    if (location) {
-      await searchNearbyPlaces(location.coords.latitude, location.coords.longitude);
+    if (location && searchNearbyPlacesRef.current) {
+      await searchNearbyPlacesRef.current(location.coords.latitude, location.coords.longitude);
     }
-  }, [location, searchNearbyPlaces]);
+  }, [location]);
 
   return {
     places,
