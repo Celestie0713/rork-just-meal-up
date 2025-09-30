@@ -70,23 +70,30 @@ export default function SearchScreen() {
   };
 
   const handleAddToFavorites = async (place: Place) => {
-    console.log('=== ADD TO FAVORITES CLICKED ===');
+    console.log('=== SEARCH SCREEN: ADD TO FAVORITES CLICKED ===');
     console.log('Place name:', place.name);
     console.log('Place ID:', place.place_id);
-    console.log('Current user:', user);
+    console.log('Current user:', user?.name, user?.id);
+    console.log('addToFavorites function exists?', !!addToFavorites);
+    console.log('isPlaceInFavorites function exists?', !!isPlaceInFavorites);
     
     if (!user) {
+      console.log('No user found, showing error alert');
       Alert.alert('Error', 'You must be logged in to add favorites');
       return;
     }
     
     // Check if place is already in favorites
-    if (isPlaceInFavorites(place.place_id)) {
+    const alreadyInFavorites = isPlaceInFavorites(place.place_id);
+    console.log('Is place already in favorites?', alreadyInFavorites);
+    
+    if (alreadyInFavorites) {
       Alert.alert('Already Added', `${place.name} is already in your "Food to bribe me with" list!`);
       return;
     }
     
     try {
+      console.log('Showing confirmation alert');
       Alert.alert(
         'Add to Food to Bribe Me With?',
         `Do you want to add "${place.name}" to your favorite places under "Food to bribe me with"?`,
@@ -94,33 +101,37 @@ export default function SearchScreen() {
           { 
             text: 'Cancel', 
             style: 'cancel',
-            onPress: () => console.log('User cancelled')
+            onPress: () => console.log('User cancelled adding place')
           },
           { 
             text: 'Add', 
             onPress: async () => {
-              console.log('User confirmed adding place');
+              console.log('=== USER CONFIRMED ADDING PLACE ===');
+              console.log('About to call addToFavorites...');
               
               // Add place to favorites using the favorites hook
               const success = await addToFavorites(place);
               
+              console.log('addToFavorites returned:', success);
+              
               if (success) {
-                console.log('Place added to favorites successfully');
+                console.log('Place added to favorites successfully, showing success alert');
                 Alert.alert(
                   'Added!',
                   `${place.name} has been added to your "Food to bribe me with" list!`,
-                  [{ text: 'OK', onPress: () => console.log('Confirmation dismissed') }]
+                  [{ text: 'OK', onPress: () => console.log('Success confirmation dismissed') }]
                 );
               } else {
+                console.log('Failed to add place to favorites, showing error alert');
                 Alert.alert('Error', 'Failed to add place to favorites. Please try again.');
               }
             }
           }
         ]
       );
-      console.log('Alert.alert called successfully');
+      console.log('Confirmation alert displayed successfully');
     } catch (error) {
-      console.error('Error showing alert:', error);
+      console.error('Error showing confirmation alert:', error);
     }
   };
 

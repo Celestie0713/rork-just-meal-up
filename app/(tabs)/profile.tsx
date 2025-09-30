@@ -338,6 +338,9 @@ export default function ProfileScreen() {
 
   const renderFoodTab = () => {
     const places = favoritePlaces;
+    console.log('=== PROFILE SCREEN: renderFoodTab ===');
+    console.log('Favorite places count:', places.length);
+    console.log('Favorite places:', places.map(p => ({ name: p?.name, id: p?.place_id })));
     
     return (
       <View style={styles.tabContent}>

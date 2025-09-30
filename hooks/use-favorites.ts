@@ -50,31 +50,51 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
   };
 
   const addToFavorites = useCallback(async (place: Place) => {
-    if (!user) return false;
-
-    const currentFavorites = user.favoritePlaces || [];
+    console.log('=== FAVORITES HOOK: addToFavorites called ===');
+    console.log('Place:', place.name, place.place_id);
+    console.log('Current user:', user?.name, user?.id);
     
-    // Check if already in favorites
-    if (currentFavorites.includes(place.place_id)) {
+    if (!user) {
+      console.log('No user found, returning false');
       return false;
     }
 
-    // Add to user's favorite place IDs
-    const updatedFavoriteIds = [...currentFavorites, place.place_id];
-    await updateUser({ favoritePlaces: updatedFavoriteIds });
+    const currentFavorites = user.favoritePlaces || [];
+    console.log('Current favorites:', currentFavorites);
+    
+    // Check if already in favorites
+    if (currentFavorites.includes(place.place_id)) {
+      console.log('Place already in favorites');
+      return false;
+    }
 
-    // Add place data to our local storage
-    const newFavoriteData: FavoritePlaceData = {
-      placeId: place.place_id,
-      placeData: place,
-      addedAt: new Date()
-    };
+    try {
+      // Add to user's favorite place IDs
+      const updatedFavoriteIds = [...currentFavorites, place.place_id];
+      console.log('Updated favorite IDs:', updatedFavoriteIds);
+      
+      await updateUser({ favoritePlaces: updatedFavoriteIds });
+      console.log('User updated successfully');
 
-    const updatedFavoritesData = [...favoritePlacesData, newFavoriteData];
-    setFavoritePlacesData(updatedFavoritesData);
-    await saveFavoritePlacesData(updatedFavoritesData);
+      // Add place data to our local storage
+      const newFavoriteData: FavoritePlaceData = {
+        placeId: place.place_id,
+        placeData: place,
+        addedAt: new Date()
+      };
 
-    return true;
+      const updatedFavoritesData = [...favoritePlacesData, newFavoriteData];
+      console.log('Updating favorites data:', updatedFavoritesData.length, 'items');
+      
+      setFavoritePlacesData(updatedFavoritesData);
+      await saveFavoritePlacesData(updatedFavoritesData);
+      
+      console.log('Favorites data saved successfully');
+      return true;
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
+      return false;
+    }
   }, [user, updateUser, favoritePlacesData]);
 
   const removeFromFavorites = useCallback(async (placeId: string) => {

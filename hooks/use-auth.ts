@@ -15,10 +15,10 @@ const mockCurrentUser: User = {
     'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop'
   ],
   location: 'San Francisco, CA',
-  membershipTier: 'free',
+  membershipTier: 'premium',
   isOnline: true,
   ethnicity: 'english, mandarin, cantonese',
-  favoritePlaces: [], // Start with empty array, user can add places
+  favoritePlaces: ['mock_place_1', 'mock_place_2', 'mock_place_3'],
   preferences: {
     ageRange: [25, 35],
     maxDistance: 25,
