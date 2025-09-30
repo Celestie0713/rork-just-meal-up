@@ -6,6 +6,8 @@ import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
 import { mockUsers } from '@/mocks/users';
 import { usePlaces } from '@/hooks/use-places';
+import { useAuth } from '@/hooks/use-auth';
+import { useFavorites } from '@/hooks/use-favorites';
 import { Colors } from '@/constants/colors';
 
 import type { User } from '@/types/user';
@@ -15,6 +17,8 @@ export default function SearchScreen() {
   const { tab } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'places'>(tab === 'places' ? 'places' : 'users');
+  const { user } = useAuth();
+  const { addToFavorites, isPlaceInFavorites } = useFavorites();
 
   const {
     places,
@@ -65,11 +69,22 @@ export default function SearchScreen() {
     await requestLocationPermission();
   };
 
-  const handleAddToFavorites = (place: Place) => {
+  const handleAddToFavorites = async (place: Place) => {
     console.log('=== ADD TO FAVORITES CLICKED ===');
     console.log('Place name:', place.name);
     console.log('Place ID:', place.place_id);
-    console.log('About to show Alert...');
+    console.log('Current user:', user);
+    
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to add favorites');
+      return;
+    }
+    
+    // Check if place is already in favorites
+    if (isPlaceInFavorites(place.place_id)) {
+      Alert.alert('Already Added', `${place.name} is already in your "Food to bribe me with" list!`);
+      return;
+    }
     
     try {
       Alert.alert(
@@ -83,13 +98,22 @@ export default function SearchScreen() {
           },
           { 
             text: 'Add', 
-            onPress: () => {
+            onPress: async () => {
               console.log('User confirmed adding place');
-              Alert.alert(
-                'Added!',
-                `${place.name} has been added to your "Food to bribe me with" list!`,
-                [{ text: 'OK', onPress: () => console.log('Confirmation dismissed') }]
-              );
+              
+              // Add place to favorites using the favorites hook
+              const success = await addToFavorites(place);
+              
+              if (success) {
+                console.log('Place added to favorites successfully');
+                Alert.alert(
+                  'Added!',
+                  `${place.name} has been added to your "Food to bribe me with" list!`,
+                  [{ text: 'OK', onPress: () => console.log('Confirmation dismissed') }]
+                );
+              } else {
+                Alert.alert('Error', 'Failed to add place to favorites. Please try again.');
+              }
             }
           }
         ]

@@ -18,6 +18,7 @@ const mockCurrentUser: User = {
   membershipTier: 'free',
   isOnline: true,
   ethnicity: 'english, mandarin, cantonese',
+  favoritePlaces: [], // Start with empty array, user can add places
   preferences: {
     ageRange: [25, 35],
     maxDistance: 25,

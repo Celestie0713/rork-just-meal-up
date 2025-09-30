@@ -5,8 +5,8 @@ import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Us
 import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
+import { useFavorites } from '@/hooks/use-favorites';
 import { mockUsers } from '@/mocks/users';
-import { mockPlaces } from '@/mocks/places';
 import { GooglePlacesService } from '@/services/google-places';
 import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
 
@@ -62,6 +62,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
+  const { favoritePlaces } = useFavorites();
   
 
 
@@ -328,10 +329,7 @@ export default function ProfileScreen() {
   };
 
   const renderFoodTab = () => {
-    const favoritePlaces = user.favoritePlaces || [];
-    const places = favoritePlaces.map(placeId => 
-      mockPlaces.find(place => place.place_id === placeId)
-    ).filter(Boolean);
+    const places = favoritePlaces;
     
     return (
       <View style={styles.tabContent}>
@@ -363,7 +361,7 @@ export default function ProfileScreen() {
           
           <TouchableOpacity 
             style={styles.addPlaceButton}
-            onPress={() => router.push('/(tabs)/?tab=places')}
+            onPress={() => router.push({ pathname: '/(tabs)', params: { tab: 'places' } })}
             testID="add-favorite-place-button"
           >
             <View style={styles.addPlaceIconContainer}>
