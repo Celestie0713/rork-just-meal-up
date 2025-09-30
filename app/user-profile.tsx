@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { mockPlaces } from '@/mocks/places';
@@ -117,6 +117,17 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
             );
           })}
+          
+          <TouchableOpacity 
+            style={styles.addPlaceButton}
+            onPress={() => router.push('/(tabs)')}
+            testID="add-favorite-place-button"
+          >
+            <View style={styles.addPlaceIconContainer}>
+              <Plus size={24} color={Colors.primary} />
+            </View>
+            <Text style={styles.addPlaceText}>Add Place</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -640,6 +651,33 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     textAlign: 'center',
     lineHeight: 14,
+  },
+  addPlaceButton: {
+    width: '31.5%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  addPlaceIconContainer: {
+    width: '70%',
+    height: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  addPlaceText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.primary,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 
 });
