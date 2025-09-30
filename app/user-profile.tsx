@@ -103,14 +103,18 @@ export default function UserProfileScreen() {
               : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
             
             return (
-              <View key={place.place_id} style={styles.foodGridItem}>
+              <TouchableOpacity 
+                key={place.place_id} 
+                style={styles.foodGridItem}
+                onPress={() => router.push('/(tabs)/?tab=places')}
+              >
                 <Image 
                   source={{ uri: photoUrl }} 
                   style={styles.placeImage}
                   resizeMode="cover"
                 />
                 <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
-              </View>
+              </TouchableOpacity>
             );
           })}
         </View>

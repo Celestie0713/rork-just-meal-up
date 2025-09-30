@@ -6,6 +6,8 @@ import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
+import { mockPlaces } from '@/mocks/places';
+import { GooglePlacesService } from '@/services/google-places';
 import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
 
 
@@ -326,15 +328,39 @@ export default function ProfileScreen() {
   };
 
   const renderFoodTab = () => {
+    const favoritePlaces = user.favoritePlaces || [];
+    const places = favoritePlaces.map(placeId => 
+      mockPlaces.find(place => place.place_id === placeId)
+    ).filter(Boolean);
+    
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
           These make me say YES to a date 🍕
         </Text>
-        <View style={styles.foodContainer}>
+        <View style={styles.foodGrid}>
+          {places.map((place, index) => {
+            if (!place) return null;
+            const photoUrl = place.photos?.[0] 
+              ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
+              : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
+            
+            return (
+              <TouchableOpacity 
+                key={place.place_id} 
+                style={styles.foodGridItem}
+                onPress={() => router.push('/(tabs)/?tab=places')}
+              >
+                <Image 
+                  source={{ uri: photoUrl }} 
+                  style={styles.placeImage}
+                  resizeMode="cover"
+                />
+                <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-        
-
       </View>
     );
   };
@@ -1106,6 +1132,34 @@ const styles = StyleSheet.create({
   foodContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+  },
+  foodGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  foodGridItem: {
+    width: '31.5%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  placeImage: {
+    width: '100%',
+    height: '70%',
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  foodLabel: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 16,
   },
   foodTag: {
     flexDirection: 'row',
