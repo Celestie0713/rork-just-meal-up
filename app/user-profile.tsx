@@ -276,28 +276,30 @@ export default function UserProfileScreen() {
         {renderTabBar()}
         {renderTabContent()}
         
-        <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity 
-            onPress={handleStartChat}
-            style={styles.bottomAddPlacesButton}
-            testID="start-chat-button"
-          >
-            <LinearGradient
-              colors={['#6C5CE7', '#A29BFE']}
-              style={styles.bottomAddPlacesGradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 0 }}
-            >
-              <View style={styles.bottomAddPlacesContent}>
-                <View style={styles.bottomAddPlacesIconContainer}>
-                  <MapPin size={20} color="#FFFFFF" strokeWidth={2.5} />
-                </View>
-                <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
-              </View>
-            </LinearGradient>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.scrollViewBottomPadding} />
       </ScrollView>
+      
+      <View style={styles.fixedBottomButtonContainer}>
+        <TouchableOpacity 
+          onPress={handleStartChat}
+          style={styles.bottomAddPlacesButton}
+          testID="start-chat-button"
+        >
+          <LinearGradient
+            colors={['#6C5CE7', '#A29BFE']}
+            style={styles.bottomAddPlacesGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <View style={styles.bottomAddPlacesContent}>
+              <View style={styles.bottomAddPlacesIconContainer}>
+                <MapPin size={20} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 }
@@ -553,10 +555,20 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
   },
-  bottomButtonContainer: {
+  scrollViewBottomPadding: {
+    height: 100,
+  },
+  fixedBottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     paddingHorizontal: 20,
     paddingVertical: 24,
     paddingBottom: 40,
+    backgroundColor: Colors.background,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(0, 0, 0, 0.05)',
   },
 
   errorContainer: {
