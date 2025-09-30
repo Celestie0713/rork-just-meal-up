@@ -90,28 +90,6 @@ export default function UserProfileScreen() {
         <Text style={styles.tabDescription}>
           These make me say YES to a date 🍕
         </Text>
-        
-        <TouchableOpacity 
-          style={styles.addPlacesButton}
-          onPress={() => router.push({
-            pathname: '/(tabs)',
-            params: { tab: 'places' }
-          })}
-        >
-          <LinearGradient
-            colors={['#FF6B6B', '#FF8E8E']}
-            style={styles.addPlacesButtonGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <View style={styles.addPlacesButtonContent}>
-              <View style={styles.addPlacesIconContainer}>
-                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={styles.addPlacesButtonText}>Add favorite places</Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
       </View>
     );
   };
@@ -281,9 +259,12 @@ export default function UserProfileScreen() {
       
       <View style={styles.fixedBottomButtonContainer}>
         <TouchableOpacity 
-          onPress={handleStartChat}
+          onPress={() => router.push({
+            pathname: '/(tabs)',
+            params: { tab: 'places' }
+          })}
           style={styles.bottomAddPlacesButton}
-          testID="start-chat-button"
+          testID="add-favorite-places-button"
         >
           <LinearGradient
             colors={['#6C5CE7', '#A29BFE']}
@@ -293,7 +274,7 @@ export default function UserProfileScreen() {
           >
             <View style={styles.bottomAddPlacesContent}>
               <View style={styles.bottomAddPlacesIconContainer}>
-                <MapPin size={20} color="#FFFFFF" strokeWidth={2.5} />
+                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
               </View>
               <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
             </View>
