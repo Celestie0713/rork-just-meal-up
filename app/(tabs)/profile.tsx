@@ -349,7 +349,7 @@ export default function ProfileScreen() {
               <TouchableOpacity 
                 key={place.place_id} 
                 style={styles.foodGridItem}
-                onPress={() => router.push('/(tabs)/?tab=places')}
+                onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
               >
                 <Image 
                   source={{ uri: photoUrl }} 
@@ -360,6 +360,17 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             );
           })}
+          
+          <TouchableOpacity 
+            style={styles.addPlaceButton}
+            onPress={() => router.push('/(tabs)/?tab=places')}
+            testID="add-favorite-place-button"
+          >
+            <View style={styles.addPlaceIconContainer}>
+              <Plus size={24} color={Colors.primary} />
+            </View>
+            <Text style={styles.addPlaceText}>Add Place</Text>
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -1423,6 +1434,33 @@ const styles = StyleSheet.create({
   },
   scrollViewBottomPadding: {
     height: 40,
+  },
+  addPlaceButton: {
+    width: '31.5%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  addPlaceIconContainer: {
+    width: '70%',
+    height: '50%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  addPlaceText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.primary,
+    textAlign: 'center',
+    lineHeight: 16,
   },
 
 });
