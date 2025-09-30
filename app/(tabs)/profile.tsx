@@ -788,6 +788,27 @@ export default function ProfileScreen() {
       {renderPersonalLanguageModal()}
       {renderPreferredIncomeModal()}
       {renderSettingsModal()}
+      
+      <View style={styles.bottomBar}>
+        <LinearGradient
+          colors={Gradients.primary}
+          style={styles.chatButton}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+        >
+          <TouchableOpacity 
+            onPress={() => router.push({
+              pathname: '/(tabs)',
+              params: { tab: 'places' }
+            })}
+            style={styles.chatButtonInner}
+            testID="add-favorite-places-button"
+          >
+            <Plus size={20} color={Colors.background} />
+            <Text style={styles.chatButtonText}>Add favorite places</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -1389,5 +1410,33 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: Colors.text,
+  },
+  bottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: Colors.background,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingBottom: 34,
+  },
+  chatButton: {
+    borderRadius: 25,
+  },
+  chatButtonInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+  },
+  chatButtonText: {
+    color: Colors.background,
+    fontSize: 16,
+    fontWeight: '700',
+    marginLeft: 8,
   },
 });
