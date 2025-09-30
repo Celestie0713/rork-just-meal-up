@@ -334,16 +334,7 @@ export default function ProfileScreen() {
         <View style={styles.foodContainer}>
         </View>
         
-        <TouchableOpacity 
-          style={styles.addPlacesButton}
-          onPress={() => router.push({
-            pathname: '/(tabs)',
-            params: { tab: 'places' }
-          })}
-        >
-          <Plus size={20} color={Colors.primary} />
-          <Text style={styles.addPlacesButtonText}>Add favorite places</Text>
-        </TouchableOpacity>
+
       </View>
     );
   };
@@ -791,30 +782,7 @@ export default function ProfileScreen() {
       {renderPreferredIncomeModal()}
       {renderSettingsModal()}
       
-      <View style={styles.fixedBottomButtonContainer}>
-        <TouchableOpacity 
-          onPress={() => router.push({
-            pathname: '/(tabs)',
-            params: { tab: 'places' }
-          })}
-          style={styles.bottomAddPlacesButton}
-          testID="add-favorite-places-button"
-        >
-          <LinearGradient
-            colors={['#6C5CE7', '#A29BFE']}
-            style={styles.bottomAddPlacesGradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-          >
-            <View style={styles.bottomAddPlacesContent}>
-              <View style={styles.bottomAddPlacesIconContainer}>
-                <Plus size={20} color="#FFFFFF" strokeWidth={2.5} />
-              </View>
-              <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
-            </View>
-          </LinearGradient>
-        </TouchableOpacity>
-      </View>
+
     </SafeAreaView>
   );
 }
@@ -1354,25 +1322,7 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontWeight: '600',
   },
-  addPlacesButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginTop: 20,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderStyle: 'dashed',
-  },
-  addPlacesButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginLeft: 8,
-  },
+
   addPicturesButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1418,49 +1368,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
   },
   scrollViewBottomPadding: {
-    height: 100,
+    height: 40,
   },
-  fixedBottomButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    paddingBottom: 40,
-    backgroundColor: Colors.background,
-    borderTopWidth: 1,
-    borderTopColor: 'rgba(0, 0, 0, 0.05)',
-  },
-  bottomAddPlacesButton: {
-    borderRadius: 28,
-    overflow: 'hidden',
-    shadowColor: '#6C5CE7',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 12,
-  },
-  bottomAddPlacesGradient: {
-    borderRadius: 28,
-  },
-  bottomAddPlacesContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 28,
-  },
-  bottomAddPlacesIconContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
-    borderRadius: 14,
-    padding: 10,
-    marginRight: 14,
-  },
-  bottomAddPlacesText: {
-    color: '#FFFFFF',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+
 });
