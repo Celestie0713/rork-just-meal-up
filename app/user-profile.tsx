@@ -106,7 +106,7 @@ export default function UserProfileScreen() {
               <TouchableOpacity 
                 key={place.place_id} 
                 style={styles.foodGridItem}
-                onPress={() => router.push('/(tabs)/?tab=places')}
+                onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
               >
                 <Image 
                   source={{ uri: photoUrl }} 
