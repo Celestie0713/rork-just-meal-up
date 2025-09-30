@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, MessageCircle, Camera, Users, Utensils, Plus } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -278,8 +278,8 @@ export default function UserProfileScreen() {
             style={styles.chatButtonInner}
             testID="start-chat-button"
           >
-            <MessageCircle size={20} color={Colors.background} />
-            <Text style={styles.chatButtonText}>Send Voice Note</Text>
+            <Plus size={20} color={Colors.background} />
+            <Text style={styles.chatButtonText}>Add favorite places</Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
