@@ -90,13 +90,16 @@ export default function UserProfileScreen() {
       mockPlaces.find(place => place.place_id === placeId)
     ).filter(Boolean);
     
+    // Create array with places and add button positioned correctly
+    const gridItems = [...places];
+    
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodGrid}>
-          {places.map((place, index) => {
+          {gridItems.map((place, index) => {
             if (!place) return null;
             const photoUrl = place.photos?.[0] 
               ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
@@ -555,17 +558,17 @@ const styles = StyleSheet.create({
   foodGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
+    gap: 8,
   },
   foodGridItem: {
-    width: '31.5%',
+    width: '31%',
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 8,
   },
   foodImagePlaceholder: {
     width: 40,
@@ -653,14 +656,13 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   addPlaceButton: {
-    width: '31.5%',
+    width: '31%',
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 8,
     borderWidth: 2,
     borderColor: Colors.primary,
     borderStyle: 'dashed',
