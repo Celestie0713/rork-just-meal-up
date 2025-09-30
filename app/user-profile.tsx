@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus } from 'lucide-react-native';
-import { Colors, Gradients } from '@/constants/colors';
+import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
 import { useAuth } from '@/hooks/use-auth';
@@ -98,8 +98,19 @@ export default function UserProfileScreen() {
             params: { tab: 'places' }
           })}
         >
-          <Plus size={20} color={Colors.primary} />
-          <Text style={styles.addPlacesButtonText}>Add favorite places</Text>
+          <LinearGradient
+            colors={['#FF6B6B', '#FF8E8E']}
+            style={styles.addPlacesButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <View style={styles.addPlacesButtonContent}>
+              <View style={styles.addPlacesIconContainer}>
+                <Plus size={18} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={styles.addPlacesButtonText}>Add favorite places</Text>
+            </View>
+          </LinearGradient>
         </TouchableOpacity>
       </View>
     );
@@ -267,21 +278,25 @@ export default function UserProfileScreen() {
       </ScrollView>
       
       <View style={styles.bottomBar}>
-        <LinearGradient
-          colors={Gradients.primary}
-          style={styles.chatButton}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
+        <TouchableOpacity 
+          onPress={handleStartChat}
+          style={styles.bottomAddPlacesButton}
+          testID="start-chat-button"
         >
-          <TouchableOpacity 
-            onPress={handleStartChat}
-            style={styles.chatButtonInner}
-            testID="start-chat-button"
+          <LinearGradient
+            colors={['#6C5CE7', '#A29BFE']}
+            style={styles.bottomAddPlacesGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
           >
-            <Plus size={20} color={Colors.background} />
-            <Text style={styles.chatButtonText}>Add favorite places</Text>
-          </TouchableOpacity>
-        </LinearGradient>
+            <View style={styles.bottomAddPlacesContent}>
+              <View style={styles.bottomAddPlacesIconContainer}>
+                <MapPin size={20} color="#FFFFFF" strokeWidth={2.5} />
+              </View>
+              <Text style={styles.bottomAddPlacesText}>Add favorite places</Text>
+            </View>
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -550,22 +565,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingBottom: 34,
   },
-  chatButton: {
-    borderRadius: 25,
-  },
-  chatButtonInner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 24,
-  },
-  chatButtonText: {
-    color: Colors.background,
-    fontSize: 16,
-    fontWeight: '700',
-    marginLeft: 8,
-  },
+
   errorContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -590,22 +590,66 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   addPlacesButton: {
+    marginTop: 20,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#FF6B6B',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  addPlacesButtonGradient: {
+    borderRadius: 16,
+  },
+  addPlacesButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    paddingVertical: 18,
+    paddingHorizontal: 24,
+  },
+  addPlacesIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
     borderRadius: 12,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    marginTop: 20,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderStyle: 'dashed',
+    padding: 8,
+    marginRight: 12,
   },
   addPlacesButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginLeft: 8,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  bottomAddPlacesButton: {
+    borderRadius: 28,
+    overflow: 'hidden',
+    shadowColor: '#6C5CE7',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 12,
+  },
+  bottomAddPlacesGradient: {
+    borderRadius: 28,
+  },
+  bottomAddPlacesContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 18,
+    paddingHorizontal: 28,
+  },
+  bottomAddPlacesIconContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 14,
+    padding: 10,
+    marginRight: 14,
+  },
+  bottomAddPlacesText: {
+    color: '#FFFFFF',
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
