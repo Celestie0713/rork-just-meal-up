@@ -465,12 +465,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 4,
   },
   pictureContainer: {
     width: '31.5%',
     aspectRatio: 1,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   pictureImage: {
     width: '100%',
@@ -528,7 +527,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 4,
   },
   foodGridItem: {
     width: '31.5%',
@@ -538,7 +536,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   foodImagePlaceholder: {
     width: 40,
@@ -584,7 +582,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 4,
   },
   mealUpGridItem: {
     width: '31.5%',
@@ -594,7 +591,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   mealUpImagePlaceholder: {
     width: 40,
