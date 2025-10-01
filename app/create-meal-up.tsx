@@ -9,14 +9,18 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Image,
+  Dimensions,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { Calendar, Clock, MapPin, Users, DollarSign, ArrowLeft } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, ArrowLeft, Video, X, Plus } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
+import * as ImagePicker from 'expo-image-picker';
+import { Video as ExpoVideo, ResizeMode } from 'expo-av';
 
 export default function CreateMealUpScreen() {
-  const { user } = useAuth();
+  useAuth();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -35,6 +39,11 @@ export default function CreateMealUpScreen() {
     includesService: false,
   });
 
+  const [mediaFiles, setMediaFiles] = useState<ImagePicker.ImagePickerAsset[]>([]);
+
+  const { width: screenWidth } = Dimensions.get('window');
+  const mediaItemWidth = (screenWidth - 60) / 3; // 3 items per row with padding
+
   const handleInputChange = (field: string, value: string) => {
     if (field.startsWith('venue.')) {
       const venueField = field.split('.')[1];
@@ -51,6 +60,88 @@ export default function CreateMealUpScreen() {
         [field]: value,
       }));
     }
+  };
+
+  const pickMedia = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant permission to access your media library');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        videoMaxDuration: 30, // 30 seconds max
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        
+        // Check video duration
+        if (asset.type === 'video' && asset.duration && asset.duration > 30000) {
+          Alert.alert('Video too long', 'Please select a video that is 30 seconds or shorter');
+          return;
+        }
+        
+        setMediaFiles(prev => [...prev, asset]);
+      }
+    } catch (error) {
+      console.error('Error picking media:', error);
+      Alert.alert('Error', 'Failed to pick media');
+    }
+  };
+
+  const takePhoto = async () => {
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant permission to access your camera');
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        videoMaxDuration: 30, // 30 seconds max
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const asset = result.assets[0];
+        
+        // Check video duration
+        if (asset.type === 'video' && asset.duration && asset.duration > 30000) {
+          Alert.alert('Video too long', 'Please record a video that is 30 seconds or shorter');
+          return;
+        }
+        
+        setMediaFiles(prev => [...prev, asset]);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo');
+    }
+  };
+
+  const removeMedia = (index: number) => {
+    setMediaFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const showMediaOptions = () => {
+    Alert.alert(
+      'Add Media',
+      'Choose how you want to add photos or videos',
+      [
+        { text: 'Camera', onPress: takePhoto },
+        { text: 'Photo Library', onPress: pickMedia },
+        { text: 'Cancel', style: 'cancel' },
+      ]
+    );
   };
 
   const handleSubmit = () => {
@@ -75,7 +166,7 @@ export default function CreateMealUpScreen() {
     // Show success message and navigate back
     Alert.alert(
       'Meal Up Created!',
-      'Your meal up has been created successfully. Other users can now join!',
+      `Your meal up has been created successfully with ${mediaFiles.length} media files. Other users can now join!`,
       [
         {
           text: 'OK',
@@ -223,7 +314,7 @@ export default function CreateMealUpScreen() {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>What's included?</Text>
+            <Text style={styles.sectionTitle}>What&apos;s included?</Text>
             
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Ticket Price (Optional)</Text>
@@ -337,6 +428,63 @@ export default function CreateMealUpScreen() {
                 placeholderTextColor={Colors.textLight}
               />
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Photos & Videos</Text>
+            <Text style={styles.sectionSubtitle}>Add photos and videos to showcase your meal up (videos max 30 seconds)</Text>
+            
+            <View style={styles.mediaGrid}>
+              {mediaFiles.map((media, index) => (
+                <View key={index} style={[styles.mediaItem, { width: mediaItemWidth, height: mediaItemWidth }]}>
+                  {media.type === 'video' ? (
+                    <View style={styles.videoContainer}>
+                      {Platform.OS !== 'web' ? (
+                        <ExpoVideo
+                          source={{ uri: media.uri }}
+                          style={styles.mediaPreview}
+                          useNativeControls={false}
+                          shouldPlay={false}
+                          isLooping={false}
+                          resizeMode={ResizeMode.COVER}
+                        />
+                      ) : (
+                        <View style={[styles.mediaPreview, styles.videoPlaceholder]}>
+                          <Video size={24} color={Colors.background} />
+                        </View>
+                      )}
+                      <View style={styles.videoOverlay}>
+                        <Video size={16} color={Colors.background} />
+                      </View>
+                    </View>
+                  ) : (
+                    <Image source={{ uri: media.uri }} style={styles.mediaPreview} />
+                  )}
+                  <TouchableOpacity
+                    style={styles.removeMediaButton}
+                    onPress={() => removeMedia(index)}
+                  >
+                    <X size={16} color={Colors.background} />
+                  </TouchableOpacity>
+                </View>
+              ))}
+              
+              {mediaFiles.length < 9 && (
+                <TouchableOpacity
+                  style={[styles.addMediaButton, { width: mediaItemWidth, height: mediaItemWidth }]}
+                  onPress={showMediaOptions}
+                >
+                  <Plus size={24} color={Colors.textLight} />
+                  <Text style={styles.addMediaText}>Add Media</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+            
+            {mediaFiles.length > 0 && (
+              <Text style={styles.mediaCount}>
+                {mediaFiles.length} media file{mediaFiles.length !== 1 ? 's' : ''} added
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
@@ -476,5 +624,73 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     color: Colors.background,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: Colors.textLight,
+    marginBottom: 16,
+    lineHeight: 20,
+  },
+  mediaGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  mediaItem: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  mediaPreview: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  videoContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '100%',
+  },
+  videoPlaceholder: {
+    backgroundColor: Colors.textLight,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  videoOverlay: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  removeMediaButton: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    borderRadius: 12,
+    padding: 4,
+  },
+  addMediaButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderStyle: 'dashed',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addMediaText: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 4,
+    textAlign: 'center',
+  },
+  mediaCount: {
+    fontSize: 14,
+    color: Colors.textLight,
+    marginTop: 12,
+    textAlign: 'center',
   },
 });
