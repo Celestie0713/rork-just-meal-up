@@ -139,31 +139,17 @@ export class GooglePlacesService {
   ): string {
     if (USE_MOCK_DATA || photoReference.startsWith('mock_')) {
       // Return a placeholder image from Unsplash for mock data
-      const restaurantImages = [
-        'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1571091718767-18b5b1457add?w=800&h=600&fit=crop&auto=format',
-        'https://images.unsplash.com/photo-1578474846511-04ba529f0b88?w=800&h=600&fit=crop&auto=format',
-      ];
+      // Use consistent mapping for each photo reference
+      const photoImageMap: { [key: string]: string } = {
+        'mock_photo_1': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&auto=format',
+        'mock_photo_2': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&auto=format',
+        'mock_photo_3': 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=400&fit=crop&auto=format',
+        'mock_photo_4': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=400&fit=crop&auto=format',
+        'mock_photo_5': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop&auto=format',
+      };
       
-      // Extract index from photo reference more reliably
-      let index = 0;
-      if (photoReference.includes('_')) {
-        const parts = photoReference.split('_');
-        const lastPart = parts[parts.length - 1];
-        const numMatch = lastPart.match(/\d+/);
-        if (numMatch) {
-          index = parseInt(numMatch[0]) - 1; // Convert to 0-based index
-        }
-      }
-      
-      return restaurantImages[index % restaurantImages.length];
+      // Return the specific image for this photo reference, or fallback to first image
+      return photoImageMap[photoReference] || photoImageMap['mock_photo_1'];
     }
     return `${BASE_URL}/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
   }
