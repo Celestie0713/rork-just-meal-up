@@ -6,7 +6,7 @@ import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, X } from 'luci
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { mockPlaces } from '@/mocks/places';
-import { GooglePlacesService } from '@/services/google-places';
+
 
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
@@ -100,9 +100,6 @@ export default function UserProfileScreen() {
         <View style={styles.foodGrid}>
           {places.map((place, index) => {
             if (!place) return null;
-            const photoUrl = place.photos?.[0] 
-              ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
-              : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
             
             const isLastInRow = (index + 1) % 3 === 0;
             
