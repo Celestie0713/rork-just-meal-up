@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
   },
   placeImage: {
     width: '100%',
-    height: 60,
+    height: '100%',
   },
 
   errorContainer: {
@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
   },
   placeImageContainer: {
     width: '100%',
-    height: 60,
+    aspectRatio: 1,
     marginBottom: 8,
     borderRadius: 8,
     overflow: 'hidden',
