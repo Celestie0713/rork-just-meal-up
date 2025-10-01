@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { mockPlaces } from '@/mocks/places';
@@ -10,6 +10,7 @@ import { GooglePlacesService } from '@/services/google-places';
 
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
+import { useFavorites } from '@/hooks/use-favorites';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -20,6 +21,7 @@ export default function UserProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const { user: currentUser } = useAuth();
   const { getMatchType } = useChat();
+  const { removeFromFavorites } = useFavorites();
   
   const user = mockUsers.find(u => u.id === userId);
   
@@ -105,18 +107,26 @@ export default function UserProfileScreen() {
             const isLastInRow = (index + 1) % 3 === 0;
             
             return (
-              <TouchableOpacity 
-                key={place.place_id} 
-                style={[styles.foodGridItem, isLastInRow && styles.foodGridItemLast]}
-                onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
-              >
-                <Image 
-                  source={{ uri: photoUrl }} 
-                  style={styles.placeImage}
-                  resizeMode="cover"
-                />
-                <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
-              </TouchableOpacity>
+              <View key={place.place_id} style={[styles.foodGridItem, isLastInRow && styles.foodGridItemLast]}>
+                <TouchableOpacity 
+                  style={styles.placeContent}
+                  onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
+                >
+                  <Image 
+                    source={{ uri: photoUrl }} 
+                    style={styles.placeImage}
+                    resizeMode="cover"
+                  />
+                  <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeButton}
+                  onPress={() => removeFromFavorites(place.place_id)}
+                  testID={`remove-place-${place.place_id}`}
+                >
+                  <X size={16} color={Colors.background} />
+                </TouchableOpacity>
+              </View>
             );
           })}
           
@@ -691,6 +701,27 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     textAlign: 'center',
     lineHeight: 16,
+  },
+  placeContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
   },
 
 });
