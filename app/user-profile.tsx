@@ -112,11 +112,13 @@ export default function UserProfileScreen() {
                   style={styles.placeContent}
                   onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
                 >
-                  <Image 
-                    source={{ uri: photoUrl }} 
-                    style={styles.placeImage}
-                    resizeMode="cover"
-                  />
+                  <View style={styles.placeImageContainer}>
+                    <Image 
+                      source={{ uri: photoUrl }} 
+                      style={styles.placeImage}
+                      resizeMode="cover"
+                    />
+                  </View>
                   <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity 
@@ -604,9 +606,8 @@ const styles = StyleSheet.create({
   },
   placeImage: {
     width: '100%',
-    height: '70%',
+    height: '100%',
     borderRadius: 8,
-    marginBottom: 8,
   },
 
   errorContainer: {
@@ -706,6 +707,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  placeImageContainer: {
+    width: '100%',
+    height: '70%',
+    marginBottom: 8,
   },
   removeButton: {
     position: 'absolute',
