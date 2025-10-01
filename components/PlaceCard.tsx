@@ -210,14 +210,15 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     position: 'relative',
-    height: 160,
+    height: screenWidth - 32,
+    width: screenWidth - 32,
   },
   imageScrollView: {
-    height: 160,
+    height: screenWidth - 32,
   },
   image: {
     width: screenWidth - 32,
-    height: 160,
+    height: screenWidth - 32,
   },
   photoIndicators: {
     flexDirection: 'row',
@@ -284,6 +285,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 16,
+    paddingTop: 12,
   },
   header: {
     flexDirection: 'row',
