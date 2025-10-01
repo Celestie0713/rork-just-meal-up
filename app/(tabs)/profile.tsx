@@ -63,7 +63,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
-  const { favoritePlaces } = useFavorites();
+  const { favoritePlaces, removeFromFavorites } = useFavorites();
   
 
 
@@ -355,18 +355,28 @@ export default function ProfileScreen() {
               : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
             
             return (
-              <TouchableOpacity 
-                key={place.place_id} 
-                style={styles.foodGridItem}
-                onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
-              >
-                <Image 
-                  source={{ uri: photoUrl }} 
-                  style={styles.placeImage}
-                  resizeMode="cover"
-                />
+              <View key={place.place_id} style={styles.foodGridItem}>
+                <TouchableOpacity 
+                  style={styles.placeImageContainer}
+                  onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
+                >
+                  <Image 
+                    source={{ uri: photoUrl }} 
+                    style={styles.placeImage}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity 
+                    style={styles.removePlaceButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      removeFromFavorites(place.place_id);
+                    }}
+                  >
+                    <X size={12} color={Colors.background} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
                 <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
-              </TouchableOpacity>
+              </View>
             );
           })}
           
@@ -1470,6 +1480,21 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     textAlign: 'center',
     lineHeight: 16,
+  },
+  placeImageContainer: {
+    position: 'relative',
+    width: '100%',
+    height: '70%',
+    marginBottom: 8,
+  },
+  removePlaceButton: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    borderRadius: 10,
+    padding: 4,
+    zIndex: 1,
   },
 
 });
