@@ -607,6 +607,7 @@ const styles = StyleSheet.create({
   placeImage: {
     width: '100%',
     height: '100%',
+    borderRadius: 8,
   },
 
   errorContainer: {
@@ -708,7 +709,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeImageContainer: {
-    width: '100%',
+    width: '70%',
     aspectRatio: 1,
     marginBottom: 8,
     borderRadius: 8,
