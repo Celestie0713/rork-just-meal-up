@@ -133,6 +133,10 @@ export default function UserProfileScreen() {
             <TouchableOpacity 
               style={[
                 styles.addPlaceButton,
+                // Position correctly based on current number of places
+                // If we have 0, 3, 6, 9... places, button goes in first column (no margin)
+                // If we have 1, 4, 7, 10... places, button goes in second column (margin right)
+                // If we have 2, 5, 8, 11... places, button goes in third column (no margin)
                 (places.length % 3 === 2) && styles.addPlaceButtonLast
               ]}
               onPress={() => router.push('/(tabs)?tab=places')}
