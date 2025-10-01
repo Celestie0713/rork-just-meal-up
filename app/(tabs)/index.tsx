@@ -4,6 +4,7 @@ import { Search, Filter, RefreshCw, MapPin as MapPinIcon, Bell } from 'lucide-re
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
+import { SuccessPopup } from '@/components/SuccessPopup';
 import { mockUsers } from '@/mocks/users';
 import { usePlaces } from '@/hooks/use-places';
 import { useAuth } from '@/hooks/use-auth';
@@ -17,6 +18,7 @@ export default function SearchScreen() {
   const { tab } = useLocalSearchParams();
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'places'>(tab === 'places' ? 'places' : 'users');
+  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const { user } = useAuth();
   const { addToFavorites, isPlaceInFavorites } = useFavorites();
 
@@ -102,12 +104,8 @@ export default function SearchScreen() {
       console.log('addToFavorites returned:', success);
       
       if (success) {
-        console.log('Place added to favorites successfully, showing success alert');
-        Alert.alert(
-          'Added!',
-          `${place.name} has been added to your "Food to bribe me with" list!`,
-          [{ text: 'OK', onPress: () => console.log('Success confirmation dismissed') }]
-        );
+        console.log('Place added to favorites successfully, showing success popup');
+        setShowSuccessPopup(true);
       } else {
         console.log('Failed to add place to favorites, showing error alert');
         Alert.alert('Error', 'Failed to add place to favorites. Please try again.');
@@ -261,6 +259,12 @@ export default function SearchScreen() {
       ) : (
         renderPlacesContent()
       )}
+      
+      <SuccessPopup
+        visible={showSuccessPopup}
+        message="Poof! Added successfully👌🤘"
+        onHide={() => setShowSuccessPopup(false)}
+      />
     </SafeAreaView>
   );
 }
