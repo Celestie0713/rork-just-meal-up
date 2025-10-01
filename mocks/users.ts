@@ -98,7 +98,7 @@ export const mockUsers: User[] = [
     membershipTier: 'free',
     isOnline: true,
     ethnicity: 'English, Cantonese',
-    favoritePlaces: ['mock_place_1', 'mock_place_2', 'mock_place_3'], // The Italian Corner, Sushi Zen, Burger Palace
+    favoritePlaces: [], // No favorite places
     preferences: {
       ageRange: [26, 34],
       maxDistance: 15,
