@@ -87,7 +87,12 @@ export default function UserProfileScreen() {
   };
 
   const renderFoodTab = () => {
-    const favoritePlaces = user.favoritePlaces || [];
+    // Check if we're viewing our own profile
+    const isOwnProfile = currentUser?.id === userId;
+    
+    // If viewing own profile, show current user's favorites
+    // If viewing someone else's profile, show their favorites
+    const favoritePlaces = isOwnProfile ? (currentUser?.favoritePlaces || []) : (user.favoritePlaces || []);
     const places = favoritePlaces.map(placeId => 
       mockPlaces.find(place => place.place_id === placeId)
     ).filter(Boolean);
@@ -111,30 +116,34 @@ export default function UserProfileScreen() {
                 >
                   <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
                 </TouchableOpacity>
-                <TouchableOpacity 
-                  style={styles.removeButton}
-                  onPress={() => removeFromFavorites(place.place_id)}
-                  testID={`remove-place-${place.place_id}`}
-                >
-                  <X size={14} color="#666" />
-                </TouchableOpacity>
+                {isOwnProfile && (
+                  <TouchableOpacity 
+                    style={styles.removeButton}
+                    onPress={() => removeFromFavorites(place.place_id)}
+                    testID={`remove-place-${place.place_id}`}
+                  >
+                    <X size={14} color="#666" />
+                  </TouchableOpacity>
+                )}
               </View>
             );
           })}
           
-          <TouchableOpacity 
-            style={[
-              styles.addPlaceButton,
-              (places.length % 3 === 2) && styles.addPlaceButtonLast
-            ]}
-            onPress={() => router.push('/(tabs)?tab=places')}
-            testID="add-favorite-place-button"
-          >
-            <View style={styles.addPlaceIconContainer}>
-              <Plus size={24} color={Colors.primary} />
-            </View>
-            <Text style={styles.addPlaceText}>Add Place</Text>
-          </TouchableOpacity>
+          {isOwnProfile && (
+            <TouchableOpacity 
+              style={[
+                styles.addPlaceButton,
+                (places.length % 3 === 2) && styles.addPlaceButtonLast
+              ]}
+              onPress={() => router.push('/(tabs)?tab=places')}
+              testID="add-favorite-place-button"
+            >
+              <View style={styles.addPlaceIconContainer}>
+                <Plus size={24} color={Colors.primary} />
+              </View>
+              <Text style={styles.addPlaceText}>Add Place</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     );
