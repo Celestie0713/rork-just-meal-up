@@ -59,7 +59,10 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       if (!prevUser) return prevUser;
       
       const updatedUser = { ...prevUser, ...updates };
-      AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser));
+      // Don't await this to avoid blocking the state update
+      AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser)).catch(error => {
+        console.error('Failed to save user to storage:', error);
+      });
       return updatedUser;
     });
   }, []);

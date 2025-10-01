@@ -83,11 +83,12 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
         addedAt: new Date()
       };
 
-      const updatedFavoritesData = [...favoritePlacesData, newFavoriteData];
-      console.log('Updating favorites data:', updatedFavoritesData.length, 'items');
-      
-      setFavoritePlacesData(updatedFavoritesData);
-      await saveFavoritePlacesData(updatedFavoritesData);
+      setFavoritePlacesData(prevData => {
+        const updatedFavoritesData = [...prevData, newFavoriteData];
+        console.log('Updating favorites data:', updatedFavoritesData.length, 'items');
+        saveFavoritePlacesData(updatedFavoritesData);
+        return updatedFavoritesData;
+      });
       
       console.log('Favorites data saved successfully');
       return true;
@@ -95,7 +96,7 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
       console.error('Error adding to favorites:', error);
       return false;
     }
-  }, [user, updateUser, favoritePlacesData]);
+  }, [user, updateUser]);
 
   const removeFromFavorites = useCallback(async (placeId: string) => {
     if (!user) return false;
@@ -105,12 +106,14 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
     await updateUser({ favoritePlaces: updatedFavoriteIds });
 
     // Remove from local data
-    const updatedFavoritesData = favoritePlacesData.filter(item => item.placeId !== placeId);
-    setFavoritePlacesData(updatedFavoritesData);
-    await saveFavoritePlacesData(updatedFavoritesData);
+    setFavoritePlacesData(prevData => {
+      const updatedFavoritesData = prevData.filter(item => item.placeId !== placeId);
+      saveFavoritePlacesData(updatedFavoritesData);
+      return updatedFavoritesData;
+    });
 
     return true;
-  }, [user, updateUser, favoritePlacesData]);
+  }, [user, updateUser]);
 
   const getFavoritePlaces = useMemo(() => {
     if (!user) return [];
@@ -133,7 +136,7 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
     });
 
     return places;
-  }, [user, favoritePlacesData]);
+  }, [favoritePlacesData, user]);
 
   const isPlaceInFavorites = useCallback((placeId: string) => {
     if (!user) return false;

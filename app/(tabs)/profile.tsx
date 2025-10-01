@@ -81,7 +81,7 @@ export default function ProfileScreen() {
     if (user) {
       setEditedUser(user);
     }
-  }, [user]);
+  }, [user?.id]); // Only depend on user ID to avoid infinite loops
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [showPersonalIncomeModal, setShowPersonalIncomeModal] = useState(false);
