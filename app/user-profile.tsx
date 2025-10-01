@@ -126,7 +126,7 @@ export default function UserProfileScreen() {
                   onPress={() => removeFromFavorites(place.place_id)}
                   testID={`remove-place-${place.place_id}`}
                 >
-                  <X size={14} color="black" />
+                  <X size={14} color="#666" />
                 </TouchableOpacity>
               </View>
             );
