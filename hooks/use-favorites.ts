@@ -69,14 +69,7 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
     }
 
     try {
-      // Add to user's favorite place IDs
-      const updatedFavoriteIds = [...currentFavorites, place.place_id];
-      console.log('Updated favorite IDs:', updatedFavoriteIds);
-      
-      await updateUser({ favoritePlaces: updatedFavoriteIds });
-      console.log('User updated successfully');
-
-      // Add place data to our local storage
+      // Add place data to our local storage first
       const newFavoriteData: FavoritePlaceData = {
         placeId: place.place_id,
         placeData: place,
@@ -85,12 +78,18 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
 
       setFavoritePlacesData(prevData => {
         const updatedFavoritesData = [...prevData, newFavoriteData];
-        console.log('Updating favorites data:', updatedFavoritesData.length, 'items');
         saveFavoritePlacesData(updatedFavoritesData);
         return updatedFavoritesData;
       });
-      
       console.log('Favorites data saved successfully');
+
+      // Then update user's favorite place IDs
+      const updatedFavoriteIds = [...currentFavorites, place.place_id];
+      console.log('Updated favorite IDs:', updatedFavoriteIds);
+      
+      await updateUser({ favoritePlaces: updatedFavoriteIds });
+      console.log('User updated successfully');
+      
       return true;
     } catch (error) {
       console.error('Error adding to favorites:', error);
@@ -101,18 +100,24 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
   const removeFromFavorites = useCallback(async (placeId: string) => {
     if (!user) return false;
 
-    const currentFavorites = user.favoritePlaces || [];
-    const updatedFavoriteIds = currentFavorites.filter(id => id !== placeId);
-    await updateUser({ favoritePlaces: updatedFavoriteIds });
+    try {
+      // Remove from local data first
+      setFavoritePlacesData(prevData => {
+        const updatedFavoritesData = prevData.filter(item => item.placeId !== placeId);
+        saveFavoritePlacesData(updatedFavoritesData);
+        return updatedFavoritesData;
+      });
 
-    // Remove from local data
-    setFavoritePlacesData(prevData => {
-      const updatedFavoritesData = prevData.filter(item => item.placeId !== placeId);
-      saveFavoritePlacesData(updatedFavoritesData);
-      return updatedFavoritesData;
-    });
+      // Then update user's favorite place IDs
+      const currentFavorites = user.favoritePlaces || [];
+      const updatedFavoriteIds = currentFavorites.filter(id => id !== placeId);
+      await updateUser({ favoritePlaces: updatedFavoriteIds });
 
-    return true;
+      return true;
+    } catch (error) {
+      console.error('Error removing from favorites:', error);
+      return false;
+    }
   }, [user, updateUser]);
 
   const getFavoritePlaces = useMemo(() => {
@@ -136,7 +141,7 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
     });
 
     return places;
-  }, [favoritePlacesData, user]);
+  }, [user, favoritePlacesData]);
 
   const isPlaceInFavorites = useCallback((placeId: string) => {
     if (!user) return false;
@@ -144,11 +149,11 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
     return currentFavorites.includes(placeId);
   }, [user]);
 
-  return {
+  return useMemo(() => ({
     favoritePlaces: getFavoritePlaces,
     isLoading,
     addToFavorites,
     removeFromFavorites,
     isPlaceInFavorites,
-  };
+  }), [getFavoritePlaces, isLoading, addToFavorites, removeFromFavorites, isPlaceInFavorites]);
 });
