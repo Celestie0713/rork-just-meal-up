@@ -709,7 +709,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   placeImageContainer: {
-    width: '70%',
+    width: '100%',
     aspectRatio: 1,
     marginBottom: 8,
     borderRadius: 8,
