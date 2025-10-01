@@ -114,8 +114,8 @@ export function PlaceCard({ place, onPress, onAddToFavorites }: PlaceCardProps) 
                 activeOpacity={0.7}
               >
                 <ChevronLeft 
-                  size={28} 
-                  color={currentPhotoIndex === 0 ? "rgba(255, 255, 255, 0.4)" : "#FFFFFF"} 
+                  size={32} 
+                  color={currentPhotoIndex === 0 ? "rgba(255, 255, 255, 0.5)" : "#FFFFFF"} 
                 />
               </TouchableOpacity>
               
@@ -130,8 +130,8 @@ export function PlaceCard({ place, onPress, onAddToFavorites }: PlaceCardProps) 
                 activeOpacity={0.7}
               >
                 <ChevronRight 
-                  size={28} 
-                  color={currentPhotoIndex === displayPhotos.length - 1 ? "rgba(255, 255, 255, 0.4)" : "#FFFFFF"} 
+                  size={32} 
+                  color={currentPhotoIndex === displayPhotos.length - 1 ? "rgba(255, 255, 255, 0.5)" : "#FFFFFF"} 
                 />
               </TouchableOpacity>
             </>
