@@ -124,7 +124,7 @@ export default function UserProfileScreen() {
                   onPress={() => removeFromFavorites(place.place_id)}
                   testID={`remove-place-${place.place_id}`}
                 >
-                  <X size={16} color={Colors.background} />
+                  <X size={14} color="white" />
                 </TouchableOpacity>
               </View>
             );
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 4,
     right: 4,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FF4444',
     borderRadius: 12,
     width: 24,
     height: 24,
@@ -719,9 +719,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 4,
+    elevation: 5,
+    zIndex: 10,
   },
 
 });
