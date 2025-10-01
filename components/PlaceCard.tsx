@@ -111,10 +111,11 @@ export function PlaceCard({ place, onPress, onAddToFavorites }: PlaceCardProps) 
                 ]}
                 onPress={() => scrollToPhoto(currentPhotoIndex - 1)}
                 disabled={currentPhotoIndex === 0}
+                activeOpacity={0.7}
               >
                 <ChevronLeft 
-                  size={24} 
-                  color={currentPhotoIndex === 0 ? "rgba(255, 255, 255, 0.3)" : "#FFFFFF"} 
+                  size={28} 
+                  color={currentPhotoIndex === 0 ? "rgba(255, 255, 255, 0.4)" : "#FFFFFF"} 
                 />
               </TouchableOpacity>
               
@@ -126,10 +127,11 @@ export function PlaceCard({ place, onPress, onAddToFavorites }: PlaceCardProps) 
                 ]}
                 onPress={() => scrollToPhoto(currentPhotoIndex + 1)}
                 disabled={currentPhotoIndex === displayPhotos.length - 1}
+                activeOpacity={0.7}
               >
                 <ChevronRight 
-                  size={24} 
-                  color={currentPhotoIndex === displayPhotos.length - 1 ? "rgba(255, 255, 255, 0.3)" : "#FFFFFF"} 
+                  size={28} 
+                  color={currentPhotoIndex === displayPhotos.length - 1 ? "rgba(255, 255, 255, 0.4)" : "#FFFFFF"} 
                 />
               </TouchableOpacity>
             </>
@@ -243,28 +245,31 @@ const styles = StyleSheet.create({
   photoNavButton: {
     position: 'absolute',
     top: '50%',
-    transform: [{ translateY: -20 }],
-    backgroundColor: 'rgba(0, 0, 0, 0.8)',
-    borderRadius: 20,
-    padding: 10,
+    transform: [{ translateY: -22 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    borderRadius: 22,
+    padding: 12,
     zIndex: 10,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
-      height: 2,
+      height: 3,
     },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   disabledNavButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   prevPhotoButton: {
-    left: 12,
+    left: 16,
   },
   nextPhotoButton: {
-    right: 12,
+    right: 16,
   },
   addButton: {
     position: 'absolute',
