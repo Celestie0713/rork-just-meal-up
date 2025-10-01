@@ -130,23 +130,24 @@ export default function UserProfileScreen() {
           })}
           
           {isOwnProfile && (
-            <TouchableOpacity 
+            <View 
               style={[
-                styles.addPlaceButton,
-                // Position correctly based on current number of places
-                // If we have 0, 3, 6, 9... places, button goes in first column (no margin)
-                // If we have 1, 4, 7, 10... places, button goes in second column (margin right)
-                // If we have 2, 5, 8, 11... places, button goes in third column (no margin)
-                (places.length % 3 === 2) && styles.addPlaceButtonLast
+                styles.foodGridItem,
+                // Apply same margin logic as places
+                ((places.length + 1) % 3 === 0) && styles.foodGridItemLast
               ]}
-              onPress={() => router.push('/(tabs)?tab=places')}
-              testID="add-favorite-place-button"
             >
-              <View style={styles.addPlaceIconContainer}>
-                <Plus size={24} color={Colors.primary} />
-              </View>
-              <Text style={styles.addPlaceText}>Add Place</Text>
-            </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.addPlaceButtonContent}
+                onPress={() => router.push('/(tabs)?tab=places')}
+                testID="add-favorite-place-button"
+              >
+                <View style={styles.addPlaceIconContainer}>
+                  <Plus size={24} color={Colors.primary} />
+                </View>
+                <Text style={styles.addPlaceText}>Add Place</Text>
+              </TouchableOpacity>
+            </View>
           )}
         </View>
       </View>
@@ -734,6 +735,15 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     zIndex: 10,
+  },
+  addPlaceButtonContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+    borderRadius: 8,
   },
 
 });
