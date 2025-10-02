@@ -359,8 +359,8 @@ export default function PostMealScreen() {
     // Check if the date has made their extended choice
     // In a real app, this would come from the server
     // For now, we'll simulate Sofia making her second choice after user makes theirs
-    // Simulate Sofia choosing 'fight_for_fries' as her second choice
-    const dateExtendedChoice = 'fight_for_fries'; // Sofia's second choice
+    // Simulate Sofia choosing the same as user's choice to create a match
+    const dateExtendedChoice = choice; // Sofia's second choice matches user's choice
     
     // Add notification for the date's extended decision
     if (invitation) {
@@ -398,6 +398,7 @@ export default function PostMealScreen() {
       
       if (isExtendedMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
+        console.log(`Extended match found! User: ${choice}, Date: ${dateExtendedChoice}`);
         
         // Track the match
         addMatchedProfile(dateUserId, invitationId, matchType);
