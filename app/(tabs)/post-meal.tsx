@@ -1348,7 +1348,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🥩</Text>
 
                 <Text style={styles.matchModalDescription}>
-                  Your date hasn&apos;t made their choice yet. Give them some time to decide!
+                  Decisions are steak — they need time to marinate, not microwave.
                   {matchResult?.eventId && (() => {
                     const eventId = matchResult.eventId;
                     const event = postMealEvents.find(e => e.id === eventId);
