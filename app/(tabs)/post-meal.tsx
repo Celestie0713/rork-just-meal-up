@@ -205,7 +205,8 @@ export default function PostMealScreen() {
                   console.log(`Event ${eventId} - buddy pass match after extension, removing from post-meal page`);
                   return; // Skip this event (remove from post-meal page)
                 }
-                // For other matches, keep the profile on post-meal page
+                // For fight_for_fries and next_round matches, keep the profile on post-meal page
+                console.log(`Event ${eventId} - keeping profile on post-meal page after extension match`);
               } else {
                 // Second decisions don't match - remove the profile
                 console.log(`Event ${eventId} - second decisions don't match, removing profile`);
@@ -389,8 +390,8 @@ export default function PostMealScreen() {
       // If user chooses next_round, Sofia might choose fight_for_fries (no match)
       dateExtendedChoice = 'fight_for_fries';
     } else if (choice === 'fight_for_fries') {
-      // If user chooses fight_for_fries, Sofia might choose next_round (no match)
-      dateExtendedChoice = 'next_round';
+      // If user chooses fight_for_fries, Sofia should also choose fight_for_fries (match)
+      dateExtendedChoice = 'fight_for_fries';
     } else {
       // If user chooses buddy_pass, Sofia also chooses buddy_pass (match)
       dateExtendedChoice = 'buddy_pass';
