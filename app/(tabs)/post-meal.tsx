@@ -1421,7 +1421,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🥩</Text>
 
                 <Text style={styles.matchModalDescription}>
-                  Decisions are steak — they need time to marinate, not microwave.
+                  Decisions are steak — they need time to marinate, not microwave.. Give it some time to cook🥂
                   {matchResult?.eventId && (() => {
                     const eventId = matchResult.eventId;
                     const event = postMealEvents.find(e => e.id === eventId);
