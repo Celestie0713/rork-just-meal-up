@@ -1049,7 +1049,7 @@ export default function PostMealScreen() {
                     if (extension && !extension.hasDateReDecided) {
                       return isPremium ? (
                         <View style={styles.noDecisionContainer}>
-                          <Text style={styles.noDecisionText}>Decision is still marinating. What about you go first?🎉 #yourock</Text>
+                          <Text style={styles.noDecisionText}>Decisions are like steak — slow cooked makes it tender, rush it and you're just chewing on regret✨</Text>
                         </View>
                       ) : null;
                     }
@@ -1072,7 +1072,7 @@ export default function PostMealScreen() {
                     </View>
                   ) : isPremium ? (
                     <View style={styles.noDecisionContainer}>
-                      <Text style={styles.noDecisionText}>Decision is still marinating. What about you go first?🎉 #yourock</Text>
+                      <Text style={styles.noDecisionText}>Decisions are like steak — slow cooked makes it tender, rush it and you're just chewing on regret✨</Text>
                     </View>
                   ) : null;
                 })()}
@@ -1421,7 +1421,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🥩</Text>
 
                 <Text style={styles.matchModalDescription}>
-                  Decisions are steak — they need time to marinate, not microwave.. Give it some time to cook🥂
+                  Decisions are like steak — slow cooked makes it tender, rush it and you're just chewing on regret✨
                   {matchResult?.eventId && (() => {
                     const eventId = matchResult.eventId;
                     const event = postMealEvents.find(e => e.id === eventId);
