@@ -410,7 +410,8 @@ export default function PostMealScreen() {
           dateExtendedChoice,
           invitation.venue.name,
           dateUser.id,
-          invitationId
+          invitationId,
+          isPremium
         );
       }
     }
@@ -603,7 +604,8 @@ export default function PostMealScreen() {
             dateChoice,
             invitation.venue.name,
             dateUser.id,
-            invitationId
+            invitationId,
+            isPremium
           );
         }
       }
@@ -735,7 +737,8 @@ export default function PostMealScreen() {
               simulatedDateChoice,
               invitation.venue.name,
               dateUser.id,
-              invitationId
+              invitationId,
+              isPremium
             );
           }
         }
