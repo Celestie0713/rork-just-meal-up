@@ -1009,6 +1009,15 @@ export default function PostMealScreen() {
                     const extensionKey = `${invitationId}-${dateUserId}`;
                     const extension = mixedSignalsExtensions[extensionKey];
                     
+                    // If there's an active extension but the date hasn't re-decided yet, show marinating message
+                    if (extension && !extension.hasDateReDecided) {
+                      return isPremium ? (
+                        <View style={styles.noDecisionContainer}>
+                          <Text style={styles.noDecisionText}>Decision is still marinating. What about you go first?🎉 #yourock</Text>
+                        </View>
+                      ) : null;
+                    }
+                    
                     // If there's an extension and the date has re-decided, show their new choice
                     if (extension && extension.hasDateReDecided) {
                       displayChoice = getChoiceDisplay(extension.dateChoice);
