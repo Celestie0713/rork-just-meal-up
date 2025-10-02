@@ -123,6 +123,15 @@ export default function PostMealScreen() {
     if (!invitation) return null;
     
     const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+    const extensionKey = `${invitationId}-${dateUserId}`;
+    const extension = mixedSignalsExtensions[extensionKey];
+    
+    // If there's an active extension and the date has made a second decision, return that
+    if (extension && extension.hasDateReDecided) {
+      return extension.dateChoice;
+    }
+    
+    // Otherwise, return the original choice
     const response = mockPostDateResponses.find(r => r.mealId === invitationId && r.userId === dateUserId);
     return response?.choice || null;
   };
@@ -344,9 +353,19 @@ export default function PostMealScreen() {
     
     // Check if the date has made their extended choice
     // In a real app, this would come from the server
-    // For now, we'll check if Sofia has made her second choice
-    // Since this is a demo, we'll simulate that Sofia hasn't made her second choice yet
-    const dateExtendedChoice = null; // Sofia hasn't made her second choice yet
+    // For now, we'll simulate Sofia making her second choice after user makes theirs
+    // Simulate Sofia choosing 'fight_for_fries' as her second choice
+    const dateExtendedChoice = 'fight_for_fries'; // Sofia's second choice
+    
+    // Update the extension to mark that date has re-decided
+    setMixedSignalsExtensions(prev => ({
+      ...prev,
+      [extensionKey]: {
+        ...extension,
+        hasDateReDecided: true,
+        dateChoice: dateExtendedChoice
+      }
+    }));
     
     if (dateExtendedChoice) {
       // Both parties have made their extended decisions
