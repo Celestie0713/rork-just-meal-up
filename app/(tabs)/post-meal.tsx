@@ -352,44 +352,11 @@ export default function PostMealScreen() {
     
     const now = new Date();
     
-    // Update the extended choice
-    setExtendedChoices(prev => ({
-      ...prev,
-      [eventId]: choice
-    }));
-    
-    // Mark user as having re-decided
-    setMixedSignalsExtensions(prev => ({
-      ...prev,
-      [extensionKey]: {
-        ...extension,
-        hasUserReDecided: true,
-        userChoice: choice
-      }
-    }));
-    
-    // Mark this choice as finalized
-    setFinalizedChoices(prev => ({
-      ...prev,
-      [eventId]: true
-    }));
-    
-    // Record the timestamp when the choice was made
-    setChoiceTimestamps(prev => ({
-      ...prev,
-      [eventId]: now
-    }));
-    
-    console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
-    
-    // Check if the date has made their extended choice
-    // In a real app, this would come from the server
-    // For now, we'll simulate Sofia making her second choice after user makes theirs
     // Simulate Sofia's second choice based on realistic scenarios
+    // For proper testing of mixed signals resolution
     let dateExtendedChoice: string;
     
     // Simulate different scenarios for Sofia's second choice
-    // For proper testing of mixed signals resolution
     if (choice === 'next_round') {
       // If user chooses next_round, Sofia chooses fight_for_fries (no match - should remove profile)
       dateExtendedChoice = 'fight_for_fries';
@@ -400,6 +367,43 @@ export default function PostMealScreen() {
       // If user chooses buddy_pass, Sofia also chooses buddy_pass (match - should remove from post-meal but keep chat)
       dateExtendedChoice = 'buddy_pass';
     }
+    
+    // Update all states together to ensure synchronous UI update
+    // This ensures the "Your date chose" section updates immediately when the popup shows
+    setExtendedChoices(prev => ({
+      ...prev,
+      [eventId]: choice
+    }));
+    
+    setFinalizedChoices(prev => ({
+      ...prev,
+      [eventId]: true
+    }));
+    
+    setChoiceTimestamps(prev => ({
+      ...prev,
+      [eventId]: now
+    }));
+    
+    // Update the extension with both user and date decisions
+    // This single update ensures the UI refreshes with both choices at once
+    setMixedSignalsExtensions(prev => {
+      const updated = {
+        ...prev,
+        [extensionKey]: {
+          ...extension,
+          hasUserReDecided: true,
+          userChoice: choice,
+          hasDateReDecided: true,
+          dateChoice: dateExtendedChoice
+        }
+      };
+      console.log(`Updated extension for ${extensionKey}:`, updated[extensionKey]);
+      return updated;
+    });
+    
+    console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
+    console.log(`Date's second choice: ${dateExtendedChoice}`);
     
     // Add notification for the date's extended decision
     if (invitation) {
@@ -415,21 +419,6 @@ export default function PostMealScreen() {
         );
       }
     }
-    
-    // Update the extension to mark that date has re-decided
-    // This will trigger a re-render and update the "Your date chose" display
-    setMixedSignalsExtensions(prev => {
-      const updated = {
-        ...prev,
-        [extensionKey]: {
-          ...extension,
-          hasDateReDecided: true,
-          dateChoice: dateExtendedChoice
-        }
-      };
-      console.log(`Updated extension for ${extensionKey}:`, updated[extensionKey]);
-      return updated;
-    });
     
     if (dateExtendedChoice) {
       // Both parties have made their extended decisions
