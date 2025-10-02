@@ -487,12 +487,20 @@ export default function PostMealScreen() {
           })
         ]).start();
       } else {
-        // No match after extension - remove profile and chat
+        // No match after extension - remove profile and chat immediately
         console.log(`No match after extension period for ${eventId} - removing profile and chat`);
         const userChoices: Record<string, { choice: string; timestamp: Date }> = {
           [eventId]: { choice, timestamp: now }
         };
         checkAndRemoveNonMatchingProfiles(userChoices);
+        
+        // Clear the extension immediately to trigger profile removal from post-meal page
+        setMixedSignalsExtensions(prev => {
+          const updated = { ...prev };
+          delete updated[extensionKey];
+          console.log(`Cleared extension for ${extensionKey} - profile should be removed from post-meal page`);
+          return updated;
+        });
         
         setMatchResult({
           isMatch: false,
@@ -504,14 +512,6 @@ export default function PostMealScreen() {
         
         setShowMatchModal(true);
       }
-      
-      // Clear the extension after processing
-      setMixedSignalsExtensions(prev => {
-        const updated = { ...prev };
-        delete updated[extensionKey];
-        console.log(`Cleared extension for ${extensionKey}`);
-        return updated;
-      });
     } else {
       // Date hasn't made their extended choice yet - show waiting message
       console.log(`User made extended choice: ${choice}, waiting for date's decision`);
