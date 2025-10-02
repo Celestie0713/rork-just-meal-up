@@ -196,11 +196,13 @@ export default function PostMealScreen() {
               // Both parties have made their second decisions, check if they match
               const secondDecisionMatch = extension.userChoice === extension.dateChoice;
               
+              console.log(`Event ${eventId} - Extension completed. User: ${extension.userChoice}, Date: ${extension.dateChoice}, Match: ${secondDecisionMatch}`);
+              
               if (secondDecisionMatch) {
-                // Second decisions match - keep the profile
+                // Second decisions match - handle based on match type
                 console.log(`Event ${eventId} - second decisions match: ${extension.userChoice}`);
                 
-                // Handle buddy_pass matches (remove from post-meal page)
+                // Handle buddy_pass matches (remove from post-meal page but keep chat)
                 if (extension.userChoice === 'buddy_pass') {
                   console.log(`Event ${eventId} - buddy pass match after extension, removing from post-meal page`);
                   return; // Skip this event (remove from post-meal page)
@@ -208,8 +210,8 @@ export default function PostMealScreen() {
                 // For fight_for_fries and next_round matches, keep the profile on post-meal page
                 console.log(`Event ${eventId} - keeping profile on post-meal page after extension match`);
               } else {
-                // Second decisions don't match - remove the profile
-                console.log(`Event ${eventId} - second decisions don't match, removing profile`);
+                // Second decisions don't match - remove the profile completely
+                console.log(`Event ${eventId} - second decisions don't match (${extension.userChoice} vs ${extension.dateChoice}), removing profile`);
                 return; // Skip this event
               }
             } else {
@@ -224,6 +226,7 @@ export default function PostMealScreen() {
                 return; // Skip this event
               }
               // Extension is still active, keep the event
+              console.log(`Event ${eventId} - extension active, waiting for decisions. User decided: ${extension.hasUserReDecided}, Date decided: ${extension.hasDateReDecided}`);
             }
           } else {
             // No extension, check original decisions
@@ -386,14 +389,15 @@ export default function PostMealScreen() {
     let dateExtendedChoice: string;
     
     // Simulate different scenarios for Sofia's second choice
+    // For proper testing of mixed signals resolution
     if (choice === 'next_round') {
-      // If user chooses next_round, Sofia might choose fight_for_fries (no match)
+      // If user chooses next_round, Sofia chooses fight_for_fries (no match - should remove profile)
       dateExtendedChoice = 'fight_for_fries';
     } else if (choice === 'fight_for_fries') {
-      // If user chooses fight_for_fries, Sofia should also choose fight_for_fries (match)
+      // If user chooses fight_for_fries, Sofia also chooses fight_for_fries (match - should keep profile)
       dateExtendedChoice = 'fight_for_fries';
     } else {
-      // If user chooses buddy_pass, Sofia also chooses buddy_pass (match)
+      // If user chooses buddy_pass, Sofia also chooses buddy_pass (match - should remove from post-meal but keep chat)
       dateExtendedChoice = 'buddy_pass';
     }
     
@@ -431,6 +435,8 @@ export default function PostMealScreen() {
       const isExtendedMatch = choice === dateExtendedChoice;
       let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | null = null;
       
+      console.log(`Extension resolution: User chose ${choice}, Date chose ${dateExtendedChoice}, Match: ${isExtendedMatch}`);
+      
       if (isExtendedMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
         console.log(`Extended match found! User: ${choice}, Date: ${dateExtendedChoice}`);
@@ -452,15 +458,8 @@ export default function PostMealScreen() {
           });
         }
         
-        // Clear the extension
-        setMixedSignalsExtensions(prev => {
-          const updated = { ...prev };
-          delete updated[extensionKey];
-          return updated;
-        });
-        
         setMatchResult({
-          isMatch: isExtendedMatch,
+          isMatch: true,
           matchType,
           userChoice: choice,
           dateChoice: dateExtendedChoice,
@@ -488,19 +487,12 @@ export default function PostMealScreen() {
           })
         ]).start();
       } else {
-        // Still no match after extension - remove profile and chat
+        // No match after extension - remove profile and chat
         console.log(`No match after extension period for ${eventId} - removing profile and chat`);
         const userChoices: Record<string, { choice: string; timestamp: Date }> = {
           [eventId]: { choice, timestamp: now }
         };
         checkAndRemoveNonMatchingProfiles(userChoices);
-        
-        // Clear the extension
-        setMixedSignalsExtensions(prev => {
-          const updated = { ...prev };
-          delete updated[extensionKey];
-          return updated;
-        });
         
         setMatchResult({
           isMatch: false,
@@ -512,6 +504,14 @@ export default function PostMealScreen() {
         
         setShowMatchModal(true);
       }
+      
+      // Clear the extension after processing
+      setMixedSignalsExtensions(prev => {
+        const updated = { ...prev };
+        delete updated[extensionKey];
+        console.log(`Cleared extension for ${extensionKey}`);
+        return updated;
+      });
     } else {
       // Date hasn't made their extended choice yet - show waiting message
       console.log(`User made extended choice: ${choice}, waiting for date's decision`);
