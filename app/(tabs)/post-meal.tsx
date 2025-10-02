@@ -130,12 +130,15 @@ export default function PostMealScreen() {
     
     // If there's an active extension and the date has made a second decision, return that
     if (extension && extension.hasDateReDecided) {
+      console.log(`Returning date's second choice for ${invitationId}: ${extension.dateChoice}`);
       return extension.dateChoice;
     }
     
     // Otherwise, return the original choice
     const response = mockPostDateResponses.find(r => r.mealId === invitationId && r.userId === dateUserId);
-    return response?.choice || null;
+    const originalChoice = response?.choice || null;
+    console.log(`Returning original choice for ${invitationId}: ${originalChoice}`);
+    return originalChoice;
   };
 
   const getChoiceDisplay = (choice: string) => {
@@ -374,14 +377,19 @@ export default function PostMealScreen() {
     }
     
     // Update the extension to mark that date has re-decided
-    setMixedSignalsExtensions(prev => ({
-      ...prev,
-      [extensionKey]: {
-        ...extension,
-        hasDateReDecided: true,
-        dateChoice: dateExtendedChoice
-      }
-    }));
+    // This will trigger a re-render and update the "Your date chose" display
+    setMixedSignalsExtensions(prev => {
+      const updated = {
+        ...prev,
+        [extensionKey]: {
+          ...extension,
+          hasDateReDecided: true,
+          dateChoice: dateExtendedChoice
+        }
+      };
+      console.log(`Updated extension for ${extensionKey}:`, updated[extensionKey]);
+      return updated;
+    });
     
     if (dateExtendedChoice) {
       // Both parties have made their extended decisions
@@ -990,20 +998,40 @@ export default function PostMealScreen() {
                     <Text style={styles.dateChoiceText}>Your date chose:</Text>
                   </View>
                 </View>
-                {isPremium && choiceDisplay ? (
-                  <View style={[styles.choiceButton, styles.selectedChoice]}>
-                    <Text style={[styles.choiceButtonText, styles.selectedChoiceText]}>
-                      {choiceDisplay.text}
-                    </Text>
-                    <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext]}>
-                      {choiceDisplay.subtext}
-                    </Text>
-                  </View>
-                ) : isPremium ? (
-                  <View style={styles.noDecisionContainer}>
-                    <Text style={styles.noDecisionText}>Decision is still marinating. What about you go first?🎉 #yourock</Text>
-                  </View>
-                ) : (
+                {(() => {
+                  // Check if this is a mixed signals extension case and get the updated choice
+                  const invitationId = event.id.replace('invitation-', '');
+                  const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                  let displayChoice = choiceDisplay;
+                  
+                  if (invitation) {
+                    const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                    const extensionKey = `${invitationId}-${dateUserId}`;
+                    const extension = mixedSignalsExtensions[extensionKey];
+                    
+                    // If there's an extension and the date has re-decided, show their new choice
+                    if (extension && extension.hasDateReDecided) {
+                      displayChoice = getChoiceDisplay(extension.dateChoice);
+                      console.log(`Displaying updated date choice: ${extension.dateChoice}`);
+                    }
+                  }
+                  
+                  return isPremium && displayChoice ? (
+                    <View style={[styles.choiceButton, styles.selectedChoice]}>
+                      <Text style={[styles.choiceButtonText, styles.selectedChoiceText]}>
+                        {displayChoice.text}
+                      </Text>
+                      <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext]}>
+                        {displayChoice.subtext}
+                      </Text>
+                    </View>
+                  ) : isPremium ? (
+                    <View style={styles.noDecisionContainer}>
+                      <Text style={styles.noDecisionText}>Decision is still marinating. What about you go first?🎉 #yourock</Text>
+                    </View>
+                  ) : null;
+                })()}
+                {!isPremium && (
                   <TouchableOpacity 
                     style={styles.upgradePromptInline}
                     onPress={handleUpgradeToPremium}
