@@ -5,10 +5,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
 import { SuccessPopup } from '@/components/SuccessPopup';
+import { NotificationPopup } from '@/components/NotificationPopup';
 import { mockUsers } from '@/mocks/users';
 import { usePlaces } from '@/hooks/use-places';
 import { useAuth } from '@/hooks/use-auth';
 import { useFavorites } from '@/hooks/use-favorites';
+import { useNotifications } from '@/hooks/use-notifications';
 import { Colors } from '@/constants/colors';
 
 import type { User } from '@/types/user';
@@ -19,8 +21,10 @@ export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'users' | 'places'>(tab === 'places' ? 'places' : 'users');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
+  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const { user } = useAuth();
   const { addToFavorites, isPlaceInFavorites } = useFavorites();
+  const { getUnreadCount } = useNotifications();
 
   const {
     places,
@@ -117,12 +121,10 @@ export default function SearchScreen() {
   };
 
   const handleNotificationPress = () => {
-    Alert.alert(
-      'Notifications',
-      'You have 3 new notifications:\n\n• Sarah invited you to dinner at Olive Garden\n• New restaurant "Pasta Palace" opened nearby\n• Your meal request was accepted by Mike',
-      [{ text: 'OK' }]
-    );
+    setShowNotificationPopup(true);
   };
+
+  const unreadCount = getUnreadCount();
 
   const filteredUsers = mockUsers.filter(user => 
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -209,7 +211,12 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <Heart size={24} color="#FF69B4" />
+            <Heart size={24} color="#FF69B4" fill={unreadCount > 0 ? "#FF69B4" : "none"} />
+            {unreadCount > 0 && (
+              <View style={styles.notificationBadge}>
+                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
         
@@ -265,6 +272,11 @@ export default function SearchScreen() {
         message="Poof! Added successfully👌🤘"
         onHide={() => setShowSuccessPopup(false)}
       />
+      
+      <NotificationPopup
+        visible={showNotificationPopup}
+        onClose={() => setShowNotificationPopup(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -297,6 +309,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8E7',
     borderWidth: 1,
     borderColor: '#888888',
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    backgroundColor: '#FF4444',
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FFF8E7',
+  },
+  notificationBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
 
   subtitle: {

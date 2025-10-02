@@ -10,6 +10,7 @@ import { mockUsers } from '@/mocks/users';
 import { mockPostDateResponses, hasMutualLoveMatch } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
+import { useNotifications } from '@/hooks/use-notifications';
 
 const colors = {
   primary: '#FF6B35',
@@ -71,6 +72,7 @@ function isPostMeal(date: Date, time: string): boolean {
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
   const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, getMatchType, matchedProfiles } = useChat();
+  const { addMatchDecisionNotification } = useNotifications();
   const [mealCounters, setMealCounters] = useState<Record<string, number>>({});
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -357,6 +359,20 @@ export default function PostMealScreen() {
     // Simulate Sofia choosing 'fight_for_fries' as her second choice
     const dateExtendedChoice = 'fight_for_fries'; // Sofia's second choice
     
+    // Add notification for the date's extended decision
+    if (invitation) {
+      const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
+      if (dateUser) {
+        addMatchDecisionNotification(
+          dateUser.name,
+          dateExtendedChoice,
+          invitation.venue.name,
+          dateUser.id,
+          invitationId
+        );
+      }
+    }
+    
     // Update the extension to mark that date has re-decided
     setMixedSignalsExtensions(prev => ({
       ...prev,
@@ -534,6 +550,19 @@ export default function PostMealScreen() {
     const dateChoice = getDateChoice(invitationId);
     
     if (dateChoice) {
+      // Add notification for the date's decision (if not already notified)
+      if (invitation) {
+        const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
+        if (dateUser) {
+          addMatchDecisionNotification(
+            dateUser.name,
+            dateChoice,
+            invitation.venue.name,
+            dateUser.id,
+            invitationId
+          );
+        }
+      }
       const isMatch = choice === dateChoice;
       let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | 'match_permanent' | null = null;
       
@@ -649,6 +678,24 @@ export default function PostMealScreen() {
       });
       
       setShowMatchModal(true);
+      
+      // Simulate the date making a decision after a short delay (for demo purposes)
+      setTimeout(() => {
+        if (invitation) {
+          const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
+          if (dateUser) {
+            // Simulate Sofia making a decision
+            const simulatedDateChoice = 'fight_for_fries';
+            addMatchDecisionNotification(
+              dateUser.name,
+              simulatedDateChoice,
+              invitation.venue.name,
+              dateUser.id,
+              invitationId
+            );
+          }
+        }
+      }, 5000); // 5 seconds delay for demo
     }
   };
 
@@ -963,7 +1010,7 @@ export default function PostMealScreen() {
                   >
                     <Star size={14} color={colors.premium} />
                     <Text style={styles.upgradeTextInline}>
-                      Upgrade to Premium to see your date's choice
+                      Upgrade to Premium to see your date&apos;s choice
                     </Text>
                   </TouchableOpacity>
                 )}
@@ -1160,7 +1207,7 @@ export default function PostMealScreen() {
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>1. All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
-          <Text style={styles.infoText}>2. Both parties have 7 days to make a decision. If one makes a decision but the other hasn't, the 7-day countdown continues.</Text>
+          <Text style={styles.infoText}>2. Both parties have 7 days to make a decision. If one makes a decision but the other hasn&apos;t, the 7-day countdown continues.</Text>
           <Text style={styles.infoText}>3. Once both parties make decisions:</Text>
           <Text style={styles.infoText}>   • For matches: The profile stays on Post Meal and chat remains available in Messages.</Text>
           <Text style={styles.infoText}>   • For non-matches: Both the profile and chat are removed immediately.</Text>
@@ -1267,7 +1314,7 @@ export default function PostMealScreen() {
                 </View>
                 <Text style={styles.matchModalTitle}>Taken! 💕</Text>
                 <Text style={styles.matchModalDescription}>
-                  Two chopsticks finally found each other! Slurp slurp—it's a match!
+                  Two chopsticks finally found each other! Slurp slurp—it&apos;s a match!
                 </Text>
               </>
             ) : matchResult?.matchType === 'buddy_pass' ? (
@@ -1281,7 +1328,7 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'next_round' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🎯</Text>
-                <Text style={styles.matchModalTitle}>You're both in for the Next Round!</Text>
+                <Text style={styles.matchModalTitle}>You&apos;re both in for the Next Round!</Text>
                 <Text style={styles.matchModalDescription}>
                   You both want to keep the adventure going!
                 </Text>
@@ -1373,7 +1420,7 @@ export default function PostMealScreen() {
                   setShowMatchModal(false);
                   setMatchResult(null);
                   // Navigate to search places page for next meal planning
-                  router.push('/(tabs)/?tab=places');
+                  router.push('/?tab=places');
                 }}
               >
                 <Text style={styles.upgradeButtonText}>
