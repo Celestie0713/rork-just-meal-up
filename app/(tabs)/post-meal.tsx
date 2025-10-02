@@ -1346,7 +1346,7 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'no_decision' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🥩</Text>
-                <Text style={styles.matchModalTitle}>Chill, they&apos;re just marinating their thoughts 🥩😏</Text>
+
                 <Text style={styles.matchModalDescription}>
                   Your date hasn&apos;t made their choice yet. Give them some time to decide!
                   {matchResult?.eventId && (() => {
