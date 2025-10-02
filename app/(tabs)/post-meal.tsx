@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
@@ -120,7 +120,7 @@ export default function PostMealScreen() {
     }
   };
 
-  const getDateChoice = (invitationId: string) => {
+  const getDateChoice = useCallback((invitationId: string) => {
     const invitation = mockInvitations.find(inv => inv.id === invitationId);
     if (!invitation) return null;
     
@@ -139,7 +139,7 @@ export default function PostMealScreen() {
     const originalChoice = response?.choice || null;
     console.log(`Returning original choice for ${invitationId}: ${originalChoice}`);
     return originalChoice;
-  };
+  }, [mixedSignalsExtensions]);
 
   const getChoiceDisplay = (choice: string) => {
     switch (choice) {
@@ -185,56 +185,78 @@ export default function PostMealScreen() {
         const bothPartiesDecided = userChoice && dateChoice;
         
         if (bothPartiesDecided) {
-          // If both parties decided, check if it's a match
-          const isMatch = userChoice === dateChoice;
+          // Check if there's an active mixed signals extension
+          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+          const extensionKey = `${invitationId}-${dateUserId}`;
+          const extension = mixedSignalsExtensions[extensionKey];
           
-          if (isMatch) {
-            // Special case: if both chose buddy_pass, treat it like a non-match for post-meal page
-            // but keep the chat available (handled in useChat hook)
-            if (userChoice === 'buddy_pass') {
-              console.log(`Event ${eventId} - buddy pass match, removing from post-meal page but keeping chat`);
-              return; // Skip this event (remove from post-meal page)
-            } else if (userChoice === 'next_round') {
-              // For next_round matches: profile stays on post-meal page and meal tracking continues
-              console.log(`Event ${eventId} - next_round match, keeping profile on post-meal page for meal tracking`);
-              // The profile will continue to show on post-meal page for future meal planning
+          // If there's an extension, check if both parties have made their second decisions
+          if (extension) {
+            if (extension.hasUserReDecided && extension.hasDateReDecided) {
+              // Both parties have made their second decisions, check if they match
+              const secondDecisionMatch = extension.userChoice === extension.dateChoice;
+              
+              if (secondDecisionMatch) {
+                // Second decisions match - keep the profile
+                console.log(`Event ${eventId} - second decisions match: ${extension.userChoice}`);
+                
+                // Handle buddy_pass matches (remove from post-meal page)
+                if (extension.userChoice === 'buddy_pass') {
+                  console.log(`Event ${eventId} - buddy pass match after extension, removing from post-meal page`);
+                  return; // Skip this event (remove from post-meal page)
+                }
+                // For other matches, keep the profile on post-meal page
+              } else {
+                // Second decisions don't match - remove the profile
+                console.log(`Event ${eventId} - second decisions don't match, removing profile`);
+                return; // Skip this event
+              }
             } else {
-              // For fight_for_fries matches: profile stays on the post-meal page (no removal)
-              console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
+              // Extension is active but not both parties have re-decided yet
+              // Check if 24 hours have passed since the extension started
+              const timeSinceExtension = now.getTime() - extension.startedAt.getTime();
+              const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
+              
+              if (timeSinceExtension >= twentyFourHoursInMs) {
+                // Extension period is over, remove the profile
+                console.log(`Removing event ${eventId} - mixed signals extension period ended`);
+                return; // Skip this event
+              }
+              // Extension is still active, keep the event
             }
           } else {
-            // Check for mixed signals case: one wants next_round, other wants fight_for_fries
-            const isMixedSignals = (userChoice === 'next_round' && dateChoice === 'fight_for_fries') ||
-                                 (userChoice === 'fight_for_fries' && dateChoice === 'next_round');
+            // No extension, check original decisions
+            const isMatch = userChoice === dateChoice;
             
-            if (isMixedSignals) {
-              // Check if we already have an extension for this case
-              const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-              const extensionKey = `${invitationId}-${dateUserId}`;
-              const extension = mixedSignalsExtensions[extensionKey];
+            if (isMatch) {
+              // Special case: if both chose buddy_pass, treat it like a non-match for post-meal page
+              // but keep the chat available (handled in useChat hook)
+              if (userChoice === 'buddy_pass') {
+                console.log(`Event ${eventId} - buddy pass match, removing from post-meal page but keeping chat`);
+                return; // Skip this event (remove from post-meal page)
+              } else if (userChoice === 'next_round') {
+                // For next_round matches: profile stays on post-meal page and meal tracking continues
+                console.log(`Event ${eventId} - next_round match, keeping profile on post-meal page for meal tracking`);
+                // The profile will continue to show on post-meal page for future meal planning
+              } else {
+                // For fight_for_fries matches: profile stays on the post-meal page (no removal)
+                console.log(`Event ${eventId} is a match - keeping profile on post-meal page`);
+              }
+            } else {
+              // Check for mixed signals case: one wants next_round, other wants fight_for_fries
+              const isMixedSignals = (userChoice === 'next_round' && dateChoice === 'fight_for_fries') ||
+                                   (userChoice === 'fight_for_fries' && dateChoice === 'next_round');
               
-              if (extension) {
-                // Check if 24 hours have passed since the extension started
-                const timeSinceExtension = now.getTime() - extension.startedAt.getTime();
-                const twentyFourHoursInMs = 24 * 60 * 60 * 1000;
-                
-                if (timeSinceExtension >= twentyFourHoursInMs) {
-                  // Extension period is over, remove the profile
-                  console.log(`Removing event ${eventId} - mixed signals extension period ended`);
-                  return; // Skip this event
-                }
-                // Extension is still active, keep the event
+              if (isMixedSignals) {
+                // This should trigger a mixed signals extension, but since we're in the filtering logic,
+                // we'll keep the event to allow the extension to be created
+                console.log(`Event ${eventId} - mixed signals detected, keeping for extension`);
               } else {
                 // For non-matches: profile disappears immediately from post meal page
                 // and chat will also be removed (handled in useChat hook)
                 console.log(`Removing event ${eventId} - both parties decided but no match`);
                 return; // Skip this event
               }
-            } else {
-              // For non-matches: profile disappears immediately from post meal page
-              // and chat will also be removed (handled in useChat hook)
-              console.log(`Removing event ${eventId} - both parties decided but no match`);
-              return; // Skip this event
             }
           }
         } else {
@@ -302,7 +324,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -359,8 +381,20 @@ export default function PostMealScreen() {
     // Check if the date has made their extended choice
     // In a real app, this would come from the server
     // For now, we'll simulate Sofia making her second choice after user makes theirs
-    // Simulate Sofia choosing the same as user's choice to create a match
-    const dateExtendedChoice = choice; // Sofia's second choice matches user's choice
+    // Simulate Sofia's second choice based on realistic scenarios
+    let dateExtendedChoice: string;
+    
+    // Simulate different scenarios for Sofia's second choice
+    if (choice === 'next_round') {
+      // If user chooses next_round, Sofia might choose fight_for_fries (no match)
+      dateExtendedChoice = 'fight_for_fries';
+    } else if (choice === 'fight_for_fries') {
+      // If user chooses fight_for_fries, Sofia might choose next_round (no match)
+      dateExtendedChoice = 'next_round';
+    } else {
+      // If user chooses buddy_pass, Sofia also chooses buddy_pass (match)
+      dateExtendedChoice = 'buddy_pass';
+    }
     
     // Add notification for the date's extended decision
     if (invitation) {
