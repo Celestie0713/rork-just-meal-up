@@ -30,17 +30,17 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <NotificationProvider>
-        <ChatProvider>
-          <AuthProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <ChatProvider>
             <FavoritesProvider>
               <GestureHandlerRootView style={{ flex: 1 }}>
                 <RootLayoutNav />
               </GestureHandlerRootView>
             </FavoritesProvider>
-          </AuthProvider>
-        </ChatProvider>
-      </NotificationProvider>
+          </ChatProvider>
+        </NotificationProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

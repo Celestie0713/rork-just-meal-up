@@ -1,6 +1,5 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useCallback, useMemo } from 'react';
-import { useAuth } from './use-auth';
 
 export type NotificationType = 'match_decision' | 'new_invitation' | 'meal_reminder';
 
@@ -16,24 +15,7 @@ export interface Notification {
 }
 
 export const [NotificationProvider, useNotifications] = createContextHook(() => {
-  const { user } = useAuth();
-  const isPremium = user?.membershipTier === 'premium';
-  
-  const [notifications, setNotifications] = useState<Notification[]>([
-    // Mock notification for Sofia Kim making a decision
-    {
-      id: '1',
-      type: 'match_decision',
-      title: 'Sofia Kim made a decision!',
-      message: isPremium 
-        ? 'Sofia chose "Fight for fries for life" for your dinner at Olive Garden'
-        : 'Sofia made a decision for your meal at Olive Garden',
-      userId: '5',
-      mealId: '7',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000), // 30 minutes ago
-      read: false
-    }
-  ]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
 
   const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
     const newNotification: Notification = {
@@ -67,14 +49,14 @@ export const [NotificationProvider, useNotifications] = createContextHook(() => 
     return notifications.filter(n => !n.read).length;
   }, [notifications]);
 
-  const addMatchDecisionNotification = useCallback((userName: string, decision: string, venue: string, userId: string, mealId: string, isPremium: boolean) => {
+  const addMatchDecisionNotification = useCallback((userName: string, decision: string, venue: string, userId: string, mealId: string, isPremiumUser: boolean) => {
     const decisionText = decision === 'fight_for_fries' 
       ? 'Fight for fries for life' 
       : decision === 'next_round' 
       ? "Let's do next round" 
       : 'Buddy pass';
     
-    const message = isPremium 
+    const message = isPremiumUser 
       ? `${userName} chose "${decisionText}" for your meal at ${venue}`
       : `${userName} made a decision for your meal at ${venue}`;
     
