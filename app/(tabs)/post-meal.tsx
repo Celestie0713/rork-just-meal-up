@@ -198,22 +198,22 @@ export default function PostMealScreen() {
               
               console.log(`Event ${eventId} - Extension completed. User: ${extension.userChoice}, Date: ${extension.dateChoice}, Match: ${secondDecisionMatch}`);
               
-              if (secondDecisionMatch) {
-                // Second decisions match - handle based on match type
-                console.log(`Event ${eventId} - second decisions match: ${extension.userChoice}`);
-                
-                // Handle buddy_pass matches (remove from post-meal page but keep chat)
-                if (extension.userChoice === 'buddy_pass') {
-                  console.log(`Event ${eventId} - buddy pass match after extension, removing from post-meal page`);
-                  return; // Skip this event (remove from post-meal page)
-                }
-                // For fight_for_fries and next_round matches, keep the profile on post-meal page
-                console.log(`Event ${eventId} - keeping profile on post-meal page after extension match`);
-              } else {
+              if (!secondDecisionMatch) {
                 // Second decisions don't match - remove the profile completely
                 console.log(`Event ${eventId} - second decisions don't match (${extension.userChoice} vs ${extension.dateChoice}), removing profile`);
                 return; // Skip this event
               }
+              
+              // Second decisions match - handle based on match type
+              console.log(`Event ${eventId} - second decisions match: ${extension.userChoice}`);
+              
+              // Handle buddy_pass matches (remove from post-meal page but keep chat)
+              if (extension.userChoice === 'buddy_pass') {
+                console.log(`Event ${eventId} - buddy pass match after extension, removing from post-meal page`);
+                return; // Skip this event (remove from post-meal page)
+              }
+              // For fight_for_fries and next_round matches, keep the profile on post-meal page
+              console.log(`Event ${eventId} - keeping profile on post-meal page after extension match`);
             } else {
               // Extension is active but not both parties have re-decided yet
               // Check if 24 hours have passed since the extension started
