@@ -14,7 +14,9 @@ interface FavoritePlaceData {
 }
 
 export const [FavoritesProvider, useFavorites] = createContextHook(() => {
-  const { user, updateUser } = useAuth();
+  const auth = useAuth();
+  const user = auth?.user ?? null;
+  const updateUser = useMemo(() => auth?.updateUser ?? (async () => {}), [auth?.updateUser]);
   const [favoritePlacesData, setFavoritePlacesData] = useState<FavoritePlaceData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
