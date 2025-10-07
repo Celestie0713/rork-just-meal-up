@@ -19,9 +19,18 @@ export default function EventsScreen() {
   };
 
   const handleCreateMealUp = () => {
+    console.log('=== CREATE MEAL UP BUTTON CLICKED ===');
+    console.log('User:', user);
+    console.log('Is paid member:', isPaidMember);
+    
     if (isPaidMember) {
-      console.log('Creating new meal up');
-      router.push('/create-meal-up');
+      console.log('Navigating to create-meal-up screen...');
+      try {
+        router.push('/create-meal-up');
+        console.log('Navigation successful');
+      } catch (error) {
+        console.error('Navigation error:', error);
+      }
     } else {
       // Show upgrade prompt for non-premium members
       Alert.alert(
