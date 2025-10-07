@@ -697,6 +697,10 @@ export default function PostMealScreen() {
               
               matchType = 'mixed_signals_extension';
               console.log(`Started 24-hour extension for mixed signals case: ${extensionKey} at ${extensionStartTime.toISOString()}`);
+              
+              // Track mixed signals case immediately when extension is created
+              trackMixedSignalsCase(dateUserId, invitationId);
+              console.log(`Started tracking mixed signals case for user ${dateUserId}`);
             }
           }
         }
@@ -704,6 +708,7 @@ export default function PostMealScreen() {
         // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
       }
       
+      // Show modal for all cases where both parties have decided
       setMatchResult({
         isMatch,
         matchType,
@@ -711,15 +716,6 @@ export default function PostMealScreen() {
         dateChoice,
         eventId
       });
-      
-      // Track mixed signals case when popup is shown
-      if (matchType === 'mixed_signals_extension') {
-        if (invitation) {
-          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-          trackMixedSignalsCase(dateUserId, invitationId);
-          console.log(`Started tracking mixed signals case for user ${dateUserId}`);
-        }
-      }
       
       setShowMatchModal(true);
       
