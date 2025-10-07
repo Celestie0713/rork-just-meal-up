@@ -13,7 +13,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { Calendar, Clock, MapPin, Users, DollarSign, ArrowLeft, Video, X, Plus } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, ArrowLeft, Video, X, Plus } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import * as ImagePicker from 'expo-image-picker';
@@ -331,7 +331,7 @@ export default function CreateMealUpScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Ticket Price</Text>
               <View style={styles.inputWithIcon}>
-                <DollarSign size={20} color={Colors.textLight} />
+                <Text style={styles.currencySign}>$</Text>
                 <TextInput
                   style={styles.inputWithIconText}
                   placeholder="0.00"
@@ -569,6 +569,11 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 12,
     fontSize: 16,
+    color: Colors.text,
+  },
+  currencySign: {
+    fontSize: 16,
+    fontWeight: '600',
     color: Colors.text,
   },
   row: {
