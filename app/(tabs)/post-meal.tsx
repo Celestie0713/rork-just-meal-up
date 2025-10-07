@@ -105,6 +105,22 @@ export default function PostMealScreen() {
     return () => clearInterval(interval);
   }, []);
 
+  // Debug: Log when mixedSignalsExtensions changes
+  useEffect(() => {
+    console.log('mixedSignalsExtensions updated:', mixedSignalsExtensions);
+    Object.entries(mixedSignalsExtensions).forEach(([key, ext]) => {
+      console.log(`Extension ${key}: startedAt=${ext.startedAt.toISOString()}, userChoice=${ext.userChoice}, dateChoice=${ext.dateChoice}`);
+    });
+  }, [mixedSignalsExtensions]);
+
+  // Debug: Log when choiceTimestamps changes
+  useEffect(() => {
+    console.log('choiceTimestamps updated:', choiceTimestamps);
+    Object.entries(choiceTimestamps).forEach(([key, timestamp]) => {
+      console.log(`Timestamp ${key}: ${timestamp.toISOString()}`);
+    });
+  }, [choiceTimestamps]);
+
   const handleUpgradeToPremium = () => {
     setShowUpgradeModal(true);
   };
@@ -645,31 +661,42 @@ export default function PostMealScreen() {
               matchType = 'mixed_signals_extension';
             } else {
               // Start a new 24-hour extension period
-              const now = new Date();
+              const extensionStartTime = new Date();
               const extension: MixedSignalsExtension = {
                 userId: dateUserId,
                 invitationId,
-                startedAt: now,
+                startedAt: extensionStartTime,
                 userChoice: choice,
                 dateChoice,
                 hasUserReDecided: false,
                 hasDateReDecided: false
               };
               
-              setMixedSignalsExtensions(prev => ({
-                ...prev,
-                [extensionKey]: extension
-              }));
+              console.log(`Creating new mixed signals extension at ${extensionStartTime.toISOString()}`);
+              console.log(`Extension details:`, extension);
+              
+              setMixedSignalsExtensions(prev => {
+                const updated = {
+                  ...prev,
+                  [extensionKey]: extension
+                };
+                console.log(`Updated mixedSignalsExtensions:`, updated);
+                return updated;
+              });
               
               // Reset the choice timestamp to the extension start time
               // This ensures the timer shows 24 hours from when the extension started
-              setChoiceTimestamps(prev => ({
-                ...prev,
-                [eventId]: now
-              }));
+              setChoiceTimestamps(prev => {
+                const updated = {
+                  ...prev,
+                  [eventId]: extensionStartTime
+                };
+                console.log(`Updated choiceTimestamps for ${eventId}:`, extensionStartTime.toISOString());
+                return updated;
+              });
               
               matchType = 'mixed_signals_extension';
-              console.log(`Started 24-hour extension for mixed signals case: ${extensionKey} at ${now.toISOString()}`);
+              console.log(`Started 24-hour extension for mixed signals case: ${extensionKey} at ${extensionStartTime.toISOString()}`);
             }
           }
         }
