@@ -645,10 +645,11 @@ export default function PostMealScreen() {
               matchType = 'mixed_signals_extension';
             } else {
               // Start a new 24-hour extension period
+              const now = new Date();
               const extension: MixedSignalsExtension = {
                 userId: dateUserId,
                 invitationId,
-                startedAt: new Date(),
+                startedAt: now,
                 userChoice: choice,
                 dateChoice,
                 hasUserReDecided: false,
@@ -660,8 +661,15 @@ export default function PostMealScreen() {
                 [extensionKey]: extension
               }));
               
+              // Reset the choice timestamp to the extension start time
+              // This ensures the timer shows 24 hours from when the extension started
+              setChoiceTimestamps(prev => ({
+                ...prev,
+                [eventId]: now
+              }));
+              
               matchType = 'mixed_signals_extension';
-              console.log(`Started 24-hour extension for mixed signals case: ${extensionKey}`);
+              console.log(`Started 24-hour extension for mixed signals case: ${extensionKey} at ${now.toISOString()}`);
             }
           }
         }
