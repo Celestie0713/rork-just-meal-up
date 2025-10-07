@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Text,
   StyleSheet,
@@ -46,7 +46,7 @@ export default function CreateMealUpScreen() {
   const { width: screenWidth } = Dimensions.get('window');
   const mediaItemWidth = (screenWidth - 60) / 3;
 
-  const currencySign = getCurrencyFromAddress(formData.venue.address); // 3 items per row with padding
+  const currencySign = useMemo(() => getCurrencyFromAddress(formData.venue.address), [formData.venue.address]);
 
   const handleInputChange = (field: string, value: string) => {
     if (field.startsWith('venue.')) {
