@@ -16,6 +16,7 @@ import { Stack, router } from 'expo-router';
 import { Calendar, Clock, MapPin, Users, ArrowLeft, Video, X, Plus } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
+import { getCurrencyFromAddress } from '@/constants/currencies';
 import * as ImagePicker from 'expo-image-picker';
 import { Video as ExpoVideo, ResizeMode } from 'expo-av';
 
@@ -43,7 +44,9 @@ export default function CreateMealUpScreen() {
   const [mediaFiles, setMediaFiles] = useState<ImagePicker.ImagePickerAsset[]>([]);
 
   const { width: screenWidth } = Dimensions.get('window');
-  const mediaItemWidth = (screenWidth - 60) / 3; // 3 items per row with padding
+  const mediaItemWidth = (screenWidth - 60) / 3;
+
+  const currencySign = getCurrencyFromAddress(formData.venue.address); // 3 items per row with padding
 
   const handleInputChange = (field: string, value: string) => {
     if (field.startsWith('venue.')) {
@@ -331,7 +334,7 @@ export default function CreateMealUpScreen() {
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Ticket Price</Text>
               <View style={styles.inputWithIcon}>
-                <Text style={styles.currencySign}>$</Text>
+                <Text style={styles.currencySign}>{currencySign}</Text>
                 <TextInput
                   style={styles.inputWithIconText}
                   placeholder="0.00"
