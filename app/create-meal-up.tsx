@@ -24,6 +24,7 @@ export default function CreateMealUpScreen() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    keywords: '',
     date: '',
     time: '',
     venue: {
@@ -219,6 +220,17 @@ export default function CreateMealUpScreen() {
                 onChangeText={(value) => handleInputChange('description', value)}
                 multiline
                 numberOfLines={3}
+                placeholderTextColor={Colors.textLight}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Keywords</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., vegan, outdoor seating, live music"
+                value={formData.keywords}
+                onChangeText={(value) => handleInputChange('keywords', value)}
                 placeholderTextColor={Colors.textLight}
               />
             </View>
