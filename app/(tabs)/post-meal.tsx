@@ -402,11 +402,6 @@ export default function PostMealScreen() {
       [eventId]: true
     }));
     
-    setChoiceTimestamps(prev => ({
-      ...prev,
-      [eventId]: now
-    }));
-    
     // Update the extension with both user and date decisions
     // This single update ensures the UI refreshes with both choices at once
     setMixedSignalsExtensions(prev => {
