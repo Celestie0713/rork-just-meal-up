@@ -17,6 +17,8 @@ export function SystemMessageBubble({ message }: SystemMessageBubbleProps) {
         return <Info size={14} color={Colors.success} />;
       case 'invitation_cancelled':
         return <Info size={14} color={Colors.warning} />;
+      case 'mixed_signals':
+        return <Info size={14} color={Colors.primary} />;
       default:
         return <Info size={14} color={Colors.textLight} />;
     }

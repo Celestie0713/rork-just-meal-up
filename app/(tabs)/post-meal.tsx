@@ -71,7 +71,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, getMatchType, matchedProfiles } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, getMatchType, matchedProfiles, addSystemMessage } = useChat();
   const { addMatchDecisionNotification } = useNotifications();
   const [mealCounters, setMealCounters] = useState<Record<string, number>>({});
   const insets = useSafeAreaInsets();
@@ -701,6 +701,18 @@ export default function PostMealScreen() {
               // Track mixed signals case immediately when extension is created
               trackMixedSignalsCase(dateUserId, invitationId);
               console.log(`Started tracking mixed signals case for user ${dateUserId}`);
+              
+              // Add system message to chat
+              const chatId = `1-${dateUserId}`;
+              const systemMessage: import('@/types/user').SystemMessage = {
+                id: `system-${Date.now()}`,
+                type: 'mixed_signals',
+                content: '🤔 Mixed signals detected! One of you wants another round, the other is ready to go all in. You both have 24 hours to retake your decision.',
+                timestamp: new Date(),
+                relatedInvitationId: invitationId
+              };
+              addSystemMessage(chatId, systemMessage);
+              console.log(`Added mixed signals system message to chat ${chatId}`);
             }
           }
         }
