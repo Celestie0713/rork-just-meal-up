@@ -329,7 +329,7 @@ export default function CreateMealUpScreen() {
             <Text style={styles.sectionTitle}>What&apos;s included?</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Ticket Price (Optional)</Text>
+              <Text style={styles.label}>Ticket Price</Text>
               <View style={styles.inputWithIcon}>
                 <DollarSign size={20} color={Colors.textLight} />
                 <TextInput
