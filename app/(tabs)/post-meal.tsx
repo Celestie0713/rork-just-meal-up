@@ -128,10 +128,16 @@ export default function PostMealScreen() {
     const extensionKey = `${invitationId}-${dateUserId}`;
     const extension = mixedSignalsExtensions[extensionKey];
     
-    // If there's an active extension and the date has made a second decision, return that
-    if (extension && extension.hasDateReDecided) {
-      console.log(`Returning date's second choice for ${invitationId}: ${extension.dateChoice}`);
-      return extension.dateChoice;
+    // If there's an active extension
+    if (extension) {
+      // If the date has made a second decision, return that
+      if (extension.hasDateReDecided) {
+        console.log(`Returning date's second choice for ${invitationId}: ${extension.dateChoice}`);
+        return extension.dateChoice;
+      }
+      // If the extension just started and date hasn't re-decided, return null to show "marinating" message
+      console.log(`Extension active for ${invitationId}, date hasn't re-decided yet - returning null`);
+      return null;
     }
     
     // Otherwise, return the original choice
