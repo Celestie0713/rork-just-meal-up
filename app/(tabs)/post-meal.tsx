@@ -146,13 +146,14 @@ export default function PostMealScreen() {
     
     // If there's an active extension
     if (extension) {
-      // If the date has made a second decision, return that
+      // CRITICAL: During extension period, we should NOT show the old choice
+      // Only show the NEW choice after the date has re-decided
       if (extension.hasDateReDecided) {
-        console.log(`Returning date's second choice for ${invitationId}: ${extension.dateChoice}`);
+        console.log(`[Extension] Returning date's NEW choice for ${invitationId}: ${extension.dateChoice}`);
         return extension.dateChoice;
       }
-      // If the extension just started and date hasn't re-decided, return null to show "marinating" message
-      console.log(`Extension active for ${invitationId}, date hasn't re-decided yet - returning null`);
+      // If the extension is active but date hasn't re-decided, return null
+      console.log(`[Extension] Active for ${invitationId}, date hasn't re-decided yet - returning null`);
       return null;
     }
     
@@ -432,16 +433,9 @@ export default function PostMealScreen() {
       return updated;
     });
     
-    // CRITICAL: Update the choice timestamp to the extension start time
-    // This ensures the timer calculation uses the correct reference point
-    setChoiceTimestamps(prev => {
-      const updated = {
-        ...prev,
-        [eventId]: extensionStartTime
-      };
-      console.log(`Updated choiceTimestamps for ${eventId}:`, extensionStartTime.toISOString());
-      return updated;
-    });
+    // Note: We don't need to update choiceTimestamps here because
+    // the timer calculation now uses extension.startedAt directly
+    console.log(`Extension timer will use startedAt: ${extensionStartTime.toISOString()}`);
     
     console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
     console.log(`Date's second choice: ${dateExtendedChoice}`);
@@ -858,6 +852,29 @@ export default function PostMealScreen() {
     const isInvitation = eventId.startsWith('invitation-');
     if (isInvitation) {
       const invitationId = eventId.replace('invitation-', '');
+      const invitation = mockInvitations.find(inv => inv.id === invitationId);
+      
+      // CRITICAL: Check for active extension FIRST before checking choices
+      if (invitation) {
+        const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+        const extensionKey = `${invitationId}-${dateUserId}`;
+        const extension = mixedSignalsExtensions[extensionKey];
+        
+        // If there's an active extension, use the extension's timer
+        if (extension) {
+          console.log(`[Timer] Using extension timer for ${eventId}. Extension started at: ${extension.startedAt.toISOString()}`);
+          const twentyFourHoursAfterExtension = new Date(extension.startedAt.getTime() + (24 * 60 * 60 * 1000));
+          const timeLeft = twentyFourHoursAfterExtension.getTime() - now.getTime();
+          console.log(`[Timer] Time left: ${timeLeft}ms (${Math.floor(timeLeft / 1000 / 60 / 60)}h ${Math.floor((timeLeft / 1000 / 60) % 60)}m)`);
+          return {
+            timeLeft: Math.max(0, timeLeft),
+            type: 'mixed_signals_extension' as const,
+            totalTime: 24 * 60 * 60 * 1000
+          };
+        }
+      }
+      
+      // No active extension, proceed with normal logic
       const dateChoice = getDateChoice(invitationId);
       const userChoice = selectedChoices[eventId];
       const bothPartiesDecided = userChoice && dateChoice;
@@ -883,32 +900,7 @@ export default function PostMealScreen() {
             };
           }
         } else {
-          // Check for mixed signals case: one wants next_round, other wants fight_for_fries
-          const isMixedSignals = (userChoice === 'next_round' && dateChoice === 'fight_for_fries') ||
-                               (userChoice === 'fight_for_fries' && dateChoice === 'next_round');
-          
-          if (isMixedSignals) {
-            // Check if we have an extension for this case
-            const invitation = mockInvitations.find(inv => inv.id === invitationId);
-            if (invitation) {
-              const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-              const extensionKey = `${invitationId}-${dateUserId}`;
-              const extension = mixedSignalsExtensions[extensionKey];
-              
-              if (extension) {
-                // Show 24-hour countdown from when the extension started
-                const twentyFourHoursAfterExtension = new Date(extension.startedAt.getTime() + (24 * 60 * 60 * 1000));
-                const timeLeft = twentyFourHoursAfterExtension.getTime() - now.getTime();
-                return {
-                  timeLeft: Math.max(0, timeLeft),
-                  type: 'mixed_signals_extension' as const,
-                  totalTime: 24 * 60 * 60 * 1000
-                };
-              }
-            }
-          }
-          
-          // For other non-matches: profile should already be removed, but if still showing, no timer
+          // For non-matches: profile should already be removed
           return {
             timeLeft: 0,
             type: 'no_match_removed' as const,
