@@ -1528,7 +1528,19 @@ export default function PostMealScreen() {
                 style={[styles.upgradeButton, styles.chatButton]}
                 onPress={() => {
                   setShowMatchModal(false);
+                  
+                  // Clear the finalized choice to allow retaking decision
+                  if (matchResult?.eventId) {
+                    const eventId = matchResult.eventId;
+                    setFinalizedChoices(prev => {
+                      const updated = { ...prev };
+                      delete updated[eventId];
+                      return updated;
+                    });
+                  }
+                  
                   setMatchResult(null);
+                  
                   // Force a re-render to update the UI after closing the modal
                   setCurrentTime(new Date());
                   // Navigate to chat page
