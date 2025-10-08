@@ -704,54 +704,52 @@ export default function PostMealScreen() {
                 hasDateReDecided: false
               };
               
-              // IMPORTANT: Don't finalize the choice for mixed signals - allow retaking
+              // CRITICAL: Clear ALL states related to the old decision
+              // This ensures the UI shows a clean slate for retaking decisions
+              
+              // 1. Clear the finalized choice flag to allow retaking
               setFinalizedChoices(prev => {
                 const updated = { ...prev };
                 delete updated[eventId];
-                console.log(`Cleared finalized choice for ${eventId} to allow retaking`);
+                console.log(`[Mixed Signals] Cleared finalized choice for ${eventId}`);
                 return updated;
               });
               
-              // CRITICAL: Clear the old choice from selectedChoices so the UI shows retake options
+              // 2. Clear the old choice from selectedChoices
               setSelectedChoices(prev => {
                 const updated = { ...prev };
                 delete updated[eventId];
-                console.log(`Cleared old choice from selectedChoices for ${eventId}`);
+                console.log(`[Mixed Signals] Cleared old choice from selectedChoices for ${eventId}`);
                 return updated;
               });
               
-              console.log(`Creating new mixed signals extension at ${extensionStartTime.toISOString()}`);
-              console.log(`Extension details:`, extension);
-              console.log(`Timer should now show 24 hours from: ${extensionStartTime.toISOString()}`);
-              
-              // Update the extension state immediately
-              setMixedSignalsExtensions(prev => {
-                const updated = {
-                  ...prev,
-                  [extensionKey]: extension
-                };
-                console.log(`Updated mixedSignalsExtensions:`, updated);
-                return updated;
-              });
-              
-              // CRITICAL: Update the choice timestamp to the extension start time
-              // This ensures the timer calculation uses the correct reference point
+              // 3. Reset the timer to 24 hours from NOW
               setChoiceTimestamps(prev => {
                 const updated = {
                   ...prev,
                   [eventId]: extensionStartTime
                 };
-                console.log(`Updated choiceTimestamps for ${eventId}:`, extensionStartTime.toISOString());
-                console.log(`Timer will calculate from this timestamp`);
+                console.log(`[Mixed Signals] Reset timer to 24 hours from: ${extensionStartTime.toISOString()}`);
+                return updated;
+              });
+              
+              // 4. Create the extension state
+              setMixedSignalsExtensions(prev => {
+                const updated = {
+                  ...prev,
+                  [extensionKey]: extension
+                };
+                console.log(`[Mixed Signals] Created extension:`, extension);
                 return updated;
               });
               
               matchType = 'mixed_signals_extension';
-              console.log(`Started 24-hour extension for mixed signals case: ${extensionKey} at ${extensionStartTime.toISOString()}`);
+              console.log(`[Mixed Signals] Started 24-hour extension for ${extensionKey}`);
+              console.log(`[Mixed Signals] Old decisions cleared. Users can now retake their decisions.`);
               
               // Track mixed signals case immediately when extension is created
               trackMixedSignalsCase(dateUserId, invitationId);
-              console.log(`Started tracking mixed signals case for user ${dateUserId}`);
+              console.log(`[Mixed Signals] Started tracking case for user ${dateUserId}`);
               
               // Add system message to chat
               const chatId = `1-${dateUserId}`;
@@ -763,7 +761,7 @@ export default function PostMealScreen() {
                 relatedInvitationId: invitationId
               };
               addSystemMessage(chatId, systemMessage);
-              console.log(`Added mixed signals system message to chat ${chatId}`);
+              console.log(`[Mixed Signals] Added system message to chat ${chatId}`);
             }
           }
         }
