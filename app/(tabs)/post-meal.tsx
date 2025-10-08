@@ -391,13 +391,13 @@ export default function PostMealScreen() {
       dateExtendedChoice = 'buddy_pass';
     }
     
-    // CRITICAL: Clear the old choice from selectedChoices to ensure UI shows the new choice
-    setSelectedChoices(prev => {
-      const updated = { ...prev };
-      delete updated[eventId];
-      console.log(`Cleared old choice from selectedChoices for ${eventId}`);
-      return updated;
-    });
+    // CRITICAL: Update selectedChoices with the NEW choice (second decision)
+    // This ensures the system uses the second decision, not the first
+    setSelectedChoices(prev => ({
+      ...prev,
+      [eventId]: choice // Use the NEW choice
+    }));
+    console.log(`Updated selectedChoices with NEW choice for ${eventId}: ${choice}`);
     
     // Update all states together to ensure synchronous UI update
     // This ensures the "Your date chose" section updates immediately when the popup shows
@@ -955,11 +955,16 @@ export default function PostMealScreen() {
     const invitationId = event.id.replace('invitation-', '');
     const dateChoice = !isGroup ? getDateChoice(invitationId) : null;
     const choiceDisplay = dateChoice ? getChoiceDisplay(dateChoice) : null;
-    const userSelectedChoice = selectedChoices[event.id];
+    
+    // CRITICAL: Use extendedChoices if available (second decision), otherwise use selectedChoices (first decision)
+    const userSelectedChoice = extendedChoices[event.id] || selectedChoices[event.id];
     const hasUserMadeChoice = !!userSelectedChoice;
     const isChoiceFinalized = finalizedChoices[event.id];
     
+    console.log(`[Render] Event ${event.id}: userSelectedChoice=${userSelectedChoice}, dateChoice=${dateChoice}`);
+    
     // Check if there's a match (both users chose the same option)
+    // CRITICAL: This should use the CURRENT choices (second decision if available)
     const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
     const matchType = isMatch ? userSelectedChoice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
     
