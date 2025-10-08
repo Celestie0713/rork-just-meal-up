@@ -388,17 +388,9 @@ export default function PostMealScreen() {
     // For proper testing of mixed signals resolution
     let dateExtendedChoice: string;
     
-    // Simulate different scenarios for Sofia's second choice
-    if (choice === 'next_round') {
-      // If user chooses next_round, Sofia chooses fight_for_fries (no match - should remove profile)
-      dateExtendedChoice = 'fight_for_fries';
-    } else if (choice === 'fight_for_fries') {
-      // If user chooses fight_for_fries, Sofia also chooses fight_for_fries (match - should keep profile)
-      dateExtendedChoice = 'fight_for_fries';
-    } else {
-      // If user chooses buddy_pass, Sofia also chooses buddy_pass (match - should remove from post-meal but keep chat)
-      dateExtendedChoice = 'buddy_pass';
-    }
+    // Simulate Sofia choosing the SAME option as the user for testing
+    // This ensures both parties match on their second decision
+    dateExtendedChoice = choice;
     
     // CRITICAL: Update selectedChoices with the NEW choice (second decision)
     // This ensures the system uses the second decision, not the first
