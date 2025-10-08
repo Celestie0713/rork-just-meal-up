@@ -1163,7 +1163,7 @@ export default function PostMealScreen() {
                               You chose &quot;{getChoiceDisplay(userSelectedChoice)?.text || userSelectedChoice}&quot; but your date chose &quot;{getChoiceDisplay(dateChoice || '')?.text || dateChoice}&quot;.
                             </Text>
                             <Text style={[styles.retakeDecisionSubtitle, styles.lastChanceText]}>
-                              ⚠️ This is your LAST CHANCE - you both have {timeRemaining} to retake your decision. After this, if you still don&apos;t match, the profile and chat will be removed permanently.
+                              ⚠️ LAST CHANCE! You both get another 24 hours to retake your decision. If it is not a match, the profile and chat will be removed permanently. Chat it out💝
                             </Text>
                           </View>
                           
@@ -1470,7 +1470,7 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in🌹</Text>
                 <Text style={styles.matchModalDescription}>
                   {matchResult?.matchType === 'mixed_signals_extension' 
-                    ? '⚠️ LAST CHANCE! You both get another 24 hours to retake your decision. If you still don\'t match, the profile and chat will be removed permanently. Time to chat it out!' 
+                    ? '⚠️ LAST CHANCE! You both get another 24 hours to retake your decision. If it is not a match, the profile and chat will be removed permanently. Chat it out💝' 
                     : 'Time to chat it out!'}
                 </Text>
               </>
