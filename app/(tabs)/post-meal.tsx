@@ -477,6 +477,7 @@ export default function PostMealScreen() {
       if (isExtendedMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
         console.log(`Extended match found! User: ${choice}, Date: ${dateExtendedChoice}`);
+        console.log(`Match type set to: ${matchType}`);
         
         // Track the match with the NEW match type
         addMatchedProfile(dateUserId, invitationId, matchType);
@@ -495,6 +496,7 @@ export default function PostMealScreen() {
           });
         }
         
+        console.log(`Setting match result with isMatch=true, matchType=${matchType}`);
         setMatchResult({
           isMatch: true,
           matchType,
@@ -1527,7 +1529,7 @@ export default function PostMealScreen() {
                   Great minds think alike! You both chose to stay friends.{"\n\n"}Heads up: This profile will be removed from the Post Meal page, but your chat is still available in Messages.
                 </Text>
               </>
-            ) : matchResult?.matchType === 'next_round' ? (
+            ) : matchResult?.isMatch && matchResult?.matchType === 'next_round' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🎯</Text>
                 <Text style={styles.matchModalTitle}>You&apos;re both in for the Next Round!</Text>
