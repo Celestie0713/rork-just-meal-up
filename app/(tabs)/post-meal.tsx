@@ -580,8 +580,15 @@ export default function PostMealScreen() {
       }
     }
     
-    // Don't allow changes if already finalized
+    // Don't allow changes if already finalized (user can only choose once, except during mixed signals)
     if (finalizedChoices[eventId]) {
+      console.log(`Choice already finalized for ${eventId}, cannot change`);
+      return;
+    }
+    
+    // Don't allow changes if user has already made a choice (prevent multiple selections)
+    if (selectedChoices[eventId]) {
+      console.log(`User has already made a choice for ${eventId}, cannot change`);
       return;
     }
 
@@ -589,13 +596,17 @@ export default function PostMealScreen() {
 
     const now = new Date();
     
+    // Mark as finalized immediately to prevent changing the choice
+    // Exception: if it's a mixed signals case, we'll clear this later
+    setFinalizedChoices(prev => ({
+      ...prev,
+      [eventId]: true
+    }));
+    
     setSelectedChoices(prev => ({
       ...prev,
       [eventId]: choice
     }));
-    
-    // Don't mark as finalized yet - wait to see if it's a mixed signal case
-    // setFinalizedChoices will be set after we check for matches
     
     // Record the timestamp when the choice was made
     setChoiceTimestamps(prev => {
@@ -760,13 +771,9 @@ export default function PostMealScreen() {
         // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
       }
       
-      // Mark choice as finalized only if it's not a mixed signals case
-      if (matchType !== 'mixed_signals_extension') {
-        setFinalizedChoices(prev => ({
-          ...prev,
-          [eventId]: true
-        }));
-      }
+      // Choice is already finalized at the start of handleChoiceSelect
+      // For mixed signals cases, we clear the finalized flag to allow retaking
+      // (This is already handled in the mixed signals extension creation code above)
       
       // Show modal for all cases where both parties have decided
       setMatchResult({
