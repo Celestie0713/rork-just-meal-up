@@ -656,6 +656,7 @@ export default function PostMealScreen() {
               matchType = 'mixed_signals_extension';
             } else {
               // Start a new 24-hour extension period
+              // IMPORTANT: Use the current time as the extension start time
               const extensionStartTime = new Date();
               const extension: MixedSignalsExtension = {
                 userId: dateUserId,
@@ -669,7 +670,9 @@ export default function PostMealScreen() {
               
               console.log(`Creating new mixed signals extension at ${extensionStartTime.toISOString()}`);
               console.log(`Extension details:`, extension);
+              console.log(`Timer should now show 24 hours from: ${extensionStartTime.toISOString()}`);
               
+              // Update the extension state immediately
               setMixedSignalsExtensions(prev => {
                 const updated = {
                   ...prev,
@@ -679,14 +682,15 @@ export default function PostMealScreen() {
                 return updated;
               });
               
-              // Reset the choice timestamp to the extension start time
-              // This ensures the timer shows 24 hours from when the extension started
+              // CRITICAL: Update the choice timestamp to the extension start time
+              // This ensures the timer calculation uses the correct reference point
               setChoiceTimestamps(prev => {
                 const updated = {
                   ...prev,
                   [eventId]: extensionStartTime
                 };
                 console.log(`Updated choiceTimestamps for ${eventId}:`, extensionStartTime.toISOString());
+                console.log(`Timer will calculate from this timestamp`);
                 return updated;
               });
               
