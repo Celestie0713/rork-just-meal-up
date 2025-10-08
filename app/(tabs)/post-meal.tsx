@@ -1419,6 +1419,8 @@ export default function PostMealScreen() {
         onRequestClose={() => {
           setShowMatchModal(false);
           setMatchResult(null);
+          // Force a re-render to update the UI after closing the modal
+          setCurrentTime(new Date());
         }}
       >
         <View style={styles.modalOverlay}>
@@ -1427,6 +1429,8 @@ export default function PostMealScreen() {
               onPress={() => {
                 setShowMatchModal(false);
                 setMatchResult(null);
+                // Force a re-render to update the UI after closing the modal
+                setCurrentTime(new Date());
               }}
               style={styles.matchModalCloseButton}
             >
@@ -1525,6 +1529,8 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
+                  // Force a re-render to update the UI after closing the modal
+                  setCurrentTime(new Date());
                   // Navigate to chat page
                   if (matchResult?.eventId) {
                     const invitationId = matchResult.eventId.replace('invitation-', '');
@@ -1546,6 +1552,8 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
+                  // Force a re-render to update the UI after closing the modal
+                  setCurrentTime(new Date());
                   // Navigate to search places page for next meal planning
                   router.push('/?tab=places');
                 }}
@@ -1560,6 +1568,8 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
+                  // Force a re-render to update the UI after closing the modal
+                  setCurrentTime(new Date());
                 }}
               >
                 <Text style={[styles.upgradeButtonText, styles.noMatchButtonText]}>
@@ -1575,7 +1585,8 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
-
+                  // Force a re-render to update the UI after closing the modal
+                  setCurrentTime(new Date());
                 }}
               >
                 <Text style={[
