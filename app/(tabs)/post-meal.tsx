@@ -1198,9 +1198,6 @@ export default function PostMealScreen() {
                         <>
                           <View style={styles.retakeDecisionHeader}>
                             <Text style={styles.retakeDecisionTitle}>🤔 Mixed signals detected!</Text>
-                            <Text style={styles.retakeDecisionSubtitle}>
-                              You chose &quot;{getChoiceDisplay(userSelectedChoice)?.text || userSelectedChoice}&quot; but your date chose &quot;{getChoiceDisplay(dateChoice || '')?.text || dateChoice}&quot;.
-                            </Text>
                             <Text style={[styles.retakeDecisionSubtitle, styles.lastChanceText]}>
                               ⚠️ LAST CHANCE! You both get another 24 hours to retake your decision. If it is not a match, the profile and chat will be removed permanently. Chat it out💝
                             </Text>
