@@ -1466,7 +1466,7 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in🌹</Text>
                 <Text style={styles.matchModalDescription}>
                   {matchResult?.matchType === 'mixed_signals_extension' 
-                    ? '⚠️ This is your LAST CHANCE! You both get another 24 hours to retake your decision. After this, if you still don\'t match, the profile and chat will be removed permanently. Time to chat it out!' 
+                    ? '⚠️ LAST CHANCE! You both get another 24 hours to retake your decision. If you still don\'t match, the profile and chat will be removed permanently. Time to chat it out!' 
                     : 'Time to chat it out!'}
                 </Text>
               </>
