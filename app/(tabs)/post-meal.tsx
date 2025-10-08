@@ -710,7 +710,7 @@ export default function PostMealScreen() {
               const systemMessage: import('@/types/user').SystemMessage = {
                 id: `system-${Date.now()}`,
                 type: 'mixed_signals',
-                content: '🤔 Mixed signals detected! One of you wants another round, the other is ready to go all in. You both have 24 hours to retake your decision.',
+                content: '🤔 Mixed signals detected! One of you wants another round, the other is ready to go all in. ⚠️ This is your LAST CHANCE - you both have 24 hours to retake your decision. After this, if you still don\'t match, the profile and chat will be removed permanently.',
                 timestamp: new Date(),
                 relatedInvitationId: invitationId
               };
@@ -1160,8 +1160,10 @@ export default function PostMealScreen() {
                           <View style={styles.retakeDecisionHeader}>
                             <Text style={styles.retakeDecisionTitle}>🤔 Mixed signals detected!</Text>
                             <Text style={styles.retakeDecisionSubtitle}>
-                              You chose &quot;{getChoiceDisplay(userSelectedChoice)?.text || userSelectedChoice}&quot; but your date chose &quot;{getChoiceDisplay(dateChoice || '')?.text || dateChoice}&quot;. 
-                              You both have {timeRemaining} to retake your decision.
+                              You chose &quot;{getChoiceDisplay(userSelectedChoice)?.text || userSelectedChoice}&quot; but your date chose &quot;{getChoiceDisplay(dateChoice || '')?.text || dateChoice}&quot;.
+                            </Text>
+                            <Text style={[styles.retakeDecisionSubtitle, styles.lastChanceText]}>
+                              ⚠️ This is your LAST CHANCE - you both have {timeRemaining} to retake your decision. After this, if you still don&apos;t match, the profile and chat will be removed permanently.
                             </Text>
                           </View>
                           
@@ -1461,10 +1463,10 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'mixed_signals' || matchResult?.matchType === 'mixed_signals_extension' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🤔</Text>
-                <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in🌹Small matter</Text>
+                <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in🌹</Text>
                 <Text style={styles.matchModalDescription}>
                   {matchResult?.matchType === 'mixed_signals_extension' 
-                    ? 'You both get another 24 hours to make a decision. Time to chat it out!' 
+                    ? '⚠️ This is your LAST CHANCE! You both get another 24 hours to retake your decision. After this, if you still don\'t match, the profile and chat will be removed permanently. Time to chat it out!' 
                     : 'Time to chat it out!'}
                 </Text>
               </>
@@ -2190,6 +2192,14 @@ const styles = StyleSheet.create({
     color: '#B8860B',
     lineHeight: 20,
     textAlign: 'center',
+  },
+  lastChanceText: {
+    fontSize: 14,
+    color: '#FF4444',
+    fontWeight: '700',
+    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 8,
   },
   disabledChoiceButton: {
     backgroundColor: '#F5F5F5',
