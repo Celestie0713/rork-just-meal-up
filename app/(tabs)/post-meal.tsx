@@ -566,11 +566,8 @@ export default function PostMealScreen() {
       [eventId]: choice
     }));
     
-    // Mark this choice as finalized
-    setFinalizedChoices(prev => ({
-      ...prev,
-      [eventId]: true
-    }));
+    // Don't mark as finalized yet - wait to see if it's a mixed signal case
+    // setFinalizedChoices will be set after we check for matches
     
     // Record the timestamp when the choice was made
     setChoiceTimestamps(prev => {
@@ -668,6 +665,13 @@ export default function PostMealScreen() {
                 hasDateReDecided: false
               };
               
+              // IMPORTANT: Don't finalize the choice for mixed signals - allow retaking
+              setFinalizedChoices(prev => {
+                const updated = { ...prev };
+                delete updated[eventId];
+                return updated;
+              });
+              
               console.log(`Creating new mixed signals extension at ${extensionStartTime.toISOString()}`);
               console.log(`Extension details:`, extension);
               console.log(`Timer should now show 24 hours from: ${extensionStartTime.toISOString()}`);
@@ -717,6 +721,14 @@ export default function PostMealScreen() {
         }
         // Note: For non-matches, the profile will be removed from post meal and chat immediately
         // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
+      }
+      
+      // Mark choice as finalized only if it's not a mixed signals case
+      if (matchType !== 'mixed_signals_extension') {
+        setFinalizedChoices(prev => ({
+          ...prev,
+          [eventId]: true
+        }));
       }
       
       // Show modal for all cases where both parties have decided
