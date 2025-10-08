@@ -1199,7 +1199,7 @@ export default function PostMealScreen() {
                           <View style={styles.retakeDecisionHeader}>
                             <Text style={styles.retakeDecisionTitle}>🤔 Mixed signals detected!</Text>
                             <Text style={[styles.retakeDecisionSubtitle, styles.lastChanceText]}>
-                              • ⚠️ Last chance! You\u2019ve got 24 hours to decide again.{"\n"}• No match = chat gone forever.{"\n"}• Chat it out 💝
+                              • ⚠️ Last 24 hours to decide again.{"\n"}• No match = chat gone forever.{"\n"}• Chat it out 💝
                             </Text>
                           </View>
                           
@@ -1506,7 +1506,7 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalTitle}>One of you wants another round, the other is ready to go all in🌹</Text>
                 <Text style={styles.matchModalDescription}>
                   {matchResult?.matchType === 'mixed_signals_extension' 
-                    ? '⚠️ Last chance! You\u2019ve got 24 hours to decide again.\nNo match = chat gone forever.\nChat it out 💝' 
+                    ? '⚠️ Last 24 hours to decide again.\nNo match = chat gone forever.\nChat it out 💝' 
                     : 'Time to chat it out!'}
                 </Text>
               </>
