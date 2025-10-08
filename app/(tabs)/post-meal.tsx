@@ -410,6 +410,9 @@ export default function PostMealScreen() {
       [eventId]: true
     }));
     
+    // CRITICAL: Reset the timer to 24 hours from NOW for the extension period
+    const extensionStartTime = new Date();
+    
     // Update the extension with both user and date decisions
     // This single update ensures the UI refreshes with both choices at once
     setMixedSignalsExtensions(prev => {
@@ -417,18 +420,32 @@ export default function PostMealScreen() {
         ...prev,
         [extensionKey]: {
           ...extension,
+          startedAt: extensionStartTime, // Reset timer to NOW
           hasUserReDecided: true,
-          userChoice: choice,
+          userChoice: choice, // Use the NEW choice, not the old one
           hasDateReDecided: true,
-          dateChoice: dateExtendedChoice
+          dateChoice: dateExtendedChoice // Use the NEW date choice
         }
       };
       console.log(`Updated extension for ${extensionKey}:`, updated[extensionKey]);
+      console.log(`Timer reset to: ${extensionStartTime.toISOString()}`);
+      return updated;
+    });
+    
+    // CRITICAL: Update the choice timestamp to the extension start time
+    // This ensures the timer calculation uses the correct reference point
+    setChoiceTimestamps(prev => {
+      const updated = {
+        ...prev,
+        [eventId]: extensionStartTime
+      };
+      console.log(`Updated choiceTimestamps for ${eventId}:`, extensionStartTime.toISOString());
       return updated;
     });
     
     console.log(`Mixed signals extension choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
     console.log(`Date's second choice: ${dateExtendedChoice}`);
+    console.log(`Following SECOND decision: User=${choice}, Date=${dateExtendedChoice}`);
     
     // Add notification for the date's extended decision
     if (invitation) {
@@ -447,16 +464,18 @@ export default function PostMealScreen() {
     
     if (dateExtendedChoice) {
       // Both parties have made their extended decisions
+      // CRITICAL: Use the NEW choices (choice and dateExtendedChoice), not the old ones
       const isExtendedMatch = choice === dateExtendedChoice;
       let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | null = null;
       
       console.log(`Extension resolution: User chose ${choice}, Date chose ${dateExtendedChoice}, Match: ${isExtendedMatch}`);
+      console.log(`This is based on SECOND decisions, not first decisions`);
       
       if (isExtendedMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
         console.log(`Extended match found! User: ${choice}, Date: ${dateExtendedChoice}`);
         
-        // Track the match
+        // Track the match with the NEW match type
         addMatchedProfile(dateUserId, invitationId, matchType);
         console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
         
@@ -504,6 +523,7 @@ export default function PostMealScreen() {
       } else {
         // No match after extension - remove profile and chat immediately
         console.log(`No match after extension period for ${eventId} - removing profile and chat`);
+        console.log(`User's second choice: ${choice}, Date's second choice: ${dateExtendedChoice}`);
         const userChoices: Record<string, { choice: string; timestamp: Date }> = {
           [eventId]: { choice, timestamp: now }
         };
