@@ -390,6 +390,14 @@ export default function PostMealScreen() {
       dateExtendedChoice = 'buddy_pass';
     }
     
+    // CRITICAL: Clear the old choice from selectedChoices to ensure UI shows the new choice
+    setSelectedChoices(prev => {
+      const updated = { ...prev };
+      delete updated[eventId];
+      console.log(`Cleared old choice from selectedChoices for ${eventId}`);
+      return updated;
+    });
+    
     // Update all states together to ensure synchronous UI update
     // This ensures the "Your date chose" section updates immediately when the popup shows
     setExtendedChoices(prev => ({
@@ -669,6 +677,7 @@ export default function PostMealScreen() {
               setFinalizedChoices(prev => {
                 const updated = { ...prev };
                 delete updated[eventId];
+                console.log(`Cleared finalized choice for ${eventId} to allow retaking`);
                 return updated;
               });
               
@@ -676,6 +685,7 @@ export default function PostMealScreen() {
               setSelectedChoices(prev => {
                 const updated = { ...prev };
                 delete updated[eventId];
+                console.log(`Cleared old choice from selectedChoices for ${eventId}`);
                 return updated;
               });
               
@@ -1424,40 +1434,6 @@ export default function PostMealScreen() {
         transparent
         animationType="fade"
         onRequestClose={() => {
-          // When closing the modal after a mixed signals extension is created,
-          // reset the timer to 24 hours from NOW
-          if (matchResult?.matchType === 'mixed_signals_extension' && matchResult?.eventId) {
-            const eventId = matchResult.eventId;
-            const invitationId = eventId.replace('invitation-', '');
-            const invitation = mockInvitations.find(inv => inv.id === invitationId);
-            
-            if (invitation) {
-              const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-              const extensionKey = `${invitationId}-${dateUserId}`;
-              const extension = mixedSignalsExtensions[extensionKey];
-              
-              // Update the extension start time to NOW when closing the popup
-              if (extension) {
-                const newStartTime = new Date();
-                console.log(`Resetting extension timer to 24 hours from NOW: ${newStartTime.toISOString()}`);
-                
-                setMixedSignalsExtensions(prev => ({
-                  ...prev,
-                  [extensionKey]: {
-                    ...extension,
-                    startedAt: newStartTime
-                  }
-                }));
-                
-                // Also update the choice timestamp to match
-                setChoiceTimestamps(prev => ({
-                  ...prev,
-                  [eventId]: newStartTime
-                }));
-              }
-            }
-          }
-          
           setShowMatchModal(false);
           setMatchResult(null);
           // Force a re-render to update the UI after closing the modal
@@ -1468,40 +1444,6 @@ export default function PostMealScreen() {
           <View style={[styles.modalContent, styles.matchModalContent]}>
             <TouchableOpacity 
               onPress={() => {
-                // When closing the modal after a mixed signals extension is created,
-                // reset the timer to 24 hours from NOW
-                if (matchResult?.matchType === 'mixed_signals_extension' && matchResult?.eventId) {
-                  const eventId = matchResult.eventId;
-                  const invitationId = eventId.replace('invitation-', '');
-                  const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                  
-                  if (invitation) {
-                    const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                    const extensionKey = `${invitationId}-${dateUserId}`;
-                    const extension = mixedSignalsExtensions[extensionKey];
-                    
-                    // Update the extension start time to NOW when closing the popup
-                    if (extension) {
-                      const newStartTime = new Date();
-                      console.log(`Resetting extension timer to 24 hours from NOW: ${newStartTime.toISOString()}`);
-                      
-                      setMixedSignalsExtensions(prev => ({
-                        ...prev,
-                        [extensionKey]: {
-                          ...extension,
-                          startedAt: newStartTime
-                        }
-                      }));
-                      
-                      // Also update the choice timestamp to match
-                      setChoiceTimestamps(prev => ({
-                        ...prev,
-                        [eventId]: newStartTime
-                      }));
-                    }
-                  }
-                }
-                
                 setShowMatchModal(false);
                 setMatchResult(null);
                 // Force a re-render to update the UI after closing the modal
@@ -1602,40 +1544,6 @@ export default function PostMealScreen() {
               <TouchableOpacity 
                 style={[styles.upgradeButton, styles.chatButton]}
                 onPress={() => {
-                  // When closing the modal after a mixed signals extension is created,
-                  // reset the timer to 24 hours from NOW
-                  if (matchResult?.matchType === 'mixed_signals_extension' && matchResult?.eventId) {
-                    const eventId = matchResult.eventId;
-                    const invitationId = eventId.replace('invitation-', '');
-                    const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                    
-                    if (invitation) {
-                      const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                      const extensionKey = `${invitationId}-${dateUserId}`;
-                      const extension = mixedSignalsExtensions[extensionKey];
-                      
-                      // Update the extension start time to NOW when closing the popup
-                      if (extension) {
-                        const newStartTime = new Date();
-                        console.log(`Resetting extension timer to 24 hours from NOW: ${newStartTime.toISOString()}`);
-                        
-                        setMixedSignalsExtensions(prev => ({
-                          ...prev,
-                          [extensionKey]: {
-                            ...extension,
-                            startedAt: newStartTime
-                          }
-                        }));
-                        
-                        // Also update the choice timestamp to match
-                        setChoiceTimestamps(prev => ({
-                          ...prev,
-                          [eventId]: newStartTime
-                        }));
-                      }
-                    }
-                  }
-                  
                   setShowMatchModal(false);
                   
                   // Clear the finalized choice to allow retaking decision
@@ -1644,6 +1552,7 @@ export default function PostMealScreen() {
                     setFinalizedChoices(prev => {
                       const updated = { ...prev };
                       delete updated[eventId];
+                      console.log(`Cleared finalized choice for ${eventId} to allow retaking`);
                       return updated;
                     });
                   }
