@@ -672,6 +672,13 @@ export default function PostMealScreen() {
                 return updated;
               });
               
+              // CRITICAL: Clear the old choice from selectedChoices so the UI shows retake options
+              setSelectedChoices(prev => {
+                const updated = { ...prev };
+                delete updated[eventId];
+                return updated;
+              });
+              
               console.log(`Creating new mixed signals extension at ${extensionStartTime.toISOString()}`);
               console.log(`Extension details:`, extension);
               console.log(`Timer should now show 24 hours from: ${extensionStartTime.toISOString()}`);
