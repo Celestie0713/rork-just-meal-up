@@ -1071,19 +1071,14 @@ export default function PostMealScreen() {
                   </Text>
                 </View>
               )}
-              {!isGroup && timerInfo.type === 'match_permanent' && (
-                <View style={matchType === 'next_round' ? styles.matchIndicator : undefined}>
-                  {matchType === 'next_round' ? (
-                    <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
-                  ) : matchType === 'fight_for_fries' ? (
-                    <View style={styles.loveIconContainer}>
-                      <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                    </View>
-                  ) : (
-                    <View style={styles.loveIconContainer}>
-                      <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                    </View>
-                  )}
+              {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'next_round' && (
+                <View style={styles.matchIndicator}>
+                  <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
+                </View>
+              )}
+              {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'fight_for_fries' && (
+                <View style={styles.loveIconContainer}>
+                  <Heart size={16} color="#FF69B4" fill="#FF69B4" />
                 </View>
               )}
             </View>
