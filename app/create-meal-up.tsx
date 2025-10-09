@@ -31,7 +31,6 @@ export default function CreateMealUpScreen() {
     venue: {
       name: '',
       address: '',
-      cuisine: '',
     },
     maxAttendees: '',
     femaleTicketPrice: '',
@@ -300,16 +299,7 @@ export default function CreateMealUpScreen() {
               />
             </View>
 
-            <View style={styles.inputGroup}>
-              <Text style={styles.label}>Cuisine Type</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="e.g., Italian, Japanese, Mexican"
-                value={formData.venue.cuisine}
-                onChangeText={(value) => handleInputChange('venue.cuisine', value)}
-                placeholderTextColor={Colors.textLight}
-              />
-            </View>
+
           </View>
 
           <View style={styles.section}>
