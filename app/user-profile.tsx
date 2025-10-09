@@ -28,9 +28,10 @@ export default function UserProfileScreen() {
   // Check if this user has a "fight_for_fries" match with current user
   const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
   
-  const handleNavigateToCurrentUser = () => {
-    if (currentUser) {
-      // Navigate back to current user's main profile tab instead of user-profile page
+  const handleNavigateToMatchedUser = () => {
+    // When viewing someone else's profile who has an exclusive match with current user,
+    // clicking the love icon should navigate to current user's profile
+    if (currentUser && userId !== currentUser.id) {
       router.push('/(tabs)/profile');
     }
   };
@@ -236,8 +237,8 @@ export default function UserProfileScreen() {
               <View style={styles.profileLoveIconWrapper}>
                 <TouchableOpacity 
                   style={styles.profileLoveIconBackground}
-                  onPress={handleNavigateToCurrentUser}
-                  testID="navigate-to-current-user-button"
+                  onPress={handleNavigateToMatchedUser}
+                  testID="navigate-to-matched-user-button"
                 >
                   <Heart size={16} color="#FF69B4" fill="#FF69B4" />
                 </TouchableOpacity>
