@@ -1092,6 +1092,28 @@ export default function PostMealScreen() {
               {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'fight_for_fries' && (
                 <View style={styles.loveIconContainer}>
                   <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                  <TouchableOpacity 
+                    style={styles.removeIconButton}
+                    onPress={() => {
+                      setFinalizedChoices(prev => {
+                        const updated = { ...prev };
+                        delete updated[event.id];
+                        return updated;
+                      });
+                      setSelectedChoices(prev => {
+                        const updated = { ...prev };
+                        delete updated[event.id];
+                        return updated;
+                      });
+                      setExtendedChoices(prev => {
+                        const updated = { ...prev };
+                        delete updated[event.id];
+                        return updated;
+                      });
+                    }}
+                  >
+                    <X size={10} color="#FFFFFF" strokeWidth={3} />
+                  </TouchableOpacity>
                 </View>
               )}
             </View>
@@ -2258,8 +2280,22 @@ const styles = StyleSheet.create({
     color: colors.background,
   },
   loveIconContainer: {
+    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  removeIconButton: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    backgroundColor: '#FF69B4',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
   },
 
   mixedSignalsTimer: {
