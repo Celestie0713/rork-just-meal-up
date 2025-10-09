@@ -179,17 +179,13 @@ export default function PostMealScreen() {
 
   // Check if "fight for fries" option should be disabled for a specific event
   const isFightForFriesDisabled = (eventId: string) => {
-    // Check if user has already chosen "fight_for_fries" for ANY other event
-    const hasChosenFightForFries = Object.entries(selectedChoices).some(
-      ([id, choice]) => id !== eventId && choice === 'fight_for_fries'
-    );
-    
-    // Also check if user has a confirmed fight_for_fries match with anyone
+    // Only disable if user has a CONFIRMED fight_for_fries match (both users chose it)
+    // Don't disable just because user chose it - only when it's a mutual match
     const hasConfirmedMatch = Object.values(matchedProfiles).some(
       (profile) => profile.matchType === 'fight_for_fries'
     );
     
-    return hasChosenFightForFries || hasConfirmedMatch;
+    return hasConfirmedMatch;
   };
 
   const postMealEvents = useMemo(() => {
