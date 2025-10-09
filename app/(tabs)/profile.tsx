@@ -698,7 +698,7 @@ export default function ProfileScreen() {
             {/* Show love icon for Fight for fries for life match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
               {Object.values(matchedProfiles)
-                .filter(profile => profile.matchType === 'fight_for_fries')
+                .filter(profile => profile.matchType === 'fight_for_fries' && profile.userId !== user.id)
                 .slice(0, 1) // Show only one love icon for fight for fries match
                 .map((matchedProfile) => {
                   const matchedUser = mockUsers.find(u => u.id === matchedProfile.userId);
