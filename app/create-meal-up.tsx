@@ -192,7 +192,7 @@ export default function CreateMealUpScreen() {
           title: 'Create Meal Up',
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-              <ArrowLeft size={24} color={Colors.text} />
+              <ArrowLeft size={24} color="#FF0000" />
             </TouchableOpacity>
           ),
         }} 
