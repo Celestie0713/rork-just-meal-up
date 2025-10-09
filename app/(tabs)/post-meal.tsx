@@ -1693,15 +1693,17 @@ export default function PostMealScreen() {
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
-                  // Force a re-render to update the UI after closing the modal
                   setCurrentTime(new Date());
+                  if (matchResult?.isMatch) {
+                    router.push('/profile');
+                  }
                 }}
               >
                 <Text style={[
                   styles.upgradeButtonText,
                   !matchResult?.isMatch && styles.noMatchButtonText
                 ]}>
-                  {matchResult?.isMatch ? 'Amazing!' : 'Keep Looking'}
+                  {matchResult?.isMatch ? '❤ icon is on' : 'Keep Looking'}
                 </Text>
               </TouchableOpacity>
             )}
