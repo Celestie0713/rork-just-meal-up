@@ -706,18 +706,27 @@ export default function ProfileScreen() {
                   
                   console.log('Profile: Rendering love icon for matched user:', matchedUser.name);
                   return (
-                    <TouchableOpacity 
-                      key={matchedProfile.userId}
-                      style={styles.profileLoveIconWrapper}
-                      onPress={() => {
-                        // Navigate to matched user's profile
-                        router.push(`/user-profile?userId=${matchedProfile.userId}`);
-                      }}
-                    >
-                      <View style={styles.profileLoveIconBackground}>
+                    <View key={matchedProfile.userId} style={styles.profileLoveIconWrapper}>
+                      <TouchableOpacity 
+                        style={styles.profileLoveIconBackground}
+                        onPress={() => {
+                          // Navigate to matched user's profile
+                          router.push(`/user-profile?userId=${matchedProfile.userId}`);
+                        }}
+                      >
                         <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                      </View>
-                    </TouchableOpacity>
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        style={styles.removeLoveButton}
+                        onPress={() => {
+                          console.log('Remove love match');
+                          removeMatchedProfile(matchedProfile.userId);
+                        }}
+                        testID="remove-love-button"
+                      >
+                        <X size={10} color="#FF69B4" strokeWidth={3} />
+                      </TouchableOpacity>
+                    </View>
                   );
                 })
               }
@@ -930,7 +939,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   profileLoveIconWrapper: {
-    // Container for individual love icon
+    position: 'relative',
   },
   profileLoveIconBackground: {
     backgroundColor: Colors.background,
@@ -1495,6 +1504,25 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 4,
     zIndex: 1,
+  },
+  removeLoveButton: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FF69B4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
+    zIndex: 11,
   },
 
 });
