@@ -1071,7 +1071,19 @@ export default function PostMealScreen() {
                   </Text>
                 </View>
               )}
-              {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'next_round' && (
+              {!isGroup && matchType === 'next_round' && (timerInfo.type === 'match_permanent' || (() => {
+                // Check if extension is completed with both parties matching on next_round
+                const invitationId = event.id.replace('invitation-', '');
+                const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                if (invitation) {
+                  const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                  const extensionKey = `${invitationId}-${dateUserId}`;
+                  const extension = mixedSignalsExtensions[extensionKey];
+                  return extension && extension.hasUserReDecided && extension.hasDateReDecided && 
+                         extension.userChoice === 'next_round' && extension.dateChoice === 'next_round';
+                }
+                return false;
+              })()) && (
                 <View style={styles.matchIndicator}>
                   <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
                 </View>
