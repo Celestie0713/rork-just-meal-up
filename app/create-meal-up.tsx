@@ -34,7 +34,10 @@ export default function CreateMealUpScreen() {
       cuisine: '',
     },
     maxAttendees: '',
-    ticketPrice: '',
+    femaleTicketPrice: '',
+    maleTicketPrice: '',
+    femaleSoldOut: false,
+    maleSoldOut: false,
     whatsIncluded: '',
     includesFood: true,
     includesDrinks: false,
@@ -332,17 +335,64 @@ export default function CreateMealUpScreen() {
             <Text style={styles.sectionTitle}>What&apos;s included?</Text>
             
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Ticket Price</Text>
-              <View style={styles.inputWithIcon}>
-                <Text style={styles.currencySign}>{currencySign}</Text>
-                <TextInput
-                  style={styles.inputWithIconText}
-                  placeholder="0.00"
-                  value={formData.ticketPrice}
-                  onChangeText={(value) => handleInputChange('ticketPrice', value)}
-                  keyboardType="numeric"
-                  placeholderTextColor={Colors.textLight}
-                />
+              <Text style={styles.label}>Female Ticket Price</Text>
+              <View style={styles.priceRow}>
+                <View style={[styles.inputWithIcon, styles.priceInput]}>
+                  <Text style={styles.currencySign}>{currencySign}</Text>
+                  <TextInput
+                    style={styles.inputWithIconText}
+                    placeholder="0.00"
+                    value={formData.femaleTicketPrice}
+                    onChangeText={(value) => handleInputChange('femaleTicketPrice', value)}
+                    keyboardType="numeric"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.soldOutButton,
+                    formData.femaleSoldOut && styles.soldOutButtonActive,
+                  ]}
+                  onPress={() => setFormData(prev => ({ ...prev, femaleSoldOut: !prev.femaleSoldOut }))}
+                >
+                  <Text style={[
+                    styles.soldOutButtonText,
+                    formData.femaleSoldOut && styles.soldOutButtonTextActive,
+                  ]}>
+                    Sold Out
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Male Ticket Price</Text>
+              <View style={styles.priceRow}>
+                <View style={[styles.inputWithIcon, styles.priceInput]}>
+                  <Text style={styles.currencySign}>{currencySign}</Text>
+                  <TextInput
+                    style={styles.inputWithIconText}
+                    placeholder="0.00"
+                    value={formData.maleTicketPrice}
+                    onChangeText={(value) => handleInputChange('maleTicketPrice', value)}
+                    keyboardType="numeric"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                </View>
+                <TouchableOpacity
+                  style={[
+                    styles.soldOutButton,
+                    formData.maleSoldOut && styles.soldOutButtonActive,
+                  ]}
+                  onPress={() => setFormData(prev => ({ ...prev, maleSoldOut: !prev.maleSoldOut }))}
+                >
+                  <Text style={[
+                    styles.soldOutButtonText,
+                    formData.maleSoldOut && styles.soldOutButtonTextActive,
+                  ]}>
+                    Sold Out
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -712,5 +762,33 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginTop: 12,
     textAlign: 'center',
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  priceInput: {
+    flex: 1,
+  },
+  soldOutButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+  },
+  soldOutButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  soldOutButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.textLight,
+  },
+  soldOutButtonTextActive: {
+    color: Colors.background,
   },
 });
