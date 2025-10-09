@@ -27,7 +27,18 @@ export const mockMatchedProfiles: {
   matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round';
   matchedAt: Date;
 }[] = [
-  // No existing matches - ready for testing
+  {
+    userId: '5',
+    mealId: '7',
+    matchType: 'fight_for_fries',
+    matchedAt: new Date('2024-01-15T20:30:00Z')
+  },
+  {
+    userId: '1',
+    mealId: '8',
+    matchType: 'fight_for_fries',
+    matchedAt: new Date('2024-01-16T19:00:00Z')
+  }
 ];
 
 // Utility function to check if two users have a mutual "fight for fries" match
