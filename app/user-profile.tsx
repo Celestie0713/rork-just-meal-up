@@ -20,7 +20,7 @@ export default function UserProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const { user: currentUser } = useAuth();
-  const { getMatchType } = useChat();
+  const { getMatchType, removeMatchedProfile } = useChat();
   const { removeFromFavorites } = useFavorites();
   
   const user = mockUsers.find(u => u.id === userId);
@@ -28,7 +28,12 @@ export default function UserProfileScreen() {
   // Check if this user has a "fight_for_fries" match with current user
   const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
   
-
+  const handleRemoveLoveMatch = () => {
+    if (userId) {
+      removeMatchedProfile(userId);
+      console.log(`Removed love match with user ${userId}`);
+    }
+  };
   
   const handleNavigateToCurrentUser = () => {
     if (currentUser) {
@@ -245,6 +250,15 @@ export default function UserProfileScreen() {
                     <Heart size={16} color="#FF69B4" fill="#FF69B4" />
                   </View>
                 </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeLoveIconWrapper}
+                  onPress={handleRemoveLoveMatch}
+                  testID="remove-love-match-button"
+                >
+                  <View style={styles.removeLoveIconBackground}>
+                    <X size={14} color="#FF4444" />
+                  </View>
+                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -359,6 +373,7 @@ const styles = StyleSheet.create({
     right: 8,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     zIndex: 10,
   },
   profileLoveIconWrapper: {
@@ -377,6 +392,25 @@ const styles = StyleSheet.create({
     elevation: 6,
     minWidth: 32,
     minHeight: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeLoveIconWrapper: {
+    // Container for remove icon
+  },
+  removeLoveIconBackground: {
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 6,
+    borderWidth: 2,
+    borderColor: '#FF4444',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 6,
+    minWidth: 26,
+    minHeight: 26,
     alignItems: 'center',
     justifyContent: 'center',
   },
