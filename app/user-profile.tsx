@@ -233,15 +233,24 @@ export default function UserProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {hasLoveMatch && (
-              <TouchableOpacity 
-                style={styles.profileLoveIconWrapper}
-                onPress={handleNavigateToCurrentUser}
-                testID="navigate-to-current-user-button"
-              >
-                <View style={styles.profileLoveIconBackground}>
+              <View style={styles.profileLoveIconWrapper}>
+                <TouchableOpacity 
+                  style={styles.profileLoveIconBackground}
+                  onPress={handleNavigateToCurrentUser}
+                  testID="navigate-to-current-user-button"
+                >
                   <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                </View>
-              </TouchableOpacity>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={styles.removeLoveButton}
+                  onPress={() => {
+                    console.log('Remove love match');
+                  }}
+                  testID="remove-love-button"
+                >
+                  <X size={10} color="#FF69B4" strokeWidth={3} />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
           <View style={styles.nameContainer}>
@@ -370,6 +379,25 @@ const styles = StyleSheet.create({
     minHeight: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  removeLoveButton: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: Colors.background,
+    borderRadius: 10,
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    borderColor: '#FF69B4',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.3,
+    shadowRadius: 2,
+    elevation: 3,
+    zIndex: 11,
   },
 
   nameContainer: {
