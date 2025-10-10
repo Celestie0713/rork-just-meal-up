@@ -764,18 +764,6 @@ export default function PostMealScreen() {
               // Track mixed signals case immediately when extension is created
               trackMixedSignalsCase(dateUserId, invitationId);
               console.log(`[Mixed Signals] Started tracking case for user ${dateUserId}`);
-              
-              // Add system message to chat
-              const chatId = `1-${dateUserId}`;
-              const systemMessage: import('@/types/user').SystemMessage = {
-                id: `system-${Date.now()}`,
-                type: 'mixed_signals',
-                content: '🤔 Mixed signals detected! One of you wants another round, the other is ready to go all in. ⚠️ This is your LAST CHANCE - you both have 24 hours to retake your decision. After this, if you still don\'t match, the profile and chat will be removed permanently.',
-                timestamp: new Date(),
-                relatedInvitationId: invitationId
-              };
-              addSystemMessage(chatId, systemMessage);
-              console.log(`[Mixed Signals] Added system message to chat ${chatId}`);
             }
           }
         }
