@@ -11,6 +11,7 @@ import { usePlaces } from '@/hooks/use-places';
 import { useAuth } from '@/hooks/use-auth';
 import { useFavorites } from '@/hooks/use-favorites';
 import { useNotifications } from '@/hooks/use-notifications';
+import { useChat } from '@/hooks/use-chat';
 import { Colors } from '@/constants/colors';
 
 import type { User } from '@/types/user';
@@ -25,6 +26,7 @@ export default function SearchScreen() {
   const { user } = useAuth();
   const { addToFavorites, isPlaceInFavorites } = useFavorites();
   const { getUnreadCount } = useNotifications();
+  const { matchedProfiles } = useChat();
 
   const {
     places,
@@ -131,12 +133,13 @@ export default function SearchScreen() {
     user.location.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const renderUser = ({ item }: { item: User }) => {
+  const renderUser = useCallback(({ item }: { item: User }) => {
     console.log('Rendering user card for:', item.name, 'ID:', item.id);
+    console.log('Current matchedProfiles in search:', matchedProfiles);
     return (
       <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
     );
-  };
+  }, [matchedProfiles]);
 
   const renderPlace = ({ item }: { item: Place }) => (
     <PlaceCard 
