@@ -19,6 +19,7 @@ const mockCurrentUser: User = {
   isOnline: true,
   ethnicity: 'english, mandarin, cantonese',
   favoritePlaces: ['mock_place_1', 'mock_place_2', 'mock_place_3'],
+  relationshipStatus: 'single',
   preferences: {
     ageRange: [25, 35],
     maxDistance: 25,

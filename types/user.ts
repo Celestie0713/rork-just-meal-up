@@ -9,7 +9,9 @@ export interface User {
   isOnline: boolean;
   lastSeen?: Date;
   ethnicity?: string;
-  favoritePlaces?: string[]; // Array of place IDs
+  favoritePlaces?: string[];
+  relationshipStatus?: 'single' | 'in_relationship';
+  partnerId?: string;
   preferences: {
     ageRange: [number, number];
     maxDistance: number;
