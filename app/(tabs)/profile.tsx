@@ -62,7 +62,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
-  const { matchedProfiles, isProfileMatched, removeMatchedProfile } = useChat();
+  const { matchedProfiles, isProfileMatched, removeMatchedProfile, resetAllMatches } = useChat();
   const { favoritePlaces, removeFromFavorites } = useFavorites();
   
 
@@ -651,7 +651,17 @@ export default function ProfileScreen() {
           </View>
           
           <View style={styles.settingsContent}>
-
+            <TouchableOpacity 
+              style={styles.settingsItem}
+              onPress={() => {
+                resetAllMatches();
+                setShowSettingsModal(false);
+                Alert.alert('Success', 'All matches have been cleared. You are now single!');
+              }}
+            >
+              <Heart size={20} color={Colors.primary} />
+              <Text style={styles.settingsItemText}>Reset to Single (Clear All Matches)</Text>
+            </TouchableOpacity>
             
             <TouchableOpacity style={styles.settingsItem}>
               <Settings size={20} color={Colors.textLight} />

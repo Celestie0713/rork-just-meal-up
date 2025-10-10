@@ -302,6 +302,11 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     });
   }, []);
 
+  const resetAllMatches = useCallback(() => {
+    console.log('[resetAllMatches] Clearing all matched profiles');
+    setMatchedProfiles({});
+  }, []);
+
   const getMatchType = useCallback((userId: string): 'fight_for_fries' | 'buddy_pass' | 'next_round' | null => {
     return matchedProfiles[userId]?.matchType || null;
   }, [matchedProfiles]);
@@ -352,6 +357,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     isProfileMatched,
     getMatchType,
     removeMatchedProfile,
+    resetAllMatches,
     matchedProfiles,
     isLoaded
   };
