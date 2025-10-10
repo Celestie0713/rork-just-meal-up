@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
+import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
@@ -52,6 +53,14 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     ));
     console.log('=== End UserCard Debug ===');
   }
+
+  const handleVoiceNotePress = (e: any) => {
+    e.stopPropagation();
+    router.push({
+      pathname: '/chat',
+      params: { userId: user.id }
+    });
+  };
 
   return (
     <TouchableOpacity style={[styles.container, isGridView && styles.gridContainer]} onPress={onPress} testID={`user-card-${user.id}`}>
@@ -106,13 +115,14 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
           </Text>
         )}
         
-        <View
+        <TouchableOpacity
           style={[styles.actionButton, isGridView && styles.gridActionButton, { backgroundColor: '#f37021' }]}
+          onPress={handleVoiceNotePress}
         >
           <Text style={[styles.actionButtonText, isGridView && styles.gridActionButtonText]}>
             {isGridView ? '💬' : 'Send Voice Note'}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
