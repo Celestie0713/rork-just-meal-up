@@ -36,21 +36,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
   );
   
-  // Debug logging for both Alex Chen and Sofia Kim to check match status
-  if (user.id === '5' || user.id === '1') { // Sofia Kim or Alex Chen
-    console.log(`=== UserCard Debug for ${user.name} ===`);
-    console.log('Current user:', currentUser?.id, currentUser?.name);
-    console.log('Target user:', user.id, user.name);
-    console.log('hasLoveMatch result:', hasLoveMatch);
-    console.log('matchedProfiles:', matchedProfiles);
-    console.log('First condition (profile.userId === user.id):', Object.values(matchedProfiles).some(
-      profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
-    ));
-    console.log('Second condition (currentUser?.id === user.id):', currentUser?.id === user.id && Object.values(matchedProfiles).some(
-      profile => profile.matchType === 'fight_for_fries'
-    ));
-    console.log('=== End UserCard Debug ===');
-  }
+  console.log(`UserCard for ${user.name}: hasLoveMatch=${hasLoveMatch}, matchedProfiles count=${Object.keys(matchedProfiles).length}`);
 
   const handleVoiceNotePress = (e: any) => {
     e.stopPropagation();
