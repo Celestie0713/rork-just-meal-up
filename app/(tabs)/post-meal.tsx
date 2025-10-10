@@ -1432,11 +1432,11 @@ export default function PostMealScreen() {
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
-          <Text style={styles.infoText}>1. All the meal-ups (one-on-one / group meal up) will appear here after 10 hours of the scheduled date & time.</Text>
-          <Text style={styles.infoText}>2. Both parties have 7 days to make a decision. If one makes a decision but the other hasn&apos;t, the 7-day countdown continues.</Text>
-          <Text style={styles.infoText}>3. Once both parties make decisions:</Text>
-          <Text style={styles.infoText}>   • For matches: The profile stays on Post Meal and chat remains available in Messages.</Text>
-          <Text style={styles.infoText}>   • For non-matches: Both the profile and chat are removed immediately.</Text>
+          <Text style={styles.infoText}>Your meal-ups (solo or group) only show up here 10 hours after chow time — let the food settle and the drama cool.</Text>
+          <Text style={styles.infoText}>{"\n"}You&apos;ve got 7 days to decide. If one person clicks and the other ghosts, the timer keeps ticking like a microwaved burrito.</Text>
+          <Text style={styles.infoText}>{"\n"}When both have decided:</Text>
+          <Text style={styles.infoText}>{"\n"}✅ It&apos;s a match? Profile stays and the chat lives on.</Text>
+          <Text style={styles.infoText}>{"\n"}❌ No spark? Poof! Profile and chat vanish like a bad date story.</Text>
         </View>
       </ScrollView>
 
