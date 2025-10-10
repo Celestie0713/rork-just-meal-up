@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign } from 'lucide-react-native';
 import { ChatListItem } from '@/components/ChatListItem';
+import { TipPopup } from '@/components/TipPopup';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
@@ -73,6 +74,7 @@ export default function MessagesScreen() {
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
   const [invitationData, setInvitationData] = useState<any>(null);
   const [mealUpData, setMealUpData] = useState<any>(null);
+  const [showTipPopup, setShowTipPopup] = useState<boolean>(false);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -118,11 +120,7 @@ export default function MessagesScreen() {
             text: 'Send',
             onPress: () => {
               console.log('Invitation sent to:', user.name);
-              Alert.alert(
-                'Invitation Sent!',
-                `Your meal invitation has been sent to ${user.name}.`,
-                [{ text: 'OK', onPress: () => router.back() }]
-              );
+              setShowTipPopup(true);
             }
           }
         ]
@@ -290,6 +288,14 @@ export default function MessagesScreen() {
         contentContainerStyle={filteredChats.length === 0 ? styles.emptyContainer : styles.chatsContent}
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyState}
+      />
+      
+      <TipPopup 
+        visible={showTipPopup} 
+        onClose={() => {
+          setShowTipPopup(false);
+          router.back();
+        }} 
       />
     </SafeAreaView>
   );
