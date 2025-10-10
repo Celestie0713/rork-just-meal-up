@@ -109,6 +109,8 @@ export default function MessagesScreen() {
     }
   }, [chats, getAvailableChats, isLoaded]);
 
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+
   const handleChatPress = (user: User) => {
     if (isInvitationMode && invitationData) {
       Alert.alert(
@@ -120,6 +122,7 @@ export default function MessagesScreen() {
             text: 'Send',
             onPress: () => {
               console.log('Invitation sent to:', user.name);
+              setSelectedUserId(user.id);
               setShowTipPopup(true);
             }
           }
@@ -294,7 +297,14 @@ export default function MessagesScreen() {
         visible={showTipPopup} 
         onClose={() => {
           setShowTipPopup(false);
-          router.back();
+          if (selectedUserId) {
+            router.push({
+              pathname: '/chat',
+              params: { userId: selectedUserId }
+            });
+          } else {
+            router.back();
+          }
         }} 
       />
     </SafeAreaView>
