@@ -190,7 +190,12 @@ export default function PostMealScreen() {
       ([id, choice]) => id !== eventId && choice === 'fight_for_fries'
     );
     
-    return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent;
+    // Disable if user already has an exclusive match (love icon on profile)
+    const hasExistingLoveMatch = Object.values(matchedProfiles).some(
+      profile => profile.matchType === 'fight_for_fries'
+    );
+    
+    return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent || hasExistingLoveMatch;
   };
 
   const postMealEvents = useMemo(() => {
