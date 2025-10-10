@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils } from 'lucide-react-native';
+import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
@@ -10,6 +10,7 @@ import { useFavorites } from '@/hooks/use-favorites';
 import { mockUsers } from '@/mocks/users';
 import { GooglePlacesService } from '@/services/google-places';
 import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
+import { VoiceRecorder } from '@/components/VoiceRecorder';
 
 
 import { router } from 'expo-router';
@@ -93,6 +94,7 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const [newFoodItem, setNewFoodItem] = useState('');
   const [editedBio, setEditedBio] = useState(user?.bio || '');
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
 
 
@@ -777,7 +779,18 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.bioSection}>
-          <Text style={styles.sectionTitle}>Bio</Text>
+          <View style={styles.bioHeader}>
+            <Text style={styles.sectionTitle}>Bio</Text>
+            {!isEditing && (
+              <TouchableOpacity 
+                style={styles.voiceNoteButton}
+                onPress={() => setShowVoiceRecorder(!showVoiceRecorder)}
+              >
+                <Mic size={20} color={Colors.primary} />
+                <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
+              </TouchableOpacity>
+            )}
+          </View>
           {isEditing ? (
             <View style={styles.bioEditContainer}>
               <TextInput
@@ -793,6 +806,18 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <Text style={styles.bio}>{user.bio}</Text>
+          )}
+          {showVoiceRecorder && !isEditing && (
+            <View style={styles.voiceRecorderContainer}>
+              <VoiceRecorder
+                onSend={(duration, audioUri) => {
+                  console.log('Voice note sent:', { duration, audioUri });
+                  Alert.alert('Voice Note Sent', `Duration: ${duration}s`);
+                  setShowVoiceRecorder(false);
+                }}
+                onCancel={() => setShowVoiceRecorder(false)}
+              />
+            </View>
           )}
         </View>
 
@@ -1087,6 +1112,34 @@ const styles = StyleSheet.create({
   bioSection: {
     paddingHorizontal: 20,
     paddingBottom: 24,
+  },
+  bioHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  voiceNoteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  voiceNoteButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginLeft: 6,
+  },
+  voiceRecorderContainer: {
+    marginTop: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
   },
   personalInfoSection: {
     paddingHorizontal: 20,
