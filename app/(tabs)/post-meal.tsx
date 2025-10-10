@@ -1432,7 +1432,7 @@ export default function PostMealScreen() {
 
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
-          <Text style={styles.infoText}>Your meal-ups (solo or group) only show up here 10 hours after chow time — let the food settle and the drama cool.</Text>
+          <Text style={styles.infoText}>Your meal-ups only show up here 10 hours after chow time — let the food settle and the drama cool.</Text>
           <Text style={styles.infoText}>{"\n"}You&apos;ve got 7 days to decide. If one person makes their decision while the other is still thinking (Life choices aren&apos;t instant noodles), the timer keeps ticking like a microwaved burrito.</Text>
           <Text style={styles.infoText}>{"\n"}When both have decided:</Text>
           <Text style={styles.infoText}>{"\n"}✅ It&apos;s a match? Profile stays and the chat lives on.</Text>
