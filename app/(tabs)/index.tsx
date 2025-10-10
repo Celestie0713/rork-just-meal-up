@@ -58,7 +58,7 @@ export default function SearchScreen() {
 
   const handleUserPress = (user: User) => {
     router.push({
-      pathname: '/chat',
+      pathname: '/user-profile',
       params: { userId: user.id }
     });
   };
