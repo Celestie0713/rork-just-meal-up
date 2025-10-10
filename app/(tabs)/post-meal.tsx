@@ -95,6 +95,13 @@ export default function PostMealScreen() {
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
 
+  // Log when matchedProfiles changes
+  useEffect(() => {
+    console.log('[PostMealScreen] matchedProfiles changed:', Object.keys(matchedProfiles).map(key => ({
+      userId: key,
+      matchType: matchedProfiles[key].matchType
+    })));
+  }, [matchedProfiles]);
 
   // Update current time every second for timer display
   useEffect(() => {

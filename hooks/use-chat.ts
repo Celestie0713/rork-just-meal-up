@@ -290,13 +290,16 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   }, [matchedProfiles]);
 
   const removeMatchedProfile = useCallback((userId: string) => {
+    console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
+    console.log(`[removeMatchedProfile] Current matchedProfiles:`, Object.keys(matchedProfiles));
+    
     setMatchedProfiles(prev => {
       const updated = { ...prev };
       delete updated[userId];
+      console.log(`[removeMatchedProfile] Updated matchedProfiles:`, Object.keys(updated));
       return updated;
     });
-    console.log(`Removed matched profile: ${userId}`);
-  }, []);
+  }, [matchedProfiles]);
 
   const getMatchType = useCallback((userId: string): 'fight_for_fries' | 'buddy_pass' | 'next_round' | null => {
     return matchedProfiles[userId]?.matchType || null;
