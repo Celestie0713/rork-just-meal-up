@@ -36,7 +36,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
   );
   
-  console.log(`UserCard for ${user.name}: hasLoveMatch=${hasLoveMatch}, matchedProfiles count=${Object.keys(matchedProfiles).length}`);
+  console.log(`UserCard for ${user.name} (ID: ${user.id}): hasLoveMatch=${hasLoveMatch}, matchedProfiles:`, matchedProfiles);
 
   const handleVoiceNotePress = (e: any) => {
     e.stopPropagation();
