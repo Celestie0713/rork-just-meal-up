@@ -58,11 +58,11 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
         
-        {/* Show cheers icon for buddy match */}
+        {/* Show love icon for fight_for_fries match */}
         {hasLoveMatch && (
           <View style={styles.loveIconContainer}>
             <View style={styles.loveIconBackground}>
-              <Text style={styles.cheersEmoji}>🎉</Text>
+              <Heart size={16} color="#FF1493" fill="#FF1493" />
             </View>
           </View>
         )}
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 6,
     borderWidth: 2,
-    borderColor: '#FFA500',
+    borderColor: '#FF1493',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
@@ -263,8 +263,5 @@ const styles = StyleSheet.create({
     elevation: 4,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  cheersEmoji: {
-    fontSize: 16,
   },
 });

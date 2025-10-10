@@ -693,16 +693,16 @@ export default function ProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            {/* Show cheers icon for buddy match at lower right of profile picture */}
+            {/* Show love icon for fight_for_fries match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
               {Object.values(matchedProfiles)
                 .filter(profile => profile.matchType === 'fight_for_fries' && profile.userId !== user.id)
-                .slice(0, 1) // Show only one cheers icon for buddy match
+                .slice(0, 1) // Show only one love icon for fight_for_fries match
                 .map((matchedProfile) => {
                   const matchedUser = mockUsers.find(u => u.id === matchedProfile.userId);
                   if (!matchedUser) return null;
                   
-                  console.log('Profile: Rendering cheers icon for matched user:', matchedUser.name);
+                  console.log('Profile: Rendering love icon for matched user:', matchedUser.name);
                   return (
                     <View key={matchedProfile.userId} style={styles.profileLoveIconWrapper}>
                       <TouchableOpacity 
@@ -712,17 +712,17 @@ export default function ProfileScreen() {
                           router.push(`/user-profile?userId=${matchedProfile.userId}`);
                         }}
                       >
-                        <Text style={styles.profileCheersEmoji}>🎉</Text>
+                        <Heart size={16} color="#FF1493" fill="#FF1493" />
                       </TouchableOpacity>
                       <TouchableOpacity 
                         style={styles.removeLoveButton}
                         onPress={() => {
-                          console.log('Remove buddy match');
+                          console.log('Remove fight_for_fries match');
                           removeMatchedProfile(matchedProfile.userId);
                         }}
                         testID="remove-love-button"
                       >
-                        <X size={10} color="#FFA500" strokeWidth={3} />
+                        <X size={10} color="#FF1493" strokeWidth={3} />
                       </TouchableOpacity>
                     </View>
                   );
@@ -944,7 +944,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 8,
     borderWidth: 2,
-    borderColor: '#FFA500',
+    borderColor: '#FF1493',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
@@ -954,9 +954,6 @@ const styles = StyleSheet.create({
     minHeight: 32,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  profileCheersEmoji: {
-    fontSize: 16,
   },
   name: {
     fontSize: 24,
@@ -1517,7 +1514,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FFA500',
+    borderColor: '#FF1493',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
