@@ -296,6 +296,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       console.log(`[removeMatchedProfile] Previous state:`, prev);
       const updated = { ...prev };
       delete updated[userId];
+      delete updated['1'];
       console.log(`[removeMatchedProfile] Updated matchedProfiles:`, Object.keys(updated));
       console.log(`[removeMatchedProfile] Updated state:`, updated);
       return updated;
