@@ -191,9 +191,13 @@ export default function PostMealScreen() {
     );
     
     // Disable if user already has an exclusive match (love icon on profile)
+    // IMPORTANT: This checks the matchedProfiles state, which is updated when love icon is removed
     const hasExistingLoveMatch = Object.values(matchedProfiles).some(
       profile => profile.matchType === 'fight_for_fries'
     );
+    
+    console.log(`[isFightForFriesDisabled] eventId=${eventId}, hasChosenForOtherEvent=${hasChosenForOtherEvent}, hasExtendedChoiceForOtherEvent=${hasExtendedChoiceForOtherEvent}, hasExistingLoveMatch=${hasExistingLoveMatch}`);
+    console.log(`[isFightForFriesDisabled] matchedProfiles:`, Object.values(matchedProfiles).map(p => ({ userId: p.userId, matchType: p.matchType })));
     
     return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent || hasExistingLoveMatch;
   };
