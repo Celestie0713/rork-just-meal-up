@@ -651,18 +651,6 @@ export default function ProfileScreen() {
           </View>
           
           <View style={styles.settingsContent}>
-            <TouchableOpacity 
-              style={styles.settingsItem}
-              onPress={() => {
-                resetAllMatches();
-                setShowSettingsModal(false);
-                Alert.alert('Success', 'All matches have been cleared. You are now single!');
-              }}
-            >
-              <Heart size={20} color={Colors.primary} />
-              <Text style={styles.settingsItemText}>Reset to Single (Clear All Matches)</Text>
-            </TouchableOpacity>
-            
             <TouchableOpacity style={styles.settingsItem}>
               <Settings size={20} color={Colors.textLight} />
               <Text style={styles.settingsItemText}>Account Settings</Text>
