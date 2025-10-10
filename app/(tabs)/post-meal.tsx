@@ -1719,7 +1719,7 @@ export default function PostMealScreen() {
                   styles.upgradeButtonText,
                   !matchResult?.isMatch && styles.noMatchButtonText
                 ]}>
-                  {matchResult?.isMatch ? '❤ icon is on' : 'Keep Looking'}
+                  {matchResult?.matchType === 'buddy_pass' ? 'Cheers🎉' : matchResult?.isMatch ? '❤ icon is on' : 'Keep Looking'}
                 </Text>
               </TouchableOpacity>
             )}
