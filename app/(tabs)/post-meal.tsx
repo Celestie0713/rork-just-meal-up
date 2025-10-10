@@ -1710,7 +1710,17 @@ export default function PostMealScreen() {
                   setShowMatchModal(false);
                   setMatchResult(null);
                   setCurrentTime(new Date());
-                  if (matchResult?.isMatch) {
+                  if (matchResult?.matchType === 'buddy_pass') {
+                    // Navigate to chat page for buddy pass match
+                    if (matchResult?.eventId) {
+                      const invitationId = matchResult.eventId.replace('invitation-', '');
+                      const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                      if (invitation) {
+                        const otherUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                        router.push(`/chat?userId=${otherUserId}`);
+                      }
+                    }
+                  } else if (matchResult?.isMatch) {
                     router.push('/profile');
                   }
                 }}
