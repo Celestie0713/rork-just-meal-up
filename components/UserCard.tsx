@@ -31,12 +31,10 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   };
   
   // Check if this user has a fight_for_fries match with current user
-  // For search page, show love icon on both users when they have a mutual match
+  // Show love icon only if there's an active match in matchedProfiles
   const hasLoveMatch = Object.values(matchedProfiles).some(
     profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
-  ) || (currentUser?.id === user.id && Object.values(matchedProfiles).some(
-    profile => profile.matchType === 'fight_for_fries'
-  ));
+  );
   
   // Debug logging for both Alex Chen and Sofia Kim to check match status
   if (user.id === '5' || user.id === '1') { // Sofia Kim or Alex Chen
