@@ -74,7 +74,8 @@ export const mockInvitations: MealInvitation[] = [
       placeId: 'mock_place_5'
     },
     status: 'declined',
-    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
+    createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
+    declinedAt: new Date(Date.now() - 6 * 60 * 60 * 1000)
   },
   {
     id: '6',
@@ -149,6 +150,7 @@ export const mockInvitations: MealInvitation[] = [
       placeId: 'mock_place_10'
     },
     status: 'declined',
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+    declinedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
   }
 ];

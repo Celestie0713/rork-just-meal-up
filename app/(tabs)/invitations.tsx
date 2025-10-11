@@ -323,11 +323,11 @@ export default function InvitationsScreen() {
       if (invitation) {
         const inviter = mockUsers.find(user => user.id === invitation.inviterId);
         
-        // Update invitation status
+        // Update invitation status and set declinedAt timestamp
         setInvitations(prev => 
           prev.map(inv => 
             inv.id === confirmData.invitationId 
-              ? { ...inv, status: 'declined' as const }
+              ? { ...inv, status: 'declined' as const, declinedAt: new Date() }
               : inv
           )
         );
@@ -379,12 +379,24 @@ export default function InvitationsScreen() {
     return invitationDateTime <= now;
   };
 
+  const shouldRemoveDeclined = (invitation: MealInvitation) => {
+    if (invitation.status !== 'declined' || !invitation.declinedAt) {
+      return false;
+    }
+    
+    const now = new Date();
+    const declinedTime = new Date(invitation.declinedAt);
+    const hoursSinceDeclined = (now.getTime() - declinedTime.getTime()) / (1000 * 60 * 60);
+    
+    return hoursSinceDeclined >= 24;
+  };
+
   const sentInvitations = invitations.filter(inv => 
-    inv.inviterId === currentUserId && !isInvitationDue(inv)
+    inv.inviterId === currentUserId && !isInvitationDue(inv) && !shouldRemoveDeclined(inv)
   );
   
   const receivedInvitations = invitations.filter(inv => 
-    inv.inviteeId === currentUserId && !isInvitationDue(inv)
+    inv.inviteeId === currentUserId && !isInvitationDue(inv) && !shouldRemoveDeclined(inv)
   );
   
   const pendingSent = sentInvitations.filter(inv => inv.status === 'pending');
