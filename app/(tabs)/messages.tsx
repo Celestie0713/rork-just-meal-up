@@ -322,7 +322,7 @@ export default function MessagesScreen() {
             const systemMessage: SystemMessage = {
               id: Date.now().toString(),
               type: 'invitation_sent',
-              content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait for his/her decision🤘',
+              content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
               timestamp: new Date(),
             };
             addSystemMessage(chatId, systemMessage);
@@ -360,7 +360,7 @@ export default function MessagesScreen() {
                     const systemMessage: SystemMessage = {
                       id: Date.now().toString(),
                       type: 'invitation_sent',
-                      content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait for his/her decision🤘',
+                      content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
                       timestamp: new Date(),
                     };
                     addSystemMessage(chatId, systemMessage);
@@ -387,7 +387,7 @@ export default function MessagesScreen() {
               const systemMessage: SystemMessage = {
                 id: Date.now().toString(),
                 type: 'invitation_sent',
-                content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait for his/her decision🤘',
+                content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
                 timestamp: new Date(),
               };
               addSystemMessage(chatId, systemMessage);
