@@ -25,9 +25,10 @@ type InvitationCardProps = {
   onAccept: (id: string) => void;
   onDecline: (id: string) => void;
   onEdit?: (id: string) => void;
+  showActions?: boolean;
 };
 
-function InvitationCard({ invitation, onAccept, onDecline, onEdit }: InvitationCardProps) {
+function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions = true }: InvitationCardProps) {
   const inviter = mockUsers.find(user => user.id === invitation.inviterId);
   const isPending = invitation.status === 'pending';
   const isConfirmed = invitation.status === 'accepted';
@@ -169,7 +170,7 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit }: InvitationC
         </TouchableOpacity>
       </View>
 
-      {isPending && (
+      {isPending && showActions && (
         <View style={styles.actionButtons}>
           <TouchableOpacity 
             style={[styles.actionButton, styles.declineButton]}
@@ -480,6 +481,7 @@ export default function InvitationsScreen() {
                   onAccept={handleAccept}
                   onDecline={handleDecline}
                   onEdit={invitation.status === 'accepted' ? handleEdit : undefined}
+                  showActions={false}
                 />
               ))
             ) : (
