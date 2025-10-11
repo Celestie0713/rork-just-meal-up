@@ -119,7 +119,6 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         <View style={styles.iconContainer}>
           <Award size={48} color={Colors.primary} strokeWidth={2} />
         </View>
-        <Text style={styles.title}>Tip</Text>
         <Text style={styles.message}>
           Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
         </Text>
