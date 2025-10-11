@@ -7,6 +7,7 @@ import { TipPopup } from '@/components/TipPopup';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
+import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
 
 interface ChatData {
@@ -51,6 +52,7 @@ const mockChats: ChatData[] = [
 
 export default function MessagesScreen() {
   const { getAvailableChats, isLoaded } = useChat();
+  const { user: currentUser } = useAuth();
   const params = useLocalSearchParams<{
     placeName?: string;
     placeAddress?: string;
@@ -304,7 +306,7 @@ export default function MessagesScreen() {
       
       <TipPopup 
         visible={showTipPopup}
-        userLocation={invitationData?.placeAddress}
+        userLocation={currentUser?.location}
         onClose={() => {
           console.log('[TipPopup onClose] No thanks clicked');
           console.log('[TipPopup onClose] selectedUserId:', selectedUserId);
