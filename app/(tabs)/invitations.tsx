@@ -358,12 +358,30 @@ export default function InvitationsScreen() {
     setConfirmData(null);
   };
 
+  const isInvitationDue = (invitation: MealInvitation) => {
+    const now = new Date();
+    const invitationDateTime = new Date(invitation.date);
+    const [time, period] = invitation.time.split(' ');
+    const [hours, minutes] = time.split(':').map(Number);
+    let adjustedHours = hours;
+    
+    if (period === 'PM' && hours !== 12) {
+      adjustedHours = hours + 12;
+    } else if (period === 'AM' && hours === 12) {
+      adjustedHours = 0;
+    }
+    
+    invitationDateTime.setHours(adjustedHours, minutes, 0, 0);
+    
+    return invitationDateTime <= now;
+  };
+
   const pendingInvitations = invitations.filter(inv => 
-    inv.status === 'pending'
+    inv.status === 'pending' && !isInvitationDue(inv)
   );
   
   const confirmedInvitations = invitations.filter(inv => 
-    inv.status === 'accepted'
+    inv.status === 'accepted' && !isInvitationDue(inv)
   );
 
   return (
