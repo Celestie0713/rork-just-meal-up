@@ -376,62 +376,144 @@ export default function InvitationsScreen() {
     return invitationDateTime <= now;
   };
 
-  const pendingInvitations = invitations.filter(inv => 
-    inv.status === 'pending' && !isInvitationDue(inv)
+  const sentInvitations = invitations.filter(inv => 
+    inv.inviterId === currentUserId && !isInvitationDue(inv)
   );
   
-  const confirmedInvitations = invitations.filter(inv => 
-    inv.status === 'accepted' && !isInvitationDue(inv)
+  const receivedInvitations = invitations.filter(inv => 
+    inv.inviteeId === currentUserId && !isInvitationDue(inv)
   );
+  
+  const pendingSent = sentInvitations.filter(inv => inv.status === 'pending');
+  const confirmedSent = sentInvitations.filter(inv => inv.status === 'accepted');
+  const declinedSent = sentInvitations.filter(inv => inv.status === 'declined');
+  
+  const pendingReceived = receivedInvitations.filter(inv => inv.status === 'pending');
+  const confirmedReceived = receivedInvitations.filter(inv => inv.status === 'accepted');
+  const declinedReceived = receivedInvitations.filter(inv => inv.status === 'declined');
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Meal Invitations</Text>
-        <Text style={styles.subtitle}>
-          {pendingInvitations.length} pending • {confirmedInvitations.length} confirmed
-        </Text>
       </View>
       
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {pendingInvitations.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pending</Text>
-            {pendingInvitations.map(invitation => (
-              <InvitationCard
-                key={invitation.id}
-                invitation={invitation}
-                onAccept={handleAccept}
-                onDecline={handleDecline}
-              />
-            ))}
-          </View>
-        )}
+        <View style={styles.mainSection}>
+          <Text style={styles.mainSectionTitle}>Meal invitation sent</Text>
+          <Text style={styles.mainSectionSubtitle}>
+            {pendingSent.length} pending • {confirmedSent.length} confirmed • {declinedSent.length} declined
+          </Text>
+          
+          {pendingSent.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.sectionTitle}>Pending</Text>
+              {pendingSent.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                />
+              ))}
+            </View>
+          )}
+          
+          {confirmedSent.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.sectionTitle}>Confirmed</Text>
+              {confirmedSent.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                  onEdit={handleEdit}
+                />
+              ))}
+            </View>
+          )}
+          
+          {declinedSent.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.sectionTitle}>Declined</Text>
+              {declinedSent.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                />
+              ))}
+            </View>
+          )}
+          
+          {sentInvitations.length === 0 && (
+            <View style={styles.emptyStateSmall}>
+              <Text style={styles.emptySubtitle}>
+                No sent invitations yet
+              </Text>
+            </View>
+          )}
+        </View>
         
-        {confirmedInvitations.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Confirmed</Text>
-            {confirmedInvitations.map(invitation => (
-              <InvitationCard
-                key={invitation.id}
-                invitation={invitation}
-                onAccept={handleAccept}
-                onDecline={handleDecline}
-                onEdit={handleEdit}
-              />
-            ))}
-          </View>
-        )}
-        
-        {pendingInvitations.length === 0 && confirmedInvitations.length === 0 && (
-          <View style={styles.emptyState}>
-            <Calendar size={48} color={colors.textLight} />
-            <Text style={styles.emptyTitle}>No Invitations Yet</Text>
-            <Text style={styles.emptySubtitle}>
-              When someone invites you for a meal, you&apos;ll see it here
-            </Text>
-          </View>
-        )}
+        <View style={styles.mainSection}>
+          <Text style={styles.mainSectionTitle}>Meal invitation received</Text>
+          <Text style={styles.mainSectionSubtitle}>
+            {pendingReceived.length} pending • {confirmedReceived.length} confirmed • {declinedReceived.length} declined
+          </Text>
+          
+          {pendingReceived.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.sectionTitle}>Pending</Text>
+              {pendingReceived.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                />
+              ))}
+            </View>
+          )}
+          
+          {confirmedReceived.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.sectionTitle}>Confirmed</Text>
+              {confirmedReceived.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                  onEdit={handleEdit}
+                />
+              ))}
+            </View>
+          )}
+          
+          {declinedReceived.length > 0 && (
+            <View style={styles.subsection}>
+              <Text style={styles.sectionTitle}>Declined</Text>
+              {declinedReceived.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                />
+              ))}
+            </View>
+          )}
+          
+          {receivedInvitations.length === 0 && (
+            <View style={styles.emptyStateSmall}>
+              <Text style={styles.emptySubtitle}>
+                No received invitations yet
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
       
       <Modal
@@ -550,21 +632,31 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textLight,
   },
   content: {
     flex: 1,
     paddingHorizontal: 20,
   },
-  section: {
-    marginBottom: 24,
+  mainSection: {
+    marginBottom: 32,
+    paddingTop: 16,
+  },
+  mainSectionTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  mainSectionSubtitle: {
+    fontSize: 14,
+    color: colors.textLight,
+    marginBottom: 16,
+  },
+  subsection: {
+    marginBottom: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 12,
@@ -686,6 +778,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 60,
   },
+  emptyStateSmall: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
   emptyTitle: {
     fontSize: 20,
     fontWeight: '600',
@@ -694,7 +791,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: colors.textLight,
     textAlign: 'center',
     lineHeight: 22,

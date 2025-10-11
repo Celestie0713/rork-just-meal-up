@@ -105,5 +105,50 @@ export const mockInvitations: MealInvitation[] = [
     },
     status: 'completed',
     createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: '8',
+    inviterId: '1',
+    inviteeId: '3',
+    date: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000), // 4 days from now
+    time: '7:30 PM',
+    venue: {
+      name: 'Steakhouse Prime',
+      address: '789 Beef Street, Downtown',
+      cuisine: 'Steakhouse',
+      placeId: 'mock_place_8'
+    },
+    status: 'pending',
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: '9',
+    inviterId: '1',
+    inviteeId: '4',
+    date: new Date(Date.now() + 6 * 24 * 60 * 60 * 1000), // 6 days from now
+    time: '8:00 PM',
+    venue: {
+      name: 'Thai Spice',
+      address: '321 Curry Lane, Chinatown',
+      cuisine: 'Thai',
+      placeId: 'mock_place_9'
+    },
+    status: 'accepted',
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+  },
+  {
+    id: '10',
+    inviterId: '1',
+    inviteeId: '6',
+    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+    time: '6:00 PM',
+    venue: {
+      name: 'Pizza Paradise',
+      address: '456 Cheese Avenue, Little Italy',
+      cuisine: 'Italian',
+      placeId: 'mock_place_10'
+    },
+    status: 'declined',
+    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
   }
 ];
