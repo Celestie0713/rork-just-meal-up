@@ -11,6 +11,7 @@ import { mockUsers } from '@/mocks/users';
 import { GooglePlacesService } from '@/services/google-places';
 import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { TipPopup } from '@/components/TipPopup';
 
 
 import { router } from 'expo-router';
@@ -95,6 +96,7 @@ export default function ProfileScreen() {
   const [newFoodItem, setNewFoodItem] = useState('');
   const [editedBio, setEditedBio] = useState(user?.bio || '');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
+  const [showTipPopup, setShowTipPopup] = useState(true);
 
 
 
@@ -869,6 +871,7 @@ export default function ProfileScreen() {
       {renderPreferredIncomeModal()}
       {renderSettingsModal()}
       
+      <TipPopup visible={showTipPopup} onClose={() => setShowTipPopup(false)} />
 
     </SafeAreaView>
   );
