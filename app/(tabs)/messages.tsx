@@ -121,53 +121,50 @@ export default function MessagesScreen() {
     if (isInvitationMode && invitationData) {
       console.log('[handleChatPress] Showing invitation alert for:', invitationData.placeName);
       
-      setTimeout(() => {
-        Alert.alert(
-          'Send Invitation',
-          `Send meal invitation to ${user.name} for ${invitationData.placeName}?`,
-          [
-            { 
-              text: 'Cancel', 
-              style: 'cancel',
-              onPress: () => {
-                console.log('[handleChatPress] Alert cancelled');
-              }
-            },
-            {
-              text: 'Send',
-              onPress: () => {
-                console.log('[handleChatPress] Send button pressed');
-                console.log('[handleChatPress] Invitation sent to:', user.name);
-                setSelectedUserId(user.id);
-                setShowTipPopup(true);
-              }
+      Alert.alert(
+        'Send Invitation',
+        `Send meal invitation to ${user.name} for ${invitationData.placeName}?`,
+        [
+          { 
+            text: 'Cancel', 
+            style: 'cancel',
+            onPress: () => {
+              console.log('[handleChatPress] Alert cancelled');
             }
-          ]
-        );
-      }, 100);
+          },
+          {
+            text: 'Send',
+            onPress: () => {
+              console.log('[handleChatPress] Send button pressed');
+              console.log('[handleChatPress] Invitation sent to:', user.name);
+              console.log('[handleChatPress] Setting selectedUserId to:', user.id);
+              setSelectedUserId(user.id);
+              setShowTipPopup(true);
+            }
+          }
+        ]
+      );
     } else if (isMealUpShareMode && mealUpData) {
       console.log('[handleChatPress] Showing meal up share alert for:', mealUpData.title);
       
-      setTimeout(() => {
-        Alert.alert(
-          'Share Meal Up',
-          `Share "${mealUpData.title}" with ${user.name}?`,
-          [
-            { text: 'Cancel', style: 'cancel' },
-            {
-              text: 'Share',
-              onPress: () => {
-                console.log('Meal up shared with:', user.name);
-                Alert.alert(
-                  'Meal Up Shared!',
-                  `"${mealUpData.title}" has been shared with ${user.name}.`,
-                  [{ text: 'OK', onPress: () => router.back() }]
-                );
-              }
+      Alert.alert(
+        'Share Meal Up',
+        `Share "${mealUpData.title}" with ${user.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Share',
+            onPress: () => {
+              console.log('Meal up shared with:', user.name);
+              Alert.alert(
+                'Meal Up Shared!',
+                `"${mealUpData.title}" has been shared with ${user.name}.`,
+                [{ text: 'OK', onPress: () => router.back() }]
+              );
             }
-          ]
-        );
-      }, 100);
+          }
+        ]
+      );
     } else {
       console.log('[handleChatPress] Opening chat with user:', user.id);
       router.push({
@@ -324,13 +321,17 @@ export default function MessagesScreen() {
       <TipPopup 
         visible={showTipPopup} 
         onClose={() => {
+          console.log('[TipPopup onClose] Closing tip popup');
+          console.log('[TipPopup onClose] selectedUserId:', selectedUserId);
           setShowTipPopup(false);
           if (selectedUserId) {
+            console.log('[TipPopup onClose] Navigating to chat with user:', selectedUserId);
             router.push({
               pathname: '/chat',
               params: { userId: selectedUserId }
             });
           } else {
+            console.log('[TipPopup onClose] No selectedUserId, going back');
             router.back();
           }
         }} 
