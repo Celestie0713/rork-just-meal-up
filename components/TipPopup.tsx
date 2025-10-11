@@ -117,13 +117,13 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         ]}
       >
         <View style={styles.iconContainer}>
-          <View style={styles.badgeContainer}>
-            <View style={styles.badgeOuter}>
-              <View style={styles.badgeInner}>
-                <Text style={styles.dollarSign}>$</Text>
-              </View>
+          <View style={styles.heartBadge}>
+            <View style={styles.heartShape}>
+              <View style={styles.heartLeft} />
+              <View style={styles.heartRight} />
+              <View style={styles.heartBottom} />
             </View>
-            <View style={styles.badgeRibbon} />
+            <Text style={styles.dollarSign}>$</Text>
           </View>
         </View>
         <Text style={styles.message}>
@@ -197,55 +197,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  badgeContainer: {
-    alignItems: 'center',
+  heartBadge: {
+    width: 100,
+    height: 100,
     justifyContent: 'center',
+    alignItems: 'center',
     position: 'relative',
   },
-  badgeOuter: {
-    width: 90,
+  heartShape: {
+    position: 'absolute',
+    width: 100,
     height: 100,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    paddingTop: 8,
   },
-  badgeInner: {
-    width: 70,
-    height: 70,
-    borderRadius: 35,
-    backgroundColor: '#FFD700',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 4,
-    borderColor: '#FFA500',
+  heartLeft: {
+    position: 'absolute',
+    top: 15,
+    left: 20,
+    width: 30,
+    height: 48,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: '#FF1744',
+    transform: [{ rotate: '-45deg' }],
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 4,
     },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
-    position: 'relative',
-    zIndex: 2,
+  },
+  heartRight: {
+    position: 'absolute',
+    top: 15,
+    left: 50,
+    width: 30,
+    height: 48,
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    backgroundColor: '#FF1744',
+    transform: [{ rotate: '45deg' }],
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  heartBottom: {
+    position: 'absolute',
+    top: 38,
+    left: 35,
+    width: 30,
+    height: 30,
+    backgroundColor: '#FF1744',
+    transform: [{ rotate: '45deg' }],
   },
   dollarSign: {
-    fontSize: 42,
-    fontWeight: '800',
-    color: '#FFA500',
-  },
-  badgeRibbon: {
-    position: 'absolute',
-    top: 62,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 35,
-    borderRightWidth: 35,
-    borderTopWidth: 30,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
-    borderTopColor: '#FFA500',
-    zIndex: 1,
+    fontSize: 48,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 4,
+    zIndex: 10,
   },
   title: {
     fontSize: 22,
