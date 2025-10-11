@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, X } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, X, Mic } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { mockPlaces } from '@/mocks/places';
@@ -11,7 +11,7 @@ import { mockPlaces } from '@/mocks/places';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { useFavorites } from '@/hooks/use-favorites';
-
+import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 type TabType = 'food' | 'pictures' | 'mealups';
@@ -19,6 +19,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function UserProfileScreen() {
   const { userId } = useLocalSearchParams<{ userId: string }>();
   const [activeTab, setActiveTab] = useState<TabType>('food');
+  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const { user: currentUser } = useAuth();
   const { getMatchType } = useChat();
   const { removeFromFavorites } = useFavorites();
@@ -254,6 +255,30 @@ export default function UserProfileScreen() {
             <Text style={styles.location}>{user.location}</Text>
           </View>
           
+          {currentUser?.id !== userId && (
+            <View style={styles.voiceNoteSection}>
+              {!showVoiceRecorder ? (
+                <TouchableOpacity 
+                  style={styles.voiceNoteButton}
+                  onPress={() => setShowVoiceRecorder(true)}
+                  testID="show-voice-recorder"
+                >
+                  <Mic size={20} color={Colors.primary} />
+                  <Text style={styles.voiceNoteButtonText}>Send Voice Note</Text>
+                </TouchableOpacity>
+              ) : (
+                <View style={styles.voiceRecorderContainer}>
+                  <VoiceRecorder
+                    onSend={(duration, audioUri) => {
+                      console.log('Voice note sent:', { duration, audioUri });
+                      setShowVoiceRecorder(false);
+                    }}
+                    onCancel={() => setShowVoiceRecorder(false)}
+                  />
+                </View>
+              )}
+            </View>
+          )}
 
         </View>
 
@@ -736,6 +761,31 @@ const styles = StyleSheet.create({
     borderColor: Colors.primary,
     borderStyle: 'dashed',
     borderRadius: 8,
+  },
+  voiceNoteSection: {
+    width: '100%',
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  voiceNoteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.surface,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  voiceNoteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
+    marginLeft: 8,
+  },
+  voiceRecorderContainer: {
+    width: '100%',
   },
 
 });
