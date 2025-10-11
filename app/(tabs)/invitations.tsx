@@ -216,6 +216,7 @@ export default function InvitationsScreen() {
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
+  const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const { addSystemMessage } = useChat();
   const currentUserId = '1';
 
@@ -398,122 +399,142 @@ export default function InvitationsScreen() {
         <Text style={styles.title}>Meal Invitations</Text>
       </View>
       
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.mainSection}>
-          <Text style={styles.mainSectionTitle}>Meal invitation sent</Text>
-          <Text style={styles.mainSectionSubtitle}>
-            {pendingSent.length} pending • {confirmedSent.length} confirmed • {declinedSent.length} declined
+      <View style={styles.tabContainer}>
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'sent' && styles.activeTab]}
+          onPress={() => setActiveTab('sent')}
+        >
+          <Text style={[styles.tabText, activeTab === 'sent' && styles.activeTabText]}>
+            Invitation sent
           </Text>
-          
-          {pendingSent.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.sectionTitle}>Pending</Text>
-              {pendingSent.map(invitation => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                />
-              ))}
-            </View>
-          )}
-          
-          {confirmedSent.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.sectionTitle}>Confirmed</Text>
-              {confirmedSent.map(invitation => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                  onEdit={handleEdit}
-                />
-              ))}
-            </View>
-          )}
-          
-          {declinedSent.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.sectionTitle}>Declined</Text>
-              {declinedSent.map(invitation => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                />
-              ))}
-            </View>
-          )}
-          
-          {sentInvitations.length === 0 && (
-            <View style={styles.emptyStateSmall}>
-              <Text style={styles.emptySubtitle}>
-                No sent invitations yet
-              </Text>
-            </View>
-          )}
-        </View>
+        </TouchableOpacity>
         
-        <View style={styles.mainSection}>
-          <Text style={styles.mainSectionTitle}>Meal invitation received</Text>
-          <Text style={styles.mainSectionSubtitle}>
-            {pendingReceived.length} pending • {confirmedReceived.length} confirmed • {declinedReceived.length} declined
+        <TouchableOpacity 
+          style={[styles.tab, activeTab === 'received' && styles.activeTab]}
+          onPress={() => setActiveTab('received')}
+        >
+          <Text style={[styles.tabText, activeTab === 'received' && styles.activeTabText]}>
+            Invitation received
           </Text>
-          
-          {pendingReceived.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.sectionTitle}>Pending</Text>
-              {pendingReceived.map(invitation => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                />
-              ))}
-            </View>
-          )}
-          
-          {confirmedReceived.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.sectionTitle}>Confirmed</Text>
-              {confirmedReceived.map(invitation => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                  onEdit={handleEdit}
-                />
-              ))}
-            </View>
-          )}
-          
-          {declinedReceived.length > 0 && (
-            <View style={styles.subsection}>
-              <Text style={styles.sectionTitle}>Declined</Text>
-              {declinedReceived.map(invitation => (
-                <InvitationCard
-                  key={invitation.id}
-                  invitation={invitation}
-                  onAccept={handleAccept}
-                  onDecline={handleDecline}
-                />
-              ))}
-            </View>
-          )}
-          
-          {receivedInvitations.length === 0 && (
-            <View style={styles.emptyStateSmall}>
-              <Text style={styles.emptySubtitle}>
-                No received invitations yet
-              </Text>
-            </View>
-          )}
-        </View>
+        </TouchableOpacity>
+      </View>
+      
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {activeTab === 'sent' ? (
+          <View style={styles.mainSection}>
+            <Text style={styles.mainSectionSubtitle}>
+              {pendingSent.length} pending • {confirmedSent.length} confirmed • {declinedSent.length} declined
+            </Text>
+            
+            {pendingSent.length > 0 && (
+              <View style={styles.subsection}>
+                <Text style={styles.sectionTitle}>Pending</Text>
+                {pendingSent.map(invitation => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {confirmedSent.length > 0 && (
+              <View style={styles.subsection}>
+                <Text style={styles.sectionTitle}>Confirmed</Text>
+                {confirmedSent.map(invitation => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                    onEdit={handleEdit}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {declinedSent.length > 0 && (
+              <View style={styles.subsection}>
+                <Text style={styles.sectionTitle}>Declined</Text>
+                {declinedSent.map(invitation => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {sentInvitations.length === 0 && (
+              <View style={styles.emptyStateSmall}>
+                <Text style={styles.emptySubtitle}>
+                  No sent invitations yet
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <View style={styles.mainSection}>
+            <Text style={styles.mainSectionSubtitle}>
+              {pendingReceived.length} pending • {confirmedReceived.length} confirmed • {declinedReceived.length} declined
+            </Text>
+            
+            {pendingReceived.length > 0 && (
+              <View style={styles.subsection}>
+                <Text style={styles.sectionTitle}>Pending</Text>
+                {pendingReceived.map(invitation => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {confirmedReceived.length > 0 && (
+              <View style={styles.subsection}>
+                <Text style={styles.sectionTitle}>Confirmed</Text>
+                {confirmedReceived.map(invitation => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                    onEdit={handleEdit}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {declinedReceived.length > 0 && (
+              <View style={styles.subsection}>
+                <Text style={styles.sectionTitle}>Declined</Text>
+                {declinedReceived.map(invitation => (
+                  <InvitationCard
+                    key={invitation.id}
+                    invitation={invitation}
+                    onAccept={handleAccept}
+                    onDecline={handleDecline}
+                  />
+                ))}
+              </View>
+            )}
+            
+            {receivedInvitations.length === 0 && (
+              <View style={styles.emptyStateSmall}>
+                <Text style={styles.emptySubtitle}>
+                  No received invitations yet
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
       </ScrollView>
       
       <Modal
@@ -626,11 +647,40 @@ const styles = StyleSheet.create({
   },
   header: {
     padding: 20,
-    paddingBottom: 10,
+    paddingBottom: 16,
   },
   title: {
     fontSize: 28,
     fontWeight: '700',
+    color: colors.text,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    marginBottom: 16,
+    gap: 12,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  activeTab: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  activeTabText: {
     color: colors.text,
   },
   content: {
@@ -639,13 +689,6 @@ const styles = StyleSheet.create({
   },
   mainSection: {
     marginBottom: 32,
-    paddingTop: 16,
-  },
-  mainSectionTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: 4,
   },
   mainSectionSubtitle: {
     fontSize: 14,
