@@ -79,10 +79,10 @@ export const COUNTRY_CURRENCIES: { [key: string]: string } = {
 export function getCurrencyFromAddress(address: string): string {
   if (!address) return '$';
   
-  const addressUpper = address.toUpperCase();
+  const addressLower = address.toLowerCase();
   
   for (const [country, currency] of Object.entries(COUNTRY_CURRENCIES)) {
-    if (addressUpper.includes(country.toUpperCase())) {
+    if (addressLower.includes(country.toLowerCase())) {
       return currency;
     }
   }
