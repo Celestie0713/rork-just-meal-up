@@ -112,16 +112,26 @@ export default function MessagesScreen() {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const handleChatPress = (user: User) => {
+    console.log('[handleChatPress] User clicked:', user.name, 'ID:', user.id);
+    console.log('[handleChatPress] isInvitationMode:', isInvitationMode);
+    console.log('[handleChatPress] invitationData:', invitationData);
+    
     if (isInvitationMode && invitationData) {
+      console.log('[handleChatPress] Showing invitation alert');
       Alert.alert(
         'Send Invitation',
         `Send meal invitation to ${user.name} for ${invitationData.placeName}?`,
         [
-          { text: 'Cancel', style: 'cancel' },
+          { 
+            text: 'Cancel', 
+            style: 'cancel',
+            onPress: () => console.log('[handleChatPress] Alert cancelled')
+          },
           {
             text: 'Send',
             onPress: () => {
-              console.log('Invitation sent to:', user.name);
+              console.log('[handleChatPress] Send button pressed');
+              console.log('[handleChatPress] Invitation sent to:', user.name);
               setSelectedUserId(user.id);
               setShowTipPopup(true);
             }
@@ -185,15 +195,21 @@ export default function MessagesScreen() {
     });
   };
 
-  const renderChatItem = ({ item }: { item: ChatData }) => (
-    <ChatListItem
-      user={item.user}
-      lastMessage={item.lastMessage}
-      lastMessageTime={item.lastMessageTime}
-      unreadCount={item.unreadCount}
-      onPress={() => handleChatPress(item.user)}
-    />
-  );
+  const renderChatItem = ({ item }: { item: ChatData }) => {
+    console.log('[renderChatItem] Rendering chat item for user:', item.user.name);
+    return (
+      <ChatListItem
+        user={item.user}
+        lastMessage={item.lastMessage}
+        lastMessageTime={item.lastMessageTime}
+        unreadCount={item.unreadCount}
+        onPress={() => {
+          console.log('[renderChatItem] onPress called for user:', item.user.name);
+          handleChatPress(item.user);
+        }}
+      />
+    );
+  };
   
   const renderEmptyState = () => (
     <View style={styles.emptyState}>
