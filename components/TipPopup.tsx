@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, TouchableOpacity, TextInput } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { getCurrencyFromAddress } from '@/constants/currencies';
+import { Award } from 'lucide-react-native';
 
 interface TipPopupProps {
   visible: boolean;
@@ -115,6 +116,9 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
           },
         ]}
       >
+        <View style={styles.iconContainer}>
+          <Award size={48} color={Colors.primary} strokeWidth={2} />
+        </View>
         <Text style={styles.title}>Tip</Text>
         <Text style={styles.message}>
           Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
@@ -182,6 +186,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 16,
     elevation: 16,
+  },
+  iconContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 22,
