@@ -217,6 +217,7 @@ export default function InvitationsScreen() {
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
   const currentUserId = '1';
 
@@ -392,6 +393,17 @@ export default function InvitationsScreen() {
   const pendingReceived = receivedInvitations.filter(inv => inv.status === 'pending');
   const confirmedReceived = receivedInvitations.filter(inv => inv.status === 'accepted');
   const declinedReceived = receivedInvitations.filter(inv => inv.status === 'declined');
+  
+  const getFilteredInvitations = (invitations: MealInvitation[]) => {
+    if (statusFilter === 'all') return invitations;
+    if (statusFilter === 'pending') return invitations.filter(inv => inv.status === 'pending');
+    if (statusFilter === 'confirmed') return invitations.filter(inv => inv.status === 'accepted');
+    if (statusFilter === 'declined') return invitations.filter(inv => inv.status === 'declined');
+    return invitations;
+  };
+  
+  const filteredSentInvitations = getFilteredInvitations(sentInvitations);
+  const filteredReceivedInvitations = getFilteredInvitations(receivedInvitations);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -422,50 +434,59 @@ export default function InvitationsScreen() {
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {activeTab === 'sent' ? (
           <View style={styles.mainSection}>
-            <Text style={styles.mainSectionSubtitle}>
-              {pendingSent.length} pending • {confirmedSent.length} confirmed • {declinedSent.length} declined
-            </Text>
+            <View style={styles.filterContainer}>
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('all')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'all' && styles.filterChipTextActive]}>
+                  All ({sentInvitations.length})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'pending' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('pending')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'pending' && styles.filterChipTextActive]}>
+                  Pending ({pendingSent.length})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'confirmed' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('confirmed')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'confirmed' && styles.filterChipTextActive]}>
+                  Confirmed ({confirmedSent.length})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'declined' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('declined')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'declined' && styles.filterChipTextActive]}>
+                  Declined ({declinedSent.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
             
-            {pendingSent.length > 0 && (
-              <View style={styles.subsection}>
-                <Text style={styles.sectionTitle}>Pending</Text>
-                {pendingSent.map(invitation => (
-                  <InvitationCard
-                    key={invitation.id}
-                    invitation={invitation}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                  />
-                ))}
-              </View>
-            )}
-            
-            {confirmedSent.length > 0 && (
-              <View style={styles.subsection}>
-                <Text style={styles.sectionTitle}>Confirmed</Text>
-                {confirmedSent.map(invitation => (
-                  <InvitationCard
-                    key={invitation.id}
-                    invitation={invitation}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                    onEdit={handleEdit}
-                  />
-                ))}
-              </View>
-            )}
-            
-            {declinedSent.length > 0 && (
-              <View style={styles.subsection}>
-                <Text style={styles.sectionTitle}>Declined</Text>
-                {declinedSent.map(invitation => (
-                  <InvitationCard
-                    key={invitation.id}
-                    invitation={invitation}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                  />
-                ))}
+            {filteredSentInvitations.length > 0 ? (
+              filteredSentInvitations.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                  onEdit={invitation.status === 'accepted' ? handleEdit : undefined}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyStateSmall}>
+                <Text style={styles.emptySubtitle}>
+                  No {statusFilter !== 'all' ? statusFilter : ''} invitations
+                </Text>
               </View>
             )}
             
@@ -479,50 +500,59 @@ export default function InvitationsScreen() {
           </View>
         ) : (
           <View style={styles.mainSection}>
-            <Text style={styles.mainSectionSubtitle}>
-              {pendingReceived.length} pending • {confirmedReceived.length} confirmed • {declinedReceived.length} declined
-            </Text>
+            <View style={styles.filterContainer}>
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('all')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'all' && styles.filterChipTextActive]}>
+                  All ({receivedInvitations.length})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'pending' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('pending')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'pending' && styles.filterChipTextActive]}>
+                  Pending ({pendingReceived.length})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'confirmed' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('confirmed')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'confirmed' && styles.filterChipTextActive]}>
+                  Confirmed ({confirmedReceived.length})
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={[styles.filterChip, statusFilter === 'declined' && styles.filterChipActive]}
+                onPress={() => setStatusFilter('declined')}
+              >
+                <Text style={[styles.filterChipText, statusFilter === 'declined' && styles.filterChipTextActive]}>
+                  Declined ({declinedReceived.length})
+                </Text>
+              </TouchableOpacity>
+            </View>
             
-            {pendingReceived.length > 0 && (
-              <View style={styles.subsection}>
-                <Text style={styles.sectionTitle}>Pending</Text>
-                {pendingReceived.map(invitation => (
-                  <InvitationCard
-                    key={invitation.id}
-                    invitation={invitation}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                  />
-                ))}
-              </View>
-            )}
-            
-            {confirmedReceived.length > 0 && (
-              <View style={styles.subsection}>
-                <Text style={styles.sectionTitle}>Confirmed</Text>
-                {confirmedReceived.map(invitation => (
-                  <InvitationCard
-                    key={invitation.id}
-                    invitation={invitation}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                    onEdit={handleEdit}
-                  />
-                ))}
-              </View>
-            )}
-            
-            {declinedReceived.length > 0 && (
-              <View style={styles.subsection}>
-                <Text style={styles.sectionTitle}>Declined</Text>
-                {declinedReceived.map(invitation => (
-                  <InvitationCard
-                    key={invitation.id}
-                    invitation={invitation}
-                    onAccept={handleAccept}
-                    onDecline={handleDecline}
-                  />
-                ))}
+            {filteredReceivedInvitations.length > 0 ? (
+              filteredReceivedInvitations.map(invitation => (
+                <InvitationCard
+                  key={invitation.id}
+                  invitation={invitation}
+                  onAccept={handleAccept}
+                  onDecline={handleDecline}
+                  onEdit={invitation.status === 'accepted' ? handleEdit : undefined}
+                />
+              ))
+            ) : (
+              <View style={styles.emptyStateSmall}>
+                <Text style={styles.emptySubtitle}>
+                  No {statusFilter !== 'all' ? statusFilter : ''} invitations
+                </Text>
               </View>
             )}
             
@@ -694,6 +724,32 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textLight,
     marginBottom: 16,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 16,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterChipActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  filterChipText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  filterChipTextActive: {
+    color: colors.text,
   },
   subsection: {
     marginBottom: 20,
