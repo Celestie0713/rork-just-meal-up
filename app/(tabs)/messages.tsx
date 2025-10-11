@@ -144,8 +144,11 @@ export default function MessagesScreen() {
               console.log('[handleChatPress] Setting selectedUserId to:', user.id);
               setSelectedUserId(user.id);
               console.log('[handleChatPress] Setting showTipPopup to true');
-              setShowTipPopup(true);
-              console.log('[handleChatPress] showTipPopup state should now be true');
+              
+              setTimeout(() => {
+                setShowTipPopup(true);
+                console.log('[handleChatPress] showTipPopup state set to true after timeout');
+              }, 100);
             }
           }
         ]
