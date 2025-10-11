@@ -396,7 +396,7 @@ export default function InvitationsScreen() {
   );
   
   const receivedInvitations = invitations.filter(inv => 
-    inv.inviteeId === currentUserId && !isInvitationDue(inv) && !shouldRemoveDeclined(inv)
+    inv.inviteeId === currentUserId && !isInvitationDue(inv) && !shouldRemoveDeclined(inv) && inv.status !== 'declined'
   );
   
   const pendingSent = sentInvitations.filter(inv => inv.status === 'pending');
