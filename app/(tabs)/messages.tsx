@@ -308,17 +308,32 @@ export default function MessagesScreen() {
         visible={showTipPopup}
         userLocation={currentUser?.location}
         onClose={() => {
-          console.log('[TipPopup onClose] No thanks clicked');
-          console.log('[TipPopup onClose] selectedUserId:', selectedUserId);
+          console.log('[TipPopup onClose] Backdrop clicked');
           setShowTipPopup(false);
-          if (selectedUserId) {
-            console.log('[TipPopup onClose] Navigating to chat with user:', selectedUserId);
+          router.back();
+        }}
+        onNoThanks={() => {
+          console.log('[TipPopup onNoThanks] No thanks clicked');
+          console.log('[TipPopup onNoThanks] selectedUserId:', selectedUserId);
+          setShowTipPopup(false);
+          
+          if (selectedUserId && invitationData) {
+            const chatId = `1-${selectedUserId}`;
+            const systemMessage: SystemMessage = {
+              id: Date.now().toString(),
+              type: 'invitation_sent',
+              content: 'Invite sent. Now pick an outfit you can still breathe in after dessert.',
+              timestamp: new Date(),
+            };
+            addSystemMessage(chatId, systemMessage);
+            
+            console.log('[TipPopup onNoThanks] Navigating to chat with user:', selectedUserId);
             router.push({
               pathname: '/chat',
               params: { userId: selectedUserId }
             });
           } else {
-            console.log('[TipPopup onClose] No selectedUserId, going back');
+            console.log('[TipPopup onNoThanks] No selectedUserId, going back');
             router.back();
           }
         }}

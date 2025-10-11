@@ -7,12 +7,13 @@ interface TipPopupProps {
   visible: boolean;
   onClose: () => void;
   onSendWithTip: (tipAmount: number) => void;
+  onNoThanks: () => void;
   userLocation?: string;
 }
 
 const { width } = Dimensions.get('window');
 
-export function TipPopup({ visible, onClose, onSendWithTip, userLocation }: TipPopupProps) {
+export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLocation }: TipPopupProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const [tipAmount, setTipAmount] = useState<string>('');
@@ -54,6 +55,24 @@ export function TipPopup({ visible, onClose, onSendWithTip, userLocation }: TipP
     ]).start(() => {
       setTipAmount('');
       onClose();
+    });
+  };
+
+  const handleNoThanks = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setTipAmount('');
+      onNoThanks();
     });
   };
 
@@ -120,7 +139,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, userLocation }: TipP
           <TouchableOpacity onPress={handleSendWithTip} style={styles.primaryButton}>
             <Text style={styles.primaryButtonText}>Send with tip</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleClose} style={styles.secondaryButton}>
+          <TouchableOpacity onPress={handleNoThanks} style={styles.secondaryButton}>
             <Text style={styles.secondaryButtonText}>No thanks</Text>
           </TouchableOpacity>
         </View>
