@@ -107,7 +107,7 @@ export default function MessagesScreen() {
       setFilteredChats(availableChats);
       console.log(`Filtered chats: ${availableChats.length} out of ${chats.length} total chats`);
     }
-  }, [chats, isLoaded]);
+  }, [chats, isLoaded, getAvailableChats]);
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
