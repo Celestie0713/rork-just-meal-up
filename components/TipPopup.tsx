@@ -98,7 +98,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, userLocation }: TipP
       >
         <Text style={styles.title}>Tip</Text>
         <Text style={styles.message}>
-          Tip charges only if they say yes! We&apos;ll make sure they know you drop us a tip for sending them an invitation🌹 What a generous delicious catch🙌
+          We&apos;ll make sure they know you drop us a tip for sending them an invitation🌹 What a generous delicious catch🙌
         </Text>
         
         <View style={styles.inputContainer}>
