@@ -13,7 +13,10 @@ export function TipPopup({ visible, onClose }: TipPopupProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
 
+  console.log('[TipPopup] Component rendered with visible:', visible);
+
   useEffect(() => {
+    console.log('[TipPopup useEffect] visible changed to:', visible);
     if (visible) {
       Animated.parallel([
         Animated.timing(fadeAnim, {

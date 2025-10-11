@@ -111,6 +111,10 @@ export default function MessagesScreen() {
 
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
+  useEffect(() => {
+    console.log('[useEffect] showTipPopup changed to:', showTipPopup);
+  }, [showTipPopup]);
+
   const handleChatPress = (user: User) => {
     console.log('[handleChatPress] User clicked:', user.name, 'ID:', user.id);
     console.log('[handleChatPress] isInvitationMode:', isInvitationMode);
@@ -139,7 +143,9 @@ export default function MessagesScreen() {
               console.log('[handleChatPress] Invitation sent to:', user.name);
               console.log('[handleChatPress] Setting selectedUserId to:', user.id);
               setSelectedUserId(user.id);
+              console.log('[handleChatPress] Setting showTipPopup to true');
               setShowTipPopup(true);
+              console.log('[handleChatPress] showTipPopup state should now be true');
             }
           }
         ]
