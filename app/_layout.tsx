@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/use-auth";
 import { ChatProvider } from "@/hooks/use-chat";
 import { FavoritesProvider } from "@/hooks/use-favorites";
 import { NotificationProvider } from "@/hooks/use-notifications";
+import { InvitationsProvider } from "@/hooks/use-invitations";
 import { trpc, trpcClient } from "@/lib/trpc";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -34,13 +35,15 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <AuthProvider>
           <NotificationProvider>
-            <ChatProvider>
-              <FavoritesProvider>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <RootLayoutNav />
-                </GestureHandlerRootView>
-              </FavoritesProvider>
-            </ChatProvider>
+            <InvitationsProvider>
+              <ChatProvider>
+                <FavoritesProvider>
+                  <GestureHandlerRootView style={{ flex: 1 }}>
+                    <RootLayoutNav />
+                  </GestureHandlerRootView>
+                </FavoritesProvider>
+              </ChatProvider>
+            </InvitationsProvider>
           </NotificationProvider>
         </AuthProvider>
       </QueryClientProvider>

@@ -8,6 +8,7 @@ import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
+import { useInvitations } from '@/hooks/use-invitations';
 import type { User, SystemMessage } from '@/types/user';
 
 interface ChatData {
@@ -53,6 +54,7 @@ const mockChats: ChatData[] = [
 export default function MessagesScreen() {
   const { getAvailableChats, isLoaded, addSystemMessage } = useChat();
   const { user: currentUser } = useAuth();
+  const { addInvitation } = useInvitations();
   const params = useLocalSearchParams<{
     placeName?: string;
     placeAddress?: string;
@@ -318,6 +320,24 @@ export default function MessagesScreen() {
           setShowTipPopup(false);
           
           if (selectedUserId && invitationData) {
+            const newInvitationId = `inv-${Date.now()}`;
+            
+            addInvitation({
+              id: newInvitationId,
+              inviterId: '1',
+              inviteeId: selectedUserId,
+              date: invitationData.date,
+              time: formatInvitationTime(invitationData.time),
+              venue: {
+                name: invitationData.placeName,
+                address: invitationData.placeAddress,
+                cuisine: 'Restaurant',
+                placeId: invitationData.placeId
+              },
+              status: 'pending',
+              createdAt: new Date()
+            });
+            
             const chatId = `1-${selectedUserId}`;
             const systemMessage: SystemMessage = {
               id: Date.now().toString(),
@@ -356,6 +376,24 @@ export default function MessagesScreen() {
                     console.log('[TipPopup onSendWithTip] Initiating invitation after payment');
                     const selectedUser = mockUsers.find(u => u.id === selectedUserId);
                     
+                    const newInvitationId = `inv-${Date.now()}`;
+                    
+                    addInvitation({
+                      id: newInvitationId,
+                      inviterId: '1',
+                      inviteeId: selectedUserId,
+                      date: invitationData.date,
+                      time: formatInvitationTime(invitationData.time),
+                      venue: {
+                        name: invitationData.placeName,
+                        address: invitationData.placeAddress,
+                        cuisine: 'Restaurant',
+                        placeId: invitationData.placeId
+                      },
+                      status: 'pending',
+                      createdAt: new Date()
+                    });
+                    
                     const chatId = `1-${selectedUserId}`;
                     const systemMessage: SystemMessage = {
                       id: Date.now().toString(),
@@ -382,6 +420,24 @@ export default function MessagesScreen() {
           } else {
             if (selectedUserId && invitationData) {
               const selectedUser = mockUsers.find(u => u.id === selectedUserId);
+              
+              const newInvitationId = `inv-${Date.now()}`;
+              
+              addInvitation({
+                id: newInvitationId,
+                inviterId: '1',
+                inviteeId: selectedUserId,
+                date: invitationData.date,
+                time: formatInvitationTime(invitationData.time),
+                venue: {
+                  name: invitationData.placeName,
+                  address: invitationData.placeAddress,
+                  cuisine: 'Restaurant',
+                  placeId: invitationData.placeId
+                },
+                status: 'pending',
+                createdAt: new Date()
+              });
               
               const chatId = `1-${selectedUserId}`;
               const systemMessage: SystemMessage = {

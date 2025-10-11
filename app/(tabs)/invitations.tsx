@@ -3,9 +3,9 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3 } from 'lucide-react-native';
 import { router } from 'expo-router';
-import { mockInvitations } from '@/mocks/invitations';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
+import { useInvitations } from '@/hooks/use-invitations';
 import type { MealInvitation, SystemMessage } from '@/types/user';
 
 const colors = {
@@ -212,7 +212,7 @@ type ConfirmModalData = {
 };
 
 export default function InvitationsScreen() {
-  const [invitations, setInvitations] = useState<MealInvitation[]>(mockInvitations);
+  const { invitations, updateInvitation } = useInvitations();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
@@ -258,18 +258,14 @@ export default function InvitationsScreen() {
   const handleSaveEdit = () => {
     if (!editData) return;
     
-    setInvitations(prev => 
-      prev.map(inv => 
-        inv.id === editData.id 
-          ? { 
-              ...inv, 
-              date: new Date(editData.date),
-              time: editData.time,
-              venue: { ...inv.venue, name: editData.venue }
-            }
-          : inv
-      )
-    );
+    const invitation = invitations.find(inv => inv.id === editData.id);
+    if (invitation) {
+      updateInvitation(editData.id, {
+        date: new Date(editData.date),
+        time: editData.time,
+        venue: { ...invitation.venue, name: editData.venue }
+      });
+    }
     
     setEditModalVisible(false);
     setEditData(null);
@@ -291,14 +287,7 @@ export default function InvitationsScreen() {
       if (invitation) {
         const inviter = mockUsers.find(user => user.id === invitation.inviterId);
         
-        // Update invitation status
-        setInvitations(prev => 
-          prev.map(inv => 
-            inv.id === confirmData.invitationId 
-              ? { ...inv, status: 'accepted' as const }
-              : inv
-          )
-        );
+        updateInvitation(confirmData.invitationId, { status: 'accepted' });
         
         // Add system message to chat
         if (inviter) {
@@ -323,14 +312,10 @@ export default function InvitationsScreen() {
       if (invitation) {
         const inviter = mockUsers.find(user => user.id === invitation.inviterId);
         
-        // Update invitation status and set declinedAt timestamp
-        setInvitations(prev => 
-          prev.map(inv => 
-            inv.id === confirmData.invitationId 
-              ? { ...inv, status: 'declined' as const, declinedAt: new Date() }
-              : inv
-          )
-        );
+        updateInvitation(confirmData.invitationId, { 
+          status: 'declined', 
+          declinedAt: new Date() 
+        });
         
         // Add system message to chat
         if (inviter) {
