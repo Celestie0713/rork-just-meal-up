@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, TouchableOpacity, TextInput } from 'react-native';
 import { Colors } from '@/constants/colors';
 import { getCurrencyFromAddress } from '@/constants/currencies';
-import { Award } from 'lucide-react-native';
+
 
 interface TipPopupProps {
   visible: boolean;
@@ -117,7 +117,14 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         ]}
       >
         <View style={styles.iconContainer}>
-          <Award size={48} color={Colors.primary} strokeWidth={2} />
+          <View style={styles.badgeContainer}>
+            <View style={styles.badgeOuter}>
+              <View style={styles.badgeInner}>
+                <Text style={styles.dollarSign}>$</Text>
+              </View>
+            </View>
+            <View style={styles.badgeRibbon} />
+          </View>
         </View>
         <Text style={styles.message}>
           Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
@@ -189,6 +196,50 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     marginBottom: 16,
+  },
+  badgeContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeOuter: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: Colors.primary,
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  badgeInner: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: '#FFD700',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 3,
+    borderColor: Colors.primary,
+  },
+  dollarSign: {
+    fontSize: 40,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  badgeRibbon: {
+    position: 'absolute',
+    bottom: -8,
+    width: 60,
+    height: 20,
+    backgroundColor: Colors.primary,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
   title: {
     fontSize: 22,
