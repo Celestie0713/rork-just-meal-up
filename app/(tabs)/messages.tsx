@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Linking, Platform } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign } from 'lucide-react-native';
 import { ChatListItem } from '@/components/ChatListItem';
@@ -322,19 +322,79 @@ export default function MessagesScreen() {
             router.back();
           }
         }}
-        onSendWithTip={(tipAmount) => {
+        onSendWithTip={async (tipAmount) => {
           console.log('[TipPopup onSendWithTip] Send with tip clicked, amount:', tipAmount);
           console.log('[TipPopup onSendWithTip] selectedUserId:', selectedUserId);
           setShowTipPopup(false);
-          if (selectedUserId) {
-            console.log('[TipPopup onSendWithTip] Navigating to chat with user:', selectedUserId);
-            router.push({
-              pathname: '/chat',
-              params: { userId: selectedUserId, tipAmount: tipAmount.toString() }
-            });
+          
+          if (tipAmount > 0) {
+            try {
+              const stripeUrl = `https://buy.stripe.com/test_00g00000000000?prefilled_amount=${Math.round(tipAmount * 100)}`;
+              console.log('[TipPopup onSendWithTip] Opening Stripe URL:', stripeUrl);
+              
+              const supported = await Linking.canOpenURL(stripeUrl);
+              if (supported) {
+                await Linking.openURL(stripeUrl);
+                
+                setTimeout(() => {
+                  if (selectedUserId && invitationData) {
+                    console.log('[TipPopup onSendWithTip] Initiating invitation after payment');
+                    const selectedUser = mockUsers.find(u => u.id === selectedUserId);
+                    Alert.alert(
+                      'Invitation Sent!',
+                      `Your meal invitation to ${selectedUser?.name} at ${invitationData.placeName} has been sent.`,
+                      [
+                        {
+                          text: 'View Chat',
+                          onPress: () => {
+                            router.push({
+                              pathname: '/chat',
+                              params: { userId: selectedUserId, tipAmount: tipAmount.toString() }
+                            });
+                          }
+                        },
+                        {
+                          text: 'OK',
+                          onPress: () => router.back()
+                        }
+                      ]
+                    );
+                  }
+                }, 2000);
+              } else {
+                console.error('[TipPopup onSendWithTip] Cannot open Stripe URL');
+                Alert.alert('Error', 'Unable to open payment page');
+              }
+            } catch (error) {
+              console.error('[TipPopup onSendWithTip] Error opening Stripe:', error);
+              Alert.alert('Error', 'Failed to process payment');
+            }
           } else {
-            console.log('[TipPopup onSendWithTip] No selectedUserId, going back');
-            router.back();
+            if (selectedUserId && invitationData) {
+              const selectedUser = mockUsers.find(u => u.id === selectedUserId);
+              Alert.alert(
+                'Invitation Sent!',
+                `Your meal invitation to ${selectedUser?.name} at ${invitationData.placeName} has been sent.`,
+                [
+                  {
+                    text: 'View Chat',
+                    onPress: () => {
+                      router.push({
+                        pathname: '/chat',
+                        params: { userId: selectedUserId }
+                      });
+                    }
+                  },
+                  {
+                    text: 'OK',
+                    onPress: () => router.back()
+                  }
+                ]
+              );
+            } else {
+              console.log('[TipPopup onSendWithTip] No selectedUserId, going back');
+              router.back();
+            }
           }
         }}
       />
