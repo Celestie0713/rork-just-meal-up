@@ -117,7 +117,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
       >
         <Text style={styles.title}>Tip</Text>
         <Text style={styles.message}>
-          We&apos;ll make sure they know you drop us a tip for sending them an invitation🌹 What a generous delicious catch🙌
+          Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
         </Text>
         
         <View style={styles.inputContainer}>
