@@ -741,6 +741,28 @@ export default function ProfileScreen() {
             <Text style={styles.location}>{user.location}</Text>
           </View>
           
+          {!isEditing && (
+            <TouchableOpacity 
+              style={styles.voiceNoteButtonProfile}
+              onPress={() => setShowVoiceRecorder(!showVoiceRecorder)}
+            >
+              <Mic size={20} color={Colors.primary} />
+              <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
+            </TouchableOpacity>
+          )}
+          
+          {showVoiceRecorder && !isEditing && (
+            <View style={styles.voiceRecorderContainerProfile}>
+              <VoiceRecorder
+                onSend={(duration, audioUri) => {
+                  console.log('Voice note sent:', { duration, audioUri });
+                  Alert.alert('Voice Note Sent', `Duration: ${duration}s`);
+                  setShowVoiceRecorder(false);
+                }}
+                onCancel={() => setShowVoiceRecorder(false)}
+              />
+            </View>
+          )}
 
         </View>
 
@@ -779,18 +801,7 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.bioSection}>
-          <View style={styles.bioHeader}>
-            <Text style={styles.sectionTitle}>Bio</Text>
-            {!isEditing && (
-              <TouchableOpacity 
-                style={styles.voiceNoteButton}
-                onPress={() => setShowVoiceRecorder(!showVoiceRecorder)}
-              >
-                <Mic size={20} color={Colors.primary} />
-                <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          <Text style={styles.sectionTitle}>Bio</Text>
           {isEditing ? (
             <View style={styles.bioEditContainer}>
               <TextInput
@@ -806,18 +817,6 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <Text style={styles.bio}>{user.bio}</Text>
-          )}
-          {showVoiceRecorder && !isEditing && (
-            <View style={styles.voiceRecorderContainer}>
-              <VoiceRecorder
-                onSend={(duration, audioUri) => {
-                  console.log('Voice note sent:', { duration, audioUri });
-                  Alert.alert('Voice Note Sent', `Duration: ${duration}s`);
-                  setShowVoiceRecorder(false);
-                }}
-                onCancel={() => setShowVoiceRecorder(false)}
-              />
-            </View>
           )}
         </View>
 
@@ -1113,21 +1112,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 24,
   },
-  bioHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  voiceNoteButton: {
+  voiceNoteButtonProfile: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: Colors.surface,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: 20,
     borderWidth: 1,
     borderColor: Colors.primary,
+    marginTop: 12,
+    alignSelf: 'center',
   },
   voiceNoteButtonText: {
     fontSize: 14,
@@ -1135,11 +1131,12 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     marginLeft: 6,
   },
-  voiceRecorderContainer: {
+  voiceRecorderContainerProfile: {
     marginTop: 16,
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
+    marginHorizontal: 20,
   },
   personalInfoSection: {
     paddingHorizontal: 20,
