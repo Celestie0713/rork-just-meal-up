@@ -8,7 +8,7 @@ import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useAuth } from '@/hooks/use-auth';
-import type { User } from '@/types/user';
+import type { User, SystemMessage } from '@/types/user';
 
 interface ChatData {
   user: User;
@@ -51,7 +51,7 @@ const mockChats: ChatData[] = [
 ];
 
 export default function MessagesScreen() {
-  const { getAvailableChats, isLoaded } = useChat();
+  const { getAvailableChats, isLoaded, addSystemMessage } = useChat();
   const { user: currentUser } = useAuth();
   const params = useLocalSearchParams<{
     placeName?: string;
@@ -340,25 +340,20 @@ export default function MessagesScreen() {
                   if (selectedUserId && invitationData) {
                     console.log('[TipPopup onSendWithTip] Initiating invitation after payment');
                     const selectedUser = mockUsers.find(u => u.id === selectedUserId);
-                    Alert.alert(
-                      'Invitation Sent!',
-                      `Your meal invitation to ${selectedUser?.name} at ${invitationData.placeName} has been sent.`,
-                      [
-                        {
-                          text: 'View Chat',
-                          onPress: () => {
-                            router.push({
-                              pathname: '/chat',
-                              params: { userId: selectedUserId, tipAmount: tipAmount.toString() }
-                            });
-                          }
-                        },
-                        {
-                          text: 'OK',
-                          onPress: () => router.back()
-                        }
-                      ]
-                    );
+                    
+                    const chatId = `1-${selectedUserId}`;
+                    const systemMessage: SystemMessage = {
+                      id: Date.now().toString(),
+                      type: 'invitation_sent',
+                      content: 'Invite sent. Now pick an outfit you can still breathe in after dessert.',
+                      timestamp: new Date(),
+                    };
+                    addSystemMessage(chatId, systemMessage);
+                    
+                    router.push({
+                      pathname: '/chat',
+                      params: { userId: selectedUserId }
+                    });
                   }
                 }, 2000);
               } else {
@@ -372,25 +367,20 @@ export default function MessagesScreen() {
           } else {
             if (selectedUserId && invitationData) {
               const selectedUser = mockUsers.find(u => u.id === selectedUserId);
-              Alert.alert(
-                'Invitation Sent!',
-                `Your meal invitation to ${selectedUser?.name} at ${invitationData.placeName} has been sent.`,
-                [
-                  {
-                    text: 'View Chat',
-                    onPress: () => {
-                      router.push({
-                        pathname: '/chat',
-                        params: { userId: selectedUserId }
-                      });
-                    }
-                  },
-                  {
-                    text: 'OK',
-                    onPress: () => router.back()
-                  }
-                ]
-              );
+              
+              const chatId = `1-${selectedUserId}`;
+              const systemMessage: SystemMessage = {
+                id: Date.now().toString(),
+                type: 'invitation_sent',
+                content: 'Invite sent. Now pick an outfit you can still breathe in after dessert.',
+                timestamp: new Date(),
+              };
+              addSystemMessage(chatId, systemMessage);
+              
+              router.push({
+                pathname: '/chat',
+                params: { userId: selectedUserId }
+              });
             } else {
               console.log('[TipPopup onSendWithTip] No selectedUserId, going back');
               router.back();

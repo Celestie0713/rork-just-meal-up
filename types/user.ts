@@ -34,7 +34,7 @@ export interface VoiceMessage {
 
 export interface SystemMessage {
   id: string;
-  type: 'invitation_declined' | 'invitation_accepted' | 'invitation_cancelled' | 'mixed_signals';
+  type: 'invitation_declined' | 'invitation_accepted' | 'invitation_cancelled' | 'mixed_signals' | 'invitation_sent';
   content: string;
   timestamp: Date;
   relatedInvitationId?: string;
