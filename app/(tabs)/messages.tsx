@@ -335,7 +335,8 @@ export default function MessagesScreen() {
                 placeId: invitationData.placeId
               },
               status: 'pending',
-              createdAt: new Date()
+              createdAt: new Date(),
+              tipAmount: 0
             });
             
             const chatId = `1-${selectedUserId}`;
@@ -391,7 +392,8 @@ export default function MessagesScreen() {
                         placeId: invitationData.placeId
                       },
                       status: 'pending',
-                      createdAt: new Date()
+                      createdAt: new Date(),
+                      tipAmount: tipAmount
                     });
                     
                     const chatId = `1-${selectedUserId}`;
@@ -436,7 +438,8 @@ export default function MessagesScreen() {
                   placeId: invitationData.placeId
                 },
                 status: 'pending',
-                createdAt: new Date()
+                createdAt: new Date(),
+                tipAmount: 0
               });
               
               const chatId = `1-${selectedUserId}`;

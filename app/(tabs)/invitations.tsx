@@ -97,11 +97,26 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
   return (
     <View style={styles.invitationCard}>
       <View style={styles.cardHeader}>
-        <View style={[styles.statusBadge, { backgroundColor: statusConfig.backgroundColor }]}>
-          <StatusIcon size={14} color={statusConfig.color} />
-          <Text style={[styles.statusText, { color: statusConfig.color }]}>
-            {statusConfig.text}
-          </Text>
+        <View style={styles.statusRow}>
+          <View style={[styles.statusBadge, { backgroundColor: statusConfig.backgroundColor }]}>
+            <StatusIcon size={14} color={statusConfig.color} />
+            <Text style={[styles.statusText, { color: statusConfig.color }]}>
+              {statusConfig.text}
+            </Text>
+          </View>
+          
+          {invitation.tipAmount && invitation.tipAmount > 0 && (
+            <View style={styles.generousBadge}>
+              <View style={styles.heartBadgeSmall}>
+                <View style={styles.heartShapeSmall}>
+                  <View style={styles.heartLeftSmall} />
+                  <View style={styles.heartRightSmall} />
+                  <View style={styles.heartBottomSmall} />
+                </View>
+                <Text style={styles.dollarSignSmall}>$</Text>
+              </View>
+            </View>
+          )}
         </View>
         
         {isConfirmed && onEdit && (
@@ -773,12 +788,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  generousBadge: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  heartBadgeSmall: {
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+  },
+  heartShapeSmall: {
+    position: 'absolute',
+    width: 32,
+    height: 32,
+  },
+  heartLeftSmall: {
+    position: 'absolute',
+    top: 5,
+    left: 6,
+    width: 10,
+    height: 16,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: '#FF1744',
+    transform: [{ rotate: '-45deg' }],
+  },
+  heartRightSmall: {
+    position: 'absolute',
+    top: 5,
+    left: 16,
+    width: 10,
+    height: 16,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+    backgroundColor: '#FF1744',
+    transform: [{ rotate: '45deg' }],
+  },
+  heartBottomSmall: {
+    position: 'absolute',
+    top: 12,
+    left: 11,
+    width: 10,
+    height: 10,
+    backgroundColor: '#FF1744',
+    transform: [{ rotate: '45deg' }],
+  },
+  dollarSignSmall: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: '#FFFFFF',
+    zIndex: 10,
+    marginTop: -1,
   },
   statusText: {
     fontSize: 12,

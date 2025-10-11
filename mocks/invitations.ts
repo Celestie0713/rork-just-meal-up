@@ -14,7 +14,8 @@ export const mockInvitations: MealInvitation[] = [
       placeId: 'mock_place_1'
     },
     status: 'accepted',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    tipAmount: 25
   },
   {
     id: '2',
@@ -29,7 +30,8 @@ export const mockInvitations: MealInvitation[] = [
       placeId: 'mock_place_4'
     },
     status: 'pending',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    tipAmount: 15
   },
   {
     id: '3',
@@ -120,7 +122,8 @@ export const mockInvitations: MealInvitation[] = [
       placeId: 'mock_place_8'
     },
     status: 'pending',
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    tipAmount: 50
   },
   {
     id: '9',
@@ -135,7 +138,8 @@ export const mockInvitations: MealInvitation[] = [
       placeId: 'mock_place_9'
     },
     status: 'accepted',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    tipAmount: 30
   },
   {
     id: '10',
