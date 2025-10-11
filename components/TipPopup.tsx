@@ -1,17 +1,22 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Dimensions, TouchableOpacity } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Animated, Dimensions, TouchableOpacity, TextInput } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { getCurrencyFromAddress } from '@/constants/currencies';
 
 interface TipPopupProps {
   visible: boolean;
   onClose: () => void;
+  onSendWithTip: (tipAmount: number) => void;
+  userLocation?: string;
 }
 
 const { width } = Dimensions.get('window');
 
-export function TipPopup({ visible, onClose }: TipPopupProps) {
+export function TipPopup({ visible, onClose, onSendWithTip, userLocation }: TipPopupProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const [tipAmount, setTipAmount] = useState<string>('');
+  const currency = getCurrencyFromAddress(userLocation || '');
 
   console.log('[TipPopup] Component rendered with visible:', visible);
 
@@ -47,7 +52,27 @@ export function TipPopup({ visible, onClose }: TipPopupProps) {
         useNativeDriver: true,
       }),
     ]).start(() => {
+      setTipAmount('');
       onClose();
+    });
+  };
+
+  const handleSendWithTip = () => {
+    const amount = parseFloat(tipAmount) || 0;
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleAnim, {
+        toValue: 0.9,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setTipAmount('');
+      onSendWithTip(amount);
     });
   };
 
@@ -75,9 +100,30 @@ export function TipPopup({ visible, onClose }: TipPopupProps) {
         <Text style={styles.message}>
           Tip charges only if they say yes! We&apos;ll make sure they know you drop us a tip for sending them an invitation🌹 What a generous delicious catch🙌
         </Text>
-        <TouchableOpacity onPress={handleClose} style={styles.button}>
-          <Text style={styles.buttonText}>Got it!</Text>
-        </TouchableOpacity>
+        
+        <View style={styles.inputContainer}>
+          <Text style={styles.inputLabel}>Enter tip amount (optional)</Text>
+          <View style={styles.inputWrapper}>
+            <Text style={styles.currencySymbol}>{currency}</Text>
+            <TextInput
+              style={styles.input}
+              value={tipAmount}
+              onChangeText={setTipAmount}
+              placeholder="0.00"
+              placeholderTextColor={Colors.textLight}
+              keyboardType="decimal-pad"
+            />
+          </View>
+        </View>
+        
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={handleSendWithTip} style={styles.primaryButton}>
+            <Text style={styles.primaryButtonText}>Send with tip</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleClose} style={styles.secondaryButton}>
+            <Text style={styles.secondaryButtonText}>No thanks</Text>
+          </TouchableOpacity>
+        </View>
       </Animated.View>
     </View>
   );
@@ -131,17 +177,65 @@ const styles = StyleSheet.create({
     color: Colors.text,
     textAlign: 'center',
     lineHeight: 24,
+    marginBottom: 20,
+  },
+  inputContainer: {
     marginBottom: 24,
   },
-  button: {
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  currencySymbol: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: Colors.text,
+    marginRight: 8,
+  },
+  input: {
+    flex: 1,
+    fontSize: 18,
+    fontWeight: '500',
+    color: Colors.text,
+    padding: 0,
+  },
+  buttonContainer: {
+    gap: 12,
+  },
+  primaryButton: {
     backgroundColor: Colors.primary,
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  buttonText: {
+  primaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
   },
 });

@@ -303,9 +303,10 @@ export default function MessagesScreen() {
       />
       
       <TipPopup 
-        visible={showTipPopup} 
+        visible={showTipPopup}
+        userLocation={invitationData?.placeAddress}
         onClose={() => {
-          console.log('[TipPopup onClose] Closing tip popup');
+          console.log('[TipPopup onClose] No thanks clicked');
           console.log('[TipPopup onClose] selectedUserId:', selectedUserId);
           setShowTipPopup(false);
           if (selectedUserId) {
@@ -318,7 +319,22 @@ export default function MessagesScreen() {
             console.log('[TipPopup onClose] No selectedUserId, going back');
             router.back();
           }
-        }} 
+        }}
+        onSendWithTip={(tipAmount) => {
+          console.log('[TipPopup onSendWithTip] Send with tip clicked, amount:', tipAmount);
+          console.log('[TipPopup onSendWithTip] selectedUserId:', selectedUserId);
+          setShowTipPopup(false);
+          if (selectedUserId) {
+            console.log('[TipPopup onSendWithTip] Navigating to chat with user:', selectedUserId);
+            router.push({
+              pathname: '/chat',
+              params: { userId: selectedUserId, tipAmount: tipAmount.toString() }
+            });
+          } else {
+            console.log('[TipPopup onSendWithTip] No selectedUserId, going back');
+            router.back();
+          }
+        }}
       />
     </SafeAreaView>
   );
