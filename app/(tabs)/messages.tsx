@@ -125,34 +125,9 @@ export default function MessagesScreen() {
     if (isInvitationMode && invitationData) {
       console.log('[handleChatPress] Showing invitation alert for:', invitationData.placeName);
       
-      Alert.alert(
-        'Send Invitation',
-        `Send meal invitation to ${user.name} for ${invitationData.placeName}?`,
-        [
-          { 
-            text: 'Cancel', 
-            style: 'cancel',
-            onPress: () => {
-              console.log('[handleChatPress] Alert cancelled');
-            }
-          },
-          {
-            text: 'Send',
-            onPress: () => {
-              console.log('[handleChatPress] Send button pressed');
-              console.log('[handleChatPress] Invitation sent to:', user.name);
-              console.log('[handleChatPress] Setting selectedUserId to:', user.id);
-              setSelectedUserId(user.id);
-              console.log('[handleChatPress] Setting showTipPopup to true');
-              
-              setTimeout(() => {
-                setShowTipPopup(true);
-                console.log('[handleChatPress] showTipPopup state set to true after timeout');
-              }, 100);
-            }
-          }
-        ]
-      );
+      setSelectedUserId(user.id);
+      console.log('[handleChatPress] Setting showTipPopup to true immediately');
+      setShowTipPopup(true);
     } else if (isMealUpShareMode && mealUpData) {
       console.log('[handleChatPress] Showing meal up share alert for:', mealUpData.title);
       
