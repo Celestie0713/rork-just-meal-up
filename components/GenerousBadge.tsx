@@ -17,7 +17,7 @@ export function GenerousBadge({ size = 'medium' }: GenerousBadgeProps) {
 
   return (
     <View style={[styles.container, { width: container, height: container }]}>
-      <Heart size={heart} color="#FF69B4" fill="#FF69B4" />
+      <Heart size={heart} color="#FF1493" fill="#FF1493" />
       <Text style={[styles.dollarSign, { fontSize: dollar }]}>$</Text>
     </View>
   );
@@ -32,6 +32,6 @@ const styles = StyleSheet.create({
   dollarSign: {
     position: 'absolute',
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '900' as const,
   },
 });

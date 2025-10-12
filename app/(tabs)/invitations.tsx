@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3, Heart } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3 } from 'lucide-react-native';
+import { GenerousBadge } from '@/components/GenerousBadge';
 import { router } from 'expo-router';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
@@ -106,12 +107,7 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           </View>
           
           {invitation.tipAmount && invitation.tipAmount > 0 && (
-            <View style={styles.generousBadge}>
-              <View style={styles.heartIconContainer}>
-                <Heart size={20} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
-                <Text style={styles.dollarSignSmall}>$</Text>
-              </View>
-            </View>
+            <GenerousBadge size="small" />
           )}
         </View>
         
@@ -796,36 +792,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
-  generousBadge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: '#FF1744',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF1744',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 4,
-    elevation: 4,
-  },
-  heartIconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  dollarSignSmall: {
-    position: 'absolute',
-    fontSize: 10,
-    fontWeight: '900',
-    color: '#FF1744',
-    textShadowColor: 'rgba(255, 255, 255, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 1,
-  },
+
   statusText: {
     fontSize: 12,
     fontWeight: '600',
