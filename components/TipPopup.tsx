@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, TouchableOpacity, TextInput } from 'react-native';
-import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { getCurrencyFromAddress } from '@/constants/currencies';
+import { GenerousBadge } from '@/components/GenerousBadge';
 
 
 interface TipPopupProps {
@@ -118,14 +118,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         ]}
       >
         <View style={styles.iconContainer}>
-          <View style={styles.generousBadge}>
-            <View style={styles.badgeGradient}>
-              <View style={styles.heartIconContainer}>
-                <Heart size={64} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
-                <Text style={styles.dollarSign}>$</Text>
-              </View>
-            </View>
-          </View>
+          <GenerousBadge size="large" />
         </View>
         <Text style={styles.message}>
           Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
@@ -197,44 +190,6 @@ const styles = StyleSheet.create({
   iconContainer: {
     alignItems: 'center',
     marginBottom: 16,
-  },
-  generousBadge: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: '#FF1744',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#FF1744',
-    shadowOffset: {
-      width: 0,
-      height: 8,
-    },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 12,
-  },
-  badgeGradient: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#FF1744',
-  },
-  heartIconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  dollarSign: {
-    position: 'absolute',
-    fontSize: 36,
-    fontWeight: '900',
-    color: '#FF1744',
-    textShadowColor: 'rgba(255, 255, 255, 0.3)',
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 2,
   },
   title: {
     fontSize: 22,
