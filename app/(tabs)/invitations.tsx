@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3 } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3, Heart } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
@@ -107,12 +107,8 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           
           {invitation.tipAmount && invitation.tipAmount > 0 && (
             <View style={styles.generousBadge}>
-              <View style={styles.heartBadgeSmall}>
-                <View style={styles.heartShapeSmall}>
-                  <View style={styles.heartLeftSmall} />
-                  <View style={styles.heartRightSmall} />
-                  <View style={styles.heartBottomSmall} />
-                </View>
+              <View style={styles.heartIconContainer}>
+                <Heart size={28} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
                 <Text style={styles.dollarSignSmall}>$</Text>
               </View>
             </View>
@@ -803,58 +799,32 @@ const styles = StyleSheet.create({
   generousBadge: {
     width: 32,
     height: 32,
+    borderRadius: 16,
+    backgroundColor: '#FF1744',
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#FF1744',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  heartBadgeSmall: {
-    width: 32,
-    height: 32,
+  heartIconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
-  heartShapeSmall: {
-    position: 'absolute',
-    width: 32,
-    height: 32,
-  },
-  heartLeftSmall: {
-    position: 'absolute',
-    top: 5,
-    left: 6,
-    width: 10,
-    height: 16,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    backgroundColor: '#FF1744',
-    transform: [{ rotate: '-45deg' }],
-  },
-  heartRightSmall: {
-    position: 'absolute',
-    top: 5,
-    left: 16,
-    width: 10,
-    height: 16,
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    backgroundColor: '#FF1744',
-    transform: [{ rotate: '45deg' }],
-  },
-  heartBottomSmall: {
-    position: 'absolute',
-    top: 12,
-    left: 11,
-    width: 10,
-    height: 10,
-    backgroundColor: '#FF1744',
-    transform: [{ rotate: '45deg' }],
-  },
   dollarSignSmall: {
-    fontSize: 16,
+    position: 'absolute',
+    fontSize: 14,
     fontWeight: '900',
-    color: '#FFFFFF',
-    zIndex: 10,
-    marginTop: -1,
+    color: '#FF1744',
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 1,
   },
   statusText: {
     fontSize: 12,
