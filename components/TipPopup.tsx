@@ -121,7 +121,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
           <View style={styles.generousBadge}>
             <View style={styles.badgeGradient}>
               <View style={styles.heartIconContainer}>
-                <Heart size={48} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
+                <Heart size={64} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
                 <Text style={styles.dollarSign}>$</Text>
               </View>
             </View>
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   dollarSign: {
     position: 'absolute',
-    fontSize: 28,
+    fontSize: 36,
     fontWeight: '900',
     color: '#FF1744',
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
