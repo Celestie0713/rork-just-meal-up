@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Animated, Dimensions, TouchableOpacity, TextInput } from 'react-native';
+import { Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { getCurrencyFromAddress } from '@/constants/currencies';
 
@@ -117,13 +118,13 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         ]}
       >
         <View style={styles.iconContainer}>
-          <View style={styles.heartBadge}>
-            <View style={styles.heartShape}>
-              <View style={styles.heartLeft} />
-              <View style={styles.heartRight} />
-              <View style={styles.heartBottom} />
+          <View style={styles.generousBadge}>
+            <View style={styles.badgeGradient}>
+              <View style={styles.heartIconContainer}>
+                <Heart size={48} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
+                <Text style={styles.dollarSign}>$</Text>
+              </View>
             </View>
-            <Text style={styles.dollarSign}>$</Text>
           </View>
         </View>
         <Text style={styles.message}>
@@ -197,74 +198,43 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  heartBadge: {
-    width: 120,
-    height: 120,
+  generousBadge: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#FF1744',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#FF1744',
+    shadowOffset: {
+      width: 0,
+      height: 8,
+    },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 12,
+  },
+  badgeGradient: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#FF1744',
+  },
+  heartIconContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
-  heartShape: {
-    position: 'absolute',
-    width: 120,
-    height: 120,
-  },
-  heartLeft: {
-    position: 'absolute',
-    top: 18,
-    left: 24,
-    width: 36,
-    height: 58,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    backgroundColor: '#FF1744',
-    transform: [{ rotate: '-45deg' }],
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  heartRight: {
-    position: 'absolute',
-    top: 18,
-    left: 60,
-    width: 36,
-    height: 58,
-    borderTopLeftRadius: 36,
-    borderTopRightRadius: 36,
-    backgroundColor: '#FF1744',
-    transform: [{ rotate: '45deg' }],
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 6,
-    },
-    shadowOpacity: 0.35,
-    shadowRadius: 10,
-    elevation: 10,
-  },
-  heartBottom: {
-    position: 'absolute',
-    top: 46,
-    left: 42,
-    width: 36,
-    height: 36,
-    backgroundColor: '#FF1744',
-    transform: [{ rotate: '45deg' }],
-  },
   dollarSign: {
-    fontSize: 56,
+    position: 'absolute',
+    fontSize: 28,
     fontWeight: '900',
-    color: '#FFFFFF',
-    textShadowColor: 'rgba(0, 0, 0, 0.4)',
-    textShadowOffset: { width: 0, height: 3 },
-    textShadowRadius: 6,
-    zIndex: 10,
-    marginTop: -4,
+    color: '#FF1744',
+    textShadowColor: 'rgba(255, 255, 255, 0.3)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   title: {
     fontSize: 22,
