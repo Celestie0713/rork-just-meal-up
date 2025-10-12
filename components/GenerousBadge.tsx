@@ -8,9 +8,9 @@ interface GenerousBadgeProps {
 
 export function GenerousBadge({ size = 'medium' }: GenerousBadgeProps) {
   const dimensions = {
-    small: { container: 24, heart: 24, dollar: 10 },
-    medium: { container: 32, heart: 32, dollar: 14 },
-    large: { container: 40, heart: 40, dollar: 18 },
+    small: { container: 28, heart: 28, dollar: 12 },
+    medium: { container: 36, heart: 36, dollar: 16 },
+    large: { container: 44, heart: 44, dollar: 20 },
   };
 
   const { container, heart, dollar } = dimensions[size];
