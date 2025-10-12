@@ -108,7 +108,7 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           {invitation.tipAmount && invitation.tipAmount > 0 && (
             <View style={styles.generousBadge}>
               <View style={styles.heartIconContainer}>
-                <Heart size={28} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
+                <Heart size={20} color="#FFFFFF" fill="#FFFFFF" strokeWidth={2} />
                 <Text style={styles.dollarSignSmall}>$</Text>
               </View>
             </View>
@@ -797,9 +797,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   generousBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#FF1744',
     justifyContent: 'center',
     alignItems: 'center',
@@ -819,7 +819,7 @@ const styles = StyleSheet.create({
   },
   dollarSignSmall: {
     position: 'absolute',
-    fontSize: 14,
+    fontSize: 10,
     fontWeight: '900',
     color: '#FF1744',
     textShadowColor: 'rgba(255, 255, 255, 0.3)',
