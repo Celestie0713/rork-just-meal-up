@@ -125,7 +125,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         </Text>
         
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Enter tip amount (optional)</Text>
+          <Text style={styles.inputLabel}>Enter tip amount</Text>
           <View style={styles.inputWrapper}>
             <Text style={styles.currencySymbol}>{currency}</Text>
             <TextInput
