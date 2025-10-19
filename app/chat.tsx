@@ -242,7 +242,7 @@ export default function ChatScreen() {
         <View style={styles.inviteButtonContainer}>
           <TouchableOpacity 
             style={styles.inviteButton}
-            onPress={() => router.push(`/create-invitation?recipientId=${chatUser.id}`)}
+            onPress={() => router.push('/')}
           >
             <Text style={styles.inviteButtonText}>Invite to eat</Text>
           </TouchableOpacity>
