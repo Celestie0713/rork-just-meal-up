@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
@@ -48,6 +48,10 @@ export default function ChatScreen() {
   const chatId = `${currentUserId}-${params.userId}`;
   
   const messages = getChatMessages(chatId);
+  
+  const voiceMessageCount = useMemo(() => {
+    return messages.filter(msg => isVoiceMessage(msg)).length;
+  }, [messages]);
   
   const chatUser = mockUsers.find(user => user.id === params.userId);
   
@@ -126,6 +130,17 @@ export default function ChatScreen() {
         </View>
         <View style={styles.placeholder} />
       </View>
+      
+      {voiceMessageCount > 10 && (
+        <View style={styles.inviteButtonContainer}>
+          <TouchableOpacity 
+            style={styles.inviteButton}
+            onPress={() => router.push(`/create-invitation?recipientId=${chatUser.id}`)}
+          >
+            <Text style={styles.inviteButtonText}>Invite to eat</Text>
+          </TouchableOpacity>
+        </View>
+      )}
       
       <FlatList
         data={messages}
@@ -211,5 +226,22 @@ const styles = StyleSheet.create({
     gap: 4,
     justifyContent: 'center',
   },
-
+  inviteButtonContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  inviteButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  inviteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.background,
+  },
 });
