@@ -11,35 +11,141 @@ import { useChat } from '@/hooks/use-chat';
 import type { VoiceMessage, ChatMessage } from '@/types/user';
 import { isVoiceMessage, isSystemMessage } from '@/types/user';
 
-const mockMessages: ChatMessage[] = [
-  {
-    id: '1',
-    senderId: '2',
-    receiverId: '1',
-    audioUrl: 'mock-url-1',
-    duration: 15,
-    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-    isPlayed: true,
-  },
-  {
-    id: '2',
-    senderId: '1',
-    receiverId: '2',
-    audioUrl: 'mock-url-2',
-    duration: 23,
-    timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-    isPlayed: true,
-  },
-  {
-    id: '3',
-    senderId: '2',
-    receiverId: '1',
-    audioUrl: 'mock-url-3',
-    duration: 8,
-    timestamp: new Date(Date.now() - 30 * 60 * 1000),
-    isPlayed: false,
-  },
-];
+const getMockMessagesForUser = (userId: string): ChatMessage[] => {
+  if (userId === '4') {
+    return [
+      {
+        id: '1',
+        senderId: '4',
+        receiverId: '1',
+        audioUrl: 'mock-url-1',
+        duration: 15,
+        timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '2',
+        senderId: '1',
+        receiverId: '4',
+        audioUrl: 'mock-url-2',
+        duration: 23,
+        timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '3',
+        senderId: '4',
+        receiverId: '1',
+        audioUrl: 'mock-url-3',
+        duration: 18,
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '4',
+        senderId: '1',
+        receiverId: '4',
+        audioUrl: 'mock-url-4',
+        duration: 12,
+        timestamp: new Date(Date.now() - 150 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '5',
+        senderId: '4',
+        receiverId: '1',
+        audioUrl: 'mock-url-5',
+        duration: 20,
+        timestamp: new Date(Date.now() - 120 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '6',
+        senderId: '1',
+        receiverId: '4',
+        audioUrl: 'mock-url-6',
+        duration: 16,
+        timestamp: new Date(Date.now() - 90 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '7',
+        senderId: '4',
+        receiverId: '1',
+        audioUrl: 'mock-url-7',
+        duration: 14,
+        timestamp: new Date(Date.now() - 60 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '8',
+        senderId: '1',
+        receiverId: '4',
+        audioUrl: 'mock-url-8',
+        duration: 22,
+        timestamp: new Date(Date.now() - 45 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '9',
+        senderId: '4',
+        receiverId: '1',
+        audioUrl: 'mock-url-9',
+        duration: 10,
+        timestamp: new Date(Date.now() - 30 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '10',
+        senderId: '1',
+        receiverId: '4',
+        audioUrl: 'mock-url-10',
+        duration: 25,
+        timestamp: new Date(Date.now() - 20 * 60 * 1000),
+        isPlayed: true,
+      },
+      {
+        id: '11',
+        senderId: '4',
+        receiverId: '1',
+        audioUrl: 'mock-url-11',
+        duration: 8,
+        timestamp: new Date(Date.now() - 10 * 60 * 1000),
+        isPlayed: false,
+      },
+    ];
+  }
+  
+  return [
+    {
+      id: '1',
+      senderId: '2',
+      receiverId: '1',
+      audioUrl: 'mock-url-1',
+      duration: 15,
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      isPlayed: true,
+    },
+    {
+      id: '2',
+      senderId: '1',
+      receiverId: '2',
+      audioUrl: 'mock-url-2',
+      duration: 23,
+      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+      isPlayed: true,
+    },
+    {
+      id: '3',
+      senderId: '2',
+      receiverId: '1',
+      audioUrl: 'mock-url-3',
+      duration: 8,
+      timestamp: new Date(Date.now() - 30 * 60 * 1000),
+      isPlayed: false,
+    },
+  ];
+};
 
 export default function ChatScreen() {
   const params = useLocalSearchParams<{ userId: string }>();
@@ -57,9 +163,10 @@ export default function ChatScreen() {
   
   useEffect(() => {
     if (messages.length === 0) {
+      const mockMessages = getMockMessagesForUser(params.userId || '');
       initializeChat(chatId, mockMessages);
     }
-  }, [chatId, initializeChat, messages.length]);
+  }, [chatId, initializeChat, messages.length, params.userId]);
   
   if (!chatUser) {
     return (
