@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, TextInput } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft } from 'lucide-react-native';
 import { VoiceMessageBubble } from '@/components/VoiceMessageBubble';
@@ -154,6 +154,7 @@ export default function ChatScreen() {
   const chatId = `${currentUserId}-${params.userId}`;
   
   const messages = getChatMessages(chatId);
+  const [tipAmount, setTipAmount] = useState<string>('');
   
   const voiceMessageCount = useMemo(() => {
     return messages.filter(msg => isVoiceMessage(msg)).length;
@@ -239,13 +240,33 @@ export default function ChatScreen() {
       </View>
       
       {voiceMessageCount > 10 && (
-        <View style={styles.inviteButtonContainer}>
-          <TouchableOpacity 
-            style={styles.inviteButton}
-            onPress={() => router.push('/?tab=places')}
-          >
-            <Text style={styles.inviteButtonText}>Invite to eat</Text>
-          </TouchableOpacity>
+        <View style={styles.tipContainer}>
+          <Text style={styles.tipLabel}>Tip Amount</Text>
+          <TextInput
+            style={styles.tipInput}
+            placeholder="Enter amount"
+            placeholderTextColor={Colors.textLight}
+            value={tipAmount}
+            onChangeText={setTipAmount}
+            keyboardType="numeric"
+          />
+          <View style={styles.tipButtonsContainer}>
+            <TouchableOpacity 
+              style={styles.dropTipButton}
+              onPress={() => {
+                console.log('Tip dropped:', tipAmount);
+                setTipAmount('');
+              }}
+            >
+              <Text style={styles.dropTipButtonText}>Drop a tip</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.noThanksButton}
+              onPress={() => console.log('No thanks pressed')}
+            >
+              <Text style={styles.noThanksButtonText}>No thanks</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       )}
       
@@ -333,22 +354,58 @@ const styles = StyleSheet.create({
     gap: 4,
     justifyContent: 'center',
   },
-  inviteButtonContainer: {
+  tipContainer: {
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+    gap: 12,
   },
-  inviteButton: {
+  tipLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  tipInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: Colors.text,
+  },
+  tipButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  dropTipButton: {
+    flex: 1,
     backgroundColor: Colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 12,
     alignItems: 'center',
   },
-  inviteButtonText: {
+  dropTipButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  noThanksButton: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  noThanksButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textLight,
   },
 });
