@@ -10,6 +10,12 @@ export const mockPostDateResponses: PostDateResponse[] = [
     mealId: '7',
     choice: 'next_round',
     timestamp: new Date('2024-01-15T20:30:00Z')
+  },
+  {
+    userId: '4', // Marcus Johnson
+    mealId: '8',
+    choice: 'fight_for_fries',
+    timestamp: new Date('2024-01-16T19:00:00Z')
   }
 ];
 

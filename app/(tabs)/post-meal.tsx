@@ -1550,7 +1550,7 @@ export default function PostMealScreen() {
                 </View>
                 <Text style={styles.matchModalTitle}>Taken! 💕</Text>
                 <Text style={styles.matchModalDescription}>
-                  Two chopsticks finally found each other! Slurp slurp—it&apos;s a match!
+                  YAY! Another successful pairing. Your heart is full, let our tip jar be too?
                 </Text>
               </>
             ) : matchResult?.matchType === 'buddy_pass' ? (
@@ -1664,7 +1664,7 @@ export default function PostMealScreen() {
                   Chat
                 </Text>
               </TouchableOpacity>
-            ) : matchResult?.matchType === 'next_round' ? (
+            ) : matchResult?.matchType === 'next_round' || matchResult?.matchType === 'fight_for_fries' ? (
               <View style={styles.tipButtonsContainer}>
                 <TouchableOpacity 
                   style={[styles.noThanksButton]}
