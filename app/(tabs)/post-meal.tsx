@@ -1102,28 +1102,6 @@ export default function PostMealScreen() {
               {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'fight_for_fries' && (
                 <View style={styles.loveIconContainer}>
                   <Heart size={16} color="#FF69B4" fill="#FF69B4" />
-                  <TouchableOpacity 
-                    style={styles.removeIconButton}
-                    onPress={() => {
-                      setFinalizedChoices(prev => {
-                        const updated = { ...prev };
-                        delete updated[event.id];
-                        return updated;
-                      });
-                      setSelectedChoices(prev => {
-                        const updated = { ...prev };
-                        delete updated[event.id];
-                        return updated;
-                      });
-                      setExtendedChoices(prev => {
-                        const updated = { ...prev };
-                        delete updated[event.id];
-                        return updated;
-                      });
-                    }}
-                  >
-                    <X size={10} color="#FFFFFF" strokeWidth={3} />
-                  </TouchableOpacity>
                 </View>
               )}
             </View>
