@@ -32,11 +32,21 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   
   // Check if this user has a fight_for_fries match with current user
   // Show love icon only if there's an active match in matchedProfiles
-  const hasLoveMatch = Object.values(matchedProfiles).some(
+  // Need to check if both the current user and this user have matching profiles for the same invitation
+  const currentUserMatches = Object.values(matchedProfiles).filter(
+    profile => profile.userId === currentUser?.id && profile.matchType === 'fight_for_fries'
+  );
+  
+  const otherUserMatches = Object.values(matchedProfiles).filter(
     profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
   );
   
-  console.log(`UserCard for ${user.name} (ID: ${user.id}): hasLoveMatch=${hasLoveMatch}, matchedProfiles:`, matchedProfiles);
+  // Check if there's a common invitationId between the two users
+  const hasLoveMatch = currentUserMatches.some(currentMatch =>
+    otherUserMatches.some(otherMatch => currentMatch.invitationId === otherMatch.invitationId)
+  );
+  
+  console.log(`UserCard for ${user.name} (ID: ${user.id}): hasLoveMatch=${hasLoveMatch}, currentUserMatches:`, currentUserMatches, 'otherUserMatches:', otherUserMatches);
 
   const handleVoiceNotePress = (e: any) => {
     e.stopPropagation();
