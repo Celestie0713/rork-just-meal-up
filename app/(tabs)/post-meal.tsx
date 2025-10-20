@@ -11,6 +11,7 @@ import { mockPostDateResponses, hasMutualLoveMatch } from '@/mocks/post-date-res
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { useNotifications } from '@/hooks/use-notifications';
+import { TipPopup } from '@/components/TipPopup';
 
 const colors = {
   primary: '#FF6B35',
@@ -94,6 +95,8 @@ export default function PostMealScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
+  const [showTipPopup, setShowTipPopup] = useState(false);
+  const [tipPopupEventId, setTipPopupEventId] = useState<string | null>(null);
 
   // Log when matchedProfiles changes
   useEffect(() => {
@@ -534,6 +537,14 @@ export default function PostMealScreen() {
             useNativeDriver: true,
           })
         ]).start();
+        
+        // Show tip popup for matches (next_round or fight_for_fries)
+        if (matchType === 'next_round' || matchType === 'fight_for_fries') {
+          setTimeout(() => {
+            setTipPopupEventId(eventId);
+            setShowTipPopup(true);
+          }, 1500);
+        }
       } else {
         // No match after extension - remove profile and chat immediately
         console.log(`No match after extension period for ${eventId} - removing profile and chat`);
@@ -805,6 +816,14 @@ export default function PostMealScreen() {
             useNativeDriver: true,
           })
         ]).start();
+        
+        // Show tip popup for matches (next_round or fight_for_fries)
+        if (matchType === 'next_round' || matchType === 'fight_for_fries') {
+          setTimeout(() => {
+            setTipPopupEventId(eventId);
+            setShowTipPopup(true);
+          }, 1500);
+        }
       }
     } else {
       // Date hasn't made a decision yet - show the "no decision yet" popup
@@ -1760,6 +1779,26 @@ export default function PostMealScreen() {
           />
         )}
       </Modal>
+
+      {/* Tip Popup */}
+      <TipPopup
+        visible={showTipPopup}
+        onClose={() => {
+          setShowTipPopup(false);
+          setTipPopupEventId(null);
+        }}
+        onSendWithTip={(tipAmount) => {
+          console.log(`Sending tip of ${tipAmount} for event ${tipPopupEventId}`);
+          setShowTipPopup(false);
+          setTipPopupEventId(null);
+        }}
+        onNoThanks={() => {
+          console.log('User declined to send tip');
+          setShowTipPopup(false);
+          setTipPopupEventId(null);
+        }}
+        userLocation={user?.location}
+      />
     </View>
   );
 }
