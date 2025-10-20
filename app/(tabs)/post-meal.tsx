@@ -42,7 +42,7 @@ type MixedSignalsExtension = {
   invitationId: string;
   startedAt: Date;
   userChoice: string;
-  dateChoice: string;
+  dateChoice: string | null;
   hasUserReDecided: boolean;
   hasDateReDecided: boolean;
 };
@@ -403,13 +403,21 @@ export default function PostMealScreen() {
     
     const now = new Date();
     
+    // Get the date's current choice in the extension period
+    const currentDateChoice = getDateChoice(invitationId);
+    
     // Simulate Sofia's second choice based on realistic scenarios
     // For proper testing of mixed signals resolution
-    let dateExtendedChoice: string;
+    let dateExtendedChoice: string | null;
     
-    // Simulate Sofia choosing the SAME option as the user for testing
-    // This ensures both parties match on their second decision
-    dateExtendedChoice = choice;
+    // If date hasn't decided yet, keep it as null
+    if (!currentDateChoice) {
+      dateExtendedChoice = null;
+    } else {
+      // Simulate Sofia choosing the SAME option as the user for testing
+      // This ensures both parties match on their second decision
+      dateExtendedChoice = choice;
+    }
     
     // CRITICAL: Update selectedChoices with the NEW choice (second decision)
     // This ensures the system uses the second decision, not the first
@@ -461,8 +469,8 @@ export default function PostMealScreen() {
     console.log(`Date's second choice: ${dateExtendedChoice}`);
     console.log(`Following SECOND decision: User=${choice}, Date=${dateExtendedChoice}`);
     
-    // Add notification for the date's extended decision
-    if (invitation) {
+    // Add notification for the date's extended decision (only if they've decided)
+    if (invitation && dateExtendedChoice) {
       const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
       if (dateUser) {
         addMatchDecisionNotification(
@@ -476,7 +484,7 @@ export default function PostMealScreen() {
       }
     }
     
-    if (dateExtendedChoice) {
+    if (dateExtendedChoice !== null) {
       // Both parties have made their extended decisions
       // CRITICAL: Use the NEW choices (choice and dateExtendedChoice), not the old ones
       const isExtendedMatch = choice === dateExtendedChoice;
@@ -567,7 +575,15 @@ export default function PostMealScreen() {
       }
     } else {
       // Date hasn't made their extended choice yet - show waiting message
-      console.log(`User made extended choice: ${choice}, waiting for date's decision`);
+      console.log(`User made extended choice during mixed signals: ${choice}, waiting for date's decision`);
+      
+      // Don't finalize the choice - allow the user to change it
+      setFinalizedChoices(prev => {
+        const updated = { ...prev };
+        delete updated[eventId];
+        console.log(`Cleared finalized choice for ${eventId} - date hasn't decided yet`);
+        return updated;
+      });
       
       setMatchResult({
         isMatch: false,
@@ -1167,7 +1183,7 @@ export default function PostMealScreen() {
                     }
                     
                     // If there's an extension and the date has re-decided, show their new choice
-                    if (extension && extension.hasDateReDecided) {
+                    if (extension && extension.hasDateReDecided && extension.dateChoice) {
                       displayChoice = getChoiceDisplay(extension.dateChoice);
                       console.log(`Displaying updated date choice: ${extension.dateChoice}`);
                     }
