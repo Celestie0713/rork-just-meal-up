@@ -1665,21 +1665,32 @@ export default function PostMealScreen() {
                 </Text>
               </TouchableOpacity>
             ) : matchResult?.matchType === 'next_round' ? (
-              <TouchableOpacity 
-                style={[styles.upgradeButton]}
-                onPress={() => {
-                  setShowMatchModal(false);
-                  setMatchResult(null);
-                  // Force a re-render to update the UI after closing the modal
-                  setCurrentTime(new Date());
-                  // Navigate to search places page for next meal planning
-                  router.push('/?tab=places');
-                }}
-              >
-                <Text style={styles.upgradeButtonText}>
-                  Invite to eat
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.tipButtonsContainer}>
+                <TouchableOpacity 
+                  style={[styles.noThanksButton]}
+                  onPress={() => {
+                    setShowMatchModal(false);
+                    setMatchResult(null);
+                    setCurrentTime(new Date());
+                  }}
+                >
+                  <Text style={styles.noThanksButtonText}>
+                    No thanks
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                  style={[styles.dropTipButton]}
+                  onPress={() => {
+                    setShowMatchModal(false);
+                    setMatchResult(null);
+                    setCurrentTime(new Date());
+                  }}
+                >
+                  <Text style={styles.dropTipButtonText}>
+                    Drop a tip
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ) : matchResult?.matchType === 'no_decision' ? (
               <TouchableOpacity 
                 style={[styles.upgradeButton, styles.noMatchButton]}
@@ -2371,5 +2382,38 @@ const styles = StyleSheet.create({
     color: '#FF6B35',
     fontStyle: 'italic',
     marginTop: 4,
+  },
+  tipButtonsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  noThanksButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.textLight,
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+  noThanksButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  dropTipButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    backgroundColor: colors.premium,
+    alignItems: 'center',
+  },
+  dropTipButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.background,
   },
 });
