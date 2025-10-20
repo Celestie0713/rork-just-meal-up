@@ -13,7 +13,7 @@ export const mockPostDateResponses: PostDateResponse[] = [
   },
   {
     userId: '4', // Marcus Johnson
-    mealId: '8',
+    mealId: '6',
     choice: 'fight_for_fries',
     timestamp: new Date('2024-01-16T19:00:00Z')
   }
@@ -40,8 +40,8 @@ export const mockMatchedProfiles: {
     matchedAt: new Date('2024-01-15T20:30:00Z')
   },
   {
-    userId: '1',
-    mealId: '8',
+    userId: '4',
+    mealId: '6',
     matchType: 'fight_for_fries',
     matchedAt: new Date('2024-01-16T19:00:00Z')
   }
