@@ -27,6 +27,7 @@ export const mockCurrentUserResponses: PostDateResponse[] = [
 
 // Matched profiles will be created dynamically when matches occur through the Post Meal process
 // Start with NO existing matches - users must go through the Post Meal process to create matches
+// When there's a match, BOTH users should be added to this list
 export const mockMatchedProfiles: {
   userId: string;
   mealId: string;
@@ -41,6 +42,12 @@ export const mockMatchedProfiles: {
   },
   {
     userId: '4',
+    mealId: '6',
+    matchType: 'fight_for_fries',
+    matchedAt: new Date('2024-01-16T19:00:00Z')
+  },
+  {
+    userId: '1',
     mealId: '6',
     matchType: 'fight_for_fries',
     matchedAt: new Date('2024-01-16T19:00:00Z')
