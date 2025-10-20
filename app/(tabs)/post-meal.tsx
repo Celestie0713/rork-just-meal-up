@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -1684,6 +1684,7 @@ export default function PostMealScreen() {
                     setShowMatchModal(false);
                     setMatchResult(null);
                     setCurrentTime(new Date());
+                    Linking.openURL('https://buy.stripe.com/test_00g03p9CUb6H3eM8ww');
                   }}
                 >
                   <Text style={styles.dropTipButtonText}>
