@@ -498,9 +498,11 @@ export default function PostMealScreen() {
         console.log(`Extended match found! User: ${choice}, Date: ${dateExtendedChoice}`);
         console.log(`Match type set to: ${matchType}`);
         
-        // Track the match with the NEW match type
+        // Track the match with the NEW match type for BOTH users
         addMatchedProfile(dateUserId, invitationId, matchType);
+        addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
         console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
+        console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
         
         // If it's a next_round match, initialize meal counter to 1 (first meal)
         if (matchType === 'next_round') {
@@ -707,11 +709,13 @@ export default function PostMealScreen() {
       
       if (isMatch) {
         matchType = choice as 'fight_for_fries' | 'buddy_pass' | 'next_round';
-        // Track the match
+        // Track the match for BOTH users
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
           addMatchedProfile(dateUserId, invitationId, matchType);
+          addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
+          console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
           
           // If it's a next_round match, initialize or increment meal counter
           if (matchType === 'next_round') {
