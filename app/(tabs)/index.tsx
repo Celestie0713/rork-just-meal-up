@@ -214,7 +214,7 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <Heart size={24} color="#FF69B4" fill={unreadCount > 0 ? "#FF69B4" : "none"} />
+            <Heart size={24} color="#FF1493" fill={unreadCount > 0 ? "#FF1493" : "none"} />
             {unreadCount > 0 && (
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
