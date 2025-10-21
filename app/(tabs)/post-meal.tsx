@@ -577,11 +577,28 @@ export default function PostMealScreen() {
       // Date hasn't made their extended choice yet - show waiting message
       console.log(`User made extended choice during mixed signals: ${choice}, waiting for date's decision`);
       
-      // Don't finalize the choice - allow the user to change it
+      // CRITICAL: Don't finalize the choice - allow the user to change it
+      // Clear BOTH finalized flag AND extended choice to reset the UI
       setFinalizedChoices(prev => {
         const updated = { ...prev };
         delete updated[eventId];
         console.log(`Cleared finalized choice for ${eventId} - date hasn't decided yet`);
+        return updated;
+      });
+      
+      // Clear the extended choice too so user can reselect
+      setExtendedChoices(prev => {
+        const updated = { ...prev };
+        delete updated[eventId];
+        console.log(`Cleared extended choice for ${eventId} - date hasn't decided yet`);
+        return updated;
+      });
+      
+      // Clear from selectedChoices as well
+      setSelectedChoices(prev => {
+        const updated = { ...prev };
+        delete updated[eventId];
+        console.log(`Cleared selected choice for ${eventId} - date hasn't decided yet`);
         return updated;
       });
       
