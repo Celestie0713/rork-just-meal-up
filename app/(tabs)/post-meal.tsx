@@ -1246,6 +1246,32 @@ export default function PostMealScreen() {
                     const extensionKey = `${invitationId}-${dateUserId}`;
                     const extension = mixedSignalsExtensions[extensionKey];
                     
+                    // If there's an active extension and user HAS re-decided, show only their selected choice
+                    if (extension && extension.hasUserReDecided && timerInfo.type === 'mixed_signals_extension' && timerInfo.timeLeft > 0) {
+                      const userExtendedChoice = extension.userChoice;
+                      return (
+                        <View style={[
+                          styles.choiceButton, 
+                          styles.finalizedBuddyPassButton
+                        ]}>
+                          <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
+                            {userExtendedChoice === 'buddy_pass' && 'Buddy pass ✅'}
+                            {userExtendedChoice === 'next_round' && "Let's do next round"}
+                            {userExtendedChoice === 'fight_for_fries' && 'Fight for fries for life'}
+                          </Text>
+                          <Text style={[styles.choiceSubtext, styles.finalizedChoiceText]}>
+                            {userExtendedChoice === 'buddy_pass' && '(Stay Friend)'}
+                            {userExtendedChoice === 'next_round' && '(Next date)'}
+                            {userExtendedChoice === 'fight_for_fries' && '(Be my +1?)'}
+                          </Text>
+                          <Text style={[
+                            styles.finalizedLabel,
+                            styles.finalizedBuddyPassLabel
+                          ]}>New Choice</Text>
+                        </View>
+                      );
+                    }
+                    
                     // If there's an active extension and user hasn't re-decided, allow retaking decision
                     if (extension && !extension.hasUserReDecided && timerInfo.type === 'mixed_signals_extension' && timerInfo.timeLeft > 0) {
                       return (
