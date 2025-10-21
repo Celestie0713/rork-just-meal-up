@@ -714,7 +714,7 @@ export default function ProfileScreen() {
                           router.push(`/user-profile?userId=${matchedProfile.userId}`);
                         }}
                       >
-                        <Heart size={16} color="#FF1493" fill="#FF1493" />
+                        <Heart size={16} color="#FF69B4" fill="#FF69B4" />
                       </TouchableOpacity>
                       <TouchableOpacity 
                         style={styles.removeLoveButton}
@@ -724,7 +724,7 @@ export default function ProfileScreen() {
                         }}
                         testID="remove-love-button"
                       >
-                        <X size={10} color="#FF1493" strokeWidth={3} />
+                        <X size={10} color="#FF69B4" strokeWidth={3} />
                       </TouchableOpacity>
                     </View>
                   );
@@ -966,7 +966,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 8,
     borderWidth: 2,
-    borderColor: '#FF1493',
+    borderColor: '#FF69B4',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,
@@ -1562,7 +1562,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1.5,
-    borderColor: '#FF1493',
+    borderColor: '#FF69B4',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
