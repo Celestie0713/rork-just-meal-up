@@ -785,7 +785,7 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
   voiceRecorderContainer: {
-    width: '100%',
+    alignSelf: 'center',
   },
 
 });
