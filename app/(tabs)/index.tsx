@@ -316,8 +316,8 @@ const styles = StyleSheet.create({
   },
   notificationBadge: {
     position: 'absolute',
-    top: -2,
-    right: -2,
+    bottom: -2,
+    left: -2,
     backgroundColor: '#FF4444',
     borderRadius: 10,
     minWidth: 20,
