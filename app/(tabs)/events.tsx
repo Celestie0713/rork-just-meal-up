@@ -11,6 +11,7 @@ import type { MealUp } from '@/types/user';
 
 export default function EventsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<'upcoming' | 'groups'>('upcoming');
   const { user } = useAuth();
 
   const handleMealUpPress = (mealUp: MealUp) => {
@@ -56,7 +57,14 @@ export default function EventsScreen() {
 
   const isPaidMember = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
 
-  const filteredMealUps = mockMealUps.filter(mealUp => 
+  const now = new Date();
+
+  const upcomingMealUps = mockMealUps.filter(mealUp => mealUp.date >= now);
+  const pastMealUps = mockMealUps.filter(mealUp => mealUp.date < now);
+
+  const displayedMealUps = activeTab === 'upcoming' ? upcomingMealUps : pastMealUps;
+
+  const filteredMealUps = displayedMealUps.filter(mealUp => 
     mealUp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     mealUp.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     mealUp.venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -97,6 +105,21 @@ export default function EventsScreen() {
           </View>
           <TouchableOpacity style={styles.filterButton}>
             <Filter size={20} color="#000000" />
+          </TouchableOpacity>
+        </View>
+        
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'groups' && styles.activeTab]}
+            onPress={() => setActiveTab('groups')}
+          >
+            <Text style={[styles.tabText, activeTab === 'groups' && styles.activeTabText]}>Groups</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'upcoming' && styles.activeTab]}
+            onPress={() => setActiveTab('upcoming')}
+          >
+            <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>Upcoming Meal up</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
@@ -190,5 +213,31 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: '#E0E0E0',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 4,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: Colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
   },
 });
