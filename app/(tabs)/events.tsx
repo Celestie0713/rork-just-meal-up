@@ -138,7 +138,7 @@ export default function EventsScreen() {
             style={[styles.tab, activeTab === 'upcoming' && styles.activeTab]}
             onPress={() => setActiveTab('upcoming')}
           >
-            <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>Upcoming Meal up</Text>
+            <Text style={[styles.tabText, activeTab === 'upcoming' && styles.activeTabText]}>Upcoming Meal Up Near Me</Text>
           </TouchableOpacity>
         </View>
       </LinearGradient>
