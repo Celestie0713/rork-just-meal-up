@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3 } from 'lucide-react-native';
 import { GenerousBadge } from '@/components/GenerousBadge';
+import { TipPopup } from '@/components/TipPopup';
 import { router } from 'expo-router';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
@@ -219,7 +220,7 @@ type ConfirmModalData = {
 };
 
 export default function InvitationsScreen() {
-  const { invitations, updateInvitation } = useInvitations();
+  const { invitations, updateInvitation, pendingTipInvitationId, setPendingTip, completeTip } = useInvitations();
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
@@ -228,6 +229,8 @@ export default function InvitationsScreen() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
   const currentUserId = '1';
+  const [showTipPopup, setShowTipPopup] = useState(false);
+  const currentUser = mockUsers.find(user => user.id === currentUserId);
 
   const handleAccept = (invitationId: string) => {
     setConfirmData({
@@ -296,6 +299,13 @@ export default function InvitationsScreen() {
         
         updateInvitation(confirmData.invitationId, { status: 'accepted' });
         
+        // If the current user is the inviter, trigger mandatory tip
+        if (invitation.inviterId === currentUserId) {
+          console.log('[InvitationsScreen] Current user is inviter - showing mandatory tip popup');
+          setPendingTip(confirmData.invitationId);
+          setShowTipPopup(true);
+        }
+        
         // Add system message to chat
         if (inviter) {
           const chatId = `${currentUserId}-${inviter.id}`;
@@ -347,6 +357,24 @@ export default function InvitationsScreen() {
     setConfirmModalVisible(false);
     setConfirmData(null);
   };
+
+  const handleTipComplete = (tipAmount: number) => {
+    if (pendingTipInvitationId) {
+      console.log('[InvitationsScreen] Tip completed:', tipAmount);
+      completeTip(pendingTipInvitationId, tipAmount);
+      setShowTipPopup(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (pendingTipInvitationId && !showTipPopup) {
+      const invitation = invitations.find(inv => inv.id === pendingTipInvitationId);
+      if (invitation && invitation.inviterId === currentUserId && invitation.status === 'accepted' && !invitation.tipAmount) {
+        console.log('[InvitationsScreen] Found pending tip on mount, showing popup');
+        setShowTipPopup(true);
+      }
+    }
+  }, [pendingTipInvitationId, invitations, currentUserId, showTipPopup]);
 
   const handleCancelConfirm = () => {
     setConfirmModalVisible(false);
@@ -672,6 +700,17 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
+
+      {showTipPopup && pendingTipInvitationId && (
+        <TipPopup
+          visible={showTipPopup}
+          onClose={() => {}}
+          onSendWithTip={handleTipComplete}
+          userLocation={currentUser?.location}
+          mandatory={true}
+          minimumAmount={5}
+        />
+      )}
     </SafeAreaView>
   );
 }

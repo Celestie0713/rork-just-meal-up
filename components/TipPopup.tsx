@@ -9,19 +9,22 @@ interface TipPopupProps {
   visible: boolean;
   onClose: () => void;
   onSendWithTip: (tipAmount: number) => void;
-  onNoThanks: () => void;
+  onNoThanks?: () => void;
   userLocation?: string;
+  mandatory?: boolean;
+  minimumAmount?: number;
 }
 
 const { width } = Dimensions.get('window');
 
-export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLocation }: TipPopupProps) {
+export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLocation, mandatory = false, minimumAmount = 5 }: TipPopupProps) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const [tipAmount, setTipAmount] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const currency = getCurrencyFromAddress(userLocation || '');
 
-  console.log('[TipPopup] Component rendered with visible:', visible);
+  console.log('[TipPopup] Component rendered with visible:', visible, 'mandatory:', mandatory);
 
   useEffect(() => {
     console.log('[TipPopup useEffect] visible changed to:', visible);
@@ -43,6 +46,10 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
   }, [visible, fadeAnim, scaleAnim]);
 
   const handleClose = () => {
+    if (mandatory) {
+      console.log('[TipPopup] Cannot close - mandatory tip required');
+      return;
+    }
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -56,11 +63,17 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
       }),
     ]).start(() => {
       setTipAmount('');
+      setError('');
       onClose();
     });
   };
 
   const handleNoThanks = () => {
+    if (mandatory) {
+      console.log('[TipPopup] Cannot skip - mandatory tip required');
+      setError(`Minimum tip of ${currency}${minimumAmount} is required to continue`);
+      return;
+    }
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -74,12 +87,22 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
       }),
     ]).start(() => {
       setTipAmount('');
-      onNoThanks();
+      setError('');
+      if (onNoThanks) {
+        onNoThanks();
+      }
     });
   };
 
   const handleSendWithTip = () => {
     const amount = parseFloat(tipAmount) || 0;
+    
+    if (amount < minimumAmount) {
+      setError(`Minimum tip amount is ${currency}${minimumAmount}`);
+      console.log('[TipPopup] Tip amount too low:', amount, 'Minimum:', minimumAmount);
+      return;
+    }
+    
     Animated.parallel([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -93,6 +116,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
       }),
     ]).start(() => {
       setTipAmount('');
+      setError('');
       onSendWithTip(amount);
     });
   };
@@ -107,6 +131,7 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         style={styles.backdrop} 
         activeOpacity={1} 
         onPress={handleClose}
+        disabled={mandatory}
       />
       <Animated.View
         style={[
@@ -120,32 +145,50 @@ export function TipPopup({ visible, onClose, onSendWithTip, onNoThanks, userLoca
         <View style={styles.iconContainer}>
           <GenerousBadge size="large" />
         </View>
-        <Text style={styles.message}>
-          Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
-        </Text>
+        {mandatory ? (
+          <Text style={styles.message}>
+            🎉 Your invitation was accepted! A minimum tip of {currency}{minimumAmount} is required to show appreciation and unlock the app.
+          </Text>
+        ) : (
+          <Text style={styles.message}>
+            Drop a tip and flex a generous badge on your invite—so they instantly know you&apos;re a rare catch 🤩
+          </Text>
+        )}
         
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Enter tip amount</Text>
+          <Text style={styles.inputLabel}>
+            {mandatory ? `Enter tip amount (minimum ${currency}${minimumAmount})` : 'Enter tip amount'}
+          </Text>
           <View style={styles.inputWrapper}>
             <Text style={styles.currencySymbol}>{currency}</Text>
             <TextInput
               style={styles.input}
               value={tipAmount}
-              onChangeText={setTipAmount}
-              placeholder="0.00"
+              onChangeText={(text) => {
+                setTipAmount(text);
+                setError('');
+              }}
+              placeholder={minimumAmount.toFixed(2)}
               placeholderTextColor={Colors.textLight}
               keyboardType="decimal-pad"
             />
           </View>
+          {error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : null}
         </View>
         
         <View style={styles.buttonContainer}>
           <TouchableOpacity onPress={handleSendWithTip} style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Send with tip</Text>
+            <Text style={styles.primaryButtonText}>
+              {mandatory ? 'Pay tip & continue' : 'Send with tip'}
+            </Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleNoThanks} style={styles.secondaryButton}>
-            <Text style={styles.secondaryButtonText}>No thanks</Text>
-          </TouchableOpacity>
+          {!mandatory && (
+            <TouchableOpacity onPress={handleNoThanks} style={styles.secondaryButton}>
+              <Text style={styles.secondaryButtonText}>No thanks</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </Animated.View>
     </View>
@@ -264,5 +307,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
+  },
+  errorText: {
+    fontSize: 14,
+    color: Colors.error,
+    marginTop: 8,
+    fontWeight: '500',
   },
 });
