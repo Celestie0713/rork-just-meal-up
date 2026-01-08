@@ -77,8 +77,13 @@ export default function EventsScreen() {
     <MealUpCard mealUp={item} onPress={() => handleMealUpPress(item)} />
   );
 
+  const handleGroupPress = (group: Group) => {
+    console.log('Opening group:', group.name);
+    router.push(`/group-details?groupId=${group.id}`);
+  };
+
   const renderGroup = ({ item }: { item: Group }) => (
-    <TouchableOpacity style={styles.groupCard}>
+    <TouchableOpacity style={styles.groupCard} onPress={() => handleGroupPress(item)}>
       <Image source={{ uri: item.imageUrl }} style={styles.groupImage} />
       <View style={styles.groupOverlay}>
         <Text style={styles.groupName} numberOfLines={2}>{item.name}</Text>
