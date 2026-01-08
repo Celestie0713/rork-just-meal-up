@@ -140,6 +140,7 @@ export default function EventsScreen() {
       
       {activeTab === 'upcoming' ? (
         <FlatList
+          key="upcoming-meal-ups"
           data={filteredMealUps}
           renderItem={renderMealUp}
           keyExtractor={(item) => item.id}
@@ -148,6 +149,7 @@ export default function EventsScreen() {
         />
       ) : (
         <FlatList
+          key="groups-grid"
           data={mockGroups}
           renderItem={renderGroup}
           keyExtractor={(item) => item.id}
