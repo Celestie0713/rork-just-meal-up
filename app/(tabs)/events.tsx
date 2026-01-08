@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Alert, Image, Dimensions } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter, Plus } from 'lucide-react-native';
+import { Search, Filter, Plus, Users } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
+import { mockGroups, type Group } from '@/mocks/groups';
 import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
 
@@ -76,6 +77,19 @@ export default function EventsScreen() {
     <MealUpCard mealUp={item} onPress={() => handleMealUpPress(item)} />
   );
 
+  const renderGroup = ({ item }: { item: Group }) => (
+    <TouchableOpacity style={styles.groupCard}>
+      <Image source={{ uri: item.imageUrl }} style={styles.groupImage} />
+      <View style={styles.groupOverlay}>
+        <Text style={styles.groupName} numberOfLines={2}>{item.name}</Text>
+        <View style={styles.memberCountContainer}>
+          <Users size={12} color="#FFFFFF" />
+          <Text style={styles.memberCount}>{item.memberCount}</Text>
+        </View>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <LinearGradient
@@ -124,13 +138,25 @@ export default function EventsScreen() {
         </View>
       </LinearGradient>
       
-      <FlatList
-        data={filteredMealUps}
-        renderItem={renderMealUp}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-      />
+      {activeTab === 'upcoming' ? (
+        <FlatList
+          data={filteredMealUps}
+          renderItem={renderMealUp}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+        />
+      ) : (
+        <FlatList
+          data={mockGroups}
+          renderItem={renderGroup}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.groupsContent}
+          columnWrapperStyle={styles.groupsRow}
+        />
+      )}
     </SafeAreaView>
   );
 }
@@ -238,6 +264,51 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   activeTabText: {
+    color: '#FFFFFF',
+  },
+  groupsContent: {
+    padding: 12,
+    paddingBottom: 20,
+  },
+  groupsRow: {
+    justifyContent: 'space-between',
+  },
+  groupCard: {
+    width: (Dimensions.get('window').width - 36) / 3,
+    aspectRatio: 1,
+    marginBottom: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: '#E0E0E0',
+  },
+  groupImage: {
+    width: '100%',
+    height: '100%',
+  },
+  groupOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    padding: 8,
+    justifyContent: 'flex-end',
+  },
+  groupName: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginBottom: 4,
+    lineHeight: 14,
+  },
+  memberCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  memberCount: {
+    fontSize: 10,
+    fontWeight: '600',
     color: '#FFFFFF',
   },
 });
