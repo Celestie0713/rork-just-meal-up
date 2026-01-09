@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Alert, Image, Dimensions } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Alert, Image, Dimensions, Modal, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter, Plus, Users } from 'lucide-react-native';
+import { Search, Filter, Plus, Users, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
@@ -13,6 +13,9 @@ import type { MealUp } from '@/types/user';
 export default function EventsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'groups'>('upcoming');
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
   const { user } = useAuth();
 
   const handleMealUpPress = (mealUp: MealUp) => {
@@ -65,13 +68,18 @@ export default function EventsScreen() {
 
   const displayedMealUps = activeTab === 'upcoming' ? upcomingMealUps : pastMealUps;
 
-  const filteredMealUps = displayedMealUps.filter(mealUp => 
-    mealUp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mealUp.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mealUp.venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mealUp.venue.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    mealUp.venue.cuisine.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredMealUps = displayedMealUps.filter(mealUp => {
+    const matchesSearch = mealUp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mealUp.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mealUp.venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mealUp.venue.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mealUp.venue.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesCuisine = selectedCuisines.length === 0 || selectedCuisines.includes(mealUp.venue.cuisine);
+    const matchesPrice = !priceRange || (mealUp.ticketPrice >= priceRange.min && mealUp.ticketPrice <= priceRange.max);
+    
+    return matchesSearch && matchesCuisine && matchesPrice;
+  });
 
   const renderMealUp = ({ item }: { item: MealUp }) => (
     <MealUpCard mealUp={item} onPress={() => handleMealUpPress(item)} />
@@ -122,7 +130,7 @@ export default function EventsScreen() {
               placeholderTextColor="#666666"
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
+          <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
             <Filter size={20} color="#000000" />
           </TouchableOpacity>
         </View>
@@ -142,6 +150,99 @@ export default function EventsScreen() {
           </TouchableOpacity>
         </View>
       </LinearGradient>
+      
+      <Modal
+        visible={showFilterModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filter Meal Ups</Text>
+              <TouchableOpacity onPress={() => setShowFilterModal(false)}>
+                <X size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <Text style={styles.filterSectionTitle}>Cuisine Type</Text>
+              <View style={styles.cuisineGrid}>
+                {['Farm-to-table', 'Spanish', 'Japanese', 'Italian', 'BBQ'].map(cuisine => (
+                  <TouchableOpacity
+                    key={cuisine}
+                    style={[
+                      styles.cuisineButton,
+                      selectedCuisines.includes(cuisine) && styles.cuisineButtonActive
+                    ]}
+                    onPress={() => {
+                      setSelectedCuisines(prev => 
+                        prev.includes(cuisine) 
+                          ? prev.filter(c => c !== cuisine)
+                          : [...prev, cuisine]
+                      );
+                    }}
+                  >
+                    <Text style={[
+                      styles.cuisineButtonText,
+                      selectedCuisines.includes(cuisine) && styles.cuisineButtonTextActive
+                    ]}>{cuisine}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              
+              <Text style={styles.filterSectionTitle}>Price Range</Text>
+              <View style={styles.priceGrid}>
+                {[
+                  { label: 'Under $50', min: 0, max: 50 },
+                  { label: '$50-$75', min: 50, max: 75 },
+                  { label: '$75-$100', min: 75, max: 100 },
+                  { label: 'Over $100', min: 100, max: 999 },
+                ].map(range => (
+                  <TouchableOpacity
+                    key={range.label}
+                    style={[
+                      styles.priceButton,
+                      priceRange?.min === range.min && priceRange?.max === range.max && styles.priceButtonActive
+                    ]}
+                    onPress={() => {
+                      setPriceRange(prev => 
+                        prev?.min === range.min && prev?.max === range.max
+                          ? null
+                          : { min: range.min, max: range.max }
+                      );
+                    }}
+                  >
+                    <Text style={[
+                      styles.priceButtonText,
+                      priceRange?.min === range.min && priceRange?.max === range.max && styles.priceButtonTextActive
+                    ]}>{range.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity 
+                style={styles.clearButton}
+                onPress={() => {
+                  setSelectedCuisines([]);
+                  setPriceRange(null);
+                }}
+              >
+                <Text style={styles.clearButtonText}>Clear All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.applyButton}
+                onPress={() => setShowFilterModal(false)}
+              >
+                <Text style={styles.applyButtonText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
       
       {activeTab === 'upcoming' ? (
         <FlatList
@@ -315,6 +416,121 @@ const styles = StyleSheet.create({
   },
   memberCount: {
     fontSize: 10,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  modalBody: {
+    padding: 20,
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 12,
+    marginTop: 8,
+  },
+  cuisineGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 20,
+  },
+  cuisineButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  cuisineButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  cuisineButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  cuisineButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  priceGrid: {
+    gap: 8,
+    marginBottom: 20,
+  },
+  priceButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  priceButtonActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  priceButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  priceButtonTextActive: {
+    color: '#FFFFFF',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+    gap: 12,
+  },
+  clearButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  applyButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    backgroundColor: Colors.primary,
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
   },
