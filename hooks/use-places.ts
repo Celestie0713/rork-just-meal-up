@@ -68,9 +68,30 @@ export function usePlaces() {
             setLocationPermission(Location.PermissionStatus.GRANTED);
           },
           (error) => {
-            console.error('Web geolocation error:', error);
-            setLocationPermission(Location.PermissionStatus.DENIED);
-            setError('Location access denied or unavailable');
+            console.error('Web geolocation error:');
+            console.error('Error code:', error.code);
+            console.error('Error message:', error.message);
+            
+            let errorMessage = 'Location access denied or unavailable';
+            
+            switch (error.code) {
+              case 1: // PERMISSION_DENIED
+                errorMessage = 'Location permission denied. Please enable location access in your browser settings.';
+                setLocationPermission(Location.PermissionStatus.DENIED);
+                break;
+              case 2: // POSITION_UNAVAILABLE
+                errorMessage = 'Location information is unavailable. Please check your internet connection.';
+                setLocationPermission(Location.PermissionStatus.DENIED);
+                break;
+              case 3: // TIMEOUT
+                errorMessage = 'Location request timed out. Please try again.';
+                setLocationPermission('undetermined');
+                break;
+              default:
+                setLocationPermission(Location.PermissionStatus.DENIED);
+            }
+            
+            setError(errorMessage);
           },
           { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
         );
