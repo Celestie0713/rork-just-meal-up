@@ -7,7 +7,7 @@ import ConfettiCannon from 'react-native-confetti-cannon';
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
-import { mockPostDateResponses, hasMutualLoveMatch } from '@/mocks/post-date-responses';
+import { mockPostDateResponses } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { useNotifications } from '@/hooks/use-notifications';
@@ -72,7 +72,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user, updateUser } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, getMatchType, matchedProfiles, addSystemMessage } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles } = useChat();
   const { addMatchDecisionNotification } = useNotifications();
   const [mealCounters, setMealCounters] = useState<Record<string, number>>({});
   const insets = useSafeAreaInsets();
@@ -95,6 +95,7 @@ export default function PostMealScreen() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
+  const [selectedTab, setSelectedTab] = useState<'1on1' | 'group'>('1on1');
 
 
   // Log when matchedProfiles changes
@@ -225,7 +226,6 @@ export default function PostMealScreen() {
       )
       .forEach(invitation => {
         const eventId = `invitation-${invitation.id}`;
-        const choiceTimestamp = choiceTimestamps[eventId];
         const eventDateTime = parseDateTime(invitation.date, invitation.time);
         const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
         const invitationId = invitation.id;
@@ -1009,7 +1009,6 @@ export default function PostMealScreen() {
     
     // CRITICAL: Use extendedChoices if available (second decision), otherwise use selectedChoices (first decision)
     const userSelectedChoice = extendedChoices[event.id] || selectedChoices[event.id];
-    const hasUserMadeChoice = !!userSelectedChoice;
     const isChoiceFinalized = finalizedChoices[event.id];
     
     console.log(`[Render] Event ${event.id}: userSelectedChoice=${userSelectedChoice}, dateChoice=${dateChoice}`);
@@ -1476,17 +1475,45 @@ export default function PostMealScreen() {
           </Text>
         </View>
 
-        {postMealEvents.length === 0 ? (
+        {/* Tabs */}
+        <View style={styles.tabsContainer}>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === '1on1' && styles.activeTab]}
+            onPress={() => setSelectedTab('1on1')}
+          >
+            <Text style={[styles.tabText, selectedTab === '1on1' && styles.activeTabText]}>
+              1 on 1
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tab, selectedTab === 'group' && styles.activeTab]}
+            onPress={() => setSelectedTab('group')}
+          >
+            <Text style={[styles.tabText, selectedTab === 'group' && styles.activeTabText]}>
+              Group Meal Up
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {postMealEvents.filter(event => 
+          selectedTab === '1on1' ? event.type === 'invitation' : event.type === 'mealup'
+        ).length === 0 ? (
           <View style={styles.emptyState}>
             <Clock size={48} color={colors.textLight} />
-            <Text style={styles.emptyStateTitle}>No Post-Meal Events Yet</Text>
+            <Text style={styles.emptyStateTitle}>
+              {selectedTab === '1on1' ? 'No 1 on 1 Meals Yet' : 'No Group Meal Ups Yet'}
+            </Text>
             <Text style={styles.emptyStateText}>
-              Your completed meals will appear here 10 hours after the scheduled time.
+              Your completed {selectedTab === '1on1' ? '1 on 1 meals' : 'group meal ups'} will appear here 10 hours after the scheduled time.
             </Text>
           </View>
         ) : (
           <View style={styles.eventsContainer}>
-            {postMealEvents.map(renderPostMealEvent)}
+            {postMealEvents
+              .filter(event => 
+                selectedTab === '1on1' ? event.type === 'invitation' : event.type === 'mealup'
+              )
+              .map(renderPostMealEvent)}
           </View>
         )}
 
@@ -1667,17 +1694,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>✨</Text>
                 <Text style={styles.matchModalTitle}>No Spark This Time ✨</Text>
                 <Text style={styles.matchModalDescription}>
-                  Not a match. Go on to the next meal🍜
-                  {matchResult?.eventId && (() => {
-                    const eventId = matchResult.eventId;
-                    const event = postMealEvents.find(e => e.id === eventId);
-                    if (event) {
-                      const timerInfo = getTimeRemaining(eventId, event.date, event.time);
-                      const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
-                      return `\n\nThis profile and chat have been removed immediately as there was no match.`;
-                    }
-                    return '';
-                  })()}
+                  Not a match. Go on to the next meal🍜\n\nThis profile and chat have been removed immediately as there was no match.
                 </Text>
               </>
             )}
@@ -2482,6 +2499,31 @@ const styles = StyleSheet.create({
   dropTipButtonText: {
     fontSize: 16,
     fontWeight: '600',
+    color: colors.background,
+  },
+  tabsContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    backgroundColor: colors.surface,
+    borderRadius: 12,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: colors.primary,
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textLight,
+  },
+  activeTabText: {
     color: colors.background,
   },
 });
