@@ -1081,20 +1081,6 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-                        {(() => {
-                          const invitationId = event.id.replace('invitation-', '');
-                          const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                          if (invitation) {
-                            const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                            const mealCount = mealCounters[dateUserId] || 1;
-                            return (
-                              <View style={styles.mealCountBadge}>
-                                <Text style={styles.mealCountText}>Meal {mealCount}</Text>
-                              </View>
-                            );
-                          }
-                          return null;
-                        })()}
                       </View>
                     </View>
                   );
@@ -1132,6 +1118,20 @@ export default function PostMealScreen() {
                   </Text>
                 </View>
               )}
+              {!isGroup && (() => {
+                const invitationId = event.id.replace('invitation-', '');
+                const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                if (invitation) {
+                  const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                  const mealCount = mealCounters[dateUserId] || 1;
+                  return (
+                    <View style={styles.mealCountBadge}>
+                      <Text style={styles.mealCountText}>Meal {mealCount}</Text>
+                    </View>
+                  );
+                }
+                return null;
+              })()}
               {!isGroup && matchType === 'next_round' && (timerInfo.type === 'match_permanent' || (() => {
                 // Check if extension is completed with both parties matching on next_round
                 const invitationId = event.id.replace('invitation-', '');
