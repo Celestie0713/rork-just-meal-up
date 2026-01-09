@@ -1081,7 +1081,20 @@ export default function PostMealScreen() {
                         <Text style={[styles.eventTitle, styles.clickableName]}>
                           {event.title.replace('Dinner with ', '')}
                         </Text>
-
+                        {(() => {
+                          const invitationId = event.id.replace('invitation-', '');
+                          const invitation = mockInvitations.find(inv => inv.id === invitationId);
+                          if (invitation) {
+                            const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                            const mealCount = mealCounters[dateUserId] || 1;
+                            return (
+                              <View style={styles.mealCountBadge}>
+                                <Text style={styles.mealCountText}>Meal {mealCount}</Text>
+                              </View>
+                            );
+                          }
+                          return null;
+                        })()}
                       </View>
                     </View>
                   );
@@ -1922,7 +1935,20 @@ const styles = StyleSheet.create({
   nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 8,
+  },
+  mealCountBadge: {
+    backgroundColor: '#FFE5CC',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#FF6B35',
+  },
+  mealCountText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#FF6B35',
   },
   matchIcon: {
     padding: 2,
