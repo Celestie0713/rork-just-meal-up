@@ -14,7 +14,7 @@ export default function EventsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeTab, setActiveTab] = useState<'upcoming' | 'groups'>('upcoming');
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [selectedCuisines, setSelectedCuisines] = useState<string[]>([]);
+  const [selectedDistance, setSelectedDistance] = useState<number | null>(null);
   const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
   const { user } = useAuth();
 
@@ -75,10 +75,10 @@ export default function EventsScreen() {
       mealUp.venue.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mealUp.venue.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesCuisine = selectedCuisines.length === 0 || selectedCuisines.includes(mealUp.venue.cuisine);
+    const matchesDistance = !selectedDistance || true;
     const matchesPrice = !priceRange || (mealUp.ticketPrice >= priceRange.min && mealUp.ticketPrice <= priceRange.max);
     
-    return matchesSearch && matchesCuisine && matchesPrice;
+    return matchesSearch && matchesDistance && matchesPrice;
   });
 
   const renderMealUp = ({ item }: { item: MealUp }) => (
@@ -167,27 +167,30 @@ export default function EventsScreen() {
             </View>
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              <Text style={styles.filterSectionTitle}>Cuisine Type</Text>
-              <View style={styles.cuisineGrid}>
-                {['Farm-to-table', 'Spanish', 'Japanese', 'Italian', 'BBQ'].map(cuisine => (
+              <Text style={styles.filterSectionTitle}>Distance Near Me</Text>
+              <View style={styles.distanceGrid}>
+                {[
+                  { label: 'Within 1 mile', value: 1 },
+                  { label: 'Within 5 miles', value: 5 },
+                  { label: 'Within 10 miles', value: 10 },
+                  { label: '25+ miles', value: 25 },
+                ].map(distance => (
                   <TouchableOpacity
-                    key={cuisine}
+                    key={distance.value}
                     style={[
-                      styles.cuisineButton,
-                      selectedCuisines.includes(cuisine) && styles.cuisineButtonActive
+                      styles.distanceButton,
+                      selectedDistance === distance.value && styles.distanceButtonActive
                     ]}
                     onPress={() => {
-                      setSelectedCuisines(prev => 
-                        prev.includes(cuisine) 
-                          ? prev.filter(c => c !== cuisine)
-                          : [...prev, cuisine]
+                      setSelectedDistance(prev => 
+                        prev === distance.value ? null : distance.value
                       );
                     }}
                   >
                     <Text style={[
-                      styles.cuisineButtonText,
-                      selectedCuisines.includes(cuisine) && styles.cuisineButtonTextActive
-                    ]}>{cuisine}</Text>
+                      styles.distanceButtonText,
+                      selectedDistance === distance.value && styles.distanceButtonTextActive
+                    ]}>{distance.label}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -227,7 +230,7 @@ export default function EventsScreen() {
               <TouchableOpacity 
                 style={styles.clearButton}
                 onPress={() => {
-                  setSelectedCuisines([]);
+                  setSelectedDistance(null);
                   setPriceRange(null);
                 }}
               >
@@ -453,30 +456,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: 8,
   },
-  cuisineGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  distanceGrid: {
     gap: 8,
     marginBottom: 20,
   },
-  cuisineButton: {
+  distanceButton: {
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    borderRadius: 8,
     backgroundColor: '#F5F5F5',
     borderWidth: 1,
     borderColor: '#E0E0E0',
   },
-  cuisineButtonActive: {
+  distanceButtonActive: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
-  cuisineButtonText: {
+  distanceButtonText: {
     fontSize: 14,
     fontWeight: '500',
     color: '#000000',
   },
-  cuisineButtonTextActive: {
+  distanceButtonTextActive: {
     color: '#FFFFFF',
   },
   priceGrid: {
