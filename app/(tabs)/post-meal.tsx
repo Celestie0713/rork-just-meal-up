@@ -2329,15 +2329,17 @@ const styles = StyleSheet.create({
     color: colors.success,
   },
   matchIndicator: {
-    backgroundColor: colors.success,
+    backgroundColor: '#FFE5CC',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FF6B35',
   },
   matchIndicatorText: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.background,
+    color: '#FF6B35',
   },
   loveIconContainer: {
     position: 'relative',
