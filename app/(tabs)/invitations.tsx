@@ -7,6 +7,7 @@ import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
 import type { MealInvitation, SystemMessage } from '@/types/user';
+import { PlatformTipsPopup } from '@/components/PlatformTipsPopup';
 
 const colors = {
   primary: '#FF6B35',
@@ -217,6 +218,8 @@ export default function InvitationsScreen() {
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
+  const [tipsModalVisible, setTipsModalVisible] = useState(false);
+  const [pendingAcceptInvitationId, setPendingAcceptInvitationId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
@@ -283,29 +286,10 @@ export default function InvitationsScreen() {
     if (!confirmData) return;
 
     if (confirmData.type === 'accept') {
-      const invitation = invitations.find(inv => inv.id === confirmData.invitationId);
-      if (invitation) {
-        const inviter = mockUsers.find(user => user.id === invitation.inviterId);
-        
-        updateInvitation(confirmData.invitationId, { status: 'accepted' });
-        
-        if (inviter) {
-          const chatId = `${currentUserId}-${inviter.id}`;
-          const systemMessage: SystemMessage = {
-            id: `system-${Date.now()}`,
-            type: 'invitation_accepted',
-            content: `You accepted the meal invitation for ${invitation.venue.name} on ${invitation.date.toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              month: 'short', 
-              day: 'numeric' 
-            })} at ${invitation.time}. Looking forward to it!`,
-            timestamp: new Date(),
-            relatedInvitationId: confirmData.invitationId
-          };
-          
-          addSystemMessage(chatId, systemMessage);
-        }
-      }
+      setPendingAcceptInvitationId(confirmData.invitationId);
+      setConfirmModalVisible(false);
+      setConfirmData(null);
+      setTipsModalVisible(true);
     } else if (confirmData.type === 'decline') {
       const invitation = invitations.find(inv => inv.id === confirmData.invitationId);
       if (invitation) {
@@ -338,6 +322,39 @@ export default function InvitationsScreen() {
 
     setConfirmModalVisible(false);
     setConfirmData(null);
+  };
+
+  const handleTipsComplete = (amount: number) => {
+    console.log(`Platform tip of ${amount} received`);
+    
+    if (!pendingAcceptInvitationId) return;
+    
+    const invitation = invitations.find(inv => inv.id === pendingAcceptInvitationId);
+    if (invitation) {
+      const inviter = mockUsers.find(user => user.id === invitation.inviterId);
+      
+      updateInvitation(pendingAcceptInvitationId, { status: 'accepted' });
+      
+      if (inviter) {
+        const chatId = `${currentUserId}-${inviter.id}`;
+        const systemMessage: SystemMessage = {
+          id: `system-${Date.now()}`,
+          type: 'invitation_accepted',
+          content: `You accepted the meal invitation for ${invitation.venue.name} on ${invitation.date.toLocaleDateString('en-US', { 
+            weekday: 'long', 
+            month: 'short', 
+            day: 'numeric' 
+          })} at ${invitation.time}. Looking forward to it!`,
+          timestamp: new Date(),
+          relatedInvitationId: pendingAcceptInvitationId
+        };
+        
+        addSystemMessage(chatId, systemMessage);
+      }
+    }
+    
+    setTipsModalVisible(false);
+    setPendingAcceptInvitationId(null);
   };
 
   const handleCancelConfirm = () => {
@@ -664,6 +681,11 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
+
+      <PlatformTipsPopup
+        visible={tipsModalVisible}
+        onComplete={handleTipsComplete}
+      />
 
     </SafeAreaView>
   );
