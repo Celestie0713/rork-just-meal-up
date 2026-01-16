@@ -183,8 +183,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'center',
-    gap: 12,
     marginBottom: 32,
+    marginHorizontal: -6,
   },
   amountButton: {
     alignItems: 'center',
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.border,
     backgroundColor: Colors.background,
     minWidth: 80,
+    margin: 6,
   },
   amountButtonSelected: {
     backgroundColor: Colors.primary,
