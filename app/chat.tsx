@@ -5,7 +5,7 @@ import { ArrowLeft, MapPin, Clock, Users, X } from 'lucide-react-native';
 import { VoiceMessageBubble } from '@/components/VoiceMessageBubble';
 import { SystemMessageBubble } from '@/components/SystemMessageBubble';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
-import { TipSelectionModal } from '@/components/TipSelectionModal';
+
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { mockInvitations } from '@/mocks/invitations';
@@ -157,8 +157,7 @@ export default function ChatScreen() {
   const chatId = `${currentUserId}-${params.userId}`;
   const [showMealDetailsModal, setShowMealDetailsModal] = useState(false);
   const [selectedMealIndex, setSelectedMealIndex] = useState<number>(0);
-  const [showTipModal, setShowTipModal] = useState(false);
-  const [selectedMessageForTip, setSelectedMessageForTip] = useState<VoiceMessage | null>(null);
+
   
   const messages = getChatMessages(chatId);
   
@@ -283,28 +282,18 @@ export default function ChatScreen() {
     setShowMealDetailsModal(true);
   };
   
-  const handleTipPress = (message: VoiceMessage) => {
-    setSelectedMessageForTip(message);
-    setShowTipModal(true);
-  };
-  
-  const handleTipConfirm = async (amount: number) => {
-    setShowTipModal(false);
+  const handleTipPress = async (message: VoiceMessage) => {
+    console.log(`Processing tip for message ${message.id}`);
     
-    console.log(`Processing tip of ${amount} for message ${selectedMessageForTip?.id}`);
-    
-    const stripeUrl = `https://checkout.stripe.com/pay?amount=${amount * 100}`;
+    const stripeUrl = `https://checkout.stripe.com/pay`;
     
     Alert.alert(
-      'Payment Processing',
-      `You will be redirected to Stripe to complete the ${amount} payment.`,
+      'Payment Required',
+      'You will be redirected to Stripe to complete the payment.',
       [
         {
           text: 'Cancel',
           style: 'cancel',
-          onPress: () => {
-            setSelectedMessageForTip(null);
-          }
         },
         {
           text: 'Continue',
@@ -314,13 +303,12 @@ export default function ChatScreen() {
               if (canOpen) {
                 await Linking.openURL(stripeUrl);
               } else {
-                Alert.alert('Success', `Payment of ${amount} processed successfully!`);
+                Alert.alert('Success', 'Payment processed successfully!');
               }
             } catch (error) {
               console.error('Error opening Stripe URL:', error);
-              Alert.alert('Success', `Payment of ${amount} processed successfully!`);
+              Alert.alert('Success', 'Payment processed successfully!');
             }
-            setSelectedMessageForTip(null);
           }
         }
       ]
@@ -486,15 +474,7 @@ export default function ChatScreen() {
         </View>
       </Modal>
       
-      <TipSelectionModal
-        visible={showTipModal}
-        onClose={() => {
-          setShowTipModal(false);
-          setSelectedMessageForTip(null);
-        }}
-        onConfirm={handleTipConfirm}
-        recipientName={chatUser?.name || 'User'}
-      />
+
     </SafeAreaView>
   );
 }
