@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Modal, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Clock, Users, X } from 'lucide-react-native';
 import { VoiceMessageBubble } from '@/components/VoiceMessageBubble';
 import { SystemMessageBubble } from '@/components/SystemMessageBubble';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
+import { mockInvitations } from '@/mocks/invitations';
 import { useChat } from '@/hooks/use-chat';
 import type { VoiceMessage, ChatMessage } from '@/types/user';
 import { isVoiceMessage, isSystemMessage } from '@/types/user';
@@ -152,6 +153,8 @@ export default function ChatScreen() {
   const { getChatMessages, addVoiceMessage, initializeChat } = useChat();
   const currentUserId = '1';
   const chatId = `${currentUserId}-${params.userId}`;
+  const [showMealDetailsModal, setShowMealDetailsModal] = useState(false);
+  const [selectedMealIndex, setSelectedMealIndex] = useState<number>(0);
   
   const messages = getChatMessages(chatId);
   
@@ -160,6 +163,22 @@ export default function ChatScreen() {
   }, [messages]);
   
   const chatUser = mockUsers.find(user => user.id === params.userId);
+  
+  const mealHistory = useMemo(() => {
+    const meals = mockInvitations.filter(inv => 
+      (inv.inviterId === currentUserId && inv.inviteeId === params.userId) ||
+      (inv.inviteeId === currentUserId && inv.inviterId === params.userId)
+    ).filter(inv => inv.status === 'completed' || inv.status === 'accepted');
+    return meals.sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [params.userId]);
+  
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
   
   useEffect(() => {
     if (messages.length === 0) {
@@ -195,6 +214,11 @@ export default function ChatScreen() {
 
   const handleCancelRecording = () => {
     console.log('Recording cancelled');
+  };
+  
+  const handleMealBadgePress = (index: number) => {
+    setSelectedMealIndex(index);
+    setShowMealDetailsModal(true);
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => {
@@ -249,6 +273,23 @@ export default function ChatScreen() {
         </View>
       )}
       
+      {mealHistory.length > 0 && (
+        <View style={styles.mealRecordContainer}>
+          <Text style={styles.mealRecordTitle}>Meal Record</Text>
+          <View style={styles.mealBadgesContainer}>
+            {mealHistory.map((meal, index) => (
+              <TouchableOpacity 
+                key={meal.id}
+                style={styles.mealBadge}
+                onPress={() => handleMealBadgePress(index)}
+              >
+                <Text style={styles.mealBadgeText}>Meal {index + 1}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
+      
       <FlatList
         data={messages}
         renderItem={renderMessage}
@@ -264,6 +305,75 @@ export default function ChatScreen() {
           onCancel={handleCancelRecording}
         />
       </View>
+      
+      <Modal
+        visible={showMealDetailsModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowMealDetailsModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Meal {selectedMealIndex + 1} Details</Text>
+              <TouchableOpacity 
+                onPress={() => setShowMealDetailsModal(false)}
+                style={styles.closeButton}
+              >
+                <X size={24} color={Colors.textLight} />
+              </TouchableOpacity>
+            </View>
+            
+            {mealHistory[selectedMealIndex] && (
+              <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+                <View style={styles.detailSection}>
+                  <View style={styles.detailRow}>
+                    <MapPin size={18} color={Colors.primary} />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Venue</Text>
+                      <Text style={styles.detailValue}>{mealHistory[selectedMealIndex].venue.name}</Text>
+                      <Text style={styles.detailSubtext}>{mealHistory[selectedMealIndex].venue.address}</Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.detailRow}>
+                    <Clock size={18} color={Colors.primary} />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Date & Time</Text>
+                      <Text style={styles.detailValue}>
+                        {formatDate(mealHistory[selectedMealIndex].date)} at {mealHistory[selectedMealIndex].time}
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.detailRow}>
+                    <Users size={18} color={Colors.primary} />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>Participants</Text>
+                      <Text style={styles.detailValue}>
+                        {chatUser?.name} & You
+                      </Text>
+                    </View>
+                  </View>
+                  
+                  {mealHistory[selectedMealIndex].venue.cuisine && (
+                    <View style={styles.cuisineTag}>
+                      <Text style={styles.cuisineTagText}>{mealHistory[selectedMealIndex].venue.cuisine}</Text>
+                    </View>
+                  )}
+                </View>
+              </ScrollView>
+            )}
+            
+            <TouchableOpacity 
+              style={styles.closeModalButton}
+              onPress={() => setShowMealDetailsModal(false)}
+            >
+              <Text style={styles.closeModalButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -347,6 +457,128 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   inviteButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  mealRecordContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: '#FFF9F5',
+  },
+  mealRecordTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  mealBadgesContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  mealBadge: {
+    backgroundColor: '#FFE5CC',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FF6B35',
+  },
+  mealBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#FF6B35',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    marginBottom: 20,
+  },
+  detailSection: {
+    gap: 20,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'flex-start',
+  },
+  detailContent: {
+    flex: 1,
+  },
+  detailLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.textLight,
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  detailValue: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  detailSubtext: {
+    fontSize: 14,
+    color: Colors.textLight,
+    lineHeight: 20,
+  },
+  cuisineTag: {
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  cuisineTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Colors.background,
+  },
+  closeModalButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  closeModalButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
