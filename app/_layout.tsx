@@ -9,7 +9,7 @@ import { FavoritesProvider } from "@/hooks/use-favorites";
 import { NotificationProvider } from "@/hooks/use-notifications";
 import { InvitationsProvider } from "@/hooks/use-invitations";
 import { trpc, trpcClient } from "@/lib/trpc";
-import { TipBlocker } from "@/components/TipBlocker";
+
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -18,14 +18,11 @@ const queryClient = new QueryClient();
 
 function RootLayoutNav() {
   return (
-    <>
-      <Stack screenOptions={{ headerBackTitle: "Back" }}>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="meal-up-attendees" options={{ headerShown: true }} />
-        <Stack.Screen name="create-meal-up" options={{ headerShown: true }} />
-      </Stack>
-      <TipBlocker />
-    </>
+    <Stack screenOptions={{ headerBackTitle: "Back" }}>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="meal-up-attendees" options={{ headerShown: true }} />
+      <Stack.Screen name="create-meal-up" options={{ headerShown: true }} />
+    </Stack>
   );
 }
 

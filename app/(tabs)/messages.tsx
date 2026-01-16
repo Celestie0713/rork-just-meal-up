@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign } from 'lucide-react-native';
 import { ChatListItem } from '@/components/ChatListItem';
-import { TipPopup } from '@/components/TipPopup';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
-import { useAuth } from '@/hooks/use-auth';
 import { useInvitations } from '@/hooks/use-invitations';
 import type { User, SystemMessage } from '@/types/user';
 
@@ -53,7 +51,6 @@ const mockChats: ChatData[] = [
 
 export default function MessagesScreen() {
   const { getAvailableChats, isLoaded, addSystemMessage } = useChat();
-  const { user: currentUser } = useAuth();
   const { addInvitation } = useInvitations();
   const params = useLocalSearchParams<{
     placeName?: string;
@@ -72,13 +69,12 @@ export default function MessagesScreen() {
     mealUpImage?: string;
   }>();
   
-  const [chats, setChats] = useState<ChatData[]>(mockChats);
+  const [chats] = useState<ChatData[]>(mockChats);
   const [filteredChats, setFilteredChats] = useState<ChatData[]>(mockChats);
   const [isInvitationMode, setIsInvitationMode] = useState<boolean>(false);
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
   const [invitationData, setInvitationData] = useState<any>(null);
   const [mealUpData, setMealUpData] = useState<any>(null);
-  const [showTipPopup, setShowTipPopup] = useState<boolean>(false);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -113,12 +109,6 @@ export default function MessagesScreen() {
     }
   }, [chats, isLoaded, getAvailableChats]);
 
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log('[useEffect] showTipPopup changed to:', showTipPopup);
-  }, [showTipPopup]);
-
   const handleChatPress = (user: User) => {
     console.log('[handleChatPress] User clicked:', user.name, 'ID:', user.id);
     console.log('[handleChatPress] isInvitationMode:', isInvitationMode);
@@ -129,9 +119,49 @@ export default function MessagesScreen() {
     if (isInvitationMode && invitationData) {
       console.log('[handleChatPress] Showing invitation alert for:', invitationData.placeName);
       
-      setSelectedUserId(user.id);
-      console.log('[handleChatPress] Setting showTipPopup to true immediately');
-      setShowTipPopup(true);
+      Alert.alert(
+        'Send Invitation',
+        `Send meal invitation to ${user.name}?`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Send',
+            onPress: () => {
+              const newInvitationId = `inv-${Date.now()}`;
+              
+              addInvitation({
+                id: newInvitationId,
+                inviterId: '1',
+                inviteeId: user.id,
+                date: invitationData.date,
+                time: formatInvitationTime(invitationData.time),
+                venue: {
+                  name: invitationData.placeName,
+                  address: invitationData.placeAddress,
+                  cuisine: 'Restaurant',
+                  placeId: invitationData.placeId
+                },
+                status: 'pending',
+                createdAt: new Date()
+              });
+              
+              const chatId = `1-${user.id}`;
+              const systemMessage: SystemMessage = {
+                id: Date.now().toString(),
+                type: 'invitation_sent',
+                content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
+                timestamp: new Date(),
+              };
+              addSystemMessage(chatId, systemMessage);
+              
+              router.push({
+                pathname: '/chat',
+                params: { userId: user.id }
+              });
+            }
+          }
+        ]
+      );
     } else if (isMealUpShareMode && mealUpData) {
       console.log('[handleChatPress] Showing meal up share alert for:', mealUpData.title);
       
@@ -306,162 +336,7 @@ export default function MessagesScreen() {
         ListEmptyComponent={renderEmptyState}
       />
       
-      <TipPopup 
-        visible={showTipPopup}
-        userLocation={currentUser?.location}
-        onClose={() => {
-          console.log('[TipPopup onClose] Backdrop clicked');
-          setShowTipPopup(false);
-          router.back();
-        }}
-        onNoThanks={() => {
-          console.log('[TipPopup onNoThanks] No thanks clicked');
-          console.log('[TipPopup onNoThanks] selectedUserId:', selectedUserId);
-          setShowTipPopup(false);
-          
-          if (selectedUserId && invitationData) {
-            const newInvitationId = `inv-${Date.now()}`;
-            
-            addInvitation({
-              id: newInvitationId,
-              inviterId: '1',
-              inviteeId: selectedUserId,
-              date: invitationData.date,
-              time: formatInvitationTime(invitationData.time),
-              venue: {
-                name: invitationData.placeName,
-                address: invitationData.placeAddress,
-                cuisine: 'Restaurant',
-                placeId: invitationData.placeId
-              },
-              status: 'pending',
-              createdAt: new Date(),
-              tipAmount: 0
-            });
-            
-            const chatId = `1-${selectedUserId}`;
-            const systemMessage: SystemMessage = {
-              id: Date.now().toString(),
-              type: 'invitation_sent',
-              content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
-              timestamp: new Date(),
-            };
-            addSystemMessage(chatId, systemMessage);
-            
-            console.log('[TipPopup onNoThanks] Navigating to chat with user:', selectedUserId);
-            router.push({
-              pathname: '/chat',
-              params: { userId: selectedUserId }
-            });
-          } else {
-            console.log('[TipPopup onNoThanks] No selectedUserId, going back');
-            router.back();
-          }
-        }}
-        onSendWithTip={async (tipAmount) => {
-          console.log('[TipPopup onSendWithTip] Send with tip clicked, amount:', tipAmount);
-          console.log('[TipPopup onSendWithTip] selectedUserId:', selectedUserId);
-          setShowTipPopup(false);
-          
-          if (tipAmount > 0) {
-            try {
-              const stripeUrl = `https://buy.stripe.com/test_00g00000000000?prefilled_amount=${Math.round(tipAmount * 100)}`;
-              console.log('[TipPopup onSendWithTip] Opening Stripe URL:', stripeUrl);
-              
-              const supported = await Linking.canOpenURL(stripeUrl);
-              if (supported) {
-                await Linking.openURL(stripeUrl);
-                
-                setTimeout(() => {
-                  if (selectedUserId && invitationData) {
-                    console.log('[TipPopup onSendWithTip] Initiating invitation after payment');
-                    const selectedUser = mockUsers.find(u => u.id === selectedUserId);
-                    
-                    const newInvitationId = `inv-${Date.now()}`;
-                    
-                    addInvitation({
-                      id: newInvitationId,
-                      inviterId: '1',
-                      inviteeId: selectedUserId,
-                      date: invitationData.date,
-                      time: formatInvitationTime(invitationData.time),
-                      venue: {
-                        name: invitationData.placeName,
-                        address: invitationData.placeAddress,
-                        cuisine: 'Restaurant',
-                        placeId: invitationData.placeId
-                      },
-                      status: 'pending',
-                      createdAt: new Date(),
-                      tipAmount: tipAmount
-                    });
-                    
-                    const chatId = `1-${selectedUserId}`;
-                    const systemMessage: SystemMessage = {
-                      id: Date.now().toString(),
-                      type: 'invitation_sent',
-                      content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
-                      timestamp: new Date(),
-                    };
-                    addSystemMessage(chatId, systemMessage);
-                    
-                    router.push({
-                      pathname: '/chat',
-                      params: { userId: selectedUserId }
-                    });
-                  }
-                }, 2000);
-              } else {
-                console.error('[TipPopup onSendWithTip] Cannot open Stripe URL');
-                Alert.alert('Error', 'Unable to open payment page');
-              }
-            } catch (error) {
-              console.error('[TipPopup onSendWithTip] Error opening Stripe:', error);
-              Alert.alert('Error', 'Failed to process payment');
-            }
-          } else {
-            if (selectedUserId && invitationData) {
-              const selectedUser = mockUsers.find(u => u.id === selectedUserId);
-              
-              const newInvitationId = `inv-${Date.now()}`;
-              
-              addInvitation({
-                id: newInvitationId,
-                inviterId: '1',
-                inviteeId: selectedUserId,
-                date: invitationData.date,
-                time: formatInvitationTime(invitationData.time),
-                venue: {
-                  name: invitationData.placeName,
-                  address: invitationData.placeAddress,
-                  cuisine: 'Restaurant',
-                  placeId: invitationData.placeId
-                },
-                status: 'pending',
-                createdAt: new Date(),
-                tipAmount: 0
-              });
-              
-              const chatId = `1-${selectedUserId}`;
-              const systemMessage: SystemMessage = {
-                id: Date.now().toString(),
-                type: 'invitation_sent',
-                content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
-                timestamp: new Date(),
-              };
-              addSystemMessage(chatId, systemMessage);
-              
-              router.push({
-                pathname: '/chat',
-                params: { userId: selectedUserId }
-              });
-            } else {
-              console.log('[TipPopup onSendWithTip] No selectedUserId, going back');
-              router.back();
-            }
-          }
-        }}
-      />
+
     </SafeAreaView>
   );
 }

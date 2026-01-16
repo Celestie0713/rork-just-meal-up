@@ -65,7 +65,6 @@ export interface MealInvitation {
   status: 'pending' | 'accepted' | 'declined' | 'completed';
   createdAt: Date;
   declinedAt?: Date;
-  tipAmount?: number;
 }
 
 export interface PostDateResponse {
