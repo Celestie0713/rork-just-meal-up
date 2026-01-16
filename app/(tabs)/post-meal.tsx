@@ -292,8 +292,14 @@ export default function PostMealScreen() {
                 console.log(`Event ${eventId} - mixed signals detected, keeping for extension`);
               } else {
                 // For non-matches: profile disappears immediately from post meal page
-                // and chat will also be removed (handled in useChat hook)
-                console.log(`Removing event ${eventId} - both parties decided but no match`);
+                // and chat is also removed immediately
+                console.log(`Removing event ${eventId} - both parties decided but no match (${userChoice} vs ${dateChoice})`);
+                
+                // Immediately remove the chat for non-matching profiles
+                checkAndRemoveNonMatchingProfiles({
+                  [eventId]: { choice: userChoice, timestamp: new Date(0) } // Use epoch to trigger immediate removal
+                });
+                
                 return; // Skip this event
               }
             }
@@ -363,7 +369,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, checkAndRemoveNonMatchingProfiles]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -524,7 +530,7 @@ export default function PostMealScreen() {
         console.log(`No match after extension period for ${eventId} - removing profile and chat`);
         console.log(`User's second choice: ${choice}, Date's second choice: ${dateExtendedChoice}`);
         const userChoices: Record<string, { choice: string; timestamp: Date }> = {
-          [eventId]: { choice, timestamp: now }
+          [eventId]: { choice, timestamp: new Date(0) } // Use epoch to trigger immediate removal
         };
         checkAndRemoveNonMatchingProfiles(userChoices);
         
@@ -766,8 +772,7 @@ export default function PostMealScreen() {
             }
           }
         }
-        // Note: For non-matches, the profile will be removed from post meal and chat immediately
-        // This is handled by the checkAndRemoveNonMatchingProfiles function in useChat
+        // Note: For non-matches, the profile is removed from post meal and chat immediately
       }
       
       // Choice is already finalized at the start of handleChoiceSelect
