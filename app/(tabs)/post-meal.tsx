@@ -74,7 +74,6 @@ export default function PostMealScreen() {
   const { user } = useAuth();
   const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles } = useChat();
   const { addMatchDecisionNotification } = useNotifications();
-  const [mealCounters, setMealCounters] = useState<Record<string, number>>({});
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
 
@@ -498,19 +497,6 @@ export default function PostMealScreen() {
         console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
         console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
         
-        // If it's a next_round match, initialize meal counter to 1 (first meal)
-        if (matchType === 'next_round') {
-          setMealCounters(prev => {
-            const currentCount = prev[dateUserId] || 0;
-            const newCount = currentCount + 1;
-            console.log(`Setting meal counter for ${dateUserId} (extension): ${currentCount} -> ${newCount}`);
-            return {
-              ...prev,
-              [dateUserId]: newCount
-            };
-          });
-        }
-        
         console.log(`Setting match result with isMatch=true, matchType=${matchType}`);
         setMatchResult({
           isMatch: true,
@@ -710,19 +696,6 @@ export default function PostMealScreen() {
           addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
-          
-          // If it's a next_round match, initialize or increment meal counter
-          if (matchType === 'next_round') {
-            setMealCounters(prev => {
-              const currentCount = prev[dateUserId] || 0; // Start with 0 if not set
-              const newCount = currentCount + 1; // Increment for next meal (starts at 1)
-              console.log(`Setting meal counter for ${dateUserId}: ${currentCount} -> ${newCount}`);
-              return {
-                ...prev,
-                [dateUserId]: newCount
-              };
-            });
-          }
           
           // Special handling for buddy_pass: it's a match but profile gets removed from post-meal
           // Chat remains available (handled in useChat hook)
@@ -1012,20 +985,6 @@ export default function PostMealScreen() {
     const isMatch = userSelectedChoice && dateChoice && userSelectedChoice === dateChoice;
     const matchType = isMatch ? userSelectedChoice as 'fight_for_fries' | 'buddy_pass' | 'next_round' : null;
     
-    // Get meal number for next_round matches
-    const getMealNumber = () => {
-      if (matchType === 'next_round' && !isGroup) {
-        const invitationId = event.id.replace('invitation-', '');
-        const invitation = mockInvitations.find(inv => inv.id === invitationId);
-        if (invitation) {
-          const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-          // Return the current meal counter, which starts at 1 for first meal
-          return mealCounters[dateUserId] || 1;
-        }
-      }
-      return 1;
-    };
-    
     // Get timer information
     const timerInfo = getTimeRemaining(event.id, event.date, event.time);
     const timeRemaining = formatTimeRemaining(timerInfo.timeLeft);
@@ -1111,21 +1070,9 @@ export default function PostMealScreen() {
                   </Text>
                 </View>
               )}
-              {!isGroup && matchType === 'next_round' && (timerInfo.type === 'match_permanent' || (() => {
-                // Check if extension is completed with both parties matching on next_round
-                const invitationId = event.id.replace('invitation-', '');
-                const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                if (invitation) {
-                  const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                  const extensionKey = `${invitationId}-${dateUserId}`;
-                  const extension = mixedSignalsExtensions[extensionKey];
-                  return extension && extension.hasUserReDecided && extension.hasDateReDecided && 
-                         extension.userChoice === 'next_round' && extension.dateChoice === 'next_round';
-                }
-                return false;
-              })()) && (
+              {!isGroup && (
                 <View style={styles.matchIndicator}>
-                  <Text style={styles.matchIndicatorText}>Meal {getMealNumber()}</Text>
+                  <Text style={styles.matchIndicatorText}>Meal 1</Text>
                 </View>
               )}
               {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'fight_for_fries' && (
