@@ -8,6 +8,7 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { mockInvitations } from '@/mocks/invitations';
+import { mockPostDateResponses, mockMatchedProfiles } from '@/mocks/post-date-responses';
 import { useChat } from '@/hooks/use-chat';
 import type { VoiceMessage, ChatMessage } from '@/types/user';
 import { isVoiceMessage, isSystemMessage } from '@/types/user';
@@ -180,6 +181,38 @@ export default function ChatScreen() {
     });
   };
   
+  const getChoiceDisplay = (choice: string) => {
+    switch (choice) {
+      case 'buddy_pass':
+        return 'Buddy pass ✅ (Stay Friend)';
+      case 'next_round':
+        return "Let's do next round (Next date)";
+      case 'fight_for_fries':
+        return 'Fight for fries for life (Be my +1?)';
+      default:
+        return 'No decision';
+    }
+  };
+  
+  const getUserChoices = (mealId: string) => {
+    const currentUserChoice = mockMatchedProfiles.find(
+      profile => profile.userId === currentUserId && profile.mealId === mealId
+    )?.matchType;
+    
+    const otherUserChoice = mockMatchedProfiles.find(
+      profile => profile.userId === params.userId && profile.mealId === mealId
+    )?.matchType;
+    
+    return {
+      currentUser: currentUserChoice || mockPostDateResponses.find(
+        r => r.userId === currentUserId && r.mealId === mealId
+      )?.choice,
+      otherUser: otherUserChoice || mockPostDateResponses.find(
+        r => r.userId === params.userId && r.mealId === mealId
+      )?.choice
+    };
+  };
+  
   useEffect(() => {
     if (messages.length === 0) {
       const mockMessages = getMockMessagesForUser(params.userId || '');
@@ -349,18 +382,22 @@ export default function ChatScreen() {
                   <View style={styles.detailRow}>
                     <Users size={18} color={Colors.primary} />
                     <View style={styles.detailContent}>
-                      <Text style={styles.detailLabel}>Participants</Text>
+                      <Text style={styles.detailLabel}>Your Choice</Text>
                       <Text style={styles.detailValue}>
-                        {chatUser?.name} & You
+                        {getChoiceDisplay(getUserChoices(mealHistory[selectedMealIndex].id).currentUser || '')}
                       </Text>
                     </View>
                   </View>
                   
-                  {mealHistory[selectedMealIndex].venue.cuisine && (
-                    <View style={styles.cuisineTag}>
-                      <Text style={styles.cuisineTagText}>{mealHistory[selectedMealIndex].venue.cuisine}</Text>
+                  <View style={styles.detailRow}>
+                    <Users size={18} color={Colors.primary} />
+                    <View style={styles.detailContent}>
+                      <Text style={styles.detailLabel}>{chatUser?.name}&apos;s Choice</Text>
+                      <Text style={styles.detailValue}>
+                        {getChoiceDisplay(getUserChoices(mealHistory[selectedMealIndex].id).otherUser || '')}
+                      </Text>
                     </View>
-                  )}
+                  </View>
                 </View>
               </ScrollView>
             )}
@@ -558,19 +595,7 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     lineHeight: 20,
   },
-  cuisineTag: {
-    backgroundColor: '#FF6B35',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignSelf: 'flex-start',
-    marginTop: 8,
-  },
-  cuisineTagText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.background,
-  },
+
   closeModalButton: {
     backgroundColor: Colors.primary,
     paddingVertical: 14,
