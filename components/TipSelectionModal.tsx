@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput } from 'react-native';
 import { X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
@@ -14,15 +14,40 @@ const TIP_AMOUNTS = [5, 10, 20, 50, 100];
 
 export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }: TipSelectionModalProps) {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
+  const [customAmount, setCustomAmount] = useState<string>('');
+  const [isCustom, setIsCustom] = useState(false);
 
   const handleConfirm = () => {
-    if (selectedAmount && selectedAmount > 0) {
-      onConfirm(selectedAmount);
+    const amount = isCustom ? parseFloat(customAmount) : selectedAmount;
+    if (amount && amount >= 5) {
+      onConfirm(amount);
       setSelectedAmount(null);
+      setCustomAmount('');
+      setIsCustom(false);
     }
   };
 
-  const isValid = selectedAmount !== null;
+  const handleSelectPredefined = (amount: number) => {
+    setIsCustom(false);
+    setCustomAmount('');
+    setSelectedAmount(amount);
+  };
+
+  const handleCustomAmountChange = (text: string) => {
+    const cleaned = text.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 2) return;
+    
+    setCustomAmount(cleaned);
+    setIsCustom(true);
+    setSelectedAmount(null);
+  };
+
+  const customAmountValue = parseFloat(customAmount);
+  const isValid = isCustom 
+    ? !isNaN(customAmountValue) && customAmountValue >= 5
+    : selectedAmount !== null && selectedAmount >= 5;
 
   return (
     <Modal
@@ -53,18 +78,37 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                   key={amount}
                   style={[
                     styles.amountButton,
-                    selectedAmount === amount && styles.amountButtonSelected
+                    selectedAmount === amount && !isCustom && styles.amountButtonSelected
                   ]}
-                  onPress={() => setSelectedAmount(amount)}
+                  onPress={() => handleSelectPredefined(amount)}
                 >
                   <Text style={[
                     styles.amountText,
-                    selectedAmount === amount && styles.amountTextSelected
+                    selectedAmount === amount && !isCustom && styles.amountTextSelected
                   ]}>
                     ${amount}
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+
+            <View style={styles.customAmountContainer}>
+              <Text style={styles.customAmountLabel}>Custom Amount</Text>
+              <View style={styles.customAmountInputWrapper}>
+                <Text style={styles.dollarSign}>$</Text>
+                <TextInput
+                  style={styles.customAmountInput}
+                  value={customAmount}
+                  onChangeText={handleCustomAmountChange}
+                  placeholder="Enter amount"
+                  placeholderTextColor={Colors.textLight}
+                  keyboardType="decimal-pad"
+                  maxLength={8}
+                />
+              </View>
+              {customAmount && customAmountValue < 5 && (
+                <Text style={styles.errorText}>Minimum tip is $5</Text>
+              )}
             </View>
 
             <TouchableOpacity
@@ -180,5 +224,41 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  customAmountContainer: {
+    marginBottom: 32,
+  },
+  customAmountLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  customAmountInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.background,
+  },
+  dollarSign: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    marginRight: 4,
+  },
+  customAmountInput: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    paddingVertical: 16,
+  },
+  errorText: {
+    fontSize: 12,
+    color: '#FF3B30',
+    marginTop: 8,
   },
 });
