@@ -1575,7 +1575,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>✨</Text>
                 <Text style={styles.matchModalTitle}>No Spark This Time ✨</Text>
                 <Text style={styles.matchModalDescription}>
-                  Not a match. Go on to the next meal🍜\n\nThis profile and chat have been removed immediately as there was no match.
+                  Not a match. Go on to the next meal🍜 This profile and chat will be removed now.
                 </Text>
               </>
             )}
@@ -1687,7 +1687,7 @@ export default function PostMealScreen() {
                   styles.upgradeButtonText,
                   !matchResult?.isMatch && styles.noMatchButtonText
                 ]}>
-                  {matchResult?.matchType === 'buddy_pass' ? 'Cheers🎉' : matchResult?.isMatch ? '❤ icon is on' : 'Keep Looking'}
+                  {matchResult?.matchType === 'buddy_pass' ? 'Cheers🎉' : matchResult?.isMatch ? '❤ icon is on' : 'OK'}
                 </Text>
               </TouchableOpacity>
             )}
