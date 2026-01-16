@@ -8,6 +8,7 @@ import {
   SafeAreaView,
   Platform,
   Modal,
+  TextInput,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { ArrowLeft, Calendar, Clock, Send, MapPin } from 'lucide-react-native';
@@ -94,6 +95,100 @@ export default function CreateInvitationScreen() {
   };
 
   const renderDateTimePicker = () => {
+    if (Platform.OS === 'web') {
+      if (showDatePicker) {
+        return (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity 
+                style={styles.iosModalBackdrop}
+                activeOpacity={1}
+                onPress={() => setShowDatePicker(false)}
+              />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Date</Text>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.webPickerWrapper}>
+                  <TextInput
+                    style={styles.webDateInput}
+                    value={selectedDate.toISOString().split('T')[0]}
+                    onChangeText={(text) => {
+                      const date = new Date(text);
+                      if (!isNaN(date.getTime())) {
+                        setSelectedDate(date);
+                      }
+                    }}
+                    placeholder="YYYY-MM-DD"
+                  />
+                  <DateTimePicker
+                    value={selectedDate}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                    minimumDate={new Date()}
+                    style={styles.webPicker}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
+        );
+      }
+
+      if (showTimePicker) {
+        return (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowTimePicker(false)}
+          >
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity 
+                style={styles.iosModalBackdrop}
+                activeOpacity={1}
+                onPress={() => setShowTimePicker(false)}
+              />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Time</Text>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.webPickerWrapper}>
+                  <DateTimePicker
+                    value={selectedTime}
+                    mode="time"
+                    display="default"
+                    onChange={handleTimeChange}
+                    style={styles.webPicker}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
+        );
+      }
+
+      return null;
+    }
+
     if (Platform.OS === 'android') {
       return (
         <>
@@ -150,7 +245,7 @@ export default function CreateInvitationScreen() {
                   display="spinner"
                   onChange={handleDateChange}
                   minimumDate={new Date()}
-                  textColor="#000000"
+                  themeVariant="light"
                   style={styles.iosPicker}
                 />
               </View>
@@ -190,7 +285,7 @@ export default function CreateInvitationScreen() {
                   mode="time"
                   display="spinner"
                   onChange={handleTimeChange}
-                  textColor="#000000"
+                  themeVariant="light"
                   style={styles.iosPicker}
                 />
               </View>
@@ -466,7 +561,7 @@ const styles = StyleSheet.create({
     bottom: 0,
   },
   iosModalContainer: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
@@ -498,11 +593,32 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
   },
   iosPickerWrapper: {
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 10,
   },
   iosPicker: {
     width: '100%',
-    height: 200,
+    height: 220,
+    backgroundColor: '#FFFFFF',
+  },
+  webPickerWrapper: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    minHeight: 200,
+  },
+  webPicker: {
+    width: '100%',
+    minHeight: 150,
+  },
+  webDateInput: {
+    fontSize: 16,
+    color: '#000000',
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
   },
 });
