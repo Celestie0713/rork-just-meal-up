@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -7,14 +7,12 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Platform,
-  Alert
+  Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Send, AlertCircle, User } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, Send, MapPin } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { GooglePlacesService } from '@/services/google-places';
-import type { PlaceDetails } from '@/types/place';
 
 export default function CreateInvitationScreen() {
   const { placeName, placeAddress, placeId } = useLocalSearchParams<{
@@ -23,11 +21,7 @@ export default function CreateInvitationScreen() {
     placeId: string;
   }>();
 
-  const [selectedDate, setSelectedDate] = useState<Date>(() => {
-    const date = new Date();
-    date.setHours(0, 0, 0, 0);
-    return date;
-  });
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [selectedTime, setSelectedTime] = useState<Date>(() => {
     const time = new Date();
     time.setHours(19, 0, 0, 0);
@@ -35,229 +29,178 @@ export default function CreateInvitationScreen() {
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null);
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const [availabilityMessage, setAvailabilityMessage] = useState<string | null>(null);
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
-  useEffect(() => {
-    const loadPlaceDetails = async () => {
-      if (placeId) {
-        try {
-          const details = await GooglePlacesService.getPlaceDetails(placeId);
-          if (details) {
-            setPlaceDetails(details);
-          }
-        } catch (error) {
-          console.error('Error loading place details:', error);
-        }
-      }
-    };
+  const formatDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
     
-    loadPlaceDetails();
-  }, [placeId]);
-
-  const isPlaceOpenAtDateTime = (date: Date, time: Date): { isOpen: boolean; message?: string } => {
-    if (!placeDetails?.opening_hours?.periods) {
-      return { isOpen: true };
-    }
-
-    const dayOfWeek = date.getDay();
-    const timeString = time.toTimeString().slice(0, 5).replace(':', '');
-    const timeNumber = parseInt(timeString);
-
-    const dayPeriods = placeDetails.opening_hours.periods.filter(period => period.open.day === dayOfWeek);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
     
-    if (dayPeriods.length === 0) {
-      return { 
-        isOpen: false, 
-        message: `${placeName} is closed on ${date.toLocaleDateString('en-US', { weekday: 'long' })}` 
-      };
-    }
-
-    for (const period of dayPeriods) {
-      const openTime = parseInt(period.open.time);
-      const closeTime = parseInt(period.close.time);
-      
-      if (timeNumber >= openTime && timeNumber <= closeTime) {
-        return { isOpen: true };
-      }
-    }
-
-    const openingHoursText = placeDetails.opening_hours.weekday_text?.[dayOfWeek === 0 ? 6 : dayOfWeek - 1];
-    return { 
-      isOpen: false, 
-      message: `${placeName} is closed at this time. ${openingHoursText || ''}` 
-    };
-  };
-
-  const validateDateTime = () => {
-    const validation = isPlaceOpenAtDateTime(selectedDate, selectedTime);
-    if (!validation.isOpen) {
-      setValidationError(validation.message || 'Restaurant is closed at selected time');
-      setAvailabilityMessage(null);
-      return false;
-    }
-    setValidationError(null);
-    setAvailabilityMessage(null);
-    return true;
-  };
-
-  const checkAvailability = async () => {
-    setIsCheckingAvailability(true);
-    setValidationError(null);
-    setAvailabilityMessage(null);
-    
-    // Add a small delay to show loading state
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    const validation = isPlaceOpenAtDateTime(selectedDate, selectedTime);
-    
-    if (!validation.isOpen) {
-      setValidationError(validation.message || 'Restaurant is closed at selected time');
+    if (compareDate.getTime() === today.getTime()) {
+      return 'Today';
+    } else if (compareDate.getTime() === tomorrow.getTime()) {
+      return 'Tomorrow';
     } else {
-      setAvailabilityMessage(`✅ ${placeName} is open at ${formatDisplayTime(selectedTime)} on ${formatDisplayDate(selectedDate)}`);
-    }
-    
-    setIsCheckingAvailability(false);
-  };
-
-  const formatDisplayDate = (date: Date) => {
-    if (!date || isNaN(date.getTime())) {
-      return 'Select date';
-    }
-    
-    try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const tomorrow = new Date(today);
-      tomorrow.setDate(today.getDate() + 1);
-      
-      const compareDate = new Date(date);
-      compareDate.setHours(0, 0, 0, 0);
-      
-      if (compareDate.getTime() === today.getTime()) {
-        return 'Today';
-      } else if (compareDate.getTime() === tomorrow.getTime()) {
-        return 'Tomorrow';
-      } else {
-        return date.toLocaleDateString('en-US', { 
-          weekday: 'short', 
-          month: 'short', 
-          day: 'numeric' 
-        });
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Select date';
-    }
-  };
-
-  const formatDisplayTime = (time: Date) => {
-    if (!time || isNaN(time.getTime())) {
-      return 'Select time';
-    }
-    
-    try {
-      return time.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        month: 'short', 
+        day: 'numeric',
+        year: 'numeric'
       });
-    } catch (error) {
-      console.error('Error formatting time:', error);
-      return 'Select time';
     }
   };
 
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    console.log('Date picker event:', event.type, 'selectedDate:', selectedDate);
-    
-    // On Android, always close the picker
+  const formatTime = (time: Date) => {
+    return time.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
+  const handleDateChange = (event: any, date?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
     
-    // Handle dismissal on Android
-    if (event.type === 'dismissed') {
-      setShowDatePicker(false);
-      return;
-    }
-    
-    if (selectedDate && !isNaN(selectedDate.getTime())) {
-      const newDate = new Date(selectedDate);
-      newDate.setHours(0, 0, 0, 0);
-      setSelectedDate(newDate);
-      setValidationError(null);
-      
-      // Close picker on iOS after selection
+    if (event.type === 'set' && date) {
+      setSelectedDate(date);
       if (Platform.OS === 'ios') {
         setShowDatePicker(false);
       }
+    } else if (event.type === 'dismissed') {
+      setShowDatePicker(false);
     }
   };
 
-  const onTimeChange = (event: any, selectedTime?: Date) => {
-    console.log('Time picker event:', event.type, 'selectedTime:', selectedTime);
-    
-    // On Android, always close the picker
+  const handleTimeChange = (event: any, time?: Date) => {
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
     
-    // Handle dismissal on Android
-    if (event.type === 'dismissed') {
-      setShowTimePicker(false);
-      return;
-    }
-    
-    if (selectedTime && !isNaN(selectedTime.getTime())) {
-      setSelectedTime(selectedTime);
-      setValidationError(null);
-      
-      // Close picker on iOS after selection
+    if (event.type === 'set' && time) {
+      setSelectedTime(time);
       if (Platform.OS === 'ios') {
         setShowTimePicker(false);
       }
+    } else if (event.type === 'dismissed') {
+      setShowTimePicker(false);
     }
   };
 
-  const showDatePickerModal = () => {
-    console.log('Date picker pressed - Platform:', Platform.OS);
-    console.log('Current showDatePicker state:', showDatePicker);
-    setShowTimePicker(false);
-    setShowDatePicker(true);
-    console.log('Set showDatePicker to true');
+  const handleSendInvitation = () => {
+    const invitationData = {
+      placeName,
+      placeAddress,
+      placeId,
+      date: selectedDate.toISOString(),
+      time: selectedTime.toISOString(),
+      fromInvitation: 'true'
+    };
+    
+    const params = new URLSearchParams(invitationData).toString();
+    router.push(`/(tabs)/messages?${params}`);
   };
 
-  const showTimePickerModal = () => {
-    console.log('Time picker pressed - Platform:', Platform.OS);
-    console.log('Current showTimePicker state:', showTimePicker);
-    setShowDatePicker(false);
-    setShowTimePicker(true);
-    console.log('Set showTimePicker to true');
-  };
-
-  const handleSendInvitationTo = () => {
-    if (validateDateTime()) {
-      const invitationData = {
-        placeName,
-        placeAddress,
-        placeId,
-        date: selectedDate.toISOString(),
-        time: selectedTime.toISOString(),
-        fromInvitation: 'true'
-      };
-      
-      const params = new URLSearchParams(invitationData).toString();
-      router.push(`/(tabs)/messages?${params}`);
-    } else {
-      Alert.alert(
-        'Invalid Time Selection',
-        validationError || 'Please select a time when the restaurant is open.',
-        [{ text: 'OK' }]
-      );
+  const DatePickerModal = () => {
+    if (Platform.OS === 'android') {
+      return showDatePicker ? (
+        <DateTimePicker
+          value={selectedDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+          minimumDate={new Date()}
+        />
+      ) : null;
     }
+
+    return (
+      <Modal
+        visible={showDatePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setShowDatePicker(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Text style={styles.modalButton}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Select Date</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Text style={[styles.modalButton, styles.modalButtonPrimary]}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={selectedDate}
+              mode="date"
+              display="spinner"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+              textColor={Colors.text}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
+  };
+
+  const TimePickerModal = () => {
+    if (Platform.OS === 'android') {
+      return showTimePicker ? (
+        <DateTimePicker
+          value={selectedTime}
+          mode="time"
+          display="default"
+          onChange={handleTimeChange}
+          is24Hour={false}
+        />
+      ) : null;
+    }
+
+    return (
+      <Modal
+        visible={showTimePicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTimePicker(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay} 
+          activeOpacity={1}
+          onPress={() => setShowTimePicker(false)}
+        >
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                <Text style={styles.modalButton}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.modalTitle}>Select Time</Text>
+              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                <Text style={[styles.modalButton, styles.modalButtonPrimary]}>Done</Text>
+              </TouchableOpacity>
+            </View>
+            <DateTimePicker
+              value={selectedTime}
+              mode="time"
+              display="spinner"
+              onChange={handleTimeChange}
+              is24Hour={false}
+              textColor={Colors.text}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+    );
   };
 
   return (
@@ -271,132 +214,87 @@ export default function CreateInvitationScreen() {
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Profile Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Your Profile</Text>
-          <View style={styles.profileCard}>
-            <View style={styles.profileImageContainer}>
-              <User size={32} color={Colors.primary} />
-            </View>
-            <View style={styles.profileInfo}>
-              <TouchableOpacity onPress={() => router.push('/user-profile?userId=1')}>
-                <Text style={styles.profileName}>You</Text>
-              </TouchableOpacity>
-              <Text style={styles.profileSubtext}>Sending invitation</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* Restaurant Info */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Restaurant</Text>
           <View style={styles.restaurantCard}>
-            <Text style={styles.restaurantName}>{placeName}</Text>
-            <Text style={styles.restaurantAddress}>{placeAddress}</Text>
-            <View style={styles.dateTimeInfo}>
-              <View style={styles.dateTimeItem}>
-                <Calendar size={16} color={Colors.primary} />
-                <Text style={styles.dateTimeText}>{formatDisplayDate(selectedDate)}</Text>
-              </View>
-              <View style={styles.dateTimeItem}>
-                <Clock size={16} color={Colors.primary} />
-                <Text style={styles.dateTimeText}>{formatDisplayTime(selectedTime)}</Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* Edit Date */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Date</Text>
-            <TouchableOpacity 
-              onPress={checkAvailability}
-              style={[styles.validateButton, isCheckingAvailability && styles.validateButtonDisabled]}
-              disabled={isCheckingAvailability}
-            >
-              <Text style={styles.validateButtonText}>
-                {isCheckingAvailability ? 'Checking...' : 'Check Availability'}
+            <Text style={styles.restaurantName}>{placeName || 'Restaurant Name'}</Text>
+            <View style={styles.addressRow}>
+              <MapPin size={14} color={Colors.textLight} />
+              <Text style={styles.restaurantAddress} numberOfLines={2}>
+                {placeAddress || 'Restaurant Address'}
               </Text>
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity 
-            onPress={showDatePickerModal}
-            style={[styles.dateDisplay, showDatePicker && styles.activeInput]}
-            activeOpacity={0.7}
-            testID="date-picker-button"
-          >
-            <Calendar size={20} color={Colors.primary} />
-            <Text style={styles.dateDisplayText}>{formatDisplayDate(selectedDate)}</Text>
-          </TouchableOpacity>
-          {showDatePicker && (
-            <View style={styles.pickerContainer}>
-              <DateTimePicker
-                testID="dateTimePicker"
-                value={selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate : new Date()}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onDateChange}
-                minimumDate={new Date()}
-                maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
-              />
             </View>
-          )}
+          </View>
         </View>
 
-        {/* Edit Time */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>Time</Text>
+          <Text style={styles.sectionTitle}>Date & Time</Text>
+          
           <TouchableOpacity 
-            onPress={showTimePickerModal}
-            style={[styles.timeDisplay, showTimePicker && styles.activeInput]}
+            style={styles.pickerButton}
+            onPress={() => setShowDatePicker(true)}
             activeOpacity={0.7}
-            testID="time-picker-button"
           >
-            <Clock size={20} color={Colors.primary} />
-            <Text style={styles.timeDisplayText}>{formatDisplayTime(selectedTime)}</Text>
-          </TouchableOpacity>
-          {showTimePicker && (
-            <View style={styles.pickerContainer}>
-              <DateTimePicker
-                testID="timeTimePicker"
-                value={selectedTime && !isNaN(selectedTime.getTime()) ? selectedTime : new Date()}
-                mode="time"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onTimeChange}
-                is24Hour={false}
-              />
+            <View style={styles.pickerButtonLeft}>
+              <View style={styles.iconContainer}>
+                <Calendar size={20} color={Colors.primary} />
+              </View>
+              <View>
+                <Text style={styles.pickerLabel}>Date</Text>
+                <Text style={styles.pickerValue}>{formatDate(selectedDate)}</Text>
+              </View>
             </View>
-          )}
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.pickerButton}
+            onPress={() => setShowTimePicker(true)}
+            activeOpacity={0.7}
+          >
+            <View style={styles.pickerButtonLeft}>
+              <View style={styles.iconContainer}>
+                <Clock size={20} color={Colors.primary} />
+              </View>
+              <View>
+                <Text style={styles.pickerLabel}>Time</Text>
+                <Text style={styles.pickerValue}>{formatTime(selectedTime)}</Text>
+              </View>
+            </View>
+          </TouchableOpacity>
         </View>
 
-        {/* Validation Messages */}
-        {validationError && (
-          <View style={styles.errorContainer}>
-            <AlertCircle size={16} color={Colors.error} />
-            <Text style={styles.errorText}>{validationError}</Text>
+        <View style={styles.section}>
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>Invitation Summary</Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Restaurant:</Text>
+              <Text style={styles.summaryValue}>{placeName}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Date:</Text>
+              <Text style={styles.summaryValue}>{formatDate(selectedDate)}</Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Time:</Text>
+              <Text style={styles.summaryValue}>{formatTime(selectedTime)}</Text>
+            </View>
           </View>
-        )}
-        
-        {availabilityMessage && (
-          <View style={styles.successContainer}>
-            <Text style={styles.successText}>{availabilityMessage}</Text>
-          </View>
-        )}
-
-
+        </View>
       </ScrollView>
 
-      {/* Send Invitation To Button */}
       <View style={styles.footer}>
         <TouchableOpacity
-          onPress={handleSendInvitationTo}
-          style={[styles.sendButton, validationError && styles.sendButtonDisabled]}
+          onPress={handleSendInvitation}
+          style={styles.sendButton}
+          activeOpacity={0.8}
         >
-          <Send size={20} color={Colors.background} />
-          <Text style={styles.sendButtonText}>Send invitation to</Text>
+          <Send size={20} color="#FFFFFF" />
+          <Text style={styles.sendButtonText}>Send Invitation To</Text>
         </TouchableOpacity>
       </View>
+
+      <DatePickerModal />
+      <TimePickerModal />
     </SafeAreaView>
   );
 }
@@ -412,6 +310,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: Colors.background,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -420,7 +319,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '700' as const,
     color: Colors.text,
   },
   placeholder: {
@@ -428,107 +327,109 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
   },
   section: {
-    marginVertical: 20,
+    paddingHorizontal: 20,
+    marginTop: 24,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '600' as const,
     color: Colors.text,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   restaurantCard: {
     backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   restaurantName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-    marginBottom: 4,
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
   },
   restaurantAddress: {
     fontSize: 14,
-    color: '#FFFFFF',
+    color: Colors.textLight,
+    flex: 1,
+    lineHeight: 20,
+  },
+  pickerButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
-  },
-  dateTimeInfo: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  dateTimeItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  dateTimeText: {
+  pickerButtonLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 165, 0, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pickerLabel: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginBottom: 2,
+  },
+  pickerValue: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+  },
+  summaryCard: {
+    backgroundColor: 'rgba(255, 165, 0, 0.05)',
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 165, 0, 0.2)',
+  },
+  summaryTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    marginBottom: 16,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  summaryLabel: {
     fontSize: 14,
-    fontWeight: '500',
-    color: Colors.primary,
+    color: Colors.textLight,
   },
-  dateDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minHeight: 48,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    zIndex: 1,
-  },
-  dateDisplayText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
-  },
-  timeDisplay: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 12,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    minHeight: 48,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    zIndex: 1,
-  },
-  timeDisplayText: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#000000',
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    flex: 1,
+    textAlign: 'right',
   },
   footer: {
     paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingVertical: 20,
+    backgroundColor: Colors.background,
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
@@ -537,101 +438,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 16,
+    paddingVertical: 18,
     gap: 8,
   },
   sendButtonText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: Colors.background,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
   },
-  sendButtonDisabled: {
-    opacity: 0.6,
-  },
-  activeInput: {
-    borderWidth: 2,
-    borderColor: Colors.primary,
-  },
-  pickerContainer: {
-    marginTop: 12,
-    borderRadius: 12,
-    overflow: 'hidden',
-    backgroundColor: Colors.surface,
-  },
-
-  errorContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF5F5',
-    borderRadius: 8,
-    padding: 12,
-    marginHorizontal: 20,
-    marginVertical: 10,
-    gap: 8,
-  },
-  errorText: {
-    fontSize: 14,
-    color: Colors.error,
+  modalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
   },
-
-  validateButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
   },
-  validateButtonText: {
-    fontSize: 14,
-    color: Colors.background,
-    fontWeight: '500',
-  },
-  validateButtonDisabled: {
-    opacity: 0.6,
-  },
-  successContainer: {
-    backgroundColor: '#F0FDF4',
-    borderRadius: 8,
-    padding: 12,
-    marginHorizontal: 20,
-    marginVertical: 10,
-    borderWidth: 1,
-    borderColor: '#22C55E',
-  },
-  successText: {
-    fontSize: 14,
-    color: '#15803D',
-    fontWeight: '500',
-    textAlign: 'center',
-  },
-  profileCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
+  modalHeader: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
   },
-  profileImageContainer: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: 'rgba(255, 165, 0, 0.1)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
+  modalTitle: {
     fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginBottom: 2,
+    fontWeight: '600' as const,
+    color: Colors.text,
   },
-  profileSubtext: {
-    fontSize: 14,
+  modalButton: {
+    fontSize: 16,
     color: Colors.textLight,
+  },
+  modalButtonPrimary: {
+    color: Colors.primary,
+    fontWeight: '600' as const,
   },
 });
