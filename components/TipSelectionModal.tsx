@@ -67,7 +67,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
 
           <View style={styles.body}>
             <Text style={styles.subtitle}>
-              Tip the platform to view {recipientName}&apos;s decision
+              Buy us an ice cream while we&apos;re searching for your soul mate🎉
             </Text>
 
             <Text style={styles.minimumText}>Minimum $5 and above</Text>
