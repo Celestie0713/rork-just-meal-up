@@ -64,30 +64,22 @@ export default function CreateInvitationScreen() {
   const handleDateChange = (event: any, date?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
-    }
-    
-    if (event.type === 'set' && date) {
-      setSelectedDate(date);
-      if (Platform.OS === 'ios') {
-        setShowDatePicker(false);
+      if (date) {
+        setSelectedDate(date);
       }
-    } else if (event.type === 'dismissed') {
-      setShowDatePicker(false);
+    } else if (date) {
+      setSelectedDate(date);
     }
   };
 
   const handleTimeChange = (event: any, time?: Date) => {
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
-    }
-    
-    if (event.type === 'set' && time) {
-      setSelectedTime(time);
-      if (Platform.OS === 'ios') {
-        setShowTimePicker(false);
+      if (time) {
+        setSelectedTime(time);
       }
-    } else if (event.type === 'dismissed') {
-      setShowTimePicker(false);
+    } else if (time) {
+      setSelectedTime(time);
     }
   };
 
@@ -125,11 +117,12 @@ export default function CreateInvitationScreen() {
         animationType="slide"
         onRequestClose={() => setShowDatePicker(false)}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1}
-          onPress={() => setShowDatePicker(false)}
-        >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={styles.overlayTouchable}
+            activeOpacity={1}
+            onPress={() => setShowDatePicker(false)}
+          />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
@@ -143,13 +136,12 @@ export default function CreateInvitationScreen() {
             <DateTimePicker
               value={selectedDate}
               mode="date"
-              display="spinner"
+              display="inline"
               onChange={handleDateChange}
               minimumDate={new Date()}
-              textColor="#000000"
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     );
   };
@@ -174,11 +166,12 @@ export default function CreateInvitationScreen() {
         animationType="slide"
         onRequestClose={() => setShowTimePicker(false)}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1}
-          onPress={() => setShowTimePicker(false)}
-        >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={styles.overlayTouchable}
+            activeOpacity={1}
+            onPress={() => setShowTimePicker(false)}
+          />
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <TouchableOpacity onPress={() => setShowTimePicker(false)}>
@@ -192,13 +185,11 @@ export default function CreateInvitationScreen() {
             <DateTimePicker
               value={selectedTime}
               mode="time"
-              display="spinner"
+              display="inline"
               onChange={handleTimeChange}
-              is24Hour={false}
-              textColor="#000000"
             />
           </View>
-        </TouchableOpacity>
+        </View>
       </Modal>
     );
   };
@@ -452,6 +443,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
+  overlayTouchable: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
   modalContent: {
     backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
@@ -480,4 +478,5 @@ const styles = StyleSheet.create({
     color: Colors.primary,
     fontWeight: '600' as const,
   },
+
 });
