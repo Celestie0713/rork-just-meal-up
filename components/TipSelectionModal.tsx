@@ -69,8 +69,6 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
             <Text style={styles.subtitle}>
               Buy us an ice cream while we&apos;re searching for your soul mate🎉
             </Text>
-
-            <Text style={styles.minimumText}>Minimum $5 and above</Text>
             
             <View style={styles.amountGrid}>
               {TIP_AMOUNTS.map((amount) => (
