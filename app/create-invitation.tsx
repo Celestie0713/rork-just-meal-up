@@ -64,10 +64,8 @@ export default function CreateInvitationScreen() {
   const handleDateChange = (event: any, date?: Date) => {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
-      if (date) {
-        setSelectedDate(date);
-      }
-    } else if (date) {
+    }
+    if (date && date.getTime() !== selectedDate.getTime()) {
       setSelectedDate(date);
     }
   };
@@ -75,10 +73,8 @@ export default function CreateInvitationScreen() {
   const handleTimeChange = (event: any, time?: Date) => {
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
-      if (time) {
-        setSelectedTime(time);
-      }
-    } else if (time) {
+    }
+    if (time && time.getTime() !== selectedTime.getTime()) {
       setSelectedTime(time);
     }
   };
@@ -97,7 +93,7 @@ export default function CreateInvitationScreen() {
     router.push(`/(tabs)/messages?${params}`);
   };
 
-  const DatePickerModal = () => {
+  const renderDatePicker = () => {
     if (Platform.OS === 'android') {
       return showDatePicker ? (
         <DateTimePicker
@@ -146,7 +142,7 @@ export default function CreateInvitationScreen() {
     );
   };
 
-  const TimePickerModal = () => {
+  const renderTimePicker = () => {
     if (Platform.OS === 'android') {
       return showTimePicker ? (
         <DateTimePicker
@@ -284,8 +280,8 @@ export default function CreateInvitationScreen() {
         </TouchableOpacity>
       </View>
 
-      <DatePickerModal />
-      <TimePickerModal />
+      {renderDatePicker()}
+      {renderTimePicker()}
     </SafeAreaView>
   );
 }
