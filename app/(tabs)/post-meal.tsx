@@ -322,16 +322,6 @@ export default function PostMealScreen() {
                 // and chat is also removed immediately
                 console.log(`Removing event ${eventId} - both parties decided but no match (${userChoice} vs ${dateChoice})`);
                 
-                // Mark profile for removal (will be processed in useEffect)
-                const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                setProfilesToRemove(prev => {
-                  const exists = prev.some(p => p.userId === dateUserId && p.invitationId === invitationId);
-                  if (!exists) {
-                    return [...prev, { userId: dateUserId, invitationId }];
-                  }
-                  return prev;
-                });
-                
                 return; // Skip this event
               }
             }
