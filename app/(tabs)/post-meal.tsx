@@ -96,6 +96,7 @@ export default function PostMealScreen() {
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
   const [selectedTab, setSelectedTab] = useState<'1on1' | 'group'>('1on1');
   const [paidToViewChoices, setPaidToViewChoices] = useState<Record<string, boolean>>({});
+  const [profilesToRemove, setProfilesToRemove] = useState<{ userId: string; invitationId: string }[]>([]);
 
 
   // Log when matchedProfiles changes
@@ -130,6 +131,17 @@ export default function PostMealScreen() {
       console.log(`Timestamp ${key}: ${timestamp.toISOString()}`);
     });
   }, [choiceTimestamps]);
+
+  // Handle profile removal after render to avoid setState during render
+  useEffect(() => {
+    if (profilesToRemove.length > 0) {
+      profilesToRemove.forEach(({ userId, invitationId }) => {
+        removeProfileFromChat(userId, invitationId, 'no_match');
+        console.log(`Removed profile ${userId} from chat due to no match`);
+      });
+      setProfilesToRemove([]);
+    }
+  }, [profilesToRemove, removeProfileFromChat]);
 
   const handlePayToViewChoice = (eventId: string) => {
     Linking.openURL('https://buy.stripe.com/test_00g03p9CUb6H3eM8ww');
@@ -295,10 +307,15 @@ export default function PostMealScreen() {
                 // and chat is also removed immediately
                 console.log(`Removing event ${eventId} - both parties decided but no match (${userChoice} vs ${dateChoice})`);
                 
-                // Remove profile from chat immediately
+                // Mark profile for removal (will be processed in useEffect)
                 const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                removeProfileFromChat(dateUserId, invitationId, 'no_match');
-                console.log(`Removed profile ${dateUserId} from chat due to no match`);
+                setProfilesToRemove(prev => {
+                  const exists = prev.some(p => p.userId === dateUserId && p.invitationId === invitationId);
+                  if (!exists) {
+                    return [...prev, { userId: dateUserId, invitationId }];
+                  }
+                  return prev;
+                });
                 
                 return; // Skip this event
               }
@@ -369,7 +386,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, removeProfileFromChat]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
