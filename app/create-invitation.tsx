@@ -30,6 +30,9 @@ export default function CreateInvitationScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [tempHour, setTempHour] = useState<number>(19);
+  const [tempMinute, setTempMinute] = useState<number>(0);
+  const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('PM');
 
   const formatDate = (date: Date) => {
     const today = new Date();
@@ -124,6 +127,126 @@ export default function CreateInvitationScreen() {
     if (time) {
       setSelectedTime(time);
     }
+  };
+
+  const handleTimePickerOpen = () => {
+    const hours = selectedTime.getHours();
+    const minutes = selectedTime.getMinutes();
+    const hour12 = hours % 12 || 12;
+    const period = hours >= 12 ? 'PM' : 'AM';
+    
+    setTempHour(hour12);
+    setTempMinute(minutes);
+    setTempPeriod(period);
+    setShowTimePicker(true);
+  };
+
+  const handleTimeDone = () => {
+    const newTime = new Date(selectedTime);
+    let hours = tempHour;
+    if (tempPeriod === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (tempPeriod === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    newTime.setHours(hours, tempMinute, 0, 0);
+    setSelectedTime(newTime);
+    setShowTimePicker(false);
+  };
+
+  const renderCustomTimePicker = () => {
+    const hours = Array.from({ length: 12 }, (_, i) => i + 1);
+    const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+    return (
+      <View style={styles.customTimePickerContainer}>
+        <View style={styles.timePickerRow}>
+          <View style={styles.timePickerColumn}>
+            <Text style={styles.timePickerColumnLabel}>Hour</Text>
+            <ScrollView 
+              style={styles.timePickerScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {hours.map((hour) => (
+                <TouchableOpacity
+                  key={hour}
+                  style={[
+                    styles.timePickerItem,
+                    tempHour === hour && styles.timePickerItemSelected,
+                  ]}
+                  onPress={() => setTempHour(hour)}
+                >
+                  <Text
+                    style={[
+                      styles.timePickerItemText,
+                      tempHour === hour && styles.timePickerItemTextSelected,
+                    ]}
+                  >
+                    {hour}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.timePickerColumn}>
+            <Text style={styles.timePickerColumnLabel}>Minute</Text>
+            <ScrollView 
+              style={styles.timePickerScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {minutes.map((minute) => (
+                <TouchableOpacity
+                  key={minute}
+                  style={[
+                    styles.timePickerItem,
+                    tempMinute === minute && styles.timePickerItemSelected,
+                  ]}
+                  onPress={() => setTempMinute(minute)}
+                >
+                  <Text
+                    style={[
+                      styles.timePickerItemText,
+                      tempMinute === minute && styles.timePickerItemTextSelected,
+                    ]}
+                  >
+                    {minute.toString().padStart(2, '0')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          <View style={styles.timePickerColumn}>
+            <Text style={styles.timePickerColumnLabel}>Period</Text>
+            <ScrollView 
+              style={styles.timePickerScroll}
+              showsVerticalScrollIndicator={false}
+            >
+              {['AM', 'PM'].map((period) => (
+                <TouchableOpacity
+                  key={period}
+                  style={[
+                    styles.timePickerItem,
+                    tempPeriod === period && styles.timePickerItemSelected,
+                  ]}
+                  onPress={() => setTempPeriod(period as 'AM' | 'PM')}
+                >
+                  <Text
+                    style={[
+                      styles.timePickerItemText,
+                      tempPeriod === period && styles.timePickerItemTextSelected,
+                    ]}
+                  >
+                    {period}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   const handleSendInvitation = () => {
@@ -275,43 +398,74 @@ export default function CreateInvitationScreen() {
     }
 
     if (showTimePicker) {
-      return (
-        <Modal
-          visible={true}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowTimePicker(false)}
-        >
-          <View style={styles.iosModalOverlay}>
-            <TouchableOpacity 
-              style={styles.iosModalBackdrop}
-              activeOpacity={1}
-              onPress={() => setShowTimePicker(false)}
-            />
-            <View style={styles.iosModalContainer}>
-              <View style={styles.iosModalHeader}>
-                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                  <Text style={styles.iosModalCancelButton}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={styles.iosModalTitle}>Select Time</Text>
-                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                  <Text style={styles.iosModalDoneButton}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <View style={styles.iosPickerWrapper}>
-                <DateTimePicker
-                  value={selectedTime}
-                  mode="time"
-                  display="spinner"
-                  onChange={handleTimeChange}
-                  textColor="#000000"
-                  style={styles.iosPicker}
-                />
+      if (Platform.OS === 'ios') {
+        return (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowTimePicker(false)}
+          >
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity 
+                style={styles.iosModalBackdrop}
+                activeOpacity={1}
+                onPress={() => setShowTimePicker(false)}
+              />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Time</Text>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.iosPickerWrapper}>
+                  <DateTimePicker
+                    value={selectedTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleTimeChange}
+                    textColor="#000000"
+                    style={styles.iosPicker}
+                  />
+                </View>
               </View>
             </View>
-          </View>
-        </Modal>
-      );
+          </Modal>
+        );
+      } else {
+        return (
+          <Modal
+            visible={true}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowTimePicker(false)}
+          >
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity 
+                style={styles.iosModalBackdrop}
+                activeOpacity={1}
+                onPress={() => setShowTimePicker(false)}
+              />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Time</Text>
+                  <TouchableOpacity onPress={handleTimeDone}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                {renderCustomTimePicker()}
+              </View>
+            </View>
+          </Modal>
+        );
+      }
     }
 
     return null;
@@ -367,7 +521,7 @@ export default function CreateInvitationScreen() {
             style={styles.dateTimeButton}
             onPress={() => {
               console.log('Time button pressed');
-              setShowTimePicker(true);
+              handleTimePickerOpen();
             }}
             activeOpacity={0.7}
           >
@@ -702,5 +856,50 @@ const styles = StyleSheet.create({
   pastDayText: {
     color: '#D0D0D0',
     fontWeight: '400' as const,
+  },
+  customTimePickerContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    minHeight: 300,
+  },
+  timePickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  timePickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  timePickerColumnLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#666666',
+    marginBottom: 12,
+  },
+  timePickerScroll: {
+    maxHeight: 200,
+  },
+  timePickerItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    marginVertical: 4,
+  },
+  timePickerItemSelected: {
+    backgroundColor: Colors.primary,
+  },
+  timePickerItemText: {
+    fontSize: 18,
+    color: '#000000',
+    fontWeight: '500' as const,
+  },
+  timePickerItemTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '700' as const,
   },
 });
