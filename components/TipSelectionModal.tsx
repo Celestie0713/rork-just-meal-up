@@ -44,7 +44,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
           </View>
 
           <Text style={styles.subtitle}>
-            Support {recipientName} to unlock this voice message
+            Tip the platform to view {recipientName}&apos;s decision
           </Text>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
@@ -101,7 +101,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
 
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
-                💡 Tips help support content creators and unlock premium messages
+                💡 Your tip supports the platform to keep it running and helps you view their decision
               </Text>
             </View>
           </ScrollView>
