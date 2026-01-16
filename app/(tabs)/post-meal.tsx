@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -71,13 +71,13 @@ function isPostMeal(date: Date, time: string): boolean {
 }
 
 export default function PostMealScreen() {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles } = useChat();
   const { addMatchDecisionNotification } = useNotifications();
   const [mealCounters, setMealCounters] = useState<Record<string, number>>({});
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
-  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [selectedChoices, setSelectedChoices] = useState<Record<string, string>>({});
   const [finalizedChoices, setFinalizedChoices] = useState<Record<string, boolean>>({});
@@ -96,6 +96,7 @@ export default function PostMealScreen() {
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
   const [selectedTab, setSelectedTab] = useState<'1on1' | 'group'>('1on1');
+  const [paidToViewChoices, setPaidToViewChoices] = useState<Record<string, boolean>>({});
 
 
   // Log when matchedProfiles changes
@@ -131,19 +132,12 @@ export default function PostMealScreen() {
     });
   }, [choiceTimestamps]);
 
-  const handleUpgradeToPremium = () => {
-    setShowUpgradeModal(true);
-  };
-
-  const confirmUpgrade = async () => {
-    try {
-      await updateUser({ membershipTier: 'premium' });
-      setShowUpgradeModal(false);
-      setShowSuccessModal(true);
-    } catch (error) {
-      console.error('Failed to upgrade:', error);
-      setShowUpgradeModal(false);
-    }
+  const handlePayToViewChoice = (eventId: string) => {
+    Linking.openURL('https://buy.stripe.com/test_00g03p9CUb6H3eM8ww');
+    setPaidToViewChoices(prev => ({
+      ...prev,
+      [eventId]: true
+    }));
   };
 
   const getDateChoice = useCallback((invitationId: string) => {
@@ -1222,32 +1216,36 @@ export default function PostMealScreen() {
                     }
                   }
                   
-                  return isPremium && displayChoice ? (
-                    <View style={[styles.choiceButton, styles.selectedChoice]}>
-                      <Text style={[styles.choiceButtonText, styles.selectedChoiceText]}>
-                        {displayChoice.text}
-                      </Text>
-                      <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext]}>
-                        {displayChoice.subtext}
-                      </Text>
+                  const hasPaid = paidToViewChoices[event.id];
+                  
+                  return displayChoice ? (
+                    <View>
+                      <View style={[styles.choiceButton, styles.selectedChoice, !hasPaid && styles.blurredChoiceContainer]}>
+                        <Text style={[styles.choiceButtonText, styles.selectedChoiceText, !hasPaid && styles.blurredChoiceText]}>
+                          {displayChoice.text}
+                        </Text>
+                        <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, !hasPaid && styles.blurredChoiceText]}>
+                          {displayChoice.subtext}
+                        </Text>
+                      </View>
+                      {!hasPaid && (
+                        <View style={styles.blurOverlay}>
+                          <TouchableOpacity 
+                            style={styles.payToViewButton}
+                            onPress={() => handlePayToViewChoice(event.id)}
+                          >
+                            <Text style={styles.payToViewButtonText}>💰 Pay tip to view</Text>
+                            <Text style={styles.payToViewSubtext}>Min $5</Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
                     </View>
-                  ) : isPremium ? (
+                  ) : (
                     <View style={styles.noDecisionContainer}>
                       <Text style={styles.noDecisionText}>No decision yet — currently marinating 🍖 #patience</Text>
                     </View>
-                  ) : null;
+                  );
                 })()}
-                {!isPremium && (
-                  <TouchableOpacity 
-                    style={styles.upgradePromptInline}
-                    onPress={handleUpgradeToPremium}
-                  >
-                    <Star size={14} color={colors.premium} />
-                    <Text style={styles.upgradeTextInline}>
-                      Upgrade to Premium to see your date&apos;s choice
-                    </Text>
-                  </TouchableOpacity>
-                )}
               </View>
               
               <View style={styles.userChoicesSection}>
@@ -1526,45 +1524,6 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>{"\n"}❌ No spark? Poof! Profile and chat vanish like a bad date story.</Text>
         </View>
       </ScrollView>
-
-      {/* Upgrade Modal */}
-      <Modal
-        visible={showUpgradeModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowUpgradeModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Upgrade to Premium</Text>
-              <TouchableOpacity 
-                onPress={() => setShowUpgradeModal(false)}
-                style={styles.closeButton}
-              >
-                <X size={24} color={colors.textLight} />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalDescription}>
-              Unlock premium features including seeing your date&apos;s choices and more!
-            </Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={styles.cancelButton}
-                onPress={() => setShowUpgradeModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={styles.upgradeButton}
-                onPress={confirmUpgrade}
-              >
-                <Text style={styles.upgradeButtonText}>Upgrade Now</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
 
       {/* Success Modal */}
       <Modal
@@ -2185,6 +2144,54 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 3,
     color: 'transparent',
+  },
+  blurredChoiceContainer: {
+    position: 'relative',
+  },
+  blurredChoiceText: {
+    ...Platform.select({
+      web: {
+        filter: 'blur(8px)',
+      },
+      default: {
+        opacity: 0.3,
+      },
+    }),
+  },
+  blurOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 12,
+  },
+  payToViewButton: {
+    backgroundColor: colors.premium,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  payToViewButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.background,
+    marginBottom: 2,
+  },
+  payToViewSubtext: {
+    fontSize: 11,
+    fontWeight: '500',
+    color: colors.background,
+    opacity: 0.9,
   },
   modalOverlay: {
     flex: 1,
