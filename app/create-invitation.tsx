@@ -65,7 +65,7 @@ export default function CreateInvitationScreen() {
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
-    if (date && date.getTime() !== selectedDate.getTime()) {
+    if (date) {
       setSelectedDate(date);
     }
   };
@@ -74,7 +74,7 @@ export default function CreateInvitationScreen() {
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
-    if (time && time.getTime() !== selectedTime.getTime()) {
+    if (time) {
       setSelectedTime(time);
     }
   };
@@ -93,101 +93,114 @@ export default function CreateInvitationScreen() {
     router.push(`/(tabs)/messages?${params}`);
   };
 
-  const renderDatePicker = () => {
+  const renderDateTimePicker = () => {
     if (Platform.OS === 'android') {
-      return showDatePicker ? (
-        <DateTimePicker
-          value={selectedDate}
-          mode="date"
-          display="default"
-          onChange={handleDateChange}
-          minimumDate={new Date()}
-        />
-      ) : null;
-    }
-
-    return (
-      <Modal
-        visible={showDatePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowDatePicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={styles.overlayTouchable}
-            activeOpacity={1}
-            onPress={() => setShowDatePicker(false)}
-          />
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Text style={styles.modalButton}>Cancel</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Select Date</Text>
-              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Text style={[styles.modalButton, styles.modalButtonPrimary]}>Done</Text>
-              </TouchableOpacity>
-            </View>
+      return (
+        <>
+          {showDatePicker && (
             <DateTimePicker
               value={selectedDate}
               mode="date"
-              display="inline"
+              display="default"
               onChange={handleDateChange}
               minimumDate={new Date()}
             />
-          </View>
-        </View>
-      </Modal>
-    );
-  };
-
-  const renderTimePicker = () => {
-    if (Platform.OS === 'android') {
-      return showTimePicker ? (
-        <DateTimePicker
-          value={selectedTime}
-          mode="time"
-          display="default"
-          onChange={handleTimeChange}
-          is24Hour={false}
-        />
-      ) : null;
-    }
-
-    return (
-      <Modal
-        visible={showTimePicker}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setShowTimePicker(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity 
-            style={styles.overlayTouchable}
-            activeOpacity={1}
-            onPress={() => setShowTimePicker(false)}
-          />
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                <Text style={styles.modalButton}>Cancel</Text>
-              </TouchableOpacity>
-              <Text style={styles.modalTitle}>Select Time</Text>
-              <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                <Text style={[styles.modalButton, styles.modalButtonPrimary]}>Done</Text>
-              </TouchableOpacity>
-            </View>
+          )}
+          {showTimePicker && (
             <DateTimePicker
               value={selectedTime}
               mode="time"
-              display="inline"
+              display="default"
               onChange={handleTimeChange}
+              is24Hour={false}
             />
+          )}
+        </>
+      );
+    }
+
+    if (showDatePicker) {
+      return (
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <View style={styles.iosModalOverlay}>
+            <TouchableOpacity 
+              style={styles.iosModalBackdrop}
+              activeOpacity={1}
+              onPress={() => setShowDatePicker(false)}
+            />
+            <View style={styles.iosModalContainer}>
+              <View style={styles.iosModalHeader}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.iosModalTitle}>Select Date</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.iosModalDoneButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.iosPickerWrapper}>
+                <DateTimePicker
+                  value={selectedDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                  textColor="#000000"
+                  style={styles.iosPicker}
+                />
+              </View>
+            </View>
           </View>
-        </View>
-      </Modal>
-    );
+        </Modal>
+      );
+    }
+
+    if (showTimePicker) {
+      return (
+        <Modal
+          visible={true}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <View style={styles.iosModalOverlay}>
+            <TouchableOpacity 
+              style={styles.iosModalBackdrop}
+              activeOpacity={1}
+              onPress={() => setShowTimePicker(false)}
+            />
+            <View style={styles.iosModalContainer}>
+              <View style={styles.iosModalHeader}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.iosModalTitle}>Select Time</Text>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={styles.iosModalDoneButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.iosPickerWrapper}>
+                <DateTimePicker
+                  value={selectedTime}
+                  mode="time"
+                  display="spinner"
+                  onChange={handleTimeChange}
+                  textColor="#000000"
+                  style={styles.iosPicker}
+                />
+              </View>
+            </View>
+          </View>
+        </Modal>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -218,33 +231,39 @@ export default function CreateInvitationScreen() {
           <Text style={styles.sectionTitle}>Date & Time</Text>
           
           <TouchableOpacity 
-            style={styles.pickerButton}
-            onPress={() => setShowDatePicker(true)}
+            style={styles.dateTimeButton}
+            onPress={() => {
+              console.log('Date button pressed');
+              setShowDatePicker(true);
+            }}
             activeOpacity={0.7}
           >
-            <View style={styles.pickerButtonLeft}>
-              <View style={styles.iconContainer}>
+            <View style={styles.dateTimeButtonContent}>
+              <View style={styles.iconWrapper}>
                 <Calendar size={20} color={Colors.primary} />
               </View>
-              <View>
-                <Text style={styles.pickerLabel}>Date</Text>
-                <Text style={styles.pickerValue}>{formatDate(selectedDate)}</Text>
+              <View style={styles.dateTimeTextContainer}>
+                <Text style={styles.dateTimeLabel}>Date</Text>
+                <Text style={styles.dateTimeValue}>{formatDate(selectedDate)}</Text>
               </View>
             </View>
           </TouchableOpacity>
 
           <TouchableOpacity 
-            style={styles.pickerButton}
-            onPress={() => setShowTimePicker(true)}
+            style={styles.dateTimeButton}
+            onPress={() => {
+              console.log('Time button pressed');
+              setShowTimePicker(true);
+            }}
             activeOpacity={0.7}
           >
-            <View style={styles.pickerButtonLeft}>
-              <View style={styles.iconContainer}>
+            <View style={styles.dateTimeButtonContent}>
+              <View style={styles.iconWrapper}>
                 <Clock size={20} color={Colors.primary} />
               </View>
-              <View>
-                <Text style={styles.pickerLabel}>Time</Text>
-                <Text style={styles.pickerValue}>{formatTime(selectedTime)}</Text>
+              <View style={styles.dateTimeTextContainer}>
+                <Text style={styles.dateTimeLabel}>Time</Text>
+                <Text style={styles.dateTimeValue}>{formatTime(selectedTime)}</Text>
               </View>
             </View>
           </TouchableOpacity>
@@ -255,7 +274,7 @@ export default function CreateInvitationScreen() {
             <Text style={styles.summaryTitle}>Invitation Summary</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Restaurant:</Text>
-              <Text style={styles.summaryValue}>{placeName}</Text>
+              <Text style={styles.summaryValue} numberOfLines={2}>{placeName}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Date:</Text>
@@ -280,8 +299,7 @@ export default function CreateInvitationScreen() {
         </TouchableOpacity>
       </View>
 
-      {renderDatePicker()}
-      {renderTimePicker()}
+      {renderDateTimePicker()}
     </SafeAreaView>
   );
 }
@@ -349,23 +367,20 @@ const styles = StyleSheet.create({
     flex: 1,
     lineHeight: 20,
   },
-  pickerButton: {
+  dateTimeButton: {
     backgroundColor: Colors.surface,
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  pickerButtonLeft: {
+  dateTimeButtonContent: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  iconContainer: {
+  iconWrapper: {
     width: 44,
     height: 44,
     borderRadius: 12,
@@ -373,12 +388,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pickerLabel: {
+  dateTimeTextContainer: {
+    flex: 1,
+  },
+  dateTimeLabel: {
     fontSize: 12,
     color: Colors.textLight,
     marginBottom: 2,
   },
-  pickerValue: {
+  dateTimeValue: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.text,
@@ -399,8 +417,9 @@ const styles = StyleSheet.create({
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 10,
+    gap: 12,
   },
   summaryLabel: {
     fontSize: 14,
@@ -434,45 +453,56 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: '#FFFFFF',
   },
-  modalOverlay: {
+  iosModalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
-  overlayTouchable: {
+  iosModalBackdrop: {
     position: 'absolute' as const,
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
   },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
+  iosModalContainer: {
+    backgroundColor: '#F5F5F5',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
   },
-  modalHeader: {
+  iosModalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#E5E5E5',
   },
-  modalTitle: {
-    fontSize: 16,
+  iosModalTitle: {
+    fontSize: 17,
     fontWeight: '600' as const,
     color: '#000000',
   },
-  modalButton: {
-    fontSize: 16,
-    color: '#666666',
+  iosModalCancelButton: {
+    fontSize: 17,
+    color: '#007AFF',
   },
-  modalButtonPrimary: {
+  iosModalDoneButton: {
+    fontSize: 17,
     color: Colors.primary,
     fontWeight: '600' as const,
   },
-
+  iosPickerWrapper: {
+    backgroundColor: '#F5F5F5',
+    paddingVertical: 10,
+  },
+  iosPicker: {
+    width: '100%',
+    height: 200,
+  },
 });
