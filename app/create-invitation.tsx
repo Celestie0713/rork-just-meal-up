@@ -622,8 +622,9 @@ const styles = StyleSheet.create({
   },
   calendarWrapper: {
     backgroundColor: '#FFFFFF',
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 400,
   },
   calendar: {
     backgroundColor: '#FFFFFF',
@@ -632,19 +633,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    paddingHorizontal: 4,
   },
   monthButton: {
     padding: 8,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 165, 0, 0.08)',
   },
   monthYearText: {
     fontSize: 18,
     fontWeight: '700' as const,
-    color: Colors.text,
+    color: '#000000',
   },
   weekDaysRow: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: 8,
+    paddingHorizontal: 2,
   },
   weekDayCell: {
     flex: 1,
@@ -652,32 +661,35 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   weekDayText: {
-    fontSize: 12,
-    fontWeight: '600' as const,
-    color: Colors.textLight,
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: '#999999',
   },
   daysGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    paddingHorizontal: 2,
   },
   dayCell: {
     width: '14.285%',
-    aspectRatio: 1,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 4,
+    marginVertical: 4,
   },
   selectedDayCell: {
     backgroundColor: Colors.primary,
-    borderRadius: 50,
+    borderRadius: 24,
   },
   todayDayCell: {
-    backgroundColor: 'rgba(255, 165, 0, 0.1)',
-    borderRadius: 50,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderRadius: 24,
   },
   dayText: {
-    fontSize: 16,
-    color: Colors.text,
+    fontSize: 17,
+    color: '#000000',
+    fontWeight: '500' as const,
   },
   selectedDayText: {
     color: '#FFFFFF',
@@ -685,9 +697,10 @@ const styles = StyleSheet.create({
   },
   todayDayText: {
     color: Colors.primary,
-    fontWeight: '600' as const,
+    fontWeight: '700' as const,
   },
   pastDayText: {
-    color: Colors.border,
+    color: '#D0D0D0',
+    fontWeight: '400' as const,
   },
 });
