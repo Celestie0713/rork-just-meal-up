@@ -225,37 +225,17 @@ export default function CreateInvitationScreen() {
   const showDatePickerModal = () => {
     console.log('Date picker pressed - Platform:', Platform.OS);
     console.log('Current showDatePicker state:', showDatePicker);
-    setShowTimePicker(false); // Close time picker if open
+    setShowTimePicker(false);
     setShowDatePicker(true);
+    console.log('Set showDatePicker to true');
   };
 
   const showTimePickerModal = () => {
     console.log('Time picker pressed - Platform:', Platform.OS);
     console.log('Current showTimePicker state:', showTimePicker);
-    setShowDatePicker(false); // Close date picker if open
+    setShowDatePicker(false);
     setShowTimePicker(true);
-  };
-
-  const handleWebDateChange = (dateString: string) => {
-    if (dateString) {
-      const newDate = new Date(dateString + 'T00:00:00');
-      if (!isNaN(newDate.getTime())) {
-        setSelectedDate(newDate);
-        setValidationError(null);
-      }
-    }
-  };
-
-  const handleWebTimeChange = (timeString: string) => {
-    if (timeString) {
-      const [hours, minutes] = timeString.split(':');
-      const newTime = new Date();
-      newTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-      if (!isNaN(newTime.getTime())) {
-        setSelectedTime(newTime);
-        setValidationError(null);
-      }
-    }
+    console.log('Set showTimePicker to true');
   };
 
   const handleSendInvitationTo = () => {
@@ -341,45 +321,26 @@ export default function CreateInvitationScreen() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity 
-            onPress={() => {
-              console.log('Date TouchableOpacity pressed! Platform:', Platform.OS);
-              if (Platform.OS === 'web') {
-                const input = document.createElement('input');
-                input.type = 'date';
-                const today = new Date();
-                const dateValue = selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate.toISOString().split('T')[0] : today.toISOString().split('T')[0];
-                input.value = dateValue;
-                input.min = today.toISOString().split('T')[0];
-                input.onchange = (e) => {
-                  const target = e.target as HTMLInputElement;
-                  handleWebDateChange(target.value);
-                };
-                input.click();
-              } else {
-                showDatePickerModal();
-              }
-            }}
-            style={[styles.dateDisplay, showDatePicker && Platform.OS === 'ios' && styles.activeInput]}
+            onPress={showDatePickerModal}
+            style={[styles.dateDisplay, showDatePicker && styles.activeInput]}
             activeOpacity={0.7}
             testID="date-picker-button"
-            accessible={true}
-            accessibilityLabel="Select date"
-            accessibilityRole="button"
           >
             <Calendar size={20} color={Colors.primary} />
             <Text style={styles.dateDisplayText}>{formatDisplayDate(selectedDate)}</Text>
           </TouchableOpacity>
-          {showDatePicker && Platform.OS !== 'web' && (
-            <DateTimePicker
-              testID="dateTimePicker"
-              value={selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate : new Date()}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onDateChange}
-              minimumDate={new Date()}
-              maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)} // 1 year from now
-              style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
-            />
+          {showDatePicker && (
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={selectedDate && !isNaN(selectedDate.getTime()) ? selectedDate : new Date()}
+                mode="date"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onDateChange}
+                minimumDate={new Date()}
+                maximumDate={new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)}
+              />
+            </View>
           )}
         </View>
 
@@ -387,42 +348,25 @@ export default function CreateInvitationScreen() {
         <View style={styles.section}>
           <Text style={[styles.sectionTitle, { marginBottom: 16 }]}>Time</Text>
           <TouchableOpacity 
-            onPress={() => {
-              console.log('Time TouchableOpacity pressed! Platform:', Platform.OS);
-              if (Platform.OS === 'web') {
-                const input = document.createElement('input');
-                input.type = 'time';
-                const timeValue = selectedTime && !isNaN(selectedTime.getTime()) ? selectedTime.toTimeString().slice(0, 5) : '19:00';
-                input.value = timeValue;
-                input.onchange = (e) => {
-                  const target = e.target as HTMLInputElement;
-                  handleWebTimeChange(target.value);
-                };
-                input.click();
-              } else {
-                showTimePickerModal();
-              }
-            }}
-            style={[styles.timeDisplay, showTimePicker && Platform.OS === 'ios' && styles.activeInput]}
+            onPress={showTimePickerModal}
+            style={[styles.timeDisplay, showTimePicker && styles.activeInput]}
             activeOpacity={0.7}
             testID="time-picker-button"
-            accessible={true}
-            accessibilityLabel="Select time"
-            accessibilityRole="button"
           >
             <Clock size={20} color={Colors.primary} />
             <Text style={styles.timeDisplayText}>{formatDisplayTime(selectedTime)}</Text>
           </TouchableOpacity>
-          {showTimePicker && Platform.OS !== 'web' && (
-            <DateTimePicker
-              testID="timeTimePicker"
-              value={selectedTime && !isNaN(selectedTime.getTime()) ? selectedTime : new Date()}
-              mode="time"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={onTimeChange}
-              is24Hour={true}
-              style={Platform.OS === 'ios' ? styles.iosDatePicker : undefined}
-            />
+          {showTimePicker && (
+            <View style={styles.pickerContainer}>
+              <DateTimePicker
+                testID="timeTimePicker"
+                value={selectedTime && !isNaN(selectedTime.getTime()) ? selectedTime : new Date()}
+                mode="time"
+                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                onChange={onTimeChange}
+                is24Hour={false}
+              />
+            </View>
           )}
         </View>
 
@@ -609,8 +553,11 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.primary,
   },
-  iosDatePicker: {
-    marginTop: 10,
+  pickerContainer: {
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+    backgroundColor: Colors.surface,
   },
 
   errorContainer: {
