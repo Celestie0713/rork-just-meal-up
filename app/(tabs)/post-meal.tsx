@@ -144,7 +144,8 @@ export default function PostMealScreen() {
       });
       setProfilesToRemove([]);
     }
-  }, [profilesToRemove, removeProfileFromChat]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profilesToRemove]);
 
   const handlePayToViewChoice = (eventId: string) => {
     setSelectedEventForTip(eventId);
