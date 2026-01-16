@@ -1606,7 +1606,6 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'no_decision' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🥩</Text>
-
                 <Text style={styles.matchModalDescription}>
                   No decision yet — currently marinating 🍖 #patience
                   {matchResult?.eventId && (() => {
