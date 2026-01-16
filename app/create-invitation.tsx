@@ -146,7 +146,7 @@ export default function CreateInvitationScreen() {
               display="spinner"
               onChange={handleDateChange}
               minimumDate={new Date()}
-              textColor={Colors.text}
+              textColor="#000000"
             />
           </View>
         </TouchableOpacity>
@@ -195,7 +195,7 @@ export default function CreateInvitationScreen() {
               display="spinner"
               onChange={handleTimeChange}
               is24Hour={false}
-              textColor={Colors.text}
+              textColor="#000000"
             />
           </View>
         </TouchableOpacity>
@@ -453,7 +453,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingBottom: 34,
@@ -465,16 +465,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    borderBottomColor: '#E0E0E0',
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
-    color: Colors.text,
+    color: '#000000',
   },
   modalButton: {
     fontSize: 16,
-    color: Colors.textLight,
+    color: '#666666',
   },
   modalButtonPrimary: {
     color: Colors.primary,
