@@ -1133,15 +1133,6 @@ export default function PostMealScreen() {
                     const extensionKey = `${invitationId}-${dateUserId}`;
                     const extension = mixedSignalsExtensions[extensionKey];
                     
-                    // If there's an active extension but the date hasn't re-decided yet, show marinating message
-                    if (extension && !extension.hasDateReDecided) {
-                      return isPremium ? (
-                        <View style={styles.noDecisionContainer}>
-                          <Text style={styles.noDecisionText}>No decision yet — currently marinating 🍖 #patience</Text>
-                        </View>
-                      ) : null;
-                    }
-                    
                     // If there's an extension and the date has re-decided, show their new choice
                     if (extension && extension.hasDateReDecided && extension.dateChoice) {
                       displayChoice = getChoiceDisplay(extension.dateChoice);
@@ -1151,15 +1142,17 @@ export default function PostMealScreen() {
                   
                   const hasPaid = paidToViewChoices[event.id];
                   
-                  return displayChoice ? (
+                  return (
                     <View>
                       <View style={[styles.choiceButton, styles.selectedChoice, !hasPaid && styles.blurredChoiceContainer]}>
                         <Text style={[styles.choiceButtonText, styles.selectedChoiceText, !hasPaid && styles.blurredChoiceText]}>
-                          {displayChoice.text}
+                          {displayChoice ? displayChoice.text : 'No decision yet — currently marinating 🍖 #patience'}
                         </Text>
-                        <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, !hasPaid && styles.blurredChoiceText]}>
-                          {displayChoice.subtext}
-                        </Text>
+                        {displayChoice && (
+                          <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, !hasPaid && styles.blurredChoiceText]}>
+                            {displayChoice.subtext}
+                          </Text>
+                        )}
                       </View>
                       {!hasPaid && (
                         <View style={styles.blurOverlay}>
@@ -1172,10 +1165,6 @@ export default function PostMealScreen() {
                           </TouchableOpacity>
                         </View>
                       )}
-                    </View>
-                  ) : (
-                    <View style={styles.noDecisionContainer}>
-                      <Text style={styles.noDecisionText}>No decision yet — currently marinating 🍖 #patience</Text>
                     </View>
                   );
                 })()}
