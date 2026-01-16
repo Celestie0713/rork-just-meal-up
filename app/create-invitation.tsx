@@ -8,10 +8,9 @@ import {
   SafeAreaView,
   Platform,
   Modal,
-  TextInput,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Send, MapPin } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -30,6 +29,7 @@ export default function CreateInvitationScreen() {
   });
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
 
   const formatDate = (date: Date) => {
     const today = new Date();
@@ -71,6 +71,52 @@ export default function CreateInvitationScreen() {
     }
   };
 
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+  };
+
+  const getDaysInMonth = (date: Date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+    
+    return { daysInMonth, startingDayOfWeek, firstDay };
+  };
+
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+           date.getMonth() === today.getMonth() &&
+           date.getFullYear() === today.getFullYear();
+  };
+
+  const isSameDay = (date1: Date, date2: Date) => {
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+  };
+
+  const isPastDate = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compareDate = new Date(date);
+    compareDate.setHours(0, 0, 0, 0);
+    return compareDate < today;
+  };
+
+  const changeMonth = (direction: 'prev' | 'next') => {
+    const newMonth = new Date(calendarMonth);
+    if (direction === 'prev') {
+      newMonth.setMonth(newMonth.getMonth() - 1);
+    } else {
+      newMonth.setMonth(newMonth.getMonth() + 1);
+    }
+    setCalendarMonth(newMonth);
+  };
+
   const handleTimeChange = (event: any, time?: Date) => {
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
@@ -94,101 +140,82 @@ export default function CreateInvitationScreen() {
     router.push(`/(tabs)/messages?${params}`);
   };
 
-  const renderDateTimePicker = () => {
-    if (Platform.OS === 'web') {
-      if (showDatePicker) {
-        return (
-          <Modal
-            visible={true}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setShowDatePicker(false)}
-          >
-            <View style={styles.iosModalOverlay}>
-              <TouchableOpacity 
-                style={styles.iosModalBackdrop}
-                activeOpacity={1}
-                onPress={() => setShowDatePicker(false)}
-              />
-              <View style={styles.iosModalContainer}>
-                <View style={styles.iosModalHeader}>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.iosModalTitle}>Select Date</Text>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Text style={styles.iosModalDoneButton}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.webPickerWrapper}>
-                  <TextInput
-                    style={styles.webDateInput}
-                    value={selectedDate.toISOString().split('T')[0]}
-                    onChangeText={(text) => {
-                      const date = new Date(text);
-                      if (!isNaN(date.getTime())) {
-                        setSelectedDate(date);
-                      }
-                    }}
-                    placeholder="YYYY-MM-DD"
-                  />
-                  <DateTimePicker
-                    value={selectedDate}
-                    mode="date"
-                    display="default"
-                    onChange={handleDateChange}
-                    minimumDate={new Date()}
-                    style={styles.webPicker}
-                  />
-                </View>
-              </View>
-            </View>
-          </Modal>
-        );
-      }
-
-      if (showTimePicker) {
-        return (
-          <Modal
-            visible={true}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setShowTimePicker(false)}
-          >
-            <View style={styles.iosModalOverlay}>
-              <TouchableOpacity 
-                style={styles.iosModalBackdrop}
-                activeOpacity={1}
-                onPress={() => setShowTimePicker(false)}
-              />
-              <View style={styles.iosModalContainer}>
-                <View style={styles.iosModalHeader}>
-                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
-                  </TouchableOpacity>
-                  <Text style={styles.iosModalTitle}>Select Time</Text>
-                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                    <Text style={styles.iosModalDoneButton}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.webPickerWrapper}>
-                  <DateTimePicker
-                    value={selectedTime}
-                    mode="time"
-                    display="default"
-                    onChange={handleTimeChange}
-                    style={styles.webPicker}
-                  />
-                </View>
-              </View>
-            </View>
-          </Modal>
-        );
-      }
-
-      return null;
+  const renderCalendar = () => {
+    const { daysInMonth, startingDayOfWeek, firstDay } = getDaysInMonth(calendarMonth);
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days: (Date | null)[] = [];
+    
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+    
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(firstDay.getFullYear(), firstDay.getMonth(), day));
     }
 
+    return (
+      <View style={styles.calendar}>
+        <View style={styles.calendarHeader}>
+          <TouchableOpacity onPress={() => changeMonth('prev')} style={styles.monthButton}>
+            <ChevronLeft size={24} color={Colors.primary} />
+          </TouchableOpacity>
+          <Text style={styles.monthYearText}>
+            {calendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </Text>
+          <TouchableOpacity onPress={() => changeMonth('next')} style={styles.monthButton}>
+            <ChevronRight size={24} color={Colors.primary} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.weekDaysRow}>
+          {weekDays.map((day) => (
+            <View key={day} style={styles.weekDayCell}>
+              <Text style={styles.weekDayText}>{day}</Text>
+            </View>
+          ))}
+        </View>
+
+        <View style={styles.daysGrid}>
+          {days.map((date, index) => {
+            if (!date) {
+              return <View key={`empty-${index}`} style={styles.dayCell} />;
+            }
+
+            const isSelected = isSameDay(date, selectedDate);
+            const isTodayDate = isToday(date);
+            const isPast = isPastDate(date);
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.dayCell,
+                  isSelected && styles.selectedDayCell,
+                  isTodayDate && !isSelected && styles.todayDayCell,
+                ]}
+                onPress={() => !isPast && handleDateSelect(date)}
+                disabled={isPast}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.dayText,
+                    isSelected && styles.selectedDayText,
+                    isTodayDate && !isSelected && styles.todayDayText,
+                    isPast && styles.pastDayText,
+                  ]}
+                >
+                  {date.getDate()}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderDateTimePicker = () => {
     if (Platform.OS === 'android') {
       return (
         <>
@@ -238,16 +265,8 @@ export default function CreateInvitationScreen() {
                   <Text style={styles.iosModalDoneButton}>Done</Text>
                 </TouchableOpacity>
               </View>
-              <View style={styles.iosPickerWrapper}>
-                <DateTimePicker
-                  value={selectedDate}
-                  mode="date"
-                  display="inline"
-                  onChange={handleDateChange}
-                  minimumDate={new Date()}
-                  themeVariant="light"
-                  style={styles.iosPicker}
-                />
+              <View style={styles.calendarWrapper}>
+                {renderCalendar()}
               </View>
             </View>
           </View>
@@ -601,24 +620,74 @@ const styles = StyleSheet.create({
     height: 350,
     backgroundColor: '#FFFFFF',
   },
-  webPickerWrapper: {
+  calendarWrapper: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 20,
     paddingHorizontal: 20,
-    minHeight: 200,
+    paddingVertical: 20,
   },
-  webPicker: {
-    width: '100%',
-    minHeight: 150,
+  calendar: {
+    backgroundColor: '#FFFFFF',
   },
-  webDateInput: {
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  monthButton: {
+    padding: 8,
+  },
+  monthYearText: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+  },
+  weekDaysRow: {
+    flexDirection: 'row',
+    marginBottom: 10,
+  },
+  weekDayCell: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  weekDayText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.textLight,
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  dayCell: {
+    width: '14.285%',
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 4,
+  },
+  selectedDayCell: {
+    backgroundColor: Colors.primary,
+    borderRadius: 50,
+  },
+  todayDayCell: {
+    backgroundColor: 'rgba(255, 165, 0, 0.1)',
+    borderRadius: 50,
+  },
+  dayText: {
     fontSize: 16,
-    color: '#000000',
-    backgroundColor: '#F5F5F5',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#E5E5E5',
+    color: Colors.text,
+  },
+  selectedDayText: {
+    color: '#FFFFFF',
+    fontWeight: '700' as const,
+  },
+  todayDayText: {
+    color: Colors.primary,
+    fontWeight: '600' as const,
+  },
+  pastDayText: {
+    color: Colors.border,
   },
 });
