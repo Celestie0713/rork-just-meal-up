@@ -73,7 +73,7 @@ export const [NotificationProvider, useNotifications] = createContextHook(() => 
     addNotification({
       type: 'mixed_signals',
       title: 'Mixed Signals!',
-      message: `Mixed signal with ${userName}. One chooses all in while the other chooses to go for the next round. Last 24 hours to decide again.`,
+      message: `Mixed signal with ${userName}. One chooses all in versus the other wants to go for the next round. Last 24 hours to decide again.`,
       userId,
       mealId
     });
