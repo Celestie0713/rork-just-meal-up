@@ -304,7 +304,7 @@ export default function CreateInvitationScreen() {
                   mode="time"
                   display="spinner"
                   onChange={handleTimeChange}
-                  themeVariant="light"
+                  textColor="#000000"
                   style={styles.iosPicker}
                 />
               </View>
@@ -613,12 +613,12 @@ const styles = StyleSheet.create({
   },
   iosPickerWrapper: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 10,
+    paddingVertical: 0,
+    minHeight: 260,
   },
   iosPicker: {
     width: '100%',
-    height: 350,
-    backgroundColor: '#FFFFFF',
+    height: 260,
   },
   calendarWrapper: {
     backgroundColor: '#FFFFFF',
