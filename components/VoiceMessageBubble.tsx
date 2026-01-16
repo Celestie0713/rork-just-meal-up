@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Play, Pause } from 'lucide-react-native';
+import { Play, Pause, DollarSign } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import type { VoiceMessage } from '@/types/user';
 
@@ -9,9 +9,10 @@ interface VoiceMessageBubbleProps {
   message: VoiceMessage;
   isOwn: boolean;
   senderName?: string;
+  onTipPress?: () => void;
 }
 
-export function VoiceMessageBubble({ message, isOwn, senderName }: VoiceMessageBubbleProps) {
+export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: VoiceMessageBubbleProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   
   // Generate stable waveform heights based on message ID
@@ -30,8 +31,11 @@ export function VoiceMessageBubble({ message, isOwn, senderName }: VoiceMessageB
   };
 
   const handlePlayPause = () => {
+    if (message.requiresTip && !message.isPaid && !isOwn) {
+      onTipPress?.();
+      return;
+    }
     setIsPlaying(!isPlaying);
-    // In a real app, this would control audio playback
     console.log(`${isPlaying ? 'Pausing' : 'Playing'} voice message ${message.id}`);
   };
 
@@ -82,31 +86,43 @@ export function VoiceMessageBubble({ message, isOwn, senderName }: VoiceMessageB
           </LinearGradient>
         ) : (
           <View style={contentStyle}>
-            <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
-              {isPlaying ? (
-                <Pause size={20} color={Colors.primary} />
-              ) : (
-                <Play size={20} color={Colors.primary} />
-              )}
-            </TouchableOpacity>
-            
-            <View style={styles.waveform}>
-              {waveformHeights.map((height, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.waveBar,
-                    { 
-                      height,
-                      backgroundColor: Colors.primary,
-                      opacity: isPlaying && i < 6 ? 1 : 0.6
-                    }
-                  ]}
-                />
-              ))}
-            </View>
-            
-            <Text style={styles.otherDuration}>{formatDuration(message.duration)}</Text>
+            {message.requiresTip && !message.isPaid ? (
+              <TouchableOpacity onPress={handlePlayPause} style={styles.tipContainer}>
+                <DollarSign size={20} color={Colors.primary} />
+                <View style={styles.tipTextContainer}>
+                  <Text style={styles.tipTitle}>Pay tip to view</Text>
+                  <Text style={styles.tipSubtitle}>{formatDuration(message.duration)} message</Text>
+                </View>
+              </TouchableOpacity>
+            ) : (
+              <>
+                <TouchableOpacity onPress={handlePlayPause} style={styles.playButton}>
+                  {isPlaying ? (
+                    <Pause size={20} color={Colors.primary} />
+                  ) : (
+                    <Play size={20} color={Colors.primary} />
+                  )}
+                </TouchableOpacity>
+                
+                <View style={styles.waveform}>
+                  {waveformHeights.map((height, i) => (
+                    <View
+                      key={i}
+                      style={[
+                        styles.waveBar,
+                        { 
+                          height,
+                          backgroundColor: Colors.primary,
+                          opacity: isPlaying && i < 6 ? 1 : 0.6
+                        }
+                      ]}
+                    />
+                  ))}
+                </View>
+                
+                <Text style={styles.otherDuration}>{formatDuration(message.duration)}</Text>
+              </>
+            )}
           </View>
         )}
       </View>
@@ -199,5 +215,23 @@ const styles = StyleSheet.create({
   ownTimestamp: {
     marginLeft: 0,
     marginRight: 12,
+  },
+  tipContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  tipTextContainer: {
+    marginLeft: 12,
+  },
+  tipTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.primary,
+  },
+  tipSubtitle: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 2,
   },
 });

@@ -30,6 +30,9 @@ export interface VoiceMessage {
   duration: number;
   timestamp: Date;
   isPlayed: boolean;
+  requiresTip?: boolean;
+  tipAmount?: number;
+  isPaid?: boolean;
 }
 
 export interface SystemMessage {
