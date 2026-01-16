@@ -14,18 +14,15 @@ const TIP_AMOUNTS = [5, 10, 20, 50, 100];
 
 export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }: TipSelectionModalProps) {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
-  const [customAmount, setCustomAmount] = useState<string>('');
 
   const handleConfirm = () => {
-    const amount = selectedAmount || parseFloat(customAmount);
-    if (amount && amount > 0) {
-      onConfirm(amount);
+    if (selectedAmount && selectedAmount > 0) {
+      onConfirm(selectedAmount);
       setSelectedAmount(null);
-      setCustomAmount('');
     }
   };
 
-  const isValid = selectedAmount !== null || (customAmount && parseFloat(customAmount) > 0);
+  const isValid = selectedAmount !== null;
 
   return (
     <Modal
@@ -48,7 +45,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
           </Text>
 
           <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-            <Text style={styles.sectionTitle}>Select Amount</Text>
+            <Text style={styles.minimumText}>Minimum $5</Text>
             
             <View style={styles.amountGrid}>
               {TIP_AMOUNTS.map((amount) => (
@@ -58,10 +55,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                     styles.amountButton,
                     selectedAmount === amount && styles.amountButtonSelected
                   ]}
-                  onPress={() => {
-                    setSelectedAmount(amount);
-                    setCustomAmount('');
-                  }}
+                  onPress={() => setSelectedAmount(amount)}
                 >
                   <DollarSign 
                     size={20} 
@@ -77,31 +71,9 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
               ))}
             </View>
 
-            <View style={styles.divider}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>OR</Text>
-              <View style={styles.dividerLine} />
-            </View>
-
-            <TouchableOpacity
-              style={[
-                styles.customAmountButton,
-                customAmount && styles.customAmountButtonActive
-              ]}
-              onPress={() => setSelectedAmount(null)}
-            >
-              <Text style={styles.customAmountLabel}>Custom Amount</Text>
-              <View style={styles.customAmountInput}>
-                <DollarSign size={18} color={Colors.textLight} />
-                <Text style={styles.customAmountPlaceholder}>
-                  {customAmount || 'Enter amount'}
-                </Text>
-              </View>
-            </TouchableOpacity>
-
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>
-                💡 Your tip supports the platform to keep it running and helps you view their decision
+                💡 Your tip supports the platform and helps you view their decision
               </Text>
             </View>
           </ScrollView>
@@ -171,17 +143,19 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingTop: 8,
   },
-  sectionTitle: {
-    fontSize: 16,
+  minimumText: {
+    fontSize: 15,
     fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 12,
+    color: Colors.textLight,
+    marginBottom: 16,
+    textAlign: 'center',
   },
   amountGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
+    justifyContent: 'center',
     gap: 12,
-    marginBottom: 20,
+    marginBottom: 24,
   },
   amountButton: {
     flexDirection: 'row',
@@ -207,49 +181,6 @@ const styles = StyleSheet.create({
   },
   amountTextSelected: {
     color: Colors.background,
-  },
-  divider: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 20,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-  dividerText: {
-    marginHorizontal: 12,
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.textLight,
-  },
-  customAmountButton: {
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    marginBottom: 20,
-  },
-  customAmountButtonActive: {
-    borderColor: Colors.primary,
-    backgroundColor: Colors.background,
-  },
-  customAmountLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 8,
-  },
-  customAmountInput: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  customAmountPlaceholder: {
-    fontSize: 16,
-    color: Colors.textLight,
   },
   infoBox: {
     backgroundColor: '#FFF9F5',
