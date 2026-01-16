@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
-import { X, DollarSign } from 'lucide-react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import { X } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
 interface TipSelectionModalProps {
@@ -40,12 +40,12 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.subtitle}>
-            Tip the platform to view {recipientName}&apos;s decision
-          </Text>
+          <View style={styles.body}>
+            <Text style={styles.subtitle}>
+              Tip the platform to view {recipientName}&apos;s decision
+            </Text>
 
-          <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-            <Text style={styles.minimumText}>Minimum $5</Text>
+            <Text style={styles.minimumText}>Minimum $5 and above</Text>
             
             <View style={styles.amountGrid}>
               {TIP_AMOUNTS.map((amount) => (
@@ -57,28 +57,16 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                   ]}
                   onPress={() => setSelectedAmount(amount)}
                 >
-                  <DollarSign 
-                    size={20} 
-                    color={selectedAmount === amount ? Colors.background : Colors.primary} 
-                  />
                   <Text style={[
                     styles.amountText,
                     selectedAmount === amount && styles.amountTextSelected
                   ]}>
-                    {amount}
+                    ${amount}
                   </Text>
                 </TouchableOpacity>
               ))}
             </View>
 
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>
-                💡 Your tip supports the platform and helps you view their decision
-              </Text>
-            </View>
-          </ScrollView>
-
-          <View style={styles.footer}>
             <TouchableOpacity
               style={[styles.confirmButton, !isValid && styles.confirmButtonDisabled]}
               onPress={handleConfirm}
@@ -120,9 +108,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingBottom: 12,
   },
   title: {
     fontSize: 22,
@@ -135,19 +121,18 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 15,
     color: Colors.textLight,
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 8,
+    textAlign: 'center',
+    marginBottom: 24,
   },
   body: {
     padding: 20,
-    paddingTop: 8,
+    paddingTop: 0,
   },
   minimumText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    color: Colors.textLight,
-    marginBottom: 16,
+    color: Colors.text,
+    marginBottom: 20,
     textAlign: 'center',
   },
   amountGrid: {
@@ -155,54 +140,35 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     gap: 12,
-    marginBottom: 24,
+    marginBottom: 32,
   },
   amountButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 20,
+    paddingVertical: 16,
+    paddingHorizontal: 24,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: Colors.border,
     backgroundColor: Colors.background,
-    minWidth: 90,
-    gap: 4,
+    minWidth: 80,
   },
   amountButtonSelected: {
     backgroundColor: Colors.primary,
     borderColor: Colors.primary,
   },
   amountText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Colors.primary,
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
   },
   amountTextSelected: {
     color: Colors.background,
   },
-  infoBox: {
-    backgroundColor: '#FFF9F5',
-    padding: 12,
-    borderRadius: 8,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.primary,
-  },
-  infoText: {
-    fontSize: 13,
-    color: Colors.text,
-    lineHeight: 18,
-  },
-  footer: {
-    padding: 20,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
+
   confirmButton: {
     backgroundColor: Colors.primary,
-    paddingVertical: 16,
+    paddingVertical: 18,
     borderRadius: 12,
     alignItems: 'center',
   },
