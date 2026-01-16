@@ -11,6 +11,7 @@ import { mockPostDateResponses } from '@/mocks/post-date-responses';
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
 import { useNotifications } from '@/hooks/use-notifications';
+import { TipSelectionModal } from '@/components/TipSelectionModal';
 
 
 const colors = {
@@ -97,6 +98,8 @@ export default function PostMealScreen() {
   const [selectedTab, setSelectedTab] = useState<'1on1' | 'group'>('1on1');
   const [paidToViewChoices, setPaidToViewChoices] = useState<Record<string, boolean>>({});
   const [profilesToRemove, setProfilesToRemove] = useState<{ userId: string; invitationId: string }[]>([]);
+  const [showTipModal, setShowTipModal] = useState(false);
+  const [selectedEventForTip, setSelectedEventForTip] = useState<string | null>(null);
 
 
   // Log when matchedProfiles changes
@@ -144,11 +147,23 @@ export default function PostMealScreen() {
   }, [profilesToRemove, removeProfileFromChat]);
 
   const handlePayToViewChoice = (eventId: string) => {
-    Linking.openURL('https://buy.stripe.com/test_00g03p9CUb6H3eM8ww');
-    setPaidToViewChoices(prev => ({
-      ...prev,
-      [eventId]: true
-    }));
+    setSelectedEventForTip(eventId);
+    setShowTipModal(true);
+  };
+
+  const handleTipConfirm = (amount: number) => {
+    console.log(`User selected tip amount: ${amount}`);
+    setShowTipModal(false);
+    
+    if (selectedEventForTip) {
+      setPaidToViewChoices(prev => ({
+        ...prev,
+        [selectedEventForTip]: true
+      }));
+      
+      Linking.openURL('https://buy.stripe.com/test_00g03p9CUb6H3eM8ww');
+      setSelectedEventForTip(null);
+    }
   };
 
   const getDateChoice = useCallback((invitationId: string) => {
@@ -1502,6 +1517,28 @@ export default function PostMealScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Tip Selection Modal */}
+      <TipSelectionModal
+        visible={showTipModal}
+        onClose={() => {
+          setShowTipModal(false);
+          setSelectedEventForTip(null);
+        }}
+        onConfirm={handleTipConfirm}
+        recipientName={(() => {
+          if (selectedEventForTip) {
+            const invitationId = selectedEventForTip.replace('invitation-', '');
+            const invitation = mockInvitations.find(inv => inv.id === invitationId);
+            if (invitation) {
+              const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+              const dateUser = mockUsers.find(u => u.id === dateUserId);
+              return dateUser?.name || 'your date';
+            }
+          }
+          return 'your date';
+        })()}
+      />
 
       {/* Match/No Match Modal */}
       <Modal
