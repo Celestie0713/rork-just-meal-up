@@ -72,7 +72,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat } = useChat();
   const { addMatchDecisionNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -295,6 +295,11 @@ export default function PostMealScreen() {
                 // and chat is also removed immediately
                 console.log(`Removing event ${eventId} - both parties decided but no match (${userChoice} vs ${dateChoice})`);
                 
+                // Remove profile from chat immediately
+                const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                removeProfileFromChat(dateUserId, invitationId, 'no_match');
+                console.log(`Removed profile ${dateUserId} from chat due to no match`);
+                
                 return; // Skip this event
               }
             }
@@ -364,7 +369,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, removeProfileFromChat]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
