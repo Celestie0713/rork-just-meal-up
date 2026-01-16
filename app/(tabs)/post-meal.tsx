@@ -295,11 +295,6 @@ export default function PostMealScreen() {
                 // and chat is also removed immediately
                 console.log(`Removing event ${eventId} - both parties decided but no match (${userChoice} vs ${dateChoice})`);
                 
-                // Immediately remove the chat for non-matching profiles
-                checkAndRemoveNonMatchingProfiles({
-                  [eventId]: { choice: userChoice, timestamp: new Date(0) } // Use epoch to trigger immediate removal
-                });
-                
                 return; // Skip this event
               }
             }
@@ -369,7 +364,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, checkAndRemoveNonMatchingProfiles]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
