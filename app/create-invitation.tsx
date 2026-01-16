@@ -242,7 +242,7 @@ export default function CreateInvitationScreen() {
                 <DateTimePicker
                   value={selectedDate}
                   mode="date"
-                  display="spinner"
+                  display="inline"
                   onChange={handleDateChange}
                   minimumDate={new Date()}
                   themeVariant="light"
@@ -598,7 +598,7 @@ const styles = StyleSheet.create({
   },
   iosPicker: {
     width: '100%',
-    height: 220,
+    height: 350,
     backgroundColor: '#FFFFFF',
   },
   webPickerWrapper: {
