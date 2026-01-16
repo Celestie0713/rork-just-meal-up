@@ -7,6 +7,7 @@ import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
+import { TipSelectionModal } from '@/components/TipSelectionModal';
 import type { User, SystemMessage } from '@/types/user';
 
 interface ChatData {
@@ -75,6 +76,8 @@ export default function MessagesScreen() {
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
   const [invitationData, setInvitationData] = useState<any>(null);
   const [mealUpData, setMealUpData] = useState<any>(null);
+  const [showTipModal, setShowTipModal] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<User | null>(null);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -127,37 +130,8 @@ export default function MessagesScreen() {
           {
             text: 'Send',
             onPress: () => {
-              const newInvitationId = `inv-${Date.now()}`;
-              
-              addInvitation({
-                id: newInvitationId,
-                inviterId: '1',
-                inviteeId: user.id,
-                date: invitationData.date,
-                time: formatInvitationTime(invitationData.time),
-                venue: {
-                  name: invitationData.placeName,
-                  address: invitationData.placeAddress,
-                  cuisine: 'Restaurant',
-                  placeId: invitationData.placeId
-                },
-                status: 'pending',
-                createdAt: new Date()
-              });
-              
-              const chatId = `1-${user.id}`;
-              const systemMessage: SystemMessage = {
-                id: Date.now().toString(),
-                type: 'invitation_sent',
-                content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
-                timestamp: new Date(),
-              };
-              addSystemMessage(chatId, systemMessage);
-              
-              router.push({
-                pathname: '/chat',
-                params: { userId: user.id }
-              });
+              setSelectedRecipient(user);
+              setShowTipModal(true);
             }
           }
         ]
@@ -336,6 +310,54 @@ export default function MessagesScreen() {
         ListEmptyComponent={renderEmptyState}
       />
       
+      <TipSelectionModal
+        visible={showTipModal}
+        onClose={() => {
+          setShowTipModal(false);
+          setSelectedRecipient(null);
+        }}
+        onConfirm={(amount) => {
+          console.log(`Tip amount selected: ${amount}`);
+          setShowTipModal(false);
+          
+          if (selectedRecipient && invitationData) {
+            const newInvitationId = `inv-${Date.now()}`;
+            
+            addInvitation({
+              id: newInvitationId,
+              inviterId: '1',
+              inviteeId: selectedRecipient.id,
+              date: invitationData.date,
+              time: formatInvitationTime(invitationData.time),
+              venue: {
+                name: invitationData.placeName,
+                address: invitationData.placeAddress,
+                cuisine: 'Restaurant',
+                placeId: invitationData.placeId
+              },
+              status: 'pending',
+              createdAt: new Date()
+            });
+            
+            const chatId = `1-${selectedRecipient.id}`;
+            const systemMessage: SystemMessage = {
+              id: Date.now().toString(),
+              type: 'invitation_sent',
+              content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
+              timestamp: new Date(),
+            };
+            addSystemMessage(chatId, systemMessage);
+            
+            router.push({
+              pathname: '/chat',
+              params: { userId: selectedRecipient.id }
+            });
+          }
+          
+          setSelectedRecipient(null);
+        }}
+        recipientName={selectedRecipient?.name || ''}
+      />
 
     </SafeAreaView>
   );
