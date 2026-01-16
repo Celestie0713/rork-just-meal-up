@@ -73,7 +73,7 @@ function isPostMeal(date: Date, time: string): boolean {
 export default function PostMealScreen() {
   const { user } = useAuth();
   const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat } = useChat();
-  const { addMatchDecisionNotification } = useNotifications();
+  const { addMatchDecisionNotification, addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
 
@@ -786,6 +786,18 @@ export default function PostMealScreen() {
               // Track mixed signals case immediately when extension is created
               trackMixedSignalsCase(dateUserId, invitationId);
               console.log(`[Mixed Signals] Started tracking case for user ${dateUserId}`);
+              
+              // Add notification for the first user about mixed signals
+              const dateUser = mockUsers.find(u => u.id === dateUserId);
+              if (dateUser) {
+                addMixedSignalsNotification(
+                  dateUser.name,
+                  invitation.venue.name,
+                  dateUserId,
+                  invitationId
+                );
+                console.log(`[Mixed Signals] Added notification for user about mixed signals with ${dateUser.name}`);
+              }
             }
           }
         }

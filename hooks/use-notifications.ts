@@ -1,7 +1,7 @@
 import createContextHook from '@nkzw/create-context-hook';
 import { useState, useCallback, useMemo } from 'react';
 
-export type NotificationType = 'match_decision' | 'new_invitation' | 'meal_reminder';
+export type NotificationType = 'match_decision' | 'new_invitation' | 'meal_reminder' | 'mixed_signals';
 
 export interface Notification {
   id: string;
@@ -69,12 +69,23 @@ export const [NotificationProvider, useNotifications] = createContextHook(() => 
     });
   }, [addNotification]);
 
+  const addMixedSignalsNotification = useCallback((userName: string, venue: string, userId: string, mealId: string) => {
+    addNotification({
+      type: 'mixed_signals',
+      title: 'Mixed Signals!',
+      message: `You and ${userName} have different choices for your meal at ${venue}. You both have 24 hours to decide again.`,
+      userId,
+      mealId
+    });
+  }, [addNotification]);
+
   return useMemo(() => ({
     notifications,
     addNotification,
     markAsRead,
     markAllAsRead,
     getUnreadCount,
-    addMatchDecisionNotification
-  }), [notifications, addNotification, markAsRead, markAllAsRead, getUnreadCount, addMatchDecisionNotification]);
+    addMatchDecisionNotification,
+    addMixedSignalsNotification
+  }), [notifications, addNotification, markAsRead, markAllAsRead, getUnreadCount, addMatchDecisionNotification, addMixedSignalsNotification]);
 });
