@@ -169,9 +169,20 @@ export default function ChatScreen() {
     const meals = mockInvitations.filter(inv => 
       (inv.inviterId === currentUserId && inv.inviteeId === params.userId) ||
       (inv.inviteeId === currentUserId && inv.inviterId === params.userId)
-    ).filter(inv => inv.status === 'completed' || inv.status === 'accepted');
+    ).filter(inv => {
+      if (inv.status !== 'completed' && inv.status !== 'accepted') return false;
+      
+      const currentUserMatched = Object.values(matchedProfiles).some(
+        profile => profile.userId === currentUserId && profile.invitationId === inv.id
+      );
+      const otherUserMatched = Object.values(matchedProfiles).some(
+        profile => profile.userId === params.userId && profile.invitationId === inv.id
+      );
+      
+      return currentUserMatched && otherUserMatched;
+    });
     return meals.sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [params.userId]);
+  }, [params.userId, matchedProfiles]);
   
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
