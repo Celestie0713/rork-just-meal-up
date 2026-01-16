@@ -151,7 +151,7 @@ const getMockMessagesForUser = (userId: string): ChatMessage[] => {
 
 export default function ChatScreen() {
   const params = useLocalSearchParams<{ userId: string }>();
-  const { getChatMessages, addVoiceMessage, initializeChat } = useChat();
+  const { getChatMessages, addVoiceMessage, initializeChat, matchedProfiles } = useChat();
   const currentUserId = '1';
   const chatId = `${currentUserId}-${params.userId}`;
   const [showMealDetailsModal, setShowMealDetailsModal] = useState(false);
@@ -195,21 +195,36 @@ export default function ChatScreen() {
   };
   
   const getUserChoices = (mealId: string) => {
-    const currentUserChoice = mockMatchedProfiles.find(
-      profile => profile.userId === currentUserId && profile.mealId === mealId
-    )?.matchType;
+    // First check the live matchedProfiles state (from useChat hook)
+    // This contains the actual choices made in the Post Meal page
+    const currentUserProfile = Object.values(matchedProfiles).find(
+      profile => profile.userId === currentUserId && profile.invitationId === mealId
+    );
     
-    const otherUserChoice = mockMatchedProfiles.find(
+    const otherUserProfile = Object.values(matchedProfiles).find(
+      profile => profile.userId === params.userId && profile.invitationId === mealId
+    );
+    
+    console.log(`[getUserChoices] Looking up choices for meal ${mealId}`);
+    console.log(`[getUserChoices] Current user (${currentUserId}) choice:`, currentUserProfile?.matchType);
+    console.log(`[getUserChoices] Other user (${params.userId}) choice:`, otherUserProfile?.matchType);
+    
+    // Fall back to mock data if not found in state
+    const currentUserChoice = currentUserProfile?.matchType || mockMatchedProfiles.find(
+      profile => profile.userId === currentUserId && profile.mealId === mealId
+    )?.matchType || mockPostDateResponses.find(
+      r => r.userId === currentUserId && r.mealId === mealId
+    )?.choice;
+    
+    const otherUserChoice = otherUserProfile?.matchType || mockMatchedProfiles.find(
       profile => profile.userId === params.userId && profile.mealId === mealId
-    )?.matchType;
+    )?.matchType || mockPostDateResponses.find(
+      r => r.userId === params.userId && r.mealId === mealId
+    )?.choice;
     
     return {
-      currentUser: currentUserChoice || mockPostDateResponses.find(
-        r => r.userId === currentUserId && r.mealId === mealId
-      )?.choice,
-      otherUser: otherUserChoice || mockPostDateResponses.find(
-        r => r.userId === params.userId && r.mealId === mealId
-      )?.choice
+      currentUser: currentUserChoice,
+      otherUser: otherUserChoice
     };
   };
   
