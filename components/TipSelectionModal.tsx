@@ -67,7 +67,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
 
           <View style={styles.body}>
             <Text style={styles.subtitle}>
-              Buy us an ice cream while we&apos;re searching for your soul mate🎉
+              Ice cream for the matchmakers 🍦
             </Text>
             
             <View style={styles.amountGrid}>
