@@ -72,7 +72,7 @@ export default function AddPlaceScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-          <X size={28} color="#000" />
+          <X size={28} color="#FFF" />
         </TouchableOpacity>
         <Text style={styles.title}>Add Place</Text>
         <View style={styles.placeholder} />
@@ -93,7 +93,7 @@ export default function AddPlaceScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Enter place name"
-                placeholderTextColor="#999"
+                placeholderTextColor="#666"
                 value={name}
                 onChangeText={setName}
                 autoCapitalize="words"
@@ -105,7 +105,7 @@ export default function AddPlaceScreen() {
               <TextInput
                 style={styles.input}
                 placeholder="Enter address"
-                placeholderTextColor="#999"
+                placeholderTextColor="#666"
                 value={address}
                 onChangeText={setAddress}
                 autoCapitalize="words"
@@ -117,7 +117,7 @@ export default function AddPlaceScreen() {
               <TextInput
                 style={[styles.input, styles.noteInput]}
                 placeholder="Add a note about this place..."
-                placeholderTextColor="#999"
+                placeholderTextColor="#666"
                 value={note}
                 onChangeText={setNote}
                 multiline
@@ -172,7 +172,7 @@ export default function AddPlaceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#000000',
   },
   header: {
     flexDirection: 'row',
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#333333',
   },
   closeButton: {
     padding: 4,
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000',
+    color: '#FFFFFF',
   },
   placeholder: {
     width: 36,
@@ -212,25 +212,25 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000',
+    color: '#FFFFFF',
     marginBottom: 8,
   },
   input: {
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#000',
+    color: '#FFFFFF',
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: '#333333',
   },
   noteInput: {
     height: 120,
     paddingTop: 14,
   },
   uploadBox: {
-    backgroundColor: '#FFF5F2',
+    backgroundColor: '#1A1A1A',
     borderRadius: 16,
     borderWidth: 2,
     borderColor: '#FF6B35',
@@ -254,15 +254,15 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     borderRadius: 16,
-    backgroundColor: '#F0F0F0',
+    backgroundColor: '#1A1A1A',
   },
   changeImageButton: {
-    backgroundColor: '#F8F8F8',
+    backgroundColor: '#1A1A1A',
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#E8E8E8',
+    borderColor: '#333333',
   },
   changeImageText: {
     fontSize: 16,
@@ -273,8 +273,8 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 24,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    backgroundColor: '#FFFFFF',
+    borderTopColor: '#333333',
+    backgroundColor: '#000000',
   },
   submitButton: {
     backgroundColor: '#FF6B35',
