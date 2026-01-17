@@ -44,19 +44,15 @@ export default function SearchScreen() {
     }
   }, [tab]);
 
-  const handlePlacesSearch = useCallback(() => {
-    if (searchQuery.trim()) {
-      searchPlacesByText(searchQuery);
-    } else {
-      refreshNearbyPlaces();
-    }
-  }, [searchQuery, searchPlacesByText, refreshNearbyPlaces]);
-
   useEffect(() => {
     if (activeTab === 'places') {
-      handlePlacesSearch();
+      if (searchQuery.trim()) {
+        searchPlacesByText(searchQuery);
+      } else if (locationPermission === 'granted') {
+        refreshNearbyPlaces();
+      }
     }
-  }, [searchQuery, activeTab, handlePlacesSearch]);
+  }, [searchQuery, activeTab, searchPlacesByText, refreshNearbyPlaces, locationPermission]);
 
   const handleUserPress = (user: User) => {
     router.push({
@@ -178,7 +174,7 @@ export default function SearchScreen() {
       return (
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={handlePlacesSearch} style={styles.retryButton}>
+          <TouchableOpacity onPress={refreshNearbyPlaces} style={styles.retryButton}>
             <RefreshCw size={16} color={Colors.primary} />
             <Text style={styles.retryText}>Try Again</Text>
           </TouchableOpacity>
