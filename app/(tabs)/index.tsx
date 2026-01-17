@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart, Plus, MapPin } from 'lucide-react-native';
+import { Search, Filter, Heart, Plus, MapPin, MapPinned } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { PlaceCard } from '@/components/PlaceCard';
@@ -28,7 +28,9 @@ export default function SearchScreen() {
     selectedInviteeId, 
     setSelectedInviteeId, 
     togglePlaceAdded,
-    isLoadingLocation 
+    isLoadingLocation,
+    locationPermissionStatus,
+    requestLocationPermission
   } = usePlaces();
 
   const handleUserPress = (user: User) => {
@@ -190,6 +192,40 @@ export default function SearchScreen() {
             <View style={styles.loadingContainer}>
               <ActivityIndicator size="large" color="#FF1493" />
               <Text style={styles.loadingText}>Getting your location...</Text>
+            </View>
+          ) : mode === 'nearby' && locationPermissionStatus === 'not-requested' ? (
+            <View style={styles.permissionContainer}>
+              <View style={styles.permissionIcon}>
+                <MapPinned size={48} color="#FF1493" />
+              </View>
+              <Text style={styles.permissionTitle}>Enable Location</Text>
+              <Text style={styles.permissionText}>
+                To find places nearby, we need access to your location.
+              </Text>
+              <TouchableOpacity
+                style={styles.permissionButton}
+                onPress={requestLocationPermission}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.permissionButtonText}>Enable Location</Text>
+              </TouchableOpacity>
+            </View>
+          ) : mode === 'nearby' && locationPermissionStatus === 'denied' ? (
+            <View style={styles.permissionContainer}>
+              <View style={styles.permissionIcon}>
+                <MapPinned size={48} color="#FF4444" />
+              </View>
+              <Text style={styles.permissionTitle}>Location Access Denied</Text>
+              <Text style={styles.permissionText}>
+                Please enable location permissions in your device settings to see nearby places.
+              </Text>
+              <TouchableOpacity
+                style={styles.permissionButtonSecondary}
+                onPress={requestLocationPermission}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.permissionButtonSecondaryText}>Try Again</Text>
+              </TouchableOpacity>
             </View>
           ) : mode === 'between-us' && !selectedInviteeId ? (
             <View style={styles.emptyContainer}>
@@ -469,5 +505,63 @@ const styles = StyleSheet.create({
     color: '#888888',
     fontWeight: '500',
     textAlign: 'center',
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    backgroundColor: '#FFFFFF',
+  },
+  permissionIcon: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: '#FFF0F7',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  permissionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  permissionText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 24,
+    marginBottom: 32,
+  },
+  permissionButton: {
+    backgroundColor: '#FF1493',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    minWidth: 200,
+    alignItems: 'center',
+  },
+  permissionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  permissionButtonSecondary: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 12,
+    minWidth: 200,
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#FF1493',
+  },
+  permissionButtonSecondaryText: {
+    color: '#FF1493',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

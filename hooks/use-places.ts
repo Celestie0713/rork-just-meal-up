@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Platform } from 'react-native';
 import createContextHook from '@nkzw/create-context-hook';
 import { mockPlaces } from '@/mocks/places';
@@ -56,13 +56,10 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
   const [mode, setMode] = useState<'nearby' | 'between-us'>('nearby');
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationPermissionStatus, setLocationPermissionStatus] = useState<'not-requested' | 'granted' | 'denied'>('not-requested');
 
-  useEffect(() => {
-    getUserLocation();
-  }, []);
-
-  const getUserLocation = async () => {
-    console.log('Getting user location...');
+  const requestLocationPermission = async () => {
+    console.log('Requesting location permission...');
     setIsLoadingLocation(true);
     setLocationError(null);
 
@@ -76,15 +73,13 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
               });
+              setLocationPermissionStatus('granted');
               setIsLoadingLocation(false);
             },
             (error) => {
               console.error('Web geolocation error:', error);
               setLocationError(error.message);
-              setUserLocation({
-                latitude: 37.7849,
-                longitude: -122.4094,
-              });
+              setLocationPermissionStatus('denied');
               setIsLoadingLocation(false);
             },
             {
@@ -94,11 +89,9 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
             }
           );
         } else {
-          console.log('Geolocation not available, using default location');
-          setUserLocation({
-            latitude: 37.7849,
-            longitude: -122.4094,
-          });
+          console.log('Geolocation not available');
+          setLocationError('Geolocation is not available in your browser');
+          setLocationPermissionStatus('denied');
           setIsLoadingLocation(false);
         }
       } else {
@@ -106,12 +99,9 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
         const { status } = await ExpoLocation.requestForegroundPermissionsAsync();
         
         if (status !== 'granted') {
-          console.log('Location permission denied, using default location');
+          console.log('Location permission denied');
           setLocationError('Location permission denied');
-          setUserLocation({
-            latitude: 37.7849,
-            longitude: -122.4094,
-          });
+          setLocationPermissionStatus('denied');
           setIsLoadingLocation(false);
           return;
         }
@@ -122,15 +112,13 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
         });
+        setLocationPermissionStatus('granted');
         setIsLoadingLocation(false);
       }
     } catch (error) {
       console.error('Error getting location:', error);
       setLocationError('Failed to get location');
-      setUserLocation({
-        latitude: 37.7849,
-        longitude: -122.4094,
-      });
+      setLocationPermissionStatus('denied');
       setIsLoadingLocation(false);
     }
   };
@@ -247,12 +235,13 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
     userLocation,
     isLoadingLocation,
     locationError,
+    locationPermissionStatus,
     mode,
     setMode,
     selectedInviteeId,
     setSelectedInviteeId,
     addPlace,
     togglePlaceAdded,
-    getUserLocation,
+    requestLocationPermission,
   };
 });
