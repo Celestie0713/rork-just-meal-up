@@ -155,20 +155,12 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           </Text>
         </View>
         
-        <TouchableOpacity 
-          style={styles.detailRow}
-          onPress={() => {
-            if (invitation.venue.placeId) {
-              router.push(`/place-details?placeId=${invitation.venue.placeId}`);
-            }
-          }}
-          disabled={!invitation.venue.placeId}
-        >
+        <View style={styles.detailRow}>
           <MapPin size={16} color={colors.textLight} />
-          <Text style={[styles.detailText, invitation.venue.placeId && styles.clickableText]}>
+          <Text style={styles.detailText}>
             {invitation.venue.address}
           </Text>
-        </TouchableOpacity>
+        </View>
       </View>
 
       {isPending && showActions && (

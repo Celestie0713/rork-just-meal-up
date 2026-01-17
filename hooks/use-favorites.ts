@@ -2,8 +2,24 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { mockPlaces } from '@/mocks/places';
-import type { Place } from '@/types/place';
+
+interface Place {
+  place_id: string;
+  name: string;
+  vicinity?: string;
+  formatted_address?: string;
+  rating?: number;
+  user_ratings_total?: number;
+  price_level?: number;
+  photos?: { photo_reference: string; height: number; width: number }[];
+  geometry?: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+  types?: string[];
+}
 
 const FAVORITE_PLACES_KEY = 'favorite_places_data';
 
@@ -129,16 +145,9 @@ export const [FavoritesProvider, useFavorites] = createContextHook(() => {
     const places: Place[] = [];
 
     userFavoriteIds.forEach(placeId => {
-      // First try to find in our stored data
       const storedPlace = favoritePlacesData.find(item => item.placeId === placeId);
       if (storedPlace) {
         places.push(storedPlace.placeData);
-      } else {
-        // Fallback to mock places for existing data
-        const mockPlace = mockPlaces.find(place => place.place_id === placeId);
-        if (mockPlace) {
-          places.push(mockPlace);
-        }
       }
     });
 

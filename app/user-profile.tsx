@@ -2,11 +2,9 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, X, Mic } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, Mic } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
-import { mockPlaces } from '@/mocks/places';
-
 
 import { useAuth } from '@/hooks/use-auth';
 import { useChat } from '@/hooks/use-chat';
@@ -22,7 +20,7 @@ export default function UserProfileScreen() {
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const { user: currentUser } = useAuth();
   const { getMatchType } = useChat();
-  const { removeFromFavorites } = useFavorites();
+  useFavorites();
   
   const user = mockUsers.find(u => u.id === userId);
   
@@ -87,15 +85,7 @@ export default function UserProfileScreen() {
   };
 
   const renderFoodTab = () => {
-    // Check if we're viewing our own profile
     const isOwnProfile = currentUser?.id === userId;
-    
-    // If viewing own profile, show current user's favorites
-    // If viewing someone else's profile, show their favorites
-    const favoritePlaces = isOwnProfile ? (currentUser?.favoritePlaces || []) : (user.favoritePlaces || []);
-    const places = favoritePlaces.map(placeId => 
-      mockPlaces.find(place => place.place_id === placeId)
-    ).filter(Boolean);
     
     return (
       <View style={styles.tabContent}>
@@ -103,49 +93,16 @@ export default function UserProfileScreen() {
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodGrid}>
-          {places.map((place, index) => {
-            if (!place) return null;
-            
-            const isLastInRow = (index + 1) % 3 === 0;
-            
-            return (
-              <View key={place.place_id} style={[styles.foodGridItem, isLastInRow && styles.foodGridItemLast]}>
-                <TouchableOpacity 
-                  style={styles.placeContent}
-                  onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
-                >
-                  <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
-                </TouchableOpacity>
-                {isOwnProfile && (
-                  <TouchableOpacity 
-                    style={styles.removeButton}
-                    onPress={() => removeFromFavorites(place.place_id)}
-                    testID={`remove-place-${place.place_id}`}
-                  >
-                    <X size={14} color="#666" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            );
-          })}
-          
           {isOwnProfile && (
-            <View 
-              style={[
-                styles.foodGridItem,
-                // Apply same margin logic as places
-                ((places.length + 1) % 3 === 0) && styles.foodGridItemLast
-              ]}
-            >
+            <View style={styles.foodGridItem}>
               <TouchableOpacity 
                 style={styles.addPlaceButtonContent}
-                onPress={() => router.push('/(tabs)?tab=places')}
                 testID="add-favorite-place-button"
               >
                 <View style={styles.addPlaceIconContainer}>
                   <Plus size={24} color={Colors.primary} />
                 </View>
-                <Text style={styles.addPlaceText}>Add Place</Text>
+                <Text style={styles.addPlaceText}>Coming Soon</Text>
               </TouchableOpacity>
             </View>
           )}

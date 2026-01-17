@@ -1,14 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
 import { useChat } from '@/hooks/use-chat';
-import { useFavorites } from '@/hooks/use-favorites';
 import { mockUsers } from '@/mocks/users';
-import { GooglePlacesService } from '@/services/google-places';
 import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
 
@@ -63,8 +60,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
-  const { matchedProfiles, isProfileMatched, removeMatchedProfile, resetAllMatches } = useChat();
-  const { favoritePlaces, removeFromFavorites } = useFavorites();
+  const { matchedProfiles, removeMatchedProfile } = useChat();
   
 
 
@@ -77,12 +73,11 @@ export default function ProfileScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<User | null>(null);
 
-  // Initialize editedUser only when user changes
   useEffect(() => {
     if (user) {
       setEditedUser(user);
     }
-  }, [user?.id]); // Only depend on user ID to avoid infinite loops
+  }, [user]);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [showPersonalIncomeModal, setShowPersonalIncomeModal] = useState(false);
@@ -339,58 +334,20 @@ export default function ProfileScreen() {
   };
 
   const renderFoodTab = () => {
-    const places = favoritePlaces;
-    console.log('=== PROFILE SCREEN: renderFoodTab ===');
-    console.log('Favorite places count:', places.length);
-    console.log('Favorite places:', places.map(p => ({ name: p?.name, id: p?.place_id })));
-    
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodGrid}>
-          {places.map((place) => {
-            if (!place) return null;
-            const photoUrl = place.photos?.[0] 
-              ? GooglePlacesService.getPhotoUrl(place.photos[0].photo_reference)
-              : 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&h=400&fit=crop';
-            
-            return (
-              <View key={place.place_id} style={styles.foodGridItem}>
-                <TouchableOpacity 
-                  style={styles.placeImageContainer}
-                  onPress={() => router.push(`/place-details?placeId=${place.place_id}`)}
-                >
-                  <Image 
-                    source={{ uri: photoUrl }} 
-                    style={styles.placeImage}
-                    resizeMode="cover"
-                  />
-                  <TouchableOpacity 
-                    style={styles.removePlaceButton}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      removeFromFavorites(place.place_id);
-                    }}
-                  >
-                    <X size={12} color={Colors.background} />
-                  </TouchableOpacity>
-                </TouchableOpacity>
-                <Text style={styles.foodLabel} numberOfLines={2}>{place.name}</Text>
-              </View>
-            );
-          })}
-          
           <TouchableOpacity 
             style={styles.addPlaceButton}
-            onPress={() => router.push('/(tabs)?tab=places')}
             testID="add-favorite-place-button"
           >
             <View style={styles.addPlaceIconContainer}>
               <Plus size={24} color={Colors.primary} />
             </View>
-            <Text style={styles.addPlaceText}>Add Place</Text>
+            <Text style={styles.addPlaceText}>Coming Soon</Text>
           </TouchableOpacity>
         </View>
       </View>
