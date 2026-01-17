@@ -9,12 +9,13 @@ import {
   SafeAreaView,
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
-import { X, Check, Upload, Trash2 } from 'lucide-react-native';
+import { X, Image as ImageIcon } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { usePlaces } from '@/hooks/use-places';
-import { Colors } from '@/constants/colors';
 
 export default function AddPlaceScreen() {
   const { addPlace } = usePlaces();
@@ -27,7 +28,7 @@ export default function AddPlaceScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: 'images',
       allowsEditing: true,
-      aspect: [4, 3],
+      aspect: [16, 9],
       quality: 0.8,
     });
 
@@ -36,20 +37,14 @@ export default function AddPlaceScreen() {
     }
   };
 
-  const removeImage = () => {
-    setImageUri(null);
-  };
-
-  const handleSave = () => {
-    console.log('Saving place...');
-    
+  const handleSubmit = () => {
     if (!name.trim()) {
-      Alert.alert('Error', 'Please enter a place name');
+      Alert.alert('Required', 'Please enter a place name');
       return;
     }
 
     if (!address.trim()) {
-      Alert.alert('Error', 'Please enter an address');
+      Alert.alert('Required', 'Please enter an address');
       return;
     }
 
@@ -76,77 +71,100 @@ export default function AddPlaceScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.closeButton} onPress={() => router.back()}>
-          <X size={24} color="#000000" />
+        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
+          <X size={28} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Place</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Check size={24} color="#FF1493" />
-        </TouchableOpacity>
+        <Text style={styles.title}>Add Place</Text>
+        <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.section}>
-          <Text style={styles.label}>Name *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. The Coffee Bean"
-            value={name}
-            onChangeText={setName}
-            placeholderTextColor="#999999"
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Address *</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. 123 Market St, San Francisco"
-            value={address}
-            onChangeText={setAddress}
-            placeholderTextColor="#999999"
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Note</Text>
-          <TextInput
-            style={[styles.input, styles.textArea]}
-            placeholder="e.g. Great coffee and pastries"
-            value={note}
-            onChangeText={setNote}
-            multiline
-            numberOfLines={4}
-            textAlignVertical="top"
-            placeholderTextColor="#999999"
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Image</Text>
-          {imageUri ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: imageUri }} style={styles.image} />
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={removeImage}
-                activeOpacity={0.7}
-              >
-                <Trash2 size={20} color="#FFFFFF" />
-              </TouchableOpacity>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.form}>
+            <View style={styles.field}>
+              <Text style={styles.label}>Name</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter place name"
+                placeholderTextColor="#999"
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
             </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.uploadButton}
-              onPress={pickImage}
-              activeOpacity={0.7}
-            >
-              <Upload size={24} color="#666666" />
-              <Text style={styles.uploadText}>Upload Image</Text>
-            </TouchableOpacity>
-          )}
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Address</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Enter address"
+                placeholderTextColor="#999"
+                value={address}
+                onChangeText={setAddress}
+                autoCapitalize="words"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Note (Optional)</Text>
+              <TextInput
+                style={[styles.input, styles.noteInput]}
+                placeholder="Add a note about this place..."
+                placeholderTextColor="#999"
+                value={note}
+                onChangeText={setNote}
+                multiline
+                numberOfLines={4}
+                textAlignVertical="top"
+              />
+            </View>
+
+            <View style={styles.field}>
+              <Text style={styles.label}>Image (Optional)</Text>
+              {imageUri ? (
+                <View style={styles.imagePreview}>
+                  <Image source={{ uri: imageUri }} style={styles.selectedImage} />
+                  <TouchableOpacity
+                    style={styles.changeImageButton}
+                    onPress={pickImage}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.changeImageText}>Change Image</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={styles.uploadBox}
+                  onPress={pickImage}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.uploadIcon}>
+                    <ImageIcon size={32} color="#FF6B35" />
+                  </View>
+                  <Text style={styles.uploadText}>Tap to upload image</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.footer}>
+          <TouchableOpacity
+            style={styles.submitButton}
+            onPress={handleSubmit}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.submitButtonText}>Add Place</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -154,91 +172,120 @@ export default function AddPlaceScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFFFFF',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: '#F0F0F0',
   },
   closeButton: {
     padding: 4,
   },
-  headerTitle: {
+  title: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
+    color: '#000',
   },
-  saveButton: {
-    padding: 4,
+  placeholder: {
+    width: 36,
   },
-  content: {
+  keyboardView: {
     flex: 1,
   },
-  section: {
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 20,
+  },
+  form: {
+    padding: 20,
+  },
+  field: {
+    marginBottom: 24,
   },
   label: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#000000',
-    marginBottom: 12,
+    color: '#000',
+    marginBottom: 8,
   },
   input: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8F8F8',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
     paddingHorizontal: 16,
     paddingVertical: 14,
     fontSize: 16,
-    color: '#000000',
+    color: '#000',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
   },
-  textArea: {
-    height: 100,
+  noteInput: {
+    height: 120,
     paddingTop: 14,
   },
-  uploadButton: {
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
+  uploadBox: {
+    backgroundColor: '#FFF5F2',
+    borderRadius: 16,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
+    borderColor: '#FF6B35',
     borderStyle: 'dashed',
-    paddingVertical: 40,
+    paddingVertical: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+  },
+  uploadIcon: {
+    marginBottom: 12,
   },
   uploadText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#666666',
+    color: '#FF6B35',
   },
-  imageContainer: {
-    position: 'relative',
-    borderRadius: 12,
-    overflow: 'hidden',
+  imagePreview: {
+    gap: 12,
   },
-  image: {
+  selectedImage: {
     width: '100%',
     height: 200,
-    borderRadius: 12,
+    borderRadius: 16,
+    backgroundColor: '#F0F0F0',
   },
-  removeButton: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: '#FF1493',
-    borderRadius: 20,
-    width: 40,
-    height: 40,
+  changeImageButton: {
+    backgroundColor: '#F8F8F8',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E8E8E8',
+  },
+  changeImageText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FF6B35',
+  },
+  footer: {
+    padding: 20,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+    borderTopColor: '#F0F0F0',
+    backgroundColor: '#FFFFFF',
+  },
+  submitButton: {
+    backgroundColor: '#FF6B35',
+    borderRadius: 16,
+    paddingVertical: 16,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  submitButtonText: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
