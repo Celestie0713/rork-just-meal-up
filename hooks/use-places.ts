@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, createContext, useContext, ReactNode } from 'react';
 import { Platform } from 'react-native';
-import createContextHook from '@nkzw/create-context-hook';
 import { mockPlaces } from '@/mocks/places';
 import { Place, PlaceDistance, UserLocation } from '@/types/place';
 import { mockUsers } from '@/mocks/users';
@@ -49,7 +48,24 @@ function calculateMidpoint(
   };
 }
 
-export const [PlacesProvider, usePlaces] = createContextHook(() => {
+type PlacesContextType = {
+  places: PlaceDistance[];
+  userLocation: UserLocation | null;
+  isLoadingLocation: boolean;
+  locationError: string | null;
+  locationPermissionStatus: 'not-requested' | 'granted' | 'denied';
+  mode: 'nearby' | 'between-us';
+  setMode: (mode: 'nearby' | 'between-us') => void;
+  selectedInviteeId: string | null;
+  setSelectedInviteeId: (id: string | null) => void;
+  addPlace: (place: Omit<Place, 'id' | 'createdAt' | 'addedBy'>) => void;
+  togglePlaceAdded: (placeId: string, userId: string) => void;
+  requestLocationPermission: () => Promise<void>;
+};
+
+const PlacesContext = createContext<PlacesContextType | undefined>(undefined);
+
+export function PlacesProvider({ children }: { children: ReactNode }) {
   const [places, setPlaces] = useState<Place[]>(mockPlaces);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [selectedInviteeId, setSelectedInviteeId] = useState<string | null>(null);
@@ -230,7 +246,7 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
     }));
   };
 
-  return {
+  const value = useMemo<PlacesContextType>(() => ({
     places: sortedPlaces,
     userLocation,
     isLoadingLocation,
@@ -243,5 +259,17 @@ export const [PlacesProvider, usePlaces] = createContextHook(() => {
     addPlace,
     togglePlaceAdded,
     requestLocationPermission,
-  };
-});
+  }), [sortedPlaces, userLocation, isLoadingLocation, locationError, locationPermissionStatus, mode, selectedInviteeId]);
+
+  return (
+    React.createElement(PlacesContext.Provider, { value }, children)
+  );
+}
+
+export function usePlaces() {
+  const context = useContext(PlacesContext);
+  if (!context) {
+    throw new Error('usePlaces must be used within PlacesProvider');
+  }
+  return context;
+}
