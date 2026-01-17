@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -8,46 +8,37 @@ import {
   ScrollView,
   SafeAreaView,
   Alert,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
-import { X, MapPin, Check } from 'lucide-react-native';
+import { X, Check, Upload, Trash2 } from 'lucide-react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { usePlaces } from '@/hooks/use-places';
 import { Colors } from '@/constants/colors';
 
-const CATEGORIES = [
-  'Cafe',
-  'Japanese',
-  'Italian',
-  'Thai',
-  'American',
-  'Mexican',
-  'Chinese',
-  'Indian',
-  'Korean',
-  'Vietnamese',
-  'French',
-  'Mediterranean',
-  'Healthy',
-  'Dessert',
-  'Bar',
-  'Other',
-];
-
 export default function AddPlaceScreen() {
-  const { addPlace, userLocation, getUserLocation } = usePlaces();
+  const { addPlace } = usePlaces();
   const [name, setName] = useState('');
-  const [category, setCategory] = useState('');
   const [address, setAddress] = useState('');
-  const [notes, setNotes] = useState('');
-  const [useCurrentLocation, setUseCurrentLocation] = useState(true);
-  const [customLatitude, setCustomLatitude] = useState('');
-  const [customLongitude, setCustomLongitude] = useState('');
+  const [note, setNote] = useState('');
+  const [imageUri, setImageUri] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!userLocation) {
-      getUserLocation();
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: 'images',
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setImageUri(result.assets[0].uri);
     }
-  }, [userLocation, getUserLocation]);
+  };
+
+  const removeImage = () => {
+    setImageUri(null);
+  };
 
   const handleSave = () => {
     console.log('Saving place...');
@@ -57,43 +48,21 @@ export default function AddPlaceScreen() {
       return;
     }
 
-    if (!category) {
-      Alert.alert('Error', 'Please select a category');
+    if (!address.trim()) {
+      Alert.alert('Error', 'Please enter an address');
       return;
-    }
-
-    let latitude: number;
-    let longitude: number;
-
-    if (useCurrentLocation) {
-      if (!userLocation) {
-        Alert.alert('Error', 'Unable to get your location. Please try again.');
-        return;
-      }
-      latitude = userLocation.latitude;
-      longitude = userLocation.longitude;
-    } else {
-      const lat = parseFloat(customLatitude);
-      const lon = parseFloat(customLongitude);
-      
-      if (isNaN(lat) || isNaN(lon)) {
-        Alert.alert('Error', 'Please enter valid coordinates');
-        return;
-      }
-      
-      latitude = lat;
-      longitude = lon;
     }
 
     addPlace({
       name: name.trim(),
-      category,
+      category: 'Custom',
       location: {
-        latitude,
-        longitude,
-        address: address.trim() || 'Address not provided',
+        latitude: 0,
+        longitude: 0,
+        address: address.trim(),
       },
-      notes: notes.trim() || undefined,
+      notes: note.trim() || undefined,
+      photos: imageUri ? [imageUri] : undefined,
     });
 
     Alert.alert('Success', 'Place added successfully!', [
@@ -118,7 +87,7 @@ export default function AddPlaceScreen() {
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={styles.label}>Place Name *</Text>
+          <Text style={styles.label}>Name *</Text>
           <TextInput
             style={styles.input}
             placeholder="e.g. The Coffee Bean"
@@ -129,104 +98,7 @@ export default function AddPlaceScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Category *</Text>
-          <View style={styles.categoryGrid}>
-            {CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryChip,
-                  category === cat && styles.categoryChipSelected,
-                ]}
-                onPress={() => setCategory(cat)}
-                activeOpacity={0.7}
-              >
-                <Text
-                  style={[
-                    styles.categoryChipText,
-                    category === cat && styles.categoryChipTextSelected,
-                  ]}
-                >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Location *</Text>
-          <View style={styles.locationToggle}>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                useCurrentLocation && styles.toggleButtonActive,
-              ]}
-              onPress={() => setUseCurrentLocation(true)}
-              activeOpacity={0.7}
-            >
-              <MapPin
-                size={16}
-                color={useCurrentLocation ? '#FFFFFF' : '#666666'}
-              />
-              <Text
-                style={[
-                  styles.toggleButtonText,
-                  useCurrentLocation && styles.toggleButtonTextActive,
-                ]}
-              >
-                Current Location
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.toggleButton,
-                !useCurrentLocation && styles.toggleButtonActive,
-              ]}
-              onPress={() => setUseCurrentLocation(false)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.toggleButtonText,
-                  !useCurrentLocation && styles.toggleButtonTextActive,
-                ]}
-              >
-                Custom Pin
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {!useCurrentLocation && (
-            <View style={styles.coordinatesContainer}>
-              <View style={styles.coordinateInput}>
-                <Text style={styles.coordinateLabel}>Latitude</Text>
-                <TextInput
-                  style={styles.coordinateField}
-                  placeholder="37.7849"
-                  value={customLatitude}
-                  onChangeText={setCustomLatitude}
-                  keyboardType="numeric"
-                  placeholderTextColor="#999999"
-                />
-              </View>
-              <View style={styles.coordinateInput}>
-                <Text style={styles.coordinateLabel}>Longitude</Text>
-                <TextInput
-                  style={styles.coordinateField}
-                  placeholder="-122.4094"
-                  value={customLongitude}
-                  onChangeText={setCustomLongitude}
-                  keyboardType="numeric"
-                  placeholderTextColor="#999999"
-                />
-              </View>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.label}>Address (Optional)</Text>
+          <Text style={styles.label}>Address *</Text>
           <TextInput
             style={styles.input}
             placeholder="e.g. 123 Market St, San Francisco"
@@ -237,17 +109,42 @@ export default function AddPlaceScreen() {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.label}>Notes (Optional)</Text>
+          <Text style={styles.label}>Note</Text>
           <TextInput
             style={[styles.input, styles.textArea]}
             placeholder="e.g. Great coffee and pastries"
-            value={notes}
-            onChangeText={setNotes}
+            value={note}
+            onChangeText={setNote}
             multiline
             numberOfLines={4}
             textAlignVertical="top"
             placeholderTextColor="#999999"
           />
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.label}>Image</Text>
+          {imageUri ? (
+            <View style={styles.imageContainer}>
+              <Image source={{ uri: imageUri }} style={styles.image} />
+              <TouchableOpacity
+                style={styles.removeButton}
+                onPress={removeImage}
+                activeOpacity={0.7}
+              >
+                <Trash2 size={20} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.uploadButton}
+              onPress={pickImage}
+              activeOpacity={0.7}
+            >
+              <Upload size={24} color="#666666" />
+              <Text style={styles.uploadText}>Upload Image</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -307,80 +204,41 @@ const styles = StyleSheet.create({
     height: 100,
     paddingTop: 14,
   },
-  categoryGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-  },
-  categoryChip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: '#F5F5F5',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  categoryChipSelected: {
-    backgroundColor: '#FF1493',
-    borderColor: '#FF1493',
-  },
-  categoryChipText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666666',
-  },
-  categoryChipTextSelected: {
-    color: '#FFFFFF',
-  },
-  locationToggle: {
-    flexDirection: 'row',
+  uploadButton: {
     backgroundColor: '#F5F5F5',
     borderRadius: 12,
-    padding: 4,
-    gap: 4,
-  },
-  toggleButton: {
-    flex: 1,
-    flexDirection: 'row',
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+    borderStyle: 'dashed',
+    paddingVertical: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
+    gap: 8,
   },
-  toggleButtonActive: {
-    backgroundColor: '#000000',
-  },
-  toggleButtonText: {
-    fontSize: 14,
+  uploadText: {
+    fontSize: 16,
     fontWeight: '600',
     color: '#666666',
   },
-  toggleButtonTextActive: {
-    color: '#FFFFFF',
-  },
-  coordinatesContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginTop: 12,
-  },
-  coordinateInput: {
-    flex: 1,
-  },
-  coordinateLabel: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#666666',
-    marginBottom: 8,
-  },
-  coordinateField: {
-    backgroundColor: '#FFFFFF',
+  imageContainer: {
+    position: 'relative',
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: '#000000',
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+  },
+  removeButton: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    backgroundColor: '#FF1493',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });
