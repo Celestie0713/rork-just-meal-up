@@ -8,6 +8,7 @@ import { ChatProvider } from "@/hooks/use-chat";
 import { FavoritesProvider } from "@/hooks/use-favorites";
 import { NotificationProvider } from "@/hooks/use-notifications";
 import { InvitationsProvider } from "@/hooks/use-invitations";
+import { PlacesProvider } from "@/hooks/use-places";
 import { trpc, trpcClient } from "@/lib/trpc";
 
 
@@ -22,6 +23,7 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="meal-up-attendees" options={{ headerShown: true }} />
       <Stack.Screen name="create-meal-up" options={{ headerShown: true }} />
+      <Stack.Screen name="add-place" options={{ headerShown: false, presentation: "modal" }} />
     </Stack>
   );
 }
@@ -39,9 +41,11 @@ export default function RootLayout() {
             <InvitationsProvider>
               <ChatProvider>
                 <FavoritesProvider>
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <RootLayoutNav />
-                  </GestureHandlerRootView>
+                  <PlacesProvider>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <RootLayoutNav />
+                    </GestureHandlerRootView>
+                  </PlacesProvider>
                 </FavoritesProvider>
               </ChatProvider>
             </InvitationsProvider>
