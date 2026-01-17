@@ -1581,7 +1581,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🎯</Text>
                 <Text style={styles.matchModalTitle}>You&apos;re both in for the Next Round!</Text>
                 <Text style={styles.matchModalDescription}>
-                  YAY! Another successful pairing. Your heart is full, let our tip jar be too?
+                  YAY! Another successful pairing. Your heart is full, let our ice cream fund be too?
                 </Text>
               </>
             ) : matchResult?.matchType === 'mixed_signals' || matchResult?.matchType === 'mixed_signals_extension' ? (
