@@ -42,12 +42,16 @@ export class GooglePlacesService {
         return [];
       }
       
-      const places: Place[] = data.elements
-        .filter((element: any) => element.tags?.name)
-        .map((element: any) => this.convertOSMToPlace(element))
-        .slice(0, 20);
+      const placesWithNames = data.elements.filter((element: any) => element.tags?.name);
       
-      return places;
+      const placesWithDetails = await Promise.all(
+        placesWithNames.slice(0, 20).map(async (element: any) => {
+          const enrichedPlace = await this.enrichPlaceWithNominatim(element);
+          return enrichedPlace || this.convertOSMToPlace(element);
+        })
+      );
+      
+      return placesWithDetails;
     } catch (error) {
       console.error('Error fetching nearby places from OSM:', error);
       return [];
@@ -121,12 +125,14 @@ export class GooglePlacesService {
       const placeData = data[0];
       const place = this.convertNominatimToPlace(placeData);
       
+      const imageUrl = placeData.extratags?.image || placeData.extratags?.['image:url'];
+      
       const details: PlaceDetails = {
         ...place,
         formatted_address: placeData.display_name,
         formatted_phone_number: placeData.extratags?.phone || placeData.address?.phone,
         website: placeData.extratags?.website || placeData.extratags?.url,
-        photos: this.getPlacePhotos(place.name, placeData.extratags),
+        photos: imageUrl ? [{ photo_reference: imageUrl, height: 400, width: 600 }] : [],
         reviews: [],
       };
       
@@ -177,12 +183,19 @@ export class GooglePlacesService {
     const amenityType = tags.amenity || 'restaurant';
     const cuisine = tags.cuisine || '';
     
+    const formattedAddress = this.formatAddress(tags);
+    const vicinity = formattedAddress !== 'Location details unavailable' 
+      ? formattedAddress 
+      : `Near ${lat?.toFixed(4)}, ${lon?.toFixed(4)}`;
+    
+    const imageUrl = tags.image || tags['image:url'];
+    
     return {
       id: `${element.type}/${element.id}`,
       place_id: `${element.type}/${element.id}`,
       name: tags.name || 'Unnamed Place',
-      address: this.formatAddress(tags),
-      vicinity: this.formatAddress(tags),
+      address: formattedAddress,
+      vicinity: vicinity,
       rating: undefined,
       priceLevel: undefined,
       types: [amenityType, cuisine].filter(Boolean),
@@ -192,7 +205,7 @@ export class GooglePlacesService {
           lng: lon || 0,
         },
       },
-      photos: this.getPlacePhotos(tags.name, tags),
+      photos: imageUrl ? [{ photo_reference: imageUrl, height: 400, width: 600 }] : [],
       opening_hours: tags.opening_hours ? {
         open_now: true,
         weekday_text: [tags.opening_hours],
@@ -205,12 +218,26 @@ export class GooglePlacesService {
     const tags = item.extratags || {};
     const amenityType = tags.amenity || item.type || 'restaurant';
     
+    const streetAddress = [
+      address.house_number,
+      address.road || address.street,
+    ].filter(Boolean).join(' ');
+    
+    const cityAddress = [
+      address.suburb || address.neighbourhood,
+      address.city || address.town || address.village,
+    ].filter(Boolean).join(', ');
+    
+    const vicinity = streetAddress || cityAddress || 'Location details unavailable';
+    
+    const imageUrl = tags.image || tags['image:url'];
+    
     return {
       id: `${item.osm_type}/${item.osm_id}`,
       place_id: `${item.osm_type}/${item.osm_id}`,
       name: item.namedetails?.name || item.display_name?.split(',')[0] || 'Unnamed Place',
       address: item.display_name,
-      vicinity: `${address.road || ''} ${address.city || address.town || ''}`.trim(),
+      vicinity: vicinity,
       rating: undefined,
       priceLevel: undefined,
       types: [amenityType],
@@ -220,34 +247,106 @@ export class GooglePlacesService {
           lng: parseFloat(item.lon),
         },
       },
-      photos: this.getPlacePhotos(item.display_name, tags),
+      photos: imageUrl ? [{ photo_reference: imageUrl, height: 400, width: 600 }] : [],
     };
+  }
+
+  private static async enrichPlaceWithNominatim(element: any): Promise<Place | null> {
+    try {
+      const osmType = element.type;
+      const osmId = element.id;
+      const lat = element.lat || element.center?.lat;
+      const lon = element.lon || element.center?.lon;
+      
+      if (!lat || !lon) return null;
+      
+      const url = `${NOMINATIM_URL}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&extratags=1`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'MealUpApp/1.0',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (!data || data.error) {
+        return null;
+      }
+      
+      const tags = element.tags || {};
+      const address = data.address || {};
+      const extratags = data.extratags || {};
+      
+      const streetAddress = [
+        address.house_number,
+        address.road || address.street,
+      ].filter(Boolean).join(' ');
+      
+      const cityAddress = [
+        address.suburb || address.neighbourhood,
+        address.city || address.town || address.village,
+      ].filter(Boolean).join(', ');
+      
+      const fullAddress = [streetAddress, cityAddress, address.country]
+        .filter(Boolean)
+        .join(', ');
+      
+      const amenityType = tags.amenity || extratags.amenity || 'restaurant';
+      const cuisine = tags.cuisine || extratags.cuisine || '';
+      
+      const imageUrl = extratags.image || extratags['image:url'] || tags.image;
+      
+      return {
+        id: `${osmType}/${osmId}`,
+        place_id: `${osmType}/${osmId}`,
+        name: tags.name || data.name || 'Unnamed Place',
+        address: fullAddress || data.display_name,
+        vicinity: streetAddress || cityAddress || 'Location details unavailable',
+        rating: undefined,
+        priceLevel: undefined,
+        types: [amenityType, cuisine].filter(Boolean),
+        geometry: {
+          location: {
+            lat: parseFloat(lat),
+            lng: parseFloat(lon),
+          },
+        },
+        photos: imageUrl ? [{ photo_reference: imageUrl, height: 400, width: 600 }] : [],
+        opening_hours: tags.opening_hours ? {
+          open_now: true,
+          weekday_text: [tags.opening_hours],
+        } : undefined,
+      };
+    } catch (error) {
+      console.error('Error enriching place with Nominatim:', error);
+      return null;
+    }
   }
 
   private static formatAddress(tags: any): string {
     const parts = [
-      tags['addr:street'],
       tags['addr:housenumber'],
+      tags['addr:street'],
       tags['addr:city'],
     ].filter(Boolean);
     
-    return parts.join(', ') || 'Address not available';
+    if (parts.length > 0) {
+      return parts.join(', ');
+    }
+    
+    return 'Location details unavailable';
   }
 
   private static getPlacePhotos(name: string, tags: any): any[] {
-    const restaurantImages = [
-      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&auto=format',
-      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&auto=format',
-      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=400&fit=crop&auto=format',
-      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=400&fit=crop&auto=format',
-      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop&auto=format',
-    ];
+    const imageUrl = tags.image || tags['image:url'];
     
-    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    const imageUrl = restaurantImages[hash % restaurantImages.length];
+    if (imageUrl) {
+      return [
+        { photo_reference: imageUrl, height: 400, width: 600 },
+      ];
+    }
     
-    return [
-      { photo_reference: imageUrl, height: 400, width: 600 },
-    ];
+    return [];
   }
 }
