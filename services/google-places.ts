@@ -3,6 +3,8 @@ import type { Place, PlaceDetails } from '@/types/place';
 const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
 const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export class GooglePlacesService {
   static async searchNearby(
     latitude: number,
@@ -16,16 +18,7 @@ export class GooglePlacesService {
       const amenityType = type === 'restaurant' ? 'restaurant|cafe|fast_food|bar|pub' : type;
       const radiusInMeters = radius;
       
-      const overpassQuery = `
-        [out:json][timeout:25];
-        (
-          node["amenity"~"${amenityType}"](around:${radiusInMeters},${latitude},${longitude});
-          way["amenity"~"${amenityType}"](around:${radiusInMeters},${latitude},${longitude});
-        );
-        out body;
-        >;
-        out skel qt;
-      `;
+      const overpassQuery = `[out:json][timeout:25];(node["amenity"~"${amenityType}"](around:${radiusInMeters},${latitude},${longitude});way["amenity"~"${amenityType}"](around:${radiusInMeters},${latitude},${longitude}););out body;>;out skel qt;`;
       
       const response = await fetch(OVERPASS_URL, {
         method: 'POST',
@@ -35,14 +28,20 @@ export class GooglePlacesService {
         body: `data=${encodeURIComponent(overpassQuery)}`,
       });
       
+      if (!response.ok) {
+        console.error('Overpass API error:', response.status, response.statusText);
+        return [];
+      }
+      
       const contentType = response.headers.get('content-type');
+      const text = await response.text();
+      
       if (!contentType || !contentType.includes('application/json')) {
-        const text = await response.text();
         console.error('Non-JSON response from Overpass API:', text.substring(0, 200));
         return [];
       }
       
-      const data = await response.json();
+      const data = JSON.parse(text);
       console.log('OSM nearby results:', data.elements?.length || 0, 'places found');
       
       if (!data.elements || data.elements.length === 0) {
@@ -51,12 +50,18 @@ export class GooglePlacesService {
       
       const placesWithNames = data.elements.filter((element: any) => element.tags?.name);
       
-      const placesWithDetails = await Promise.all(
-        placesWithNames.slice(0, 20).map(async (element: any) => {
-          const enrichedPlace = await this.enrichPlaceWithNominatim(element);
-          return enrichedPlace || this.convertOSMToPlace(element);
-        })
-      );
+      const limitedPlaces = placesWithNames.slice(0, 20);
+      const placesWithDetails: Place[] = [];
+      
+      for (let i = 0; i < limitedPlaces.length; i++) {
+        const element = limitedPlaces[i];
+        const enrichedPlace = await this.enrichPlaceWithNominatim(element);
+        placesWithDetails.push(enrichedPlace || this.convertOSMToPlace(element));
+        
+        if (i < limitedPlaces.length - 1) {
+          await delay(100);
+        }
+      }
       
       return placesWithDetails;
     } catch (error) {
@@ -269,11 +274,22 @@ export class GooglePlacesService {
       
       const url = `${NOMINATIM_URL}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&extratags=1`;
       
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'MealUpApp/1.0',
         },
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        console.log('Nominatim API error:', response.status);
+        return null;
+      }
       
       const data = await response.json();
       
