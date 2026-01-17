@@ -1,9 +1,7 @@
-import type { Place, PlaceDetails, GooglePlacesResponse, PlaceDetailsResponse } from '@/types/place';
-import { mockPlaces } from '@/mocks/places';
+import type { Place, PlaceDetails } from '@/types/place';
 
-const GOOGLE_PLACES_API_KEY = 'YOUR_GOOGLE_PLACES_API_KEY'; // Replace with your actual API key
-const BASE_URL = 'https://maps.googleapis.com/maps/api/place';
-const USE_MOCK_DATA = GOOGLE_PLACES_API_KEY === 'YOUR_GOOGLE_PLACES_API_KEY';
+const NOMINATIM_URL = 'https://nominatim.openstreetmap.org';
+const OVERPASS_URL = 'https://overpass-api.de/api/interpreter';
 
 export class GooglePlacesService {
   static async searchNearby(
@@ -12,27 +10,46 @@ export class GooglePlacesService {
     radius: number = 1500,
     type: string = 'restaurant'
   ): Promise<Place[]> {
-    if (USE_MOCK_DATA) {
-      console.log('Using mock data for nearby places');
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      return mockPlaces;
-    }
-
     try {
-      const url = `${BASE_URL}/nearbysearch/json?location=${latitude},${longitude}&radius=${radius}&type=${type}&key=${GOOGLE_PLACES_API_KEY}`;
+      console.log('Searching nearby places with OSM:', { latitude, longitude, radius, type });
       
-      const response = await fetch(url);
-      const data: GooglePlacesResponse = await response.json();
+      const amenityType = type === 'restaurant' ? 'restaurant|cafe|fast_food|bar|pub' : type;
+      const radiusInMeters = radius;
       
-      if (data.status === 'OK') {
-        return data.results;
-      } else {
-        console.error('Google Places API error:', data.status);
+      const overpassQuery = `
+        [out:json][timeout:25];
+        (
+          node["amenity"~"${amenityType}"](around:${radiusInMeters},${latitude},${longitude});
+          way["amenity"~"${amenityType}"](around:${radiusInMeters},${latitude},${longitude});
+        );
+        out body;
+        >;
+        out skel qt;
+      `;
+      
+      const response = await fetch(OVERPASS_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `data=${encodeURIComponent(overpassQuery)}`,
+      });
+      
+      const data = await response.json();
+      console.log('OSM nearby results:', data.elements?.length || 0, 'places found');
+      
+      if (!data.elements || data.elements.length === 0) {
         return [];
       }
+      
+      const places: Place[] = data.elements
+        .filter((element: any) => element.tags?.name)
+        .map((element: any) => this.convertOSMToPlace(element))
+        .slice(0, 20);
+      
+      return places;
     } catch (error) {
-      console.error('Error fetching nearby places:', error);
+      console.error('Error fetching nearby places from OSM:', error);
       return [];
     }
   }
@@ -42,93 +59,80 @@ export class GooglePlacesService {
     latitude?: number,
     longitude?: number
   ): Promise<Place[]> {
-    if (USE_MOCK_DATA) {
-      console.log('Using mock data for text search:', query);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-      // Filter mock places by query
-      return mockPlaces.filter(place => 
-        place.name.toLowerCase().includes(query.toLowerCase()) ||
-        place.vicinity?.toLowerCase().includes(query.toLowerCase()) ||
-        place.types.some(type => type.toLowerCase().includes(query.toLowerCase()))
-      );
-    }
-
     try {
-      let url = `${BASE_URL}/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_PLACES_API_KEY}`;
+      console.log('Searching places by text with OSM:', query);
+      
+      let url = `${NOMINATIM_URL}/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1&limit=20`;
       
       if (latitude && longitude) {
-        url += `&location=${latitude},${longitude}&radius=50000`;
+        url += `&viewbox=${longitude - 0.5},${latitude - 0.5},${longitude + 0.5},${latitude + 0.5}&bounded=1`;
       }
       
-      const response = await fetch(url);
-      const data: GooglePlacesResponse = await response.json();
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'MealUpApp/1.0',
+        },
+      });
       
-      if (data.status === 'OK') {
-        return data.results;
-      } else {
-        console.error('Google Places API error:', data.status);
+      const data = await response.json();
+      console.log('OSM text search results:', data.length, 'places found');
+      
+      if (!data || data.length === 0) {
         return [];
       }
+      
+      const places: Place[] = data
+        .filter((item: any) => item.display_name)
+        .map((item: any) => this.convertNominatimToPlace(item));
+      
+      return places;
     } catch (error) {
-      console.error('Error searching places:', error);
+      console.error('Error searching places from OSM:', error);
       return [];
     }
   }
 
   static async getPlaceDetails(placeId: string): Promise<PlaceDetails | null> {
-    if (USE_MOCK_DATA) {
-      console.log('Using mock data for place details:', placeId);
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 600));
-      const mockPlace = mockPlaces.find(place => place.place_id === placeId);
-      if (mockPlace) {
-        return {
-          ...mockPlace,
-          formatted_address: mockPlace.address,
-          formatted_phone_number: '+1 (555) 123-4567',
-          website: 'https://example.com',
-          // Add multiple mock photos
-          photos: [
-            { photo_reference: 'mock_photo_1', height: 400, width: 600 },
-            { photo_reference: 'mock_photo_2', height: 400, width: 600 },
-            { photo_reference: 'mock_photo_3', height: 400, width: 600 },
-            { photo_reference: 'mock_photo_4', height: 400, width: 600 },
-            { photo_reference: 'mock_photo_5', height: 400, width: 600 },
-          ],
-          reviews: [
-            {
-              author_name: 'John Doe',
-              rating: 5,
-              text: 'Amazing food and great service! Highly recommended.',
-              time: Date.now() - 86400000,
-            },
-            {
-              author_name: 'Jane Smith',
-              rating: 4,
-              text: 'Good atmosphere and delicious meals. Will come back again.',
-              time: Date.now() - 172800000,
-            },
-          ],
-        };
-      }
-      return null;
-    }
-
     try {
-      const url = `${BASE_URL}/details/json?place_id=${placeId}&fields=name,rating,formatted_phone_number,formatted_address,opening_hours,website,reviews,photos,geometry&key=${GOOGLE_PLACES_API_KEY}`;
+      console.log('Fetching place details from OSM:', placeId);
       
-      const response = await fetch(url);
-      const data: PlaceDetailsResponse = await response.json();
+      const [osmType, osmId] = placeId.split('/');
       
-      if (data.status === 'OK') {
-        return data.result;
-      } else {
-        console.error('Google Places API error:', data.status);
+      if (!osmType || !osmId) {
+        console.error('Invalid OSM place ID format:', placeId);
         return null;
       }
+      
+      const url = `${NOMINATIM_URL}/lookup?osm_ids=${osmType[0].toUpperCase()}${osmId}&format=json&addressdetails=1&extratags=1`;
+      
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'MealUpApp/1.0',
+        },
+      });
+      
+      const data = await response.json();
+      
+      if (!data || data.length === 0) {
+        console.error('No details found for place:', placeId);
+        return null;
+      }
+      
+      const placeData = data[0];
+      const place = this.convertNominatimToPlace(placeData);
+      
+      const details: PlaceDetails = {
+        ...place,
+        formatted_address: placeData.display_name,
+        formatted_phone_number: placeData.extratags?.phone || placeData.address?.phone,
+        website: placeData.extratags?.website || placeData.extratags?.url,
+        photos: this.getPlacePhotos(place.name, placeData.extratags),
+        reviews: [],
+      };
+      
+      return details;
     } catch (error) {
-      console.error('Error fetching place details:', error);
+      console.error('Error fetching place details from OSM:', error);
       return null;
     }
   }
@@ -137,21 +141,7 @@ export class GooglePlacesService {
     photoReference: string,
     maxWidth: number = 400
   ): string {
-    if (USE_MOCK_DATA || photoReference.startsWith('mock_')) {
-      // Return a placeholder image from Unsplash for mock data
-      // Use consistent mapping for each photo reference
-      const photoImageMap: { [key: string]: string } = {
-        'mock_photo_1': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&auto=format',
-        'mock_photo_2': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&auto=format',
-        'mock_photo_3': 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=400&fit=crop&auto=format',
-        'mock_photo_4': 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=400&fit=crop&auto=format',
-        'mock_photo_5': 'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop&auto=format',
-      };
-      
-      // Return the specific image for this photo reference, or fallback to first image
-      return photoImageMap[photoReference] || photoImageMap['mock_photo_1'];
-    }
-    return `${BASE_URL}/photo?maxwidth=${maxWidth}&photo_reference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
+    return photoReference;
   }
 
   static getPriceRangeText(priceLevel?: number): string {
@@ -164,8 +154,8 @@ export class GooglePlacesService {
       'bakery': 'Bakery',
       'bar': 'Bar',
       'cafe': 'Cafe',
-      'meal_delivery': 'Delivery',
-      'meal_takeaway': 'Takeaway',
+      'fast_food': 'Fast Food',
+      'pub': 'Pub',
       'restaurant': 'Restaurant',
       'food': 'Food',
     };
@@ -177,5 +167,87 @@ export class GooglePlacesService {
     }
     
     return 'Restaurant';
+  }
+
+  private static convertOSMToPlace(element: any): Place {
+    const lat = element.lat || element.center?.lat;
+    const lon = element.lon || element.center?.lon;
+    const tags = element.tags || {};
+    
+    const amenityType = tags.amenity || 'restaurant';
+    const cuisine = tags.cuisine || '';
+    
+    return {
+      id: `${element.type}/${element.id}`,
+      place_id: `${element.type}/${element.id}`,
+      name: tags.name || 'Unnamed Place',
+      address: this.formatAddress(tags),
+      vicinity: this.formatAddress(tags),
+      rating: undefined,
+      priceLevel: undefined,
+      types: [amenityType, cuisine].filter(Boolean),
+      geometry: {
+        location: {
+          lat: lat || 0,
+          lng: lon || 0,
+        },
+      },
+      photos: this.getPlacePhotos(tags.name, tags),
+      opening_hours: tags.opening_hours ? {
+        open_now: true,
+        weekday_text: [tags.opening_hours],
+      } : undefined,
+    };
+  }
+
+  private static convertNominatimToPlace(item: any): Place {
+    const address = item.address || {};
+    const tags = item.extratags || {};
+    const amenityType = tags.amenity || item.type || 'restaurant';
+    
+    return {
+      id: `${item.osm_type}/${item.osm_id}`,
+      place_id: `${item.osm_type}/${item.osm_id}`,
+      name: item.namedetails?.name || item.display_name?.split(',')[0] || 'Unnamed Place',
+      address: item.display_name,
+      vicinity: `${address.road || ''} ${address.city || address.town || ''}`.trim(),
+      rating: undefined,
+      priceLevel: undefined,
+      types: [amenityType],
+      geometry: {
+        location: {
+          lat: parseFloat(item.lat),
+          lng: parseFloat(item.lon),
+        },
+      },
+      photos: this.getPlacePhotos(item.display_name, tags),
+    };
+  }
+
+  private static formatAddress(tags: any): string {
+    const parts = [
+      tags['addr:street'],
+      tags['addr:housenumber'],
+      tags['addr:city'],
+    ].filter(Boolean);
+    
+    return parts.join(', ') || 'Address not available';
+  }
+
+  private static getPlacePhotos(name: string, tags: any): any[] {
+    const restaurantImages = [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=400&h=400&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=400&h=400&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=400&h=400&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=400&h=400&fit=crop&auto=format',
+      'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=400&h=400&fit=crop&auto=format',
+    ];
+    
+    const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    const imageUrl = restaurantImages[hash % restaurantImages.length];
+    
+    return [
+      { photo_reference: imageUrl, height: 400, width: 600 },
+    ];
   }
 }
