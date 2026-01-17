@@ -174,14 +174,16 @@ export default function ChatScreen() {
     ).filter(inv => {
       if (inv.status !== 'completed' && inv.status !== 'accepted') return false;
       
-      const currentUserMatched = Object.values(matchedProfiles).some(
+      const currentUserProfile = Object.values(matchedProfiles).find(
         profile => profile.userId === currentUserId && profile.invitationId === inv.id
       );
-      const otherUserMatched = Object.values(matchedProfiles).some(
+      const otherUserProfile = Object.values(matchedProfiles).find(
         profile => profile.userId === params.userId && profile.invitationId === inv.id
       );
       
-      return currentUserMatched && otherUserMatched;
+      if (!currentUserProfile || !otherUserProfile) return false;
+      
+      return currentUserProfile.matchType === otherUserProfile.matchType;
     });
     return meals.sort((a, b) => a.date.getTime() - b.date.getTime());
   }, [params.userId, matchedProfiles]);
