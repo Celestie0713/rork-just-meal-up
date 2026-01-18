@@ -20,6 +20,9 @@ interface OSMPlace {
     'addr:street'?: string;
     'addr:housenumber'?: string;
     'addr:city'?: string;
+    'addr:state'?: string;
+    'addr:postcode'?: string;
+    'addr:country'?: string;
   };
 }
 
@@ -98,7 +101,7 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
   const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
       
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`,
@@ -113,17 +116,19 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       clearTimeout(timeoutId);
       
       if (!response.ok) {
-        return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+        console.log('Reverse geocode failed with status:', response.status);
+        return 'Address unavailable';
       }
       
       const data = await response.json();
+      console.log('Reverse geocode result:', data);
       
       if (data.address) {
         const parts = [
           data.address.house_number,
-          data.address.road,
-          data.address.suburb || data.address.neighbourhood,
-          data.address.city || data.address.town || data.address.village,
+          data.address.road || data.address.street,
+          data.address.suburb || data.address.neighbourhood || data.address.quarter,
+          data.address.city || data.address.town || data.address.village || data.address.municipality,
         ].filter(Boolean);
         
         if (parts.length > 0) {
@@ -131,12 +136,15 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
         }
       }
       
-      return data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        console.log('Reverse geocoding timeout, using coordinates');
+      if (data.display_name) {
+        const parts = data.display_name.split(',').slice(0, 3);
+        return parts.join(',');
       }
-      return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+      
+      return 'Address unavailable';
+    } catch (error) {
+      console.log('Reverse geocoding error:', error);
+      return 'Address unavailable';
     }
   };
 
@@ -181,56 +189,65 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       const data: OSMResponse = await response.json();
       console.log('Fetched OSM places:', data.elements.length);
       
-      const placesWithAddresses = await Promise.all(
-        data.elements
-          .filter(element => element.tags?.name)
-          .slice(0, 20)
-          .map(async (element) => {
-            let address = [
-              element.tags['addr:housenumber'],
-              element.tags['addr:street'],
-              element.tags['addr:city']
-            ].filter(Boolean).join(', ');
-            
-            if (!address) {
-              address = await reverseGeocode(element.lat, element.lon);
-              await new Promise(resolve => setTimeout(resolve, 100));
-            }
-            
-            const categoryMap: { [key: string]: string } = {
-              restaurant: 'Restaurant',
-              cafe: 'Cafe',
-              bar: 'Bar',
-              fast_food: 'Fast Food',
-              pub: 'Pub',
-              food_court: 'Food Court',
-              ice_cream: 'Ice Cream',
-              biergarten: 'Beer Garden',
-              bakery: 'Bakery',
-              coffee: 'Coffee Shop',
-              tea: 'Tea House',
-              pastry: 'Pastry Shop',
-              deli: 'Deli',
-            };
-            
-            const amenity = element.tags.amenity;
-            const shop = element.tags.shop;
-            const category = categoryMap[amenity || shop || ''] || 'Food & Beverage';
-            
-            return {
-              id: `osm-${element.id}`,
-              name: element.tags.name || 'Unknown Place',
-              category,
-              location: {
-                latitude: element.lat,
-                longitude: element.lon,
-                address,
-              },
-              addedBy: [],
-              createdAt: new Date(),
-            };
-          })
-      );
+      const placesWithAddresses: Place[] = [];
+      
+      for (const element of data.elements.filter(element => element.tags?.name).slice(0, 20)) {
+        let address = '';
+        
+        const streetParts = [
+          element.tags['addr:housenumber'],
+          element.tags['addr:street'],
+        ].filter(Boolean);
+        
+        const cityParts = [
+          element.tags['addr:city'],
+          element.tags['addr:state'],
+        ].filter(Boolean);
+        
+        if (streetParts.length > 0 || cityParts.length > 0) {
+          const allParts = [...streetParts, ...cityParts].filter(Boolean);
+          address = allParts.join(', ');
+        }
+        
+        if (!address || address.length < 5) {
+          console.log(`Fetching address for ${element.tags.name} at ${element.lat}, ${element.lon}`);
+          address = await reverseGeocode(element.lat, element.lon);
+          await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        
+        const categoryMap: { [key: string]: string } = {
+          restaurant: 'Restaurant',
+          cafe: 'Cafe',
+          bar: 'Bar',
+          fast_food: 'Fast Food',
+          pub: 'Pub',
+          food_court: 'Food Court',
+          ice_cream: 'Ice Cream',
+          biergarten: 'Beer Garden',
+          bakery: 'Bakery',
+          coffee: 'Coffee Shop',
+          tea: 'Tea House',
+          pastry: 'Pastry Shop',
+          deli: 'Deli',
+        };
+        
+        const amenity = element.tags.amenity;
+        const shop = element.tags.shop;
+        const category = categoryMap[amenity || shop || ''] || 'Food & Beverage';
+        
+        placesWithAddresses.push({
+          id: `osm-${element.id}`,
+          name: element.tags.name || 'Unknown Place',
+          category,
+          location: {
+            latitude: element.lat,
+            longitude: element.lon,
+            address,
+          },
+          addedBy: [],
+          createdAt: new Date(),
+        });
+      }
       
       console.log('Processed places:', placesWithAddresses.length);
       setPlaces(placesWithAddresses);
