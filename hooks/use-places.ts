@@ -1,4 +1,4 @@
-import React, { useState, useMemo, createContext, useContext, ReactNode } from 'react';
+import React, { useState, useMemo, createContext, useContext, ReactNode, useCallback } from 'react';
 import { Platform } from 'react-native';
 import { mockPlaces } from '@/mocks/places';
 import { Place, PlaceDistance, UserLocation } from '@/types/place';
@@ -6,6 +6,25 @@ import { mockUsers } from '@/mocks/users';
 
 const EARTH_RADIUS_KM = 6371;
 const SEARCH_RADIUS_KM = 3;
+
+interface OSMPlace {
+  type: string;
+  id: number;
+  lat: number;
+  lon: number;
+  tags: {
+    name?: string;
+    amenity?: string;
+    cuisine?: string;
+    'addr:street'?: string;
+    'addr:housenumber'?: string;
+    'addr:city'?: string;
+  };
+}
+
+interface OSMResponse {
+  elements: OSMPlace[];
+}
 
 function calculateDistance(
   lat1: number,
@@ -73,8 +92,81 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [locationPermissionStatus, setLocationPermissionStatus] = useState<'not-requested' | 'granted' | 'denied'>('not-requested');
+  const [isFetchingPlaces, setIsFetchingPlaces] = useState(false);
 
-  const requestLocationPermission = async () => {
+  const fetchNearbyPlaces = useCallback(async (latitude: number, longitude: number) => {
+    console.log('Fetching nearby places for:', latitude, longitude);
+    setIsFetchingPlaces(true);
+    
+    try {
+      const radius = SEARCH_RADIUS_KM * 1000;
+      const query = `
+        [out:json];
+        (
+          node["amenity"="restaurant"](around:${radius},${latitude},${longitude});
+          node["amenity"="cafe"](around:${radius},${latitude},${longitude});
+          node["amenity"="bar"](around:${radius},${latitude},${longitude});
+          node["amenity"="fast_food"](around:${radius},${latitude},${longitude});
+        );
+        out body;
+      `;
+      
+      const response = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: query,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch places');
+      }
+      
+      const data: OSMResponse = await response.json();
+      console.log('Fetched OSM places:', data.elements.length);
+      
+      const fetchedPlaces: Place[] = data.elements
+        .filter(element => element.tags?.name)
+        .map((element, index) => {
+          const address = [
+            element.tags['addr:housenumber'],
+            element.tags['addr:street'],
+            element.tags['addr:city']
+          ].filter(Boolean).join(', ') || 'Address not available';
+          
+          const categoryMap: { [key: string]: string } = {
+            restaurant: 'Restaurant',
+            cafe: 'Cafe',
+            bar: 'Bar',
+            fast_food: 'Fast Food',
+          };
+          
+          return {
+            id: `osm-${element.id}`,
+            name: element.tags.name || 'Unknown Place',
+            category: categoryMap[element.tags.amenity || ''] || 'Dining',
+            location: {
+              latitude: element.lat,
+              longitude: element.lon,
+              address,
+            },
+            addedBy: [],
+            createdAt: new Date(),
+          };
+        });
+      
+      console.log('Processed places:', fetchedPlaces.length);
+      setPlaces(fetchedPlaces);
+    } catch (error) {
+      console.error('Error fetching nearby places:', error);
+      setPlaces([]);
+    } finally {
+      setIsFetchingPlaces(false);
+    }
+  }, []);
+
+  const requestLocationPermission = useCallback(async () => {
     console.log('Requesting location permission...');
     setIsLoadingLocation(true);
     setLocationError(null);
@@ -85,12 +177,17 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
           navigator.geolocation.getCurrentPosition(
             (position) => {
               console.log('Web location obtained:', position.coords);
-              setUserLocation({
+              const newLocation = {
                 latitude: position.coords.latitude,
                 longitude: position.coords.longitude,
-              });
+              };
+              setUserLocation(newLocation);
               setLocationPermissionStatus('granted');
               setIsLoadingLocation(false);
+              
+              if (mode === 'nearby') {
+                fetchNearbyPlaces(newLocation.latitude, newLocation.longitude);
+              }
             },
             (error) => {
               console.error('Web geolocation error:', error);
@@ -124,12 +221,17 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
 
         const location = await ExpoLocation.getCurrentPositionAsync({});
         console.log('Native location obtained:', location.coords);
-        setUserLocation({
+        const newLocation = {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-        });
+        };
+        setUserLocation(newLocation);
         setLocationPermissionStatus('granted');
         setIsLoadingLocation(false);
+        
+        if (mode === 'nearby') {
+          fetchNearbyPlaces(newLocation.latitude, newLocation.longitude);
+        }
       }
     } catch (error) {
       console.error('Error getting location:', error);
@@ -137,7 +239,7 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       setLocationPermissionStatus('denied');
       setIsLoadingLocation(false);
     }
-  };
+  }, [mode, fetchNearbyPlaces]);
 
   const inviteeLocation = useMemo(() => {
     if (!selectedInviteeId) return null;
@@ -249,7 +351,7 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
   const value = useMemo<PlacesContextType>(() => ({
     places: sortedPlaces,
     userLocation,
-    isLoadingLocation,
+    isLoadingLocation: isLoadingLocation || isFetchingPlaces,
     locationError,
     locationPermissionStatus,
     mode,
@@ -259,7 +361,7 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
     addPlace,
     togglePlaceAdded,
     requestLocationPermission,
-  }), [sortedPlaces, userLocation, isLoadingLocation, locationError, locationPermissionStatus, mode, selectedInviteeId]);
+  }), [sortedPlaces, userLocation, isLoadingLocation, isFetchingPlaces, locationError, locationPermissionStatus, mode, selectedInviteeId, requestLocationPermission]);
 
   return (
     React.createElement(PlacesContext.Provider, { value }, children)
