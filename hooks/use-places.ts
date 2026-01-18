@@ -193,12 +193,42 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       
       const isPlaceClosed = (tags: any) => {
         const tagKeys = Object.keys(tags || {});
-        if (tagKeys.some(key => key.startsWith('disused:') || key.startsWith('abandoned:') || key.startsWith('demolished:'))) {
+        
+        if (tagKeys.some(key => key.startsWith('disused:') || key.startsWith('abandoned:') || key.startsWith('demolished:') || key.startsWith('removed:') || key.startsWith('was:'))) {
           return true;
         }
+        
         if (tags.opening_hours === 'closed' || tags.opening_hours === 'permanently closed') {
           return true;
         }
+        
+        if (tags.shop === 'vacant' || tags.amenity === 'closed') {
+          return true;
+        }
+        
+        if (tags.lifecycle_status && ['demolished', 'abandoned', 'disused', 'removed', 'closed'].includes(tags.lifecycle_status.toLowerCase())) {
+          return true;
+        }
+        
+        const textFields = [
+          tags.note,
+          tags.description,
+          tags.fixme,
+          tags['fixme:shop'],
+          tags['fixme:amenity']
+        ].filter(Boolean).join(' ').toLowerCase();
+        
+        if (textFields && (
+          textFields.includes('permanently closed') ||
+          textFields.includes('closed down') ||
+          textFields.includes('out of business') ||
+          textFields.includes('no longer') ||
+          textFields.includes('demolished') ||
+          textFields.includes('abandoned')
+        )) {
+          return true;
+        }
+        
         return false;
       };
       
