@@ -96,10 +96,6 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
   const [isFetchingPlaces, setIsFetchingPlaces] = useState(false);
 
   const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
-    if (Platform.OS === 'web') {
-      return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-    }
-    
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`,
