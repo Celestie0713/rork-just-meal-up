@@ -15,6 +15,7 @@ interface OSMPlace {
   tags: {
     name?: string;
     amenity?: string;
+    shop?: string;
     cuisine?: string;
     'addr:street'?: string;
     'addr:housenumber'?: string;
@@ -148,6 +149,15 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
           node["amenity"="cafe"](around:${radius},${latitude},${longitude});
           node["amenity"="bar"](around:${radius},${latitude},${longitude});
           node["amenity"="fast_food"](around:${radius},${latitude},${longitude});
+          node["amenity"="pub"](around:${radius},${latitude},${longitude});
+          node["amenity"="food_court"](around:${radius},${latitude},${longitude});
+          node["amenity"="ice_cream"](around:${radius},${latitude},${longitude});
+          node["amenity"="biergarten"](around:${radius},${latitude},${longitude});
+          node["shop"="bakery"](around:${radius},${latitude},${longitude});
+          node["shop"="coffee"](around:${radius},${latitude},${longitude});
+          node["shop"="tea"](around:${radius},${latitude},${longitude});
+          node["shop"="pastry"](around:${radius},${latitude},${longitude});
+          node["shop"="deli"](around:${radius},${latitude},${longitude});
         );
         out body;
       `;
@@ -188,9 +198,20 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
               cafe: 'Cafe',
               bar: 'Bar',
               fast_food: 'Fast Food',
+              pub: 'Pub',
+              food_court: 'Food Court',
+              ice_cream: 'Ice Cream',
+              biergarten: 'Beer Garden',
+              bakery: 'Bakery',
+              coffee: 'Coffee Shop',
+              tea: 'Tea House',
+              pastry: 'Pastry Shop',
+              deli: 'Deli',
             };
             
-            const category = categoryMap[element.tags.amenity || ''] || 'Dining';
+            const amenity = element.tags.amenity;
+            const shop = element.tags.shop;
+            const category = categoryMap[amenity || shop || ''] || 'Food & Beverage';
             
             return {
               id: `osm-${element.id}`,
