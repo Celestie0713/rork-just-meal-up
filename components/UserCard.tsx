@@ -72,7 +72,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         {hasLoveMatch && (
           <View style={styles.loveIconContainer}>
             <View style={styles.loveIconBackground}>
-              <Heart size={16} color={Colors.primary} fill={Colors.primary} />
+              <Heart size={16} color="#FF6B35" fill="#FF6B35" />
             </View>
           </View>
         )}
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 6,
     borderWidth: 2,
-    borderColor: Colors.primary,
+    borderColor: '#FF6B35',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
