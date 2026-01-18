@@ -15,11 +15,10 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
   const { place, distanceFromUser, distanceFromInvitee } = placeDistance;
 
   const handleNavigate = () => {
-    const lat = place.location.latitude;
-    const lng = place.location.longitude;
+    const searchQuery = encodeURIComponent(`${place.name} ${place.location.address}`);
 
     if (Platform.OS === 'web') {
-      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
       window.open(googleMapsUrl, '_blank');
       return;
     }
@@ -32,10 +31,10 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
           text: 'Google Maps',
           onPress: () => {
             const url = Platform.select({
-              ios: `comgooglemaps://?q=${lat},${lng}&center=${lat},${lng}`,
-              android: `google.navigation:q=${lat},${lng}`,
+              ios: `comgooglemaps://?q=${searchQuery}`,
+              android: `geo:0,0?q=${searchQuery}`,
             });
-            const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
             
             Linking.canOpenURL(url!).then((supported) => {
               if (supported) {
@@ -49,7 +48,7 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
         {
           text: 'Waze',
           onPress: () => {
-            const url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+            const url = `https://waze.com/ul?q=${searchQuery}&navigate=yes`;
             Linking.openURL(url);
           },
         },
