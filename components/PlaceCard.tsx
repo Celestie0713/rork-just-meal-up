@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { MapPin, Users, Heart } from 'lucide-react-native';
+import { MapPin, Heart } from 'lucide-react-native';
 import { PlaceDistance } from '@/types/place';
 
 interface PlaceCardProps {
@@ -64,15 +64,6 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
               )}
             </View>
           )}
-        </View>
-
-        <View style={styles.footer}>
-          <View style={styles.communitySignal}>
-            <Users size={14} color="#FF6B35" />
-            <Text style={styles.communityText}>
-              Added by {place.addedBy.length} {place.addedBy.length === 1 ? 'user' : 'users'}
-            </Text>
-          </View>
         </View>
 
         {place.notes && (
@@ -160,26 +151,7 @@ const styles = StyleSheet.create({
   betweenUsDistances: {
     gap: 4,
   },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  communitySignal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF0F7',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  communityText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#FF6B35',
-    marginLeft: 4,
-  },
+
   notes: {
     fontSize: 13,
     color: '#888888',
