@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { MapPin, Heart } from 'lucide-react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Alert, Linking, Platform } from 'react-native';
+import { MapPin, Heart, Navigation } from 'lucide-react-native';
 import { PlaceDistance } from '@/types/place';
 
 interface PlaceCardProps {
@@ -14,11 +14,56 @@ interface PlaceCardProps {
 export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }: PlaceCardProps) {
   const { place, distanceFromUser, distanceFromInvitee } = placeDistance;
 
+  const handleNavigate = () => {
+    const lat = place.location.latitude;
+    const lng = place.location.longitude;
+
+    if (Platform.OS === 'web') {
+      const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      window.open(googleMapsUrl, '_blank');
+      return;
+    }
+
+    Alert.alert(
+      'Navigate to ' + place.name,
+      'Choose your navigation app',
+      [
+        {
+          text: 'Google Maps',
+          onPress: () => {
+            const url = Platform.select({
+              ios: `comgooglemaps://?q=${lat},${lng}&center=${lat},${lng}`,
+              android: `google.navigation:q=${lat},${lng}`,
+            });
+            const fallbackUrl = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+            
+            Linking.canOpenURL(url!).then((supported) => {
+              if (supported) {
+                Linking.openURL(url!);
+              } else {
+                Linking.openURL(fallbackUrl);
+              }
+            });
+          },
+        },
+        {
+          text: 'Waze',
+          onPress: () => {
+            const url = `https://waze.com/ul?ll=${lat},${lng}&navigate=yes`;
+            Linking.openURL(url);
+          },
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
-      {place.photos && place.photos.length > 0 && (
-        <Image source={{ uri: place.photos[0] }} style={styles.image} />
-      )}
       <View style={styles.content}>
         <View style={styles.header}>
           <View style={styles.headerLeft}>
@@ -37,6 +82,12 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
             />
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity style={styles.addressContainer} onPress={handleNavigate} activeOpacity={0.7}>
+          <MapPin size={16} color="#FF6B35" />
+          <Text style={styles.address} numberOfLines={2}>{place.location.address}</Text>
+          <Navigation size={16} color="#FF6B35" />
+        </TouchableOpacity>
 
         <View style={styles.distance}>
           {mode === 'nearby' ? (
@@ -84,11 +135,6 @@ const styles = StyleSheet.create({
     borderColor: '#E0E0E0',
     overflow: 'hidden',
   },
-  image: {
-    width: '100%',
-    height: 160,
-    backgroundColor: '#F0F0F0',
-  },
   content: {
     padding: 16,
   },
@@ -127,6 +173,24 @@ const styles = StyleSheet.create({
   addButtonActive: {
     backgroundColor: '#FFE4F0',
     borderColor: '#FF6B35',
+  },
+  addressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF5F0',
+    padding: 12,
+    borderRadius: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#FFE0CC',
+    gap: 8,
+  },
+  address: {
+    flex: 1,
+    fontSize: 13,
+    color: '#333333',
+    fontWeight: '500',
+    lineHeight: 18,
   },
   distance: {
     marginBottom: 12,
