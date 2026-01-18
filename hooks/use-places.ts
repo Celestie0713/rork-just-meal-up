@@ -142,10 +142,46 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
             fast_food: 'Fast Food',
           };
           
+          const category = categoryMap[element.tags.amenity || ''] || 'Dining';
+          
+          const photoMap: { [key: string]: string[] } = {
+            'Restaurant': [
+              'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+              'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800',
+              'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800',
+              'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800',
+              'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800',
+            ],
+            'Cafe': [
+              'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
+              'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=800',
+              'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=800',
+              'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=800',
+              'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=800',
+            ],
+            'Bar': [
+              'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800',
+              'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=800',
+              'https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800',
+              'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?w=800',
+              'https://images.unsplash.com/photo-1470337458703-46ad1756a187?w=800',
+            ],
+            'Fast Food': [
+              'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=800',
+              'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=800',
+              'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=800',
+              'https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800',
+              'https://images.unsplash.com/photo-1550547660-d9450f859349?w=800',
+            ],
+          };
+          
+          const categoryPhotos = photoMap[category] || photoMap['Restaurant'];
+          const photoIndex = index % categoryPhotos.length;
+          
           return {
             id: `osm-${element.id}`,
             name: element.tags.name || 'Unknown Place',
-            category: categoryMap[element.tags.amenity || ''] || 'Dining',
+            category,
             location: {
               latitude: element.lat,
               longitude: element.lon,
@@ -153,6 +189,7 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
             },
             addedBy: [],
             createdAt: new Date(),
+            photos: [categoryPhotos[photoIndex]],
           };
         });
       
