@@ -191,7 +191,18 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       
       const placesWithAddresses: Place[] = [];
       
-      for (const element of data.elements.filter(element => element.tags?.name).slice(0, 20)) {
+      const isPlaceClosed = (tags: any) => {
+        const tagKeys = Object.keys(tags || {});
+        if (tagKeys.some(key => key.startsWith('disused:') || key.startsWith('abandoned:') || key.startsWith('demolished:'))) {
+          return true;
+        }
+        if (tags.opening_hours === 'closed' || tags.opening_hours === 'permanently closed') {
+          return true;
+        }
+        return false;
+      };
+      
+      for (const element of data.elements.filter(element => element.tags?.name && !isPlaceClosed(element.tags)).slice(0, 20)) {
         let address = '';
         
         const streetParts = [
