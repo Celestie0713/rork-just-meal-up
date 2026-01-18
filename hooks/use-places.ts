@@ -94,6 +94,43 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
   const [locationPermissionStatus, setLocationPermissionStatus] = useState<'not-requested' | 'granted' | 'denied'>('not-requested');
   const [isFetchingPlaces, setIsFetchingPlaces] = useState(false);
 
+  const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`,
+        {
+          headers: {
+            'User-Agent': 'MealUpApp/1.0',
+          },
+        }
+      );
+      
+      if (!response.ok) {
+        return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+      }
+      
+      const data = await response.json();
+      
+      if (data.address) {
+        const parts = [
+          data.address.house_number,
+          data.address.road,
+          data.address.suburb || data.address.neighbourhood,
+          data.address.city || data.address.town || data.address.village,
+        ].filter(Boolean);
+        
+        if (parts.length > 0) {
+          return parts.join(', ');
+        }
+      }
+      
+      return data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    } catch (error) {
+      console.error('Reverse geocoding error:', error);
+      return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+    }
+  };
+
   const fetchNearbyPlaces = useCallback(async (latitude: number, longitude: number) => {
     console.log('Fetching nearby places for:', latitude, longitude);
     setIsFetchingPlaces(true);
@@ -126,45 +163,48 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       const data: OSMResponse = await response.json();
       console.log('Fetched OSM places:', data.elements.length);
       
-      const fetchedPlaces: Place[] = data.elements
-        .filter(element => element.tags?.name)
-        .map((element, index) => {
-          const address = [
-            element.tags['addr:housenumber'],
-            element.tags['addr:street'],
-            element.tags['addr:city']
-          ].filter(Boolean).join(', ') || 'Address not available';
-          
-          const categoryMap: { [key: string]: string } = {
-            restaurant: 'Restaurant',
-            cafe: 'Cafe',
-            bar: 'Bar',
-            fast_food: 'Fast Food',
-          };
-          
-          const category = categoryMap[element.tags.amenity || ''] || 'Dining';
-          
-          const placeName = element.tags.name || 'restaurant';
-          const searchQuery = encodeURIComponent(`${placeName} ${category}`);
-          const photoUrl = `https://source.unsplash.com/800x600/?${searchQuery}`;
-          
-          return {
-            id: `osm-${element.id}`,
-            name: element.tags.name || 'Unknown Place',
-            category,
-            location: {
-              latitude: element.lat,
-              longitude: element.lon,
-              address,
-            },
-            addedBy: [],
-            createdAt: new Date(),
-            photos: [photoUrl],
-          };
-        });
+      const placesWithAddresses = await Promise.all(
+        data.elements
+          .filter(element => element.tags?.name)
+          .slice(0, 20)
+          .map(async (element) => {
+            let address = [
+              element.tags['addr:housenumber'],
+              element.tags['addr:street'],
+              element.tags['addr:city']
+            ].filter(Boolean).join(', ');
+            
+            if (!address) {
+              address = await reverseGeocode(element.lat, element.lon);
+              await new Promise(resolve => setTimeout(resolve, 100));
+            }
+            
+            const categoryMap: { [key: string]: string } = {
+              restaurant: 'Restaurant',
+              cafe: 'Cafe',
+              bar: 'Bar',
+              fast_food: 'Fast Food',
+            };
+            
+            const category = categoryMap[element.tags.amenity || ''] || 'Dining';
+            
+            return {
+              id: `osm-${element.id}`,
+              name: element.tags.name || 'Unknown Place',
+              category,
+              location: {
+                latitude: element.lat,
+                longitude: element.lon,
+                address,
+              },
+              addedBy: [],
+              createdAt: new Date(),
+            };
+          })
+      );
       
-      console.log('Processed places:', fetchedPlaces.length);
-      setPlaces(fetchedPlaces);
+      console.log('Processed places:', placesWithAddresses.length);
+      setPlaces(placesWithAddresses);
     } catch (error) {
       console.error('Error fetching nearby places:', error);
       setPlaces([]);
