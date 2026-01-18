@@ -3,12 +3,12 @@ import { Place } from '@/types/place';
 export const mockPlaces: Place[] = [
   {
     id: 'p1',
-    name: 'The Coffee Bean',
+    name: 'Blue Bottle Coffee',
     category: 'Cafe',
     location: {
-      latitude: 37.7849,
-      longitude: -122.4094,
-      address: '123 Market St, San Francisco, CA'
+      latitude: 37.7833,
+      longitude: -122.4167,
+      address: '66 Mint Plaza, San Francisco, CA 94103'
     },
     addedBy: ['u1', 'u3', 'u5'],
     createdAt: new Date('2024-01-15'),
@@ -16,12 +16,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p2',
-    name: 'Sushi Paradise',
+    name: 'Akiko\'s Restaurant',
     category: 'Japanese',
     location: {
-      latitude: 37.7899,
-      longitude: -122.4034,
-      address: '456 Mission St, San Francisco, CA'
+      latitude: 37.7749,
+      longitude: -122.4194,
+      address: '431 Bush St, San Francisco, CA 94108'
     },
     addedBy: ['u2', 'u4'],
     createdAt: new Date('2024-01-20'),
@@ -29,12 +29,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p3',
-    name: 'Bella Italia',
+    name: 'Flour + Water',
     category: 'Italian',
     location: {
-      latitude: 37.7879,
-      longitude: -122.4074,
-      address: '789 Powell St, San Francisco, CA'
+      latitude: 37.7599,
+      longitude: -122.4148,
+      address: '2401 Harrison St, San Francisco, CA 94110'
     },
     addedBy: ['u1', 'u2', 'u3', 'u6'],
     notes: 'Great pasta and wine selection',
@@ -43,12 +43,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p4',
-    name: 'Thai Street Food',
+    name: 'Kin Khao',
     category: 'Thai',
     location: {
-      latitude: 37.7919,
-      longitude: -122.4084,
-      address: '321 Geary St, San Francisco, CA'
+      latitude: 37.7867,
+      longitude: -122.4027,
+      address: '55 Cyril Magnin St, San Francisco, CA 94102'
     },
     addedBy: ['u5', 'u7'],
     createdAt: new Date('2024-02-10'),
@@ -56,12 +56,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p5',
-    name: 'Burger Joint',
+    name: 'Super Duper Burgers',
     category: 'American',
     location: {
-      latitude: 37.7859,
-      longitude: -122.4114,
-      address: '654 Bush St, San Francisco, CA'
+      latitude: 37.7886,
+      longitude: -122.4076,
+      address: '721 Market St, San Francisco, CA 94103'
     },
     addedBy: ['u3', 'u4', 'u8'],
     notes: 'Best burgers in town',
@@ -70,12 +70,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p6',
-    name: 'Green Salad Bar',
+    name: 'Sweetgreen',
     category: 'Healthy',
     location: {
-      latitude: 37.7889,
-      longitude: -122.4054,
-      address: '987 California St, San Francisco, CA'
+      latitude: 37.7911,
+      longitude: -122.4008,
+      address: '1 Front St, San Francisco, CA 94111'
     },
     addedBy: ['u6'],
     createdAt: new Date('2024-03-01'),
@@ -83,12 +83,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p7',
-    name: 'Taco Fiesta',
+    name: 'La Taqueria',
     category: 'Mexican',
     location: {
-      latitude: 37.7839,
-      longitude: -122.4104,
-      address: '147 Valencia St, San Francisco, CA'
+      latitude: 37.7489,
+      longitude: -122.4178,
+      address: '2889 Mission St, San Francisco, CA 94110'
     },
     addedBy: ['u1', 'u2', 'u5', 'u7', 'u9'],
     notes: 'Authentic Mexican tacos',
@@ -97,12 +97,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p8',
-    name: 'Ramen House',
+    name: 'Marufuku Ramen',
     category: 'Japanese',
     location: {
-      latitude: 37.7909,
-      longitude: -122.4064,
-      address: '258 Post St, San Francisco, CA'
+      latitude: 37.7806,
+      longitude: -122.4101,
+      address: '1581 Webster St, San Francisco, CA 94115'
     },
     addedBy: ['u4', 'u6', 'u8'],
     createdAt: new Date('2024-03-10'),
@@ -110,12 +110,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p9',
-    name: 'Pizza Corner',
+    name: 'Tony\'s Pizza Napoletana',
     category: 'Italian',
     location: {
-      latitude: 37.7869,
-      longitude: -122.4124,
-      address: '369 Columbus Ave, San Francisco, CA'
+      latitude: 37.7988,
+      longitude: -122.4098,
+      address: '1570 Stockton St, San Francisco, CA 94133'
     },
     addedBy: ['u2', 'u3'],
     createdAt: new Date('2024-03-15'),
@@ -123,12 +123,12 @@ export const mockPlaces: Place[] = [
   },
   {
     id: 'p10',
-    name: 'Dim Sum Palace',
+    name: 'Good Mong Kok Bakery',
     category: 'Chinese',
     location: {
-      latitude: 37.7949,
-      longitude: -122.4074,
-      address: '741 Grant Ave, San Francisco, CA'
+      latitude: 37.7946,
+      longitude: -122.4078,
+      address: '1039 Stockton St, San Francisco, CA 94108'
     },
     addedBy: ['u1', 'u5', 'u9'],
     createdAt: new Date('2024-03-20'),
