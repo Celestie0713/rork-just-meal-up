@@ -97,14 +97,20 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
 
   const reverseGeocode = async (lat: number, lon: number): Promise<string> => {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+      
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`,
         {
           headers: {
             'User-Agent': 'MealUpApp/1.0',
           },
+          signal: controller.signal,
         }
       );
+      
+      clearTimeout(timeoutId);
       
       if (!response.ok) {
         return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
@@ -127,7 +133,9 @@ export function PlacesProvider({ children }: { children: ReactNode }) {
       
       return data.display_name || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
     } catch (error) {
-      console.error('Reverse geocoding error:', error);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.log('Reverse geocoding timeout, using coordinates');
+      }
       return `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
     }
   };
