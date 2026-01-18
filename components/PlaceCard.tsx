@@ -32,8 +32,8 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
           >
             <Heart 
               size={20} 
-              color={isAdded ? '#FF1493' : '#888888'} 
-              fill={isAdded ? '#FF1493' : 'none'}
+              color={isAdded ? '#FF6B35' : '#888888'} 
+              fill={isAdded ? '#FF6B35' : 'none'}
             />
           </TouchableOpacity>
         </View>
@@ -68,7 +68,7 @@ export function PlaceCard({ placeDistance, onPress, onAddPress, isAdded, mode }:
 
         <View style={styles.footer}>
           <View style={styles.communitySignal}>
-            <Users size={14} color="#FF1493" />
+            <Users size={14} color="#FF6B35" />
             <Text style={styles.communityText}>
               Added by {place.addedBy.length} {place.addedBy.length === 1 ? 'user' : 'users'}
             </Text>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   addButtonActive: {
     backgroundColor: '#FFE4F0',
-    borderColor: '#FF1493',
+    borderColor: '#FF6B35',
   },
   distance: {
     marginBottom: 12,
@@ -177,7 +177,7 @@ const styles = StyleSheet.create({
   communityText: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#FF1493',
+    color: '#FF6B35',
     marginLeft: 4,
   },
   notes: {

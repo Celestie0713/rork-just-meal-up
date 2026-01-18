@@ -1108,7 +1108,7 @@ export default function PostMealScreen() {
               )}
               {!isGroup && timerInfo.type === 'match_permanent' && matchType === 'fight_for_fries' && (
                 <View style={styles.loveIconContainer}>
-                  <Heart size={16} color="#FF69B4" fill="#FF69B4" />
+                  <Heart size={16} color={colors.primary} fill={colors.primary} />
                 </View>
               )}
             </View>
@@ -2394,7 +2394,7 @@ const styles = StyleSheet.create({
     width: 14,
     height: 14,
     borderRadius: 7,
-    backgroundColor: '#FF69B4',
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,

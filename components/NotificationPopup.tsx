@@ -19,7 +19,7 @@ const colors = {
   success: '#4CAF50',
   warning: '#FFA726',
   premium: '#FF6600',
-  pink: '#FF69B4',
+  pink: '#FF6B35',
 } as const;
 
 export function NotificationPopup({ visible, onClose }: NotificationPopupProps) {

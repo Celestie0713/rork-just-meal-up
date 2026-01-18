@@ -176,7 +176,7 @@ export default function GroupDetailsScreen() {
                 
                 <View style={styles.postFooter}>
                   <TouchableOpacity style={styles.likeButton}>
-                    <Heart size={18} color="#FF1493" />
+                    <Heart size={18} color={Colors.primary} />
                     <Text style={styles.likeCount}>{post.likes}</Text>
                   </TouchableOpacity>
                 </View>

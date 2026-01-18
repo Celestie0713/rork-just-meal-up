@@ -198,7 +198,7 @@ export default function UserProfileScreen() {
                   onPress={handleNavigateToMatchedUser}
                   testID="navigate-to-matched-user-button"
                 >
-                  <Heart size={16} color="#FF1493" fill="#FF1493" />
+                  <Heart size={16} color={Colors.primary} fill={Colors.primary} />
                 </TouchableOpacity>
               </View>
             )}
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     padding: 8,
     borderWidth: 2,
-    borderColor: '#FF1493',
+    borderColor: Colors.primary,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.4,

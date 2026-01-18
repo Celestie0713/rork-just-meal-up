@@ -70,7 +70,7 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
-            <Heart size={24} color="#FF1493" fill={unreadCount > 0 ? "#FF1493" : "none"} />
+            <Heart size={24} color={Colors.primary} fill={unreadCount > 0 ? Colors.primary : "none"} />
             {unreadCount > 0 && (
               <View style={styles.notificationBadge}>
                 <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
@@ -190,13 +190,13 @@ export default function SearchScreen() {
 
           {isLoadingLocation ? (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#FF1493" />
+              <ActivityIndicator size="large" color={Colors.primary} />
               <Text style={styles.loadingText}>Getting your location...</Text>
             </View>
           ) : mode === 'nearby' && locationPermissionStatus === 'not-requested' ? (
             <View style={styles.permissionContainer}>
               <View style={styles.permissionIcon}>
-                <MapPinned size={48} color="#FF1493" />
+                <MapPinned size={48} color={Colors.primary} />
               </View>
               <Text style={styles.permissionTitle}>Enable Location</Text>
               <Text style={styles.permissionText}>
@@ -438,7 +438,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#FF1493',
+    backgroundColor: Colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: '#FFF0F7',
+    backgroundColor: '#FFF3ED',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -537,7 +537,7 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   permissionButton: {
-    backgroundColor: '#FF1493',
+    backgroundColor: Colors.primary,
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 12,
@@ -557,10 +557,10 @@ const styles = StyleSheet.create({
     minWidth: 200,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#FF1493',
+    borderColor: Colors.primary,
   },
   permissionButtonSecondaryText: {
-    color: '#FF1493',
+    color: Colors.primary,
     fontSize: 16,
     fontWeight: '700',
   },
