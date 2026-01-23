@@ -22,9 +22,6 @@ export default function SearchScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   
   const [filters, setFilters] = useState({
-    ageMin: 18,
-    ageMax: 65,
-    distance: 50,
     sex: [] as string[],
     incomeLevel: '' as string,
     languages: [] as string[],
@@ -49,8 +46,6 @@ export default function SearchScreen() {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.location.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesAge = user.age >= filters.ageMin && user.age <= filters.ageMax;
-    
     const matchesSex = filters.sex.length === 0 || (user.sex !== undefined && filters.sex.includes(user.sex));
     
     const matchesIncome = !filters.incomeLevel || (user.income !== undefined && (() => {
@@ -63,7 +58,7 @@ export default function SearchScreen() {
     const matchesLanguages = filters.languages.length === 0 || 
       filters.languages.some(lang => user.languages?.includes(lang));
     
-    return matchesSearch && matchesAge && matchesSex && matchesIncome && matchesLanguages;
+    return matchesSearch && matchesSex && matchesIncome && matchesLanguages;
   });
 
 
@@ -172,44 +167,6 @@ export default function SearchScreen() {
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Age Range</Text>
-                <View style={styles.ageInputs}>
-                  <View style={styles.ageInput}>
-                    <Text style={styles.ageInputLabel}>Min</Text>
-                    <TextInput
-                      style={styles.ageInputField}
-                      value={filters.ageMin.toString()}
-                      onChangeText={(text) => setFilters({...filters, ageMin: parseInt(text) || 18})}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                    />
-                  </View>
-                  <Text style={styles.ageRangeSeparator}>-</Text>
-                  <View style={styles.ageInput}>
-                    <Text style={styles.ageInputLabel}>Max</Text>
-                    <TextInput
-                      style={styles.ageInputField}
-                      value={filters.ageMax.toString()}
-                      onChangeText={(text) => setFilters({...filters, ageMax: parseInt(text) || 65})}
-                      keyboardType="number-pad"
-                      maxLength={2}
-                    />
-                  </View>
-                </View>
-              </View>
-              
-              <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Distance (km)</Text>
-                <TextInput
-                  style={styles.distanceInput}
-                  value={filters.distance.toString()}
-                  onChangeText={(text) => setFilters({...filters, distance: parseInt(text) || 50})}
-                  keyboardType="number-pad"
-                  placeholder="50"
-                />
-              </View>
-              
-              <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Sex</Text>
                 <View style={styles.checkboxGroup}>
                   {['Male', 'Female', 'Other'].map((sex) => (
@@ -281,9 +238,6 @@ export default function SearchScreen() {
               <TouchableOpacity
                 style={styles.clearButton}
                 onPress={() => setFilters({
-                  ageMin: 18,
-                  ageMax: 65,
-                  distance: 50,
                   sex: [],
                   incomeLevel: '',
                   languages: [],
