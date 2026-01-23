@@ -25,6 +25,9 @@ export default function SearchScreen() {
     sex: [] as string[],
     incomeLevel: '' as string,
     languages: [] as string[],
+    minAge: '',
+    maxAge: '',
+    distance: '',
   });
   const { getUnreadCount } = useNotifications();
   const { matchedProfiles } = useChat();
@@ -168,10 +171,43 @@ export default function SearchScreen() {
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Age Range</Text>
+                <View style={styles.ageInputs}>
+                  <View style={styles.ageInput}>
+                    <Text style={styles.ageInputLabel}>Min</Text>
+                    <TextInput
+                      style={styles.ageInputField}
+                      placeholder="18"
+                      value={filters.minAge}
+                      onChangeText={(text) => setFilters({...filters, minAge: text})}
+                      keyboardType="numeric"
+                      placeholderTextColor="#999999"
+                    />
+                  </View>
+                  <Text style={styles.ageRangeSeparator}>-</Text>
+                  <View style={styles.ageInput}>
+                    <Text style={styles.ageInputLabel}>Max</Text>
+                    <TextInput
+                      style={styles.ageInputField}
+                      placeholder="99"
+                      value={filters.maxAge}
+                      onChangeText={(text) => setFilters({...filters, maxAge: text})}
+                      keyboardType="numeric"
+                      placeholderTextColor="#999999"
+                    />
+                  </View>
+                </View>
               </View>
               
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Distance</Text>
+                <TextInput
+                  style={styles.distanceInput}
+                  placeholder="Distance in miles"
+                  value={filters.distance}
+                  onChangeText={(text) => setFilters({...filters, distance: text})}
+                  keyboardType="numeric"
+                  placeholderTextColor="#999999"
+                />
               </View>
               
               <View style={styles.filterSection}>
@@ -249,6 +285,9 @@ export default function SearchScreen() {
                   sex: [],
                   incomeLevel: '',
                   languages: [],
+                  minAge: '',
+                  maxAge: '',
+                  distance: '',
                 })}
               >
                 <Text style={styles.clearButtonText}>Clear All</Text>
