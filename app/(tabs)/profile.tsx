@@ -35,25 +35,15 @@ const LANGUAGE_OPTIONS = [
 ];
 
 const INCOME_LEVELS = [
-  'Under $30k',
-  '$30k - $50k',
-  '$50k - $75k',
-  '$75k - $100k',
-  '$100k - $150k',
-  '$150k - $200k',
-  'Over $200k',
-  'Prefer not to say'
+  '≤$50k',
+  '$50k - $100k',
+  '≥$100k'
 ];
 
 const PREFERRED_INCOME_LEVELS = [
-  'Under $30k',
-  '$30k - $50k',
-  '$50k - $75k',
-  '$75k - $100k',
-  '$100k - $150k',
-  '$150k - $200k',
-  'Over $200k',
-  'No preference'
+  '≤$50k',
+  '$50k - $100k',
+  '≥$100k'
 ];
 
 type TabType = 'food' | 'pictures' | 'mealups';
