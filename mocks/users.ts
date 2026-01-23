@@ -5,6 +5,9 @@ export const mockUsers: User[] = [
     id: '1',
     name: 'Alex Chen',
     age: 28,
+    sex: 'Male',
+    income: 85000,
+    languages: ['English', 'Chinese'],
     bio: 'Food enthusiast who believes the best conversations happen over great meals. Love trying new cuisines and meeting interesting people!',
     photos: [
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop',
@@ -28,6 +31,9 @@ export const mockUsers: User[] = [
     id: '2',
     name: 'Sarah Johnson',
     age: 25,
+    sex: 'Female',
+    income: 65000,
+    languages: ['English', 'Spanish'],
     bio: 'Food enthusiast and amateur chef. Love trying new cuisines and meeting fellow foodies!',
     photos: [
       'https://images.unsplash.com/photo-1489424731084-a5d8b219a5bb?w=400&h=600&fit=crop',
@@ -48,6 +54,9 @@ export const mockUsers: User[] = [
     id: '3',
     name: 'Emma Rodriguez',
     age: 26,
+    sex: 'Female',
+    income: 45000,
+    languages: ['English', 'Spanish', 'French'],
     bio: 'Passionate about sustainable dining and local ingredients. Always up for discovering hidden gems in the city!',
     photos: [
       'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=400&h=600&fit=crop',
@@ -68,6 +77,9 @@ export const mockUsers: User[] = [
     id: '4',
     name: 'Marcus Johnson',
     age: 31,
+    sex: 'Male',
+    income: 120000,
+    languages: ['English', 'French'],
     bio: 'Chef by day, food explorer by night. Love sharing stories over good wine and even better company.',
     photos: [
       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=400&h=600&fit=crop',
@@ -89,6 +101,9 @@ export const mockUsers: User[] = [
     id: '5',
     name: 'Sofia Kim',
     age: 29,
+    sex: 'Female',
+    income: 55000,
+    languages: ['English', 'Korean'],
     bio: 'Travel writer with a serious case of wanderlust and an even more serious love for street food.',
     photos: [
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=400&h=600&fit=crop',
@@ -110,6 +125,9 @@ export const mockUsers: User[] = [
     id: '6',
     name: 'David Park',
     age: 33,
+    sex: 'Male',
+    income: 95000,
+    languages: ['English', 'Korean', 'Japanese'],
     bio: 'Wine sommelier who believes every meal tells a story. Looking for someone to share those stories with.',
     photos: [
       'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&h=600&fit=crop',
@@ -130,6 +148,9 @@ export const mockUsers: User[] = [
     id: '7',
     name: 'Isabella Chen',
     age: 27,
+    sex: 'Female',
+    income: 72000,
+    languages: ['English', 'Chinese'],
     bio: 'Food photographer capturing the art of dining. Always looking for the perfect shot and the perfect bite.',
     photos: [
       'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=600&fit=crop',
@@ -151,6 +172,9 @@ export const mockUsers: User[] = [
     id: '8',
     name: 'Alex Thompson',
     age: 30,
+    sex: 'Male',
+    income: 150000,
+    languages: ['English'],
     bio: 'Startup founder who codes by day and explores the city\'s food scene by night. Always down for late-night eats.',
     photos: [
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop',
@@ -171,6 +195,9 @@ export const mockUsers: User[] = [
     id: '9',
     name: 'Maya Patel',
     age: 28,
+    sex: 'Female',
+    income: 48000,
+    languages: ['English', 'German'],
     bio: 'Yoga instructor with a passion for healthy, colorful food. Believes in mindful eating and great conversations.',
     photos: [
       'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=600&fit=crop',
@@ -191,6 +218,9 @@ export const mockUsers: User[] = [
     id: '10',
     name: 'James Wilson',
     age: 35,
+    sex: 'Male',
+    income: 110000,
+    languages: ['English', 'Spanish'],
     bio: 'Architect who appreciates good design in both buildings and food. Looking for someone who shares my love for craft cocktails.',
     photos: [
       'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=600&fit=crop',
@@ -212,6 +242,9 @@ export const mockUsers: User[] = [
     id: '11',
     name: 'Zoe Martinez',
     age: 24,
+    sex: 'Other',
+    income: 38000,
+    languages: ['English', 'Spanish', 'French'],
     bio: 'Art student who sees food as another form of creative expression. Always excited to try something new and Instagram-worthy.',
     photos: [
       'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop',
