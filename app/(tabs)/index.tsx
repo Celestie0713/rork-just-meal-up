@@ -219,7 +219,7 @@ export default function SearchScreen() {
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Income Level</Text>
                 <View style={styles.checkboxGroup}>
-                  {['Low', 'Medium', 'High', 'Very High'].map((income) => (
+                  {['≤$50k', '≥$50k', '≥$100k'].map((income) => (
                     <TouchableOpacity
                       key={income}
                       style={styles.checkbox}
