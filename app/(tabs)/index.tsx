@@ -167,6 +167,14 @@ export default function SearchScreen() {
             
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Age Range</Text>
+              </View>
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Distance</Text>
+              </View>
+              
+              <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Sex</Text>
                 <View style={styles.checkboxGroup}>
                   {['Male', 'Female', 'Other'].map((sex) => (
