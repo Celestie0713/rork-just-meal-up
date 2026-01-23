@@ -15,7 +15,7 @@ import { Colors } from '@/constants/colors';
 import type { User } from '@/types/user';
 
 export default function SearchScreen() {
-  const [activeTab, setActiveTab] = useState<'user'>('user');
+  const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
@@ -83,18 +83,40 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
         
+        <View style={styles.tabContainer}>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'user' && styles.activeTab]}
+            onPress={() => setActiveTab('user')}
+          >
+            <Text style={[styles.tabText, activeTab === 'user' && styles.activeTabText]}>User</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.tab, activeTab === 'places' && styles.activeTab]}
+            onPress={() => setActiveTab('places')}
+          >
+            <Text style={[styles.tabText, activeTab === 'places' && styles.activeTabText]}>Places</Text>
+          </TouchableOpacity>
+        </View>
       </View>
       
-      <FlatList
-        key="users-list"
-        data={filteredUsers}
-        renderItem={renderUser}
-        keyExtractor={(item) => item.id}
-        numColumns={3}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
-        columnWrapperStyle={styles.row}
-      />
+      {activeTab === 'user' && (
+          <FlatList
+          key="users-list"
+          data={filteredUsers}
+          renderItem={renderUser}
+          keyExtractor={(item) => item.id}
+          numColumns={3}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.listContent}
+          columnWrapperStyle={styles.row}
+        />
+      )}
+      
+      {activeTab === 'places' && (
+        <View style={styles.placesPlaceholder}>
+          <Text style={styles.placesPlaceholderText}>Places coming soon</Text>
+        </View>
+      )}
       
       <SuccessPopup
         visible={showSuccessPopup}
@@ -204,5 +226,36 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 8,
   },
-
+  tabContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  tab: {
+    paddingVertical: 8,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#888888',
+  },
+  activeTab: {
+    backgroundColor: '#000000',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  activeTabText: {
+    color: '#FFFFFF',
+  },
+  placesPlaceholder: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placesPlaceholderText: {
+    fontSize: 16,
+    color: '#666666',
+  },
 });
