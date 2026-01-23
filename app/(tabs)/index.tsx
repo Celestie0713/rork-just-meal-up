@@ -45,10 +45,26 @@ export default function SearchScreen() {
 
   const unreadCount = getUnreadCount();
 
-  const filteredUsers = mockUsers.filter(user => 
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.location.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredUsers = mockUsers.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.location.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesAge = user.age >= filters.ageMin && user.age <= filters.ageMax;
+    
+    const matchesSex = filters.sex.length === 0 || filters.sex.includes(user.sex);
+    
+    const matchesIncome = filters.incomeLevel.length === 0 || filters.incomeLevel.some(level => {
+      if (level === '≤$50k') return user.income <= 50000;
+      if (level === '≥$50k') return user.income >= 50000 && user.income < 100000;
+      if (level === '≥$100k') return user.income >= 100000;
+      return false;
+    });
+    
+    const matchesLanguages = filters.languages.length === 0 || 
+      filters.languages.some(lang => user.languages?.includes(lang));
+    
+    return matchesSearch && matchesAge && matchesSex && matchesIncome && matchesLanguages;
+  });
 
 
 
