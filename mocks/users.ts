@@ -47,7 +47,8 @@ export const mockUsers: User[] = [
       ageRange: [23, 30],
       maxDistance: 20,
       cuisinePreferences: ['Farm-to-table', 'Italian', 'Asian'],
-      preferredEthnicity: ['English', 'Cantonese']
+      preferredEthnicity: ['English', 'Cantonese'],
+      incomeLevel: '$50k - $100k'
     }
   },
   {
@@ -70,7 +71,8 @@ export const mockUsers: User[] = [
       ageRange: [24, 32],
       maxDistance: 20,
       cuisinePreferences: ['Farm-to-table', 'Vegan', 'Mediterranean'],
-      preferredEthnicity: ['English', 'Mandarin']
+      preferredEthnicity: ['English', 'Mandarin'],
+      incomeLevel: '≤$50k'
     }
   },
   {
@@ -94,7 +96,8 @@ export const mockUsers: User[] = [
       ageRange: [25, 35],
       maxDistance: 30,
       cuisinePreferences: ['French', 'Italian', 'Asian Fusion'],
-      preferredEthnicity: ['English', 'Cantonese']
+      preferredEthnicity: ['English', 'Cantonese'],
+      incomeLevel: '≥$100k'
     }
   },
   {
@@ -118,7 +121,8 @@ export const mockUsers: User[] = [
       ageRange: [26, 34],
       maxDistance: 15,
       cuisinePreferences: ['Korean', 'Thai', 'Mexican'],
-      preferredEthnicity: ['English', 'Mandarin']
+      preferredEthnicity: ['English', 'Mandarin'],
+      incomeLevel: '$50k - $100k'
     }
   },
   {
@@ -141,7 +145,8 @@ export const mockUsers: User[] = [
       ageRange: [28, 38],
       maxDistance: 25,
       cuisinePreferences: ['Fine Dining', 'Wine Bar', 'French'],
-      preferredEthnicity: ['English', 'Cantonese']
+      preferredEthnicity: ['English', 'Cantonese'],
+      incomeLevel: '$50k - $100k'
     }
   },
   {
@@ -165,7 +170,8 @@ export const mockUsers: User[] = [
       ageRange: [24, 32],
       maxDistance: 18,
       cuisinePreferences: ['Japanese', 'Brunch'],
-      preferredEthnicity: ['English', 'Mandarin']
+      preferredEthnicity: ['English', 'Mandarin'],
+      incomeLevel: '$50k - $100k'
     }
   },
   {
@@ -188,7 +194,8 @@ export const mockUsers: User[] = [
       ageRange: [25, 35],
       maxDistance: 22,
       cuisinePreferences: ['Ramen', 'Burgers', 'Pizza'],
-      preferredEthnicity: ['English', 'Cantonese']
+      preferredEthnicity: ['English', 'Cantonese'],
+      incomeLevel: '≥$100k'
     }
   },
   {
@@ -211,7 +218,8 @@ export const mockUsers: User[] = [
       ageRange: [25, 33],
       maxDistance: 12,
       cuisinePreferences: ['Vegetarian', 'Indian', 'Smoothie Bowls'],
-      preferredEthnicity: ['English', 'Mandarin']
+      preferredEthnicity: ['English', 'Mandarin'],
+      incomeLevel: '≤$50k'
     }
   },
   {
@@ -235,7 +243,8 @@ export const mockUsers: User[] = [
       ageRange: [28, 40],
       maxDistance: 28,
       cuisinePreferences: ['Cocktail Bar', 'Steakhouse'],
-      preferredEthnicity: ['English', 'Cantonese']
+      preferredEthnicity: ['English', 'Cantonese'],
+      incomeLevel: '≥$100k'
     }
   },
   {
@@ -258,7 +267,8 @@ export const mockUsers: User[] = [
       ageRange: [22, 30],
       maxDistance: 15,
       cuisinePreferences: ['Dessert', 'Brunch', 'Fusion'],
-      preferredEthnicity: ['English', 'Mandarin']
+      preferredEthnicity: ['English', 'Mandarin'],
+      incomeLevel: '≤$50k'
     }
   }
 ];
