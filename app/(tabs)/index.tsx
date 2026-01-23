@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart } from 'lucide-react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
+import { Search, Filter, Heart, X } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -19,6 +19,16 @@ export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  
+  const [filters, setFilters] = useState({
+    ageMin: 18,
+    ageMax: 65,
+    distance: 50,
+    sex: [] as string[],
+    incomeLevel: [] as string[],
+    languages: [] as string[],
+  });
   const { getUnreadCount } = useNotifications();
   const { matchedProfiles } = useChat();
 
@@ -78,7 +88,7 @@ export default function SearchScreen() {
               placeholderTextColor="#666666"
             />
           </View>
-          <TouchableOpacity style={styles.filterButton}>
+          <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
             <Filter size={20} color="#000000" />
           </TouchableOpacity>
         </View>
@@ -128,6 +138,155 @@ export default function SearchScreen() {
         visible={showNotificationPopup}
         onClose={() => setShowNotificationPopup(false)}
       />
+      
+      <Modal
+        visible={showFilterModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowFilterModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Filters</Text>
+              <TouchableOpacity onPress={() => setShowFilterModal(false)} style={styles.closeButton}>
+                <X size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Age Range</Text>
+                <View style={styles.ageInputs}>
+                  <View style={styles.ageInput}>
+                    <Text style={styles.ageInputLabel}>Min</Text>
+                    <TextInput
+                      style={styles.ageInputField}
+                      value={filters.ageMin.toString()}
+                      onChangeText={(text) => setFilters({...filters, ageMin: parseInt(text) || 18})}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                  </View>
+                  <Text style={styles.ageRangeSeparator}>-</Text>
+                  <View style={styles.ageInput}>
+                    <Text style={styles.ageInputLabel}>Max</Text>
+                    <TextInput
+                      style={styles.ageInputField}
+                      value={filters.ageMax.toString()}
+                      onChangeText={(text) => setFilters({...filters, ageMax: parseInt(text) || 65})}
+                      keyboardType="number-pad"
+                      maxLength={2}
+                    />
+                  </View>
+                </View>
+              </View>
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Distance (km)</Text>
+                <TextInput
+                  style={styles.distanceInput}
+                  value={filters.distance.toString()}
+                  onChangeText={(text) => setFilters({...filters, distance: parseInt(text) || 50})}
+                  keyboardType="number-pad"
+                  placeholder="50"
+                />
+              </View>
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Sex</Text>
+                <View style={styles.checkboxGroup}>
+                  {['Male', 'Female', 'Other'].map((sex) => (
+                    <TouchableOpacity
+                      key={sex}
+                      style={styles.checkbox}
+                      onPress={() => {
+                        const newSex = filters.sex.includes(sex)
+                          ? filters.sex.filter(s => s !== sex)
+                          : [...filters.sex, sex];
+                        setFilters({...filters, sex: newSex});
+                      }}
+                    >
+                      <View style={[styles.checkboxBox, filters.sex.includes(sex) && styles.checkboxBoxActive]}>
+                        {filters.sex.includes(sex) && <View style={styles.checkboxCheck} />}
+                      </View>
+                      <Text style={styles.checkboxLabel}>{sex}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Income Level</Text>
+                <View style={styles.checkboxGroup}>
+                  {['Low', 'Medium', 'High', 'Very High'].map((income) => (
+                    <TouchableOpacity
+                      key={income}
+                      style={styles.checkbox}
+                      onPress={() => {
+                        const newIncome = filters.incomeLevel.includes(income)
+                          ? filters.incomeLevel.filter(i => i !== income)
+                          : [...filters.incomeLevel, income];
+                        setFilters({...filters, incomeLevel: newIncome});
+                      }}
+                    >
+                      <View style={[styles.checkboxBox, filters.incomeLevel.includes(income) && styles.checkboxBoxActive]}>
+                        {filters.incomeLevel.includes(income) && <View style={styles.checkboxCheck} />}
+                      </View>
+                      <Text style={styles.checkboxLabel}>{income}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Languages</Text>
+                <View style={styles.checkboxGroup}>
+                  {['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Korean'].map((lang) => (
+                    <TouchableOpacity
+                      key={lang}
+                      style={styles.checkbox}
+                      onPress={() => {
+                        const newLang = filters.languages.includes(lang)
+                          ? filters.languages.filter(l => l !== lang)
+                          : [...filters.languages, lang];
+                        setFilters({...filters, languages: newLang});
+                      }}
+                    >
+                      <View style={[styles.checkboxBox, filters.languages.includes(lang) && styles.checkboxBoxActive]}>
+                        {filters.languages.includes(lang) && <View style={styles.checkboxCheck} />}
+                      </View>
+                      <Text style={styles.checkboxLabel}>{lang}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            </ScrollView>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.clearButton}
+                onPress={() => setFilters({
+                  ageMin: 18,
+                  ageMax: 65,
+                  distance: 50,
+                  sex: [],
+                  incomeLevel: [],
+                  languages: [],
+                })}
+              >
+                <Text style={styles.clearButtonText}>Clear All</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.applyButton}
+                onPress={() => setShowFilterModal(false)}
+              >
+                <Text style={styles.applyButtonText}>Apply Filters</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -268,5 +427,149 @@ const styles = StyleSheet.create({
   placesPlaceholderText: {
     fontSize: 16,
     color: '#666666',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalBody: {
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  filterSection: {
+    marginBottom: 28,
+  },
+  filterLabel: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 12,
+  },
+  ageInputs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  ageInput: {
+    flex: 1,
+  },
+  ageInputLabel: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 8,
+  },
+  ageInputField: {
+    borderWidth: 1,
+    borderColor: '#888888',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#000000',
+  },
+  ageRangeSeparator: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#000000',
+    marginHorizontal: 16,
+    marginTop: 20,
+  },
+  distanceInput: {
+    borderWidth: 1,
+    borderColor: '#888888',
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: '#000000',
+  },
+  checkboxGroup: {
+    gap: 12,
+  },
+  checkbox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  checkboxBox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: '#888888',
+    borderRadius: 6,
+    marginRight: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxBoxActive: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  checkboxCheck: {
+    width: 12,
+    height: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 2,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: '#000000',
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: '#E0E0E0',
+  },
+  clearButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#F5F5F5',
+    alignItems: 'center',
+  },
+  clearButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  applyButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: '#000000',
+    alignItems: 'center',
+  },
+  applyButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
