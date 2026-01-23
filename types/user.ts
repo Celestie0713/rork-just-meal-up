@@ -7,6 +7,9 @@ export interface User {
   location: string;
   membershipTier: 'free' | 'premium' | 'organizer';
   isOnline: boolean;
+  sex?: string;
+  income?: number;
+  languages?: string[];
   lastSeen?: Date;
   ethnicity?: string;
   favoritePlaces?: string[];
