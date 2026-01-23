@@ -26,7 +26,7 @@ export default function SearchScreen() {
     ageMax: 65,
     distance: 50,
     sex: [] as string[],
-    incomeLevel: [] as string[],
+    incomeLevel: '' as string,
     languages: [] as string[],
   });
   const { getUnreadCount } = useNotifications();
@@ -53,12 +53,12 @@ export default function SearchScreen() {
     
     const matchesSex = filters.sex.length === 0 || (user.sex !== undefined && filters.sex.includes(user.sex));
     
-    const matchesIncome = filters.incomeLevel.length === 0 || (user.income !== undefined && filters.incomeLevel.some(level => {
-      if (level === '≤$50k') return user.income! <= 50000;
-      if (level === '≥$50k') return user.income! >= 50000 && user.income! < 100000;
-      if (level === '≥$100k') return user.income! >= 100000;
+    const matchesIncome = !filters.incomeLevel || (user.income !== undefined && (() => {
+      if (filters.incomeLevel === '≤$50k') return user.income <= 50000;
+      if (filters.incomeLevel === '≥$50k') return user.income >= 50000 && user.income < 100000;
+      if (filters.incomeLevel === '≥$100k') return user.income >= 100000;
       return false;
-    }));
+    })());
     
     const matchesLanguages = filters.languages.length === 0 || 
       filters.languages.some(lang => user.languages?.includes(lang));
@@ -240,14 +240,12 @@ export default function SearchScreen() {
                       key={income}
                       style={styles.checkbox}
                       onPress={() => {
-                        const newIncome = filters.incomeLevel.includes(income)
-                          ? filters.incomeLevel.filter(i => i !== income)
-                          : [...filters.incomeLevel, income];
+                        const newIncome = filters.incomeLevel === income ? '' : income;
                         setFilters({...filters, incomeLevel: newIncome});
                       }}
                     >
-                      <View style={[styles.checkboxBox, filters.incomeLevel.includes(income) && styles.checkboxBoxActive]}>
-                        {filters.incomeLevel.includes(income) && <View style={styles.checkboxCheck} />}
+                      <View style={[styles.checkboxBox, filters.incomeLevel === income && styles.checkboxBoxActive]}>
+                        {filters.incomeLevel === income && <View style={styles.checkboxCheck} />}
                       </View>
                       <Text style={styles.checkboxLabel}>{income}</Text>
                     </TouchableOpacity>
@@ -287,7 +285,7 @@ export default function SearchScreen() {
                   ageMax: 65,
                   distance: 50,
                   sex: [],
-                  incomeLevel: [],
+                  incomeLevel: '',
                   languages: [],
                 })}
               >
