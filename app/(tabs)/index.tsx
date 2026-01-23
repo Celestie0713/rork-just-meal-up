@@ -51,14 +51,14 @@ export default function SearchScreen() {
     
     const matchesAge = user.age >= filters.ageMin && user.age <= filters.ageMax;
     
-    const matchesSex = filters.sex.length === 0 || filters.sex.includes(user.sex);
+    const matchesSex = filters.sex.length === 0 || (user.sex !== undefined && filters.sex.includes(user.sex));
     
-    const matchesIncome = filters.incomeLevel.length === 0 || filters.incomeLevel.some(level => {
-      if (level === '≤$50k') return user.income <= 50000;
-      if (level === '≥$50k') return user.income >= 50000 && user.income < 100000;
-      if (level === '≥$100k') return user.income >= 100000;
+    const matchesIncome = filters.incomeLevel.length === 0 || (user.income !== undefined && filters.incomeLevel.some(level => {
+      if (level === '≤$50k') return user.income! <= 50000;
+      if (level === '≥$50k') return user.income! >= 50000 && user.income! < 100000;
+      if (level === '≥$100k') return user.income! >= 100000;
       return false;
-    });
+    }));
     
     const matchesLanguages = filters.languages.length === 0 || 
       filters.languages.some(lang => user.languages?.includes(lang));
