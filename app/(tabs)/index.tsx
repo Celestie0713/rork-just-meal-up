@@ -85,13 +85,13 @@ export default function SearchScreen() {
         
         <View style={styles.tabContainer}>
           <TouchableOpacity 
-            style={[styles.tab, activeTab === 'user' && styles.activeTab]}
+            style={[styles.tab, styles.tabLeft, activeTab === 'user' && styles.activeTab]}
             onPress={() => setActiveTab('user')}
           >
             <Text style={[styles.tabText, activeTab === 'user' && styles.activeTabText]}>User</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.tab, activeTab === 'places' && styles.activeTab]}
+            style={[styles.tab, styles.tabRight, activeTab === 'places' && styles.activeTab]}
             onPress={() => setActiveTab('places')}
           >
             <Text style={[styles.tabText, activeTab === 'places' && styles.activeTabText]}>Places</Text>
@@ -228,24 +228,33 @@ const styles = StyleSheet.create({
   },
   tabContainer: {
     flexDirection: 'row',
-    gap: 8,
+    borderWidth: 1,
+    borderColor: '#888888',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 24,
-    borderRadius: 20,
     backgroundColor: 'transparent',
-    borderWidth: 1,
-    borderColor: '#888888',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  tabLeft: {
+    borderRightWidth: 0.5,
+    borderRightColor: '#888888',
+  },
+  tabRight: {
+    borderLeftWidth: 0.5,
+    borderLeftColor: '#888888',
   },
   activeTab: {
     backgroundColor: '#000000',
   },
   tabText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: '#000000',
   },
   activeTabText: {
