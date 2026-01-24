@@ -23,7 +23,7 @@ export const mockUsers: User[] = [
       maxDistance: 25,
       cuisinePreferences: ['Italian', 'Japanese', 'Mexican'],
       preferredEthnicity: ['english', 'mandarin', 'cantonese'],
-      incomeLevel: '≥$100k',
+      incomeLevel: '$50k - $100k',
       preferredIncomeLevel: '$50k - $100k'
     }
   },
