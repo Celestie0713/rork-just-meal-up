@@ -62,10 +62,7 @@ function searchInternalDB(query: string) {
       longitude: 105.8239,
       rating: 4.5,
       priceLevel: 3,
-      photoUrls: [
-        'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800',
-        'https://images.unsplash.com/photo-1553621042-f6e147245754?w=800',
-      ],
+      photoUrls: [],
       placeType: ['restaurant', 'sushi', 'japanese'],
       phoneNumber: '+84 24 3718 1018',
       website: 'https://sushihanoi.com',
@@ -83,10 +80,7 @@ function searchInternalDB(query: string) {
       longitude: 105.8186,
       rating: 4.3,
       priceLevel: 2,
-      photoUrls: [
-        'https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800',
-        'https://images.unsplash.com/photo-1580822184713-fc5400e7fe10?w=800',
-      ],
+      photoUrls: [],
       placeType: ['restaurant', 'sushi', 'japanese', 'bar'],
       phoneNumber: '+84 24 3719 2020',
       openingHours: ['Mon-Sun: 5:00 PM - 11:00 PM'],
@@ -103,10 +97,7 @@ function searchInternalDB(query: string) {
       longitude: 105.8205,
       rating: 4.7,
       priceLevel: 3,
-      photoUrls: [
-        'https://images.unsplash.com/photo-1617196034183-421b4917c92d?w=800',
-        'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800',
-      ],
+      photoUrls: [],
       placeType: ['restaurant', 'sushi', 'lounge', 'japanese'],
       phoneNumber: '+84 24 3715 3030',
       website: 'https://chillsushi.vn',
@@ -124,10 +115,7 @@ function searchInternalDB(query: string) {
       longitude: 105.8223,
       rating: 4.6,
       priceLevel: 4,
-      photoUrls: [
-        'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800',
-        'https://images.unsplash.com/photo-1564489563601-c53cfc451e93?w=800',
-      ],
+      photoUrls: [],
       placeType: ['restaurant', 'sushi', 'fine_dining', 'japanese'],
       phoneNumber: '+84 24 3717 4040',
       website: 'https://thesushiclub.vn',
@@ -145,10 +133,7 @@ function searchInternalDB(query: string) {
       longitude: 105.8195,
       rating: 4.4,
       priceLevel: 2,
-      photoUrls: [
-        'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800',
-        'https://images.unsplash.com/photo-1617196034183-421b4917c92d?w=800',
-      ],
+      photoUrls: [],
       placeType: ['restaurant', 'sushi', 'japanese', 'casual'],
       phoneNumber: '+84 24 3716 5050',
       openingHours: ['Mon-Sun: 11:00 AM - 10:30 PM'],
@@ -237,7 +222,6 @@ ${places.map((p, i) => `${i + 1}. ${p.name} - ${p.address} (Rating: ${p.rating |
 Rank the top ${limit} places that best match this search query for a date. For each place, provide:
 1. A short, engaging description (2-3 sentences) about why it's good for a date
 2. A match score (0-100)
-3. A virtual gift suggestion with name, description, and emoji that would be perfect for this place/date
 
 Return the results in order of best match to worst.`,
         },
@@ -248,11 +232,6 @@ Return the results in order of best match to worst.`,
             placeIndex: z.number().describe('Index of the place from the list (0-based)'),
             description: z.string().describe('Short engaging description for the date'),
             matchScore: z.number().min(0).max(100).describe('How well it matches the query'),
-            suggestedGift: z.object({
-              name: z.string().describe('Name of the virtual gift'),
-              description: z.string().describe('Why this gift fits the place'),
-              emoji: z.string().describe('Emoji representing the gift'),
-            }),
           })
         ),
       }),
@@ -264,7 +243,6 @@ Return the results in order of best match to worst.`,
         place: places[ranked.placeIndex],
         description: ranked.description,
         matchScore: ranked.matchScore,
-        suggestedGift: ranked.suggestedGift,
       }))
       .slice(0, limit);
   } catch (error) {
@@ -274,11 +252,6 @@ Return the results in order of best match to worst.`,
       place,
       description: `${place.name} is a great spot in ${place.city}. Perfect for a memorable meal!`,
       matchScore: 75,
-      suggestedGift: {
-        name: 'Rose Bouquet',
-        description: 'A classic romantic gesture',
-        emoji: '🌹',
-      },
     }));
   }
 }

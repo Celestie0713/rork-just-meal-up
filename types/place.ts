@@ -22,11 +22,6 @@ export type PlaceSearchResult = {
   place: Place;
   description: string;
   matchScore: number;
-  suggestedGift?: {
-    name: string;
-    description: string;
-    emoji: string;
-  };
 };
 
 export type PlaceSearchResponse = {
