@@ -845,12 +845,16 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   editButton: {
+    position: 'absolute',
+    top: 80,
+    right: 20,
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.surface,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
+    zIndex: 10,
   },
   editButtonText: {
     fontSize: 14,
