@@ -874,10 +874,14 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
   },
   saveButton: {
+    position: 'absolute',
+    top: 80,
+    right: 20,
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: Colors.primary,
+    zIndex: 10,
   },
   saveButtonText: {
     fontSize: 14,
