@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView } from 'react-native';
-import { Search, Filter, Heart, X } from 'lucide-react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Image, Linking } from 'react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -9,6 +9,7 @@ import { NotificationPopup } from '@/components/NotificationPopup';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
+import { trpc } from '@/lib/trpc';
 
 import { Colors } from '@/constants/colors';
 
@@ -17,6 +18,8 @@ import type { User } from '@/types/user';
 export default function SearchScreen() {
   const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
   const [searchQuery, setSearchQuery] = useState('');
+  const [placesSearchQuery, setPlacesSearchQuery] = useState('');
+  const [selectedPlace, setSelectedPlace] = useState<any>(null);
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -31,6 +34,11 @@ export default function SearchScreen() {
   });
   const { getUnreadCount } = useNotifications();
   const { matchedProfiles } = useChat();
+
+  const placesQuery = trpc.places.search.useQuery(
+    { query: placesSearchQuery, limit: 10 },
+    { enabled: placesSearchQuery.length > 0 }
+  );
 
   const handleUserPress = (user: User) => {
     router.push({
@@ -141,8 +149,125 @@ export default function SearchScreen() {
       )}
       
       {activeTab === 'places' && (
-        <View style={styles.placesPlaceholder}>
-          <Text style={styles.placesPlaceholderText}>Places coming soon</Text>
+        <View style={styles.placesContainer}>
+          <View style={styles.placesSearchContainer}>
+            <View style={styles.placesSearchInputContainer}>
+              <Search size={20} color="#000000" />
+              <TextInput
+                style={styles.placesSearchInput}
+                placeholder="e.g., chill sushi dinner in Westlake, Hanoi"
+                value={placesSearchQuery}
+                onChangeText={setPlacesSearchQuery}
+                placeholderTextColor="#666666"
+              />
+            </View>
+          </View>
+
+          {placesQuery.isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.loadingText}>Searching places...</Text>
+            </View>
+          )}
+
+          {!placesQuery.isLoading && !placesSearchQuery && (
+            <View style={styles.placesEmptyState}>
+              <Search size={48} color="#CCCCCC" />
+              <Text style={styles.placesEmptyText}>Search for places to meet up</Text>
+              <Text style={styles.placesEmptySubtext}>Try "romantic dinner" or "cozy cafe"</Text>
+            </View>
+          )}
+
+          {!placesQuery.isLoading && placesSearchQuery && placesQuery.data && placesQuery.data.results.length === 0 && (
+            <View style={styles.placesEmptyState}>
+              <Text style={styles.placesEmptyText}>No places found</Text>
+              <Text style={styles.placesEmptySubtext}>Try a different search</Text>
+            </View>
+          )}
+
+          {!placesQuery.isLoading && placesQuery.data && placesQuery.data.results.length > 0 && (
+            <ScrollView style={styles.placesResults} showsVerticalScrollIndicator={false}>
+              <View style={styles.resultsHeader}>
+                <Text style={styles.resultsCount}>
+                  {placesQuery.data.totalResults} {placesQuery.data.totalResults === 1 ? 'place' : 'places'} found
+                </Text>
+                <View style={styles.sourceBadge}>
+                  <Text style={styles.sourceBadgeText}>
+                    {placesQuery.data.source === 'internal' && '📍 Local DB'}
+                    {placesQuery.data.source === 'google' && '🌐 Google'}
+                    {placesQuery.data.source === 'hybrid' && '🔀 Mixed'}
+                  </Text>
+                </View>
+              </View>
+
+              {placesQuery.data.results.map((result, index) => (
+                <TouchableOpacity
+                  key={result.place.id}
+                  style={styles.placeCard}
+                  onPress={() => setSelectedPlace(result)}
+                >
+                  <View style={styles.placeImageContainer}>
+                    {result.place.photoUrls && result.place.photoUrls.length > 0 ? (
+                      <Image
+                        source={{ uri: result.place.photoUrls[0] }}
+                        style={styles.placeImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.placePlaceholderImage}>
+                        <MapPin size={32} color="#CCCCCC" />
+                      </View>
+                    )}
+                    <View style={styles.placeMatchBadge}>
+                      <Text style={styles.placeMatchText}>{result.matchScore}% Match</Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.placeContent}>
+                    <Text style={styles.placeName}>{result.place.name}</Text>
+                    
+                    <View style={styles.placeRatingRow}>
+                      {result.place.rating && (
+                        <View style={styles.placeRating}>
+                          <Star size={14} color="#FFB800" fill="#FFB800" />
+                          <Text style={styles.placeRatingText}>{result.place.rating.toFixed(1)}</Text>
+                        </View>
+                      )}
+                      {result.place.priceLevel && (
+                        <Text style={styles.placePriceLevel}>
+                          {'$'.repeat(result.place.priceLevel)}
+                        </Text>
+                      )}
+                    </View>
+
+                    <View style={styles.placeLocationRow}>
+                      <MapPin size={14} color="#666666" />
+                      <Text style={styles.placeAddress} numberOfLines={1}>
+                        {result.place.address}
+                      </Text>
+                    </View>
+
+                    <Text style={styles.placeDescription}>{result.description}</Text>
+
+                    {result.suggestedGift && (
+                      <View style={styles.giftSuggestion}>
+                        <Text style={styles.giftEmoji}>{result.suggestedGift.emoji}</Text>
+                        <View style={styles.giftContent}>
+                          <Text style={styles.giftName}>{result.suggestedGift.name}</Text>
+                          <Text style={styles.giftDescription}>{result.suggestedGift.description}</Text>
+                        </View>
+                      </View>
+                    )}
+
+                    <TouchableOpacity style={styles.inviteButton}>
+                      <Gift size={18} color="#FFFFFF" />
+                      <Text style={styles.inviteButtonText}>Send Invitation</Text>
+                    </TouchableOpacity>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
         </View>
       )}
       
@@ -156,6 +281,131 @@ export default function SearchScreen() {
         visible={showNotificationPopup}
         onClose={() => setShowNotificationPopup(false)}
       />
+
+      <Modal
+        visible={selectedPlace !== null}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setSelectedPlace(null)}
+      >
+        <View style={styles.placeDetailOverlay}>
+          <View style={styles.placeDetailContent}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {selectedPlace && (
+                <>
+                  <TouchableOpacity
+                    style={styles.closeDetailButton}
+                    onPress={() => setSelectedPlace(null)}
+                  >
+                    <X size={24} color="#000000" />
+                  </TouchableOpacity>
+
+                  {selectedPlace.place.photoUrls && selectedPlace.place.photoUrls.length > 0 ? (
+                    <Image
+                      source={{ uri: selectedPlace.place.photoUrls[0] }}
+                      style={styles.placeDetailImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.placeDetailPlaceholderImage}>
+                      <MapPin size={48} color="#CCCCCC" />
+                    </View>
+                  )}
+
+                  <View style={styles.placeDetailBody}>
+                    <Text style={styles.placeDetailName}>{selectedPlace.place.name}</Text>
+
+                    <View style={styles.placeDetailRatingRow}>
+                      {selectedPlace.place.rating && (
+                        <View style={styles.placeDetailRating}>
+                          <Star size={16} color="#FFB800" fill="#FFB800" />
+                          <Text style={styles.placeDetailRatingText}>{selectedPlace.place.rating.toFixed(1)}</Text>
+                        </View>
+                      )}
+                      {selectedPlace.place.priceLevel && (
+                        <Text style={styles.placeDetailPriceLevel}>
+                          {'$'.repeat(selectedPlace.place.priceLevel)}
+                        </Text>
+                      )}
+                      <View style={styles.placeDetailMatchBadge}>
+                        <Text style={styles.placeDetailMatchText}>{selectedPlace.matchScore}% Match</Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.placeDetailRow}>
+                      <MapPin size={18} color="#666666" />
+                      <Text style={styles.placeDetailAddress}>{selectedPlace.place.address}</Text>
+                    </View>
+
+                    {selectedPlace.place.phoneNumber && (
+                      <TouchableOpacity
+                        style={styles.placeDetailRow}
+                        onPress={() => Linking.openURL(`tel:${selectedPlace.place.phoneNumber}`)}
+                      >
+                        <Phone size={18} color="#666666" />
+                        <Text style={styles.placeDetailContact}>{selectedPlace.place.phoneNumber}</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {selectedPlace.place.website && (
+                      <TouchableOpacity
+                        style={styles.placeDetailRow}
+                        onPress={() => Linking.openURL(selectedPlace.place.website)}
+                      >
+                        <Globe size={18} color="#666666" />
+                        <Text style={styles.placeDetailContact}>{selectedPlace.place.website}</Text>
+                      </TouchableOpacity>
+                    )}
+
+                    {selectedPlace.place.openingHours && selectedPlace.place.openingHours.length > 0 && (
+                      <View style={styles.placeDetailSection}>
+                        <Text style={styles.placeDetailSectionTitle}>Opening Hours</Text>
+                        {selectedPlace.place.openingHours.map((hours: string, index: number) => (
+                          <Text key={index} style={styles.placeDetailHours}>{hours}</Text>
+                        ))}
+                      </View>
+                    )}
+
+                    <View style={styles.placeDetailSection}>
+                      <Text style={styles.placeDetailSectionTitle}>About</Text>
+                      <Text style={styles.placeDetailDescription}>{selectedPlace.description}</Text>
+                    </View>
+
+                    {selectedPlace.suggestedGift && (
+                      <View style={styles.placeDetailGift}>
+                        <Text style={styles.placeDetailSectionTitle}>Suggested Gift</Text>
+                        <View style={styles.giftDetailCard}>
+                          <Text style={styles.giftDetailEmoji}>{selectedPlace.suggestedGift.emoji}</Text>
+                          <View style={styles.giftDetailContent}>
+                            <Text style={styles.giftDetailName}>{selectedPlace.suggestedGift.name}</Text>
+                            <Text style={styles.giftDetailDescription}>{selectedPlace.suggestedGift.description}</Text>
+                          </View>
+                        </View>
+                      </View>
+                    )}
+
+                    <TouchableOpacity
+                      style={styles.placeDetailMapButton}
+                      onPress={() => {
+                        const url = `https://www.google.com/maps/search/?api=1&query=${selectedPlace.place.latitude},${selectedPlace.place.longitude}`;
+                        Linking.openURL(url);
+                      }}
+                    >
+                      <MapPin size={20} color="#FFFFFF" />
+                      <Text style={styles.placeDetailMapButtonText}>Open in Maps</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity style={styles.placeDetailInviteButton}>
+                      <Gift size={20} color="#FFFFFF" />
+                      <Text style={styles.placeDetailInviteButtonText}>Send Invitation with Gift</Text>
+                    </TouchableOpacity>
+                  </View>
+                </>
+              )}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
       
       <Modal
         visible={showFilterModal}
@@ -438,14 +688,384 @@ const styles = StyleSheet.create({
   activeTabText: {
     color: '#FFFFFF',
   },
-  placesPlaceholder: {
+  placesContainer: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
+  placesSearchContainer: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: '#FFF8E7',
+  },
+  placesSearchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E7',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    borderWidth: 1,
+    borderColor: '#888888',
+  },
+  placesSearchInput: {
+    flex: 1,
+    marginLeft: 8,
+    fontSize: 16,
+    color: '#000000',
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    gap: 12,
   },
-  placesPlaceholderText: {
+  loadingText: {
     fontSize: 16,
     color: '#666666',
+    fontWeight: '500',
+  },
+  placesEmptyState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  placesEmptyText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginTop: 16,
+  },
+  placesEmptySubtext: {
+    fontSize: 14,
+    color: '#666666',
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  placesResults: {
+    flex: 1,
+    paddingHorizontal: 16,
+  },
+  resultsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  resultsCount: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  sourceBadge: {
+    backgroundColor: '#FFF8E7',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#888888',
+  },
+  sourceBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  placeCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    marginBottom: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  placeImageContainer: {
+    position: 'relative' as const,
+    width: '100%',
+    height: 200,
+  },
+  placeImage: {
+    width: '100%',
+    height: '100%',
+  },
+  placePlaceholderImage: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeMatchBadge: {
+    position: 'absolute' as const,
+    top: 12,
+    right: 12,
+    backgroundColor: '#000000',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  placeMatchText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  placeContent: {
+    padding: 16,
+  },
+  placeName: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  placeRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  placeRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  placeRatingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  placePriceLevel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
+  placeLocationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 12,
+  },
+  placeAddress: {
+    fontSize: 14,
+    color: '#666666',
+    flex: 1,
+  },
+  placeDescription: {
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  giftSuggestion: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E7',
+    padding: 12,
+    borderRadius: 12,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  giftEmoji: {
+    fontSize: 32,
+    marginRight: 12,
+  },
+  giftContent: {
+    flex: 1,
+  },
+  giftName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 2,
+  },
+  giftDescription: {
+    fontSize: 12,
+    color: '#666666',
+  },
+  inviteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  inviteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  placeDetailOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  placeDetailContent: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '90%',
+  },
+  closeDetailButton: {
+    position: 'absolute' as const,
+    top: 16,
+    right: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 8,
+    zIndex: 10,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  placeDetailImage: {
+    width: '100%',
+    height: 300,
+  },
+  placeDetailPlaceholderImage: {
+    width: '100%',
+    height: 300,
+    backgroundColor: '#F5F5F5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeDetailBody: {
+    padding: 20,
+  },
+  placeDetailName: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 12,
+  },
+  placeDetailRatingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  placeDetailRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  placeDetailRatingText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  placeDetailPriceLevel: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#4CAF50',
+  },
+  placeDetailMatchBadge: {
+    backgroundColor: '#000000',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  placeDetailMatchText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  placeDetailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 12,
+  },
+  placeDetailAddress: {
+    fontSize: 14,
+    color: '#666666',
+    flex: 1,
+  },
+  placeDetailContact: {
+    fontSize: 14,
+    color: '#0066CC',
+    flex: 1,
+  },
+  placeDetailSection: {
+    marginTop: 20,
+  },
+  placeDetailSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  placeDetailHours: {
+    fontSize: 14,
+    color: '#666666',
+    marginBottom: 4,
+  },
+  placeDetailDescription: {
+    fontSize: 14,
+    color: '#333333',
+    lineHeight: 20,
+  },
+  placeDetailGift: {
+    marginTop: 20,
+  },
+  giftDetailCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E7',
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+  },
+  giftDetailEmoji: {
+    fontSize: 48,
+    marginRight: 16,
+  },
+  giftDetailContent: {
+    flex: 1,
+  },
+  giftDetailName: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 4,
+  },
+  giftDetailDescription: {
+    fontSize: 14,
+    color: '#666666',
+  },
+  placeDetailMapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#4CAF50',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 20,
+  },
+  placeDetailMapButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  placeDetailInviteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000000',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 12,
+  },
+  placeDetailInviteButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
