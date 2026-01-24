@@ -164,9 +164,14 @@ export default function ProfileScreen() {
   };
 
   const handleSave = async () => {
+    console.log('handleSave called');
     if (editedUser) {
+      console.log('Saving user:', editedUser);
       await updateUser(editedUser);
+      console.log('User saved successfully');
       setIsEditing(false);
+    } else {
+      console.log('No editedUser to save');
     }
   };
 
