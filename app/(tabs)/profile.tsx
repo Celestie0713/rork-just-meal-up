@@ -624,9 +624,6 @@ export default function ProfileScreen() {
               <TouchableOpacity style={styles.cancelButton} onPress={handleCancel}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-                <Text style={styles.saveButtonText}>Save</Text>
-              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.normalHeader}>
@@ -641,6 +638,12 @@ export default function ProfileScreen() {
         </View>
 
         <View style={styles.profileSection}>
+          {isEditing && (
+            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+              <Text style={styles.saveButtonText}>Save</Text>
+            </TouchableOpacity>
+          )}
+          
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             {/* Show love icon for fight_for_fries match at lower right of profile picture */}
