@@ -631,10 +631,6 @@ export default function ProfileScreen() {
               >
                 <Settings size={24} color={Colors.text} />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
-                <Edit3 size={20} color={Colors.primary} />
-                <Text style={styles.editButtonText}>Edit</Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -687,6 +683,13 @@ export default function ProfileScreen() {
             <MapPin size={16} color={Colors.textLight} />
             <Text style={styles.location}>{user.location}</Text>
           </View>
+          
+          {!isEditing && (
+            <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
+              <Edit3 size={20} color={Colors.primary} />
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+          )}
           
           {!isEditing && (
             <TouchableOpacity 
