@@ -702,24 +702,11 @@ export default function ProfileScreen() {
           {!isEditing && (
             <TouchableOpacity 
               style={styles.voiceNoteButtonProfile}
-              onPress={() => setShowVoiceRecorder(!showVoiceRecorder)}
+              onPress={() => router.push('/chat' as any)}
             >
               <Mic size={20} color={Colors.primary} />
               <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
             </TouchableOpacity>
-          )}
-          
-          {showVoiceRecorder && !isEditing && (
-            <View style={styles.voiceRecorderContainerProfile}>
-              <VoiceRecorder
-                onSend={(duration, audioUri) => {
-                  console.log('Voice note sent:', { duration, audioUri });
-                  Alert.alert('Voice Note Sent', `Duration: ${duration}s`);
-                  setShowVoiceRecorder(false);
-                }}
-                onCancel={() => setShowVoiceRecorder(false)}
-              />
-            </View>
           )}
 
         </View>
