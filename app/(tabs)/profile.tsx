@@ -702,7 +702,7 @@ export default function ProfileScreen() {
           {!isEditing && (
             <TouchableOpacity 
               style={styles.voiceNoteButtonProfile}
-              onPress={() => router.push('/chat' as any)}
+              onPress={() => router.push('/(tabs)/messages' as any)}
             >
               <Mic size={20} color={Colors.primary} />
               <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
