@@ -214,26 +214,14 @@ export default function UserProfileScreen() {
           
           {currentUser?.id !== userId && (
             <View style={styles.voiceNoteSection}>
-              {!showVoiceRecorder ? (
-                <TouchableOpacity 
-                  style={styles.voiceNoteButton}
-                  onPress={() => setShowVoiceRecorder(true)}
-                  testID="show-voice-recorder"
-                >
-                  <Mic size={20} color={Colors.primary} />
-                  <Text style={styles.voiceNoteButtonText}>Send Voice Note</Text>
-                </TouchableOpacity>
-              ) : (
-                <View style={styles.voiceRecorderContainer}>
-                  <VoiceRecorder
-                    onSend={(duration, audioUri) => {
-                      console.log('Voice note sent:', { duration, audioUri });
-                      setShowVoiceRecorder(false);
-                    }}
-                    onCancel={() => setShowVoiceRecorder(false)}
-                  />
-                </View>
-              )}
+              <TouchableOpacity 
+                style={styles.voiceNoteButton}
+                onPress={() => router.push(`/chat?userId=${userId}` as any)}
+                testID="show-voice-recorder"
+              >
+                <Mic size={20} color={Colors.primary} />
+                <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
+              </TouchableOpacity>
             </View>
           )}
 
