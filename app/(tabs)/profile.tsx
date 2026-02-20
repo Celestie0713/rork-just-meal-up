@@ -11,7 +11,6 @@ import { VoiceRecorder } from '@/components/VoiceRecorder';
 
 
 import { router } from 'expo-router';
-import { useFonts, Montserrat_400Regular, Montserrat_600SemiBold, Montserrat_700Bold, Montserrat_900Black } from '@expo-google-fonts/montserrat';
 
 const LANGUAGE_OPTIONS = [
   'English',
@@ -54,12 +53,6 @@ export default function ProfileScreen() {
   
 
 
-  const [fontsLoaded] = useFonts({
-    Montserrat_400Regular,
-    Montserrat_600SemiBold,
-    Montserrat_700Bold,
-    Montserrat_900Black,
-  });
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<User | null>(null);
 
@@ -84,7 +77,6 @@ export default function ProfileScreen() {
 
 
   console.log('Profile screen render - user:', user);
-  console.log('Profile screen render - fontsLoaded:', fontsLoaded);
   
   // Debug: Check for matches
   if (user) {
@@ -112,17 +104,7 @@ export default function ProfileScreen() {
     );
   }
 
-  // Remove font loading requirement for now to debug
-  // if (!fontsLoaded) {
-  //   console.log('Fonts not loaded, showing loading...');
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <View style={styles.loadingContainer}>
-  //         <Text style={styles.loadingText}>Loading fonts...</Text>
-  //       </View>
-  //     </SafeAreaView>
-  //   );
-  // }
+
 
   const getMembershipInfo = () => {
     switch (user.membershipTier) {
