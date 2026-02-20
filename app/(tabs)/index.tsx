@@ -227,13 +227,13 @@ export default function SearchScreen() {
                     <Text style={styles.placeName}>{result.place.name}</Text>
                     
                     <View style={styles.placeRatingRow}>
-                      {result.place.rating && (
+                      {result.place.rating != null && result.place.rating > 0 && (
                         <View style={styles.placeRating}>
                           <Star size={14} color="#FFB800" fill="#FFB800" />
                           <Text style={styles.placeRatingText}>{result.place.rating.toFixed(1)}</Text>
                         </View>
                       )}
-                      {result.place.priceLevel && (
+                      {result.place.priceLevel != null && result.place.priceLevel > 0 && (
                         <Text style={styles.placePriceLevel}>
                           {'$'.repeat(result.place.priceLevel)}
                         </Text>
@@ -307,13 +307,13 @@ export default function SearchScreen() {
                     <Text style={styles.placeDetailName}>{selectedPlace.place.name}</Text>
 
                     <View style={styles.placeDetailRatingRow}>
-                      {selectedPlace.place.rating && (
+                      {selectedPlace.place.rating != null && selectedPlace.place.rating > 0 && (
                         <View style={styles.placeDetailRating}>
                           <Star size={16} color="#FFB800" fill="#FFB800" />
                           <Text style={styles.placeDetailRatingText}>{selectedPlace.place.rating.toFixed(1)}</Text>
                         </View>
                       )}
-                      {selectedPlace.place.priceLevel && (
+                      {selectedPlace.place.priceLevel != null && selectedPlace.place.priceLevel > 0 && (
                         <Text style={styles.placeDetailPriceLevel}>
                           {'$'.repeat(selectedPlace.place.priceLevel)}
                         </Text>
@@ -362,18 +362,7 @@ export default function SearchScreen() {
                       <Text style={styles.placeDetailDescription}>{selectedPlace.description}</Text>
                     </View>
 
-                    {selectedPlace.suggestedGift && (
-                      <View style={styles.placeDetailGift}>
-                        <Text style={styles.placeDetailSectionTitle}>Suggested Gift</Text>
-                        <View style={styles.giftDetailCard}>
-                          <Text style={styles.giftDetailEmoji}>{selectedPlace.suggestedGift.emoji}</Text>
-                          <View style={styles.giftDetailContent}>
-                            <Text style={styles.giftDetailName}>{selectedPlace.suggestedGift.name}</Text>
-                            <Text style={styles.giftDetailDescription}>{selectedPlace.suggestedGift.description}</Text>
-                          </View>
-                        </View>
-                      </View>
-                    )}
+
 
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
