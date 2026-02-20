@@ -249,15 +249,6 @@ export default function SearchScreen() {
 
                     <Text style={styles.placeDescription}>{result.description}</Text>
 
-                    {result.suggestedGift && (
-                      <View style={styles.giftSuggestion}>
-                        <Text style={styles.giftEmoji}>{result.suggestedGift.emoji}</Text>
-                        <View style={styles.giftContent}>
-                          <Text style={styles.giftName}>{result.suggestedGift.name}</Text>
-                          <Text style={styles.giftDescription}>{result.suggestedGift.description}</Text>
-                        </View>
-                      </View>
-                    )}
 
                     <TouchableOpacity style={styles.inviteButton}>
                       <Gift size={18} color="#FFFFFF" />
