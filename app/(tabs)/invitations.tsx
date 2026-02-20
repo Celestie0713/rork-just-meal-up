@@ -129,7 +129,7 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           )}
         </View>
         <View style={styles.inviterDetails}>
-          <TouchableOpacity onPress={() => inviter && router.push(`/user-profile?userId=${inviter.id}`)}>
+          <TouchableOpacity onPress={() => inviter && router.push(`/user-profile?userId=${inviter.id}` as any)}>
             <Text style={[styles.inviterName, styles.clickableName]}>
               {inviter?.name || 'Unknown User'}
             </Text>

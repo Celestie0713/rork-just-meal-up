@@ -160,7 +160,7 @@ export default function MessagesScreen() {
     } else {
       console.log('[handleChatPress] Opening chat with user:', user.id);
       router.push({
-        pathname: '/chat',
+        pathname: '/chat' as any,
         params: { userId: user.id }
       });
     }
@@ -349,7 +349,7 @@ export default function MessagesScreen() {
             addSystemMessage(chatId, systemMessage);
             
             router.push({
-              pathname: '/chat',
+              pathname: '/chat' as any,
               params: { userId: selectedRecipient.id }
             });
           }

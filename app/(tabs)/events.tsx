@@ -20,7 +20,7 @@ export default function EventsScreen() {
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
-    router.push(`/meal-up-details?mealUpId=${mealUp.id}`);
+    router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any);
   };
 
   const handleCreateMealUp = () => {
@@ -31,7 +31,7 @@ export default function EventsScreen() {
     if (isPaidMember) {
       console.log('Navigating to create-meal-up screen...');
       try {
-        router.push('/create-meal-up');
+        router.push('/create-meal-up' as any);
         console.log('Navigation successful');
       } catch (error) {
         console.error('Navigation error:', error);
@@ -87,7 +87,7 @@ export default function EventsScreen() {
 
   const handleGroupPress = (group: Group) => {
     console.log('Opening group:', group.name);
-    router.push(`/group-details?groupId=${group.id}`);
+    router.push(`/group-details?groupId=${group.id}` as any);
   };
 
   const renderGroup = ({ item }: { item: Group }) => (

@@ -82,7 +82,7 @@ export default function MealUpDetailsScreen() {
   };
 
   const handleViewAttendees = () => {
-    router.push(`/meal-up-attendees?mealUpId=${mealUp.id}`);
+    router.push(`/meal-up-attendees?mealUpId=${mealUp.id}` as any);
   };
 
   const handlePrevImage = () => {
@@ -177,7 +177,7 @@ export default function MealUpDetailsScreen() {
           {organizer && (
             <TouchableOpacity 
               style={styles.organizerContainer}
-              onPress={() => router.push(`/user-profile?userId=${organizer.id}`)}
+              onPress={() => router.push(`/user-profile?userId=${organizer.id}` as any)}
               testID="organizer-profile"
             >
               <Image source={{ uri: organizer.photos[0] }} style={styles.organizerAvatar} />

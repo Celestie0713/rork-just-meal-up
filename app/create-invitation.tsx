@@ -260,7 +260,7 @@ export default function CreateInvitationScreen() {
     };
     
     const params = new URLSearchParams(invitationData).toString();
-    router.push(`/(tabs)/messages?${params}`);
+    router.push(`/(tabs)/messages?${params}` as any);
   };
 
   const renderCalendar = () => {

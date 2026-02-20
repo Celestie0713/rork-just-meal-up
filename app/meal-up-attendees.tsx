@@ -40,7 +40,7 @@ export default function MealUpAttendeesScreen() {
   
   const handleUserPress = (user: User) => {
     console.log('Opening user profile:', user.name);
-    router.push(`/user-profile?userId=${user.id}`);
+    router.push(`/user-profile?userId=${user.id}` as any);
   };
 
 

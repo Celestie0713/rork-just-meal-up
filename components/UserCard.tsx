@@ -51,7 +51,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
   const handleVoiceNotePress = (e: any) => {
     e.stopPropagation();
     router.push({
-      pathname: '/chat',
+      pathname: '/chat' as any,
       params: { userId: user.id }
     });
   };

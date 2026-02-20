@@ -30,7 +30,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
   const handleShare = (event: any) => {
     event.stopPropagation();
     router.push({
-      pathname: '/messages',
+      pathname: '/messages' as any,
       params: {
         fromMealUpShare: 'true',
         mealUpId: mealUp.id,
@@ -139,7 +139,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
         <View style={styles.footer}>
           <TouchableOpacity 
             style={styles.attendeesInfo}
-            onPress={() => router.push(`/meal-up-attendees?mealUpId=${mealUp.id}`)}
+            onPress={() => router.push(`/meal-up-attendees?mealUpId=${mealUp.id}` as any)}
             testID={`attendees-${mealUp.id}`}
           >
             <Users size={16} color={Colors.primary} />

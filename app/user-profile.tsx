@@ -31,7 +31,7 @@ export default function UserProfileScreen() {
     // When viewing someone else's profile who has an exclusive match with current user,
     // clicking the love icon should navigate to current user's profile
     if (currentUser && userId !== currentUser.id) {
-      router.push('/(tabs)/profile');
+      router.push('/(tabs)/profile' as any);
     }
   };
   

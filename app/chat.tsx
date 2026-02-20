@@ -345,7 +345,7 @@ export default function ChatScreen() {
         <View style={styles.headerContent}>
           <View style={styles.headerTitleContainer}>
             <TouchableOpacity 
-              onPress={() => router.push(`/user-profile?userId=${chatUser.id}`)}
+              onPress={() => router.push(`/user-profile?userId=${chatUser.id}` as any)}
               testID="chat-header-name"
             >
               <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>

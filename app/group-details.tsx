@@ -69,7 +69,7 @@ export default function GroupDetailsScreen() {
   };
 
   const handleMealUpPress = (mealUp: MealUp) => {
-    router.push(`/meal-up-details?mealUpId=${mealUp.id}`);
+    router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any);
   };
 
   const formatTimeAgo = (date: Date) => {

@@ -662,7 +662,7 @@ export default function ProfileScreen() {
                         style={styles.profileLoveIconBackground}
                         onPress={() => {
                           // Navigate to matched user's profile
-                          router.push(`/user-profile?userId=${matchedProfile.userId}`);
+                          router.push(`/user-profile?userId=${matchedProfile.userId}` as any);
                         }}
                       >
                         <Heart size={16} color={Colors.primary} fill={Colors.primary} />

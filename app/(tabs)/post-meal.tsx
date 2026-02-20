@@ -885,7 +885,7 @@ export default function PostMealScreen() {
       // Extract the original meal up ID by removing the prefix
       const mealUpId = event.id.replace('mealup-', '');
       // Navigate to attendees page for group events
-      router.push(`/meal-up-attendees?mealUpId=${mealUpId}`);
+      router.push(`/meal-up-attendees?mealUpId=${mealUpId}` as any);
     }
   };
 
@@ -1042,7 +1042,7 @@ export default function PostMealScreen() {
                   if (invitation) {
                     const inviter = mockUsers.find(u => u.id === invitation.inviterId);
                     if (inviter) {
-                      router.push(`/user-profile?userId=${inviter.id}`);
+                      router.push(`/user-profile?userId=${inviter.id}` as any);
                     }
                   }
                 }}
@@ -1659,7 +1659,7 @@ export default function PostMealScreen() {
                     const invitation = mockInvitations.find(inv => inv.id === invitationId);
                     if (invitation) {
                       const otherUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                      router.push(`/chat?userId=${otherUserId}`);
+                      router.push(`/chat?userId=${otherUserId}` as any);
                     }
                   }
                 }}
@@ -1727,11 +1727,11 @@ export default function PostMealScreen() {
                       const invitation = mockInvitations.find(inv => inv.id === invitationId);
                       if (invitation) {
                         const otherUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                        router.push(`/chat?userId=${otherUserId}`);
+                        router.push(`/chat?userId=${otherUserId}` as any);
                       }
                     }
                   } else if (matchResult?.isMatch) {
-                    router.push('/profile');
+                    router.push('/(tabs)/profile' as any);
                   }
                 }}
               >

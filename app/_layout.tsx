@@ -23,7 +23,11 @@ function RootLayoutNav() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="meal-up-attendees" options={{ headerShown: true }} />
       <Stack.Screen name="create-meal-up" options={{ headerShown: true }} />
-
+      <Stack.Screen name="chat" options={{ headerShown: true }} />
+      <Stack.Screen name="create-invitation" options={{ headerShown: true }} />
+      <Stack.Screen name="group-details" options={{ headerShown: true }} />
+      <Stack.Screen name="meal-up-details" options={{ headerShown: true }} />
+      <Stack.Screen name="user-profile" options={{ headerShown: true }} />
     </Stack>
   );
 }

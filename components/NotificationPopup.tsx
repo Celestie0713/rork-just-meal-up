@@ -57,7 +57,7 @@ export function NotificationPopup({ visible, onClose }: NotificationPopupProps) 
     
     if (notification.type === 'match_decision' && notification.userId) {
       // Navigate to chat with the user who made the decision
-      router.push(`/chat?userId=${notification.userId}`);
+      router.push(`/chat?userId=${notification.userId}` as any);
       onClose();
     }
   };
