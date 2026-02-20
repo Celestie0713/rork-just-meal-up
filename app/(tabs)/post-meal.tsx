@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Modal, Ani
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
-import ConfettiCannon from 'react-native-confetti-cannon';
+
 import { mockInvitations } from '@/mocks/invitations';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -90,7 +90,7 @@ export default function PostMealScreen() {
     dateChoice: string | null;
     eventId?: string;
   } | null>(null);
-  const confettiRef = useRef<any>(null);
+
   const balloonAnimation = useRef(new Animated.Value(0)).current;
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
@@ -528,11 +528,6 @@ export default function PostMealScreen() {
         
         setShowMatchModal(true);
         
-        // Trigger confetti for matches
-        setTimeout(() => {
-          confettiRef.current?.start();
-        }, 500);
-        
         // Animate balloons
         Animated.sequence([
           Animated.timing(balloonAnimation, {
@@ -826,11 +821,6 @@ export default function PostMealScreen() {
       setShowMatchModal(true);
       
       if (isMatch) {
-        // Trigger confetti for matches
-        setTimeout(() => {
-          confettiRef.current?.start();
-        }, 500);
-        
         // Animate balloons
         Animated.sequence([
           Animated.timing(balloonAnimation, {
@@ -1771,16 +1761,7 @@ export default function PostMealScreen() {
           )}
         </View>
         
-        {/* Confetti */}
-        {matchResult?.isMatch && (
-          <ConfettiCannon
-            ref={confettiRef}
-            count={200}
-            origin={{x: -10, y: 0}}
-            autoStart={false}
-            fadeOut={true}
-          />
-        )}
+
       </Modal>
 
 
