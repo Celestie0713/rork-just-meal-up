@@ -2,256 +2,132 @@ import { z } from "zod";
 import { publicProcedure } from "../../create-context";
 import { generateObject } from "@rork-ai/toolkit-sdk";
 
-const GOOGLE_PLACES_API_KEY = process.env.GOOGLE_PLACES_API_KEY || '';
+const PlaceSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  city: z.string(),
+  country: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  rating: z.number().min(0).max(5),
+  priceLevel: z.number().min(1).max(4),
+  placeType: z.array(z.string()),
+  phoneNumber: z.string().optional(),
+  website: z.string().optional(),
+  openingHours: z.array(z.string()).optional(),
+  description: z.string(),
+  matchScore: z.number().min(0).max(100),
+  photoKeyword: z.string(),
+});
 
 export const searchPlacesProcedure = publicProcedure
   .input(
     z.object({
       query: z.string().min(1),
-      limit: z.number().optional().default(10),
+      limit: z.number().optional().default(8),
     })
   )
   .query(async ({ input }) => {
-    console.log('Searching places for query:', input.query);
+    console.log("[Places AI Search] Query:", input.query);
 
-    const internalPlaces = searchInternalDB(input.query);
-    console.log('Internal DB results:', internalPlaces.length);
+    try {
+      const result = await generateObject({
+        messages: [
+          {
+            role: "user",
+            content: `You are a restaurant and venue discovery AI for a dating/social dining app called "Just Meal Up". 
+A user is searching for: "${input.query}"
 
-    let allPlaces = internalPlaces;
-    let source: 'internal' | 'google' | 'hybrid' = 'internal';
+Generate ${input.limit} real-world inspired restaurant/venue suggestions that match this query. 
+Make them feel authentic with realistic names, addresses, ratings, and descriptions.
+Each place should feel like a real venue someone would want to visit for a meal or date.
 
-    if (internalPlaces.length < 5) {
-      console.log('Not enough internal results, falling back to Google Places API');
-      const googlePlaces = await fetchGooglePlaces(input.query);
-      console.log('Google Places results:', googlePlaces.length);
-      
-      if (googlePlaces.length > 0) {
-        allPlaces = [...internalPlaces, ...googlePlaces];
-        source = internalPlaces.length > 0 ? 'hybrid' : 'google';
-        
-        await saveNewPlacesToDB(googlePlaces);
-      }
-    }
+For each place:
+- Give a realistic name, full address, city, country
+- Provide realistic latitude/longitude coordinates for the city
+- Rating between 3.5 and 5.0
+- Price level 1-4 (1=cheap, 4=expensive)
+- Relevant place types (e.g. restaurant, cafe, bar, sushi, italian, etc.)
+- Optional phone number and website
+- Opening hours
+- A compelling 2-3 sentence description about why this place is great for dining/dates
+- A match score (0-100) based on how well it fits the query
+- A photoKeyword (one word like "sushi", "italian", "cafe", "romantic", "rooftop") for finding a photo
 
-    if (allPlaces.length === 0) {
-      return {
-        results: [],
-        source,
-        totalResults: 0,
+Sort by match score descending. Make the places diverse - different vibes, price ranges, and styles.
+If the query mentions a specific city or location, use that. Otherwise, suggest places in popular cities worldwide.`,
+          },
+        ],
+        schema: z.object({
+          places: z.array(PlaceSchema),
+        }),
+      });
+
+      console.log("[Places AI Search] Generated", result.places.length, "places");
+
+      const photoKeywords: Record<string, string> = {
+        sushi: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800",
+        italian: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800",
+        cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800",
+        romantic: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+        rooftop: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+        bar: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800",
+        seafood: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=800",
+        steak: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
+        brunch: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800",
+        asian: "https://images.unsplash.com/photo-1617196034183-421b4917c92d?w=800",
+        mexican: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800",
+        french: "https://images.unsplash.com/photo-1550966871-3ed3cdb51f3a?w=800",
+        indian: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800",
+        pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
+        vegan: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800",
+        dessert: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800",
+        ramen: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800",
+        bbq: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800",
+        thai: "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=800",
+        chinese: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=800",
+        mediterranean: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
+        korean: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800",
+        wine: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800",
+        cocktail: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800",
+        cozy: "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800",
+        modern: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800",
+        garden: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=800",
+        breakfast: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800",
+        vietnamese: "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800",
       };
-    }
+      const defaultPhoto = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800";
 
-    const rankedResults = await rankPlacesWithGPT(input.query, allPlaces, input.limit);
-
-    return {
-      results: rankedResults,
-      source,
-      totalResults: rankedResults.length,
-    };
-  });
-
-function searchInternalDB(query: string) {
-  const mockPlaces = [
-    {
-      id: 'place-1',
-      name: 'Sushi Hanoi',
-      address: '45 Xuan Dieu Street, Tay Ho District',
-      city: 'Hanoi',
-      country: 'Vietnam',
-      latitude: 21.0583,
-      longitude: 105.8239,
-      rating: 4.5,
-      priceLevel: 3,
-      photoUrls: [],
-      placeType: ['restaurant', 'sushi', 'japanese'],
-      phoneNumber: '+84 24 3718 1018',
-      website: 'https://sushihanoi.com',
-      openingHours: ['Mon-Sun: 11:00 AM - 10:00 PM'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'place-2',
-      name: 'Westlake Sushi Bar',
-      address: '89 To Ngoc Van, Tay Ho District',
-      city: 'Hanoi',
-      country: 'Vietnam',
-      latitude: 21.0645,
-      longitude: 105.8186,
-      rating: 4.3,
-      priceLevel: 2,
-      photoUrls: [],
-      placeType: ['restaurant', 'sushi', 'japanese', 'bar'],
-      phoneNumber: '+84 24 3719 2020',
-      openingHours: ['Mon-Sun: 5:00 PM - 11:00 PM'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'place-3',
-      name: 'Chill Sushi Lounge',
-      address: '12 Quang An Street, Tay Ho District',
-      city: 'Hanoi',
-      country: 'Vietnam',
-      latitude: 21.0621,
-      longitude: 105.8205,
-      rating: 4.7,
-      priceLevel: 3,
-      photoUrls: [],
-      placeType: ['restaurant', 'sushi', 'lounge', 'japanese'],
-      phoneNumber: '+84 24 3715 3030',
-      website: 'https://chillsushi.vn',
-      openingHours: ['Tue-Sun: 12:00 PM - 11:00 PM', 'Mon: Closed'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'place-4',
-      name: 'The Sushi Club',
-      address: '34 Yen Phu Street, Tay Ho District',
-      city: 'Hanoi',
-      country: 'Vietnam',
-      latitude: 21.0598,
-      longitude: 105.8223,
-      rating: 4.6,
-      priceLevel: 4,
-      photoUrls: [],
-      placeType: ['restaurant', 'sushi', 'fine_dining', 'japanese'],
-      phoneNumber: '+84 24 3717 4040',
-      website: 'https://thesushiclub.vn',
-      openingHours: ['Mon-Sun: 11:30 AM - 2:30 PM, 6:00 PM - 10:30 PM'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: 'place-5',
-      name: 'Sakura Sushi Hanoi',
-      address: '56 Au Co Street, Tay Ho District',
-      city: 'Hanoi',
-      country: 'Vietnam',
-      latitude: 21.0610,
-      longitude: 105.8195,
-      rating: 4.4,
-      priceLevel: 2,
-      photoUrls: [],
-      placeType: ['restaurant', 'sushi', 'japanese', 'casual'],
-      phoneNumber: '+84 24 3716 5050',
-      openingHours: ['Mon-Sun: 11:00 AM - 10:30 PM'],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ];
-
-  const lowerQuery = query.toLowerCase();
-  return mockPlaces.filter((place) => {
-    const searchableText = `${place.name} ${place.address} ${place.city} ${place.placeType.join(' ')}`.toLowerCase();
-    return searchableText.includes(lowerQuery);
-  });
-}
-
-async function fetchGooglePlaces(query: string) {
-  if (!GOOGLE_PLACES_API_KEY) {
-    console.log('Google Places API key not configured');
-    return [];
-  }
-
-  try {
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&key=${GOOGLE_PLACES_API_KEY}`
-    );
-
-    const data = await response.json();
-
-    if (data.status !== 'OK') {
-      console.log('Google Places API error:', data.status);
-      return [];
-    }
-
-    return data.results.map((result: any) => ({
-      id: `google-${result.place_id}`,
-      name: result.name,
-      address: result.formatted_address,
-      city: extractCity(result.formatted_address),
-      country: extractCountry(result.formatted_address),
-      latitude: result.geometry.location.lat,
-      longitude: result.geometry.location.lng,
-      rating: result.rating,
-      priceLevel: result.price_level,
-      photoUrls: result.photos
-        ? result.photos.slice(0, 2).map(
-            (photo: any) =>
-              `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photoreference=${photo.photo_reference}&key=${GOOGLE_PLACES_API_KEY}`
-          )
-        : [],
-      placeType: result.types || [],
-      googlePlaceId: result.place_id,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }));
-  } catch (error) {
-    console.error('Error fetching Google Places:', error);
-    return [];
-  }
-}
-
-function extractCity(address: string): string {
-  const parts = address.split(',');
-  return parts.length > 1 ? parts[parts.length - 2].trim() : '';
-}
-
-function extractCountry(address: string): string {
-  const parts = address.split(',');
-  return parts.length > 0 ? parts[parts.length - 1].trim() : '';
-}
-
-async function saveNewPlacesToDB(places: any[]) {
-  console.log(`Saving ${places.length} new places to DB`);
-}
-
-async function rankPlacesWithGPT(query: string, places: any[], limit: number) {
-  try {
-    const result = await generateObject({
-      messages: [
-        {
-          role: 'user',
-          content: `You are a dating app assistant. A user searched for: "${query}"
-
-Here are the available places:
-${places.map((p, i) => `${i + 1}. ${p.name} - ${p.address} (Rating: ${p.rating || 'N/A'}, Types: ${p.placeType.join(', ')})`).join('\n')}
-
-Rank the top ${limit} places that best match this search query for a date. For each place, provide:
-1. A short, engaging description (2-3 sentences) about why it's good for a date
-2. A match score (0-100)
-
-Return the results in order of best match to worst.`,
+      const results = result.places.map((place, index) => ({
+        place: {
+          id: `ai-place-${Date.now()}-${index}`,
+          name: place.name,
+          address: place.address,
+          city: place.city,
+          country: place.country,
+          latitude: place.latitude,
+          longitude: place.longitude,
+          rating: place.rating,
+          priceLevel: place.priceLevel,
+          photoUrls: [photoKeywords[place.photoKeyword.toLowerCase()] || defaultPhoto],
+          placeType: place.placeType,
+          phoneNumber: place.phoneNumber,
+          website: place.website,
+          openingHours: place.openingHours,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         },
-      ],
-      schema: z.object({
-        rankedPlaces: z.array(
-          z.object({
-            placeIndex: z.number().describe('Index of the place from the list (0-based)'),
-            description: z.string().describe('Short engaging description for the date'),
-            matchScore: z.number().min(0).max(100).describe('How well it matches the query'),
-          })
-        ),
-      }),
-    });
+        description: place.description,
+        matchScore: place.matchScore,
+      }));
 
-    return result.rankedPlaces
-      .filter((r) => r.placeIndex >= 0 && r.placeIndex < places.length)
-      .map((ranked) => ({
-        place: places[ranked.placeIndex],
-        description: ranked.description,
-        matchScore: ranked.matchScore,
-      }))
-      .slice(0, limit);
-  } catch (error) {
-    console.error('Error ranking places with GPT:', error);
-    
-    return places.slice(0, limit).map((place) => ({
-      place,
-      description: `${place.name} is a great spot in ${place.city}. Perfect for a memorable meal!`,
-      matchScore: 75,
-    }));
-  }
-}
+      return {
+        results,
+        totalResults: results.length,
+        source: "ai" as const,
+      };
+    } catch (error) {
+      console.error("[Places AI Search] Error:", error);
+      throw new Error("Failed to search places. Please try again.");
+    }
+  });

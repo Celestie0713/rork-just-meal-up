@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ActivityIndicator, Modal, ScrollView, Image, Linking } from 'react-native';
-import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift } from 'lucide-react-native';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking, Animated, Keyboard } from 'react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -18,8 +18,11 @@ import type { User } from '@/types/user';
 export default function SearchScreen() {
   const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
   const [searchQuery, setSearchQuery] = useState('');
+  const [placesInputValue, setPlacesInputValue] = useState('');
   const [placesSearchQuery, setPlacesSearchQuery] = useState('');
+  const [hasSearched, setHasSearched] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<any>(null);
+  const pulseAnim = useRef(new Animated.Value(1)).current;
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -36,9 +39,33 @@ export default function SearchScreen() {
   const { matchedProfiles } = useChat();
 
   const placesQuery = trpc.places.search.useQuery(
-    { query: placesSearchQuery, limit: 10 },
-    { enabled: placesSearchQuery.length > 0 }
+    { query: placesSearchQuery, limit: 8 },
+    { enabled: placesSearchQuery.length > 0, retry: 1, staleTime: 1000 * 60 * 5 }
   );
+
+  useEffect(() => {
+    if (placesQuery.isLoading) {
+      const pulse = Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
+          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+        ])
+      );
+      pulse.start();
+      return () => pulse.stop();
+    } else {
+      pulseAnim.setValue(1);
+    }
+  }, [placesQuery.isLoading, pulseAnim]);
+
+  const handlePlacesSearch = useCallback(() => {
+    const trimmed = placesInputValue.trim();
+    if (trimmed.length > 0) {
+      setPlacesSearchQuery(trimmed);
+      setHasSearched(true);
+      Keyboard.dismiss();
+    }
+  }, [placesInputValue]);
 
   const handleUserPress = (user: User) => {
     router.push({
@@ -152,59 +179,96 @@ export default function SearchScreen() {
         <View style={styles.placesContainer}>
           <View style={styles.placesSearchContainer}>
             <View style={styles.placesSearchInputContainer}>
-              <Search size={20} color="#000000" />
+              <Sparkles size={20} color="#FF6B35" />
               <TextInput
                 style={styles.placesSearchInput}
-                placeholder="e.g., chill sushi dinner in Westlake, Hanoi"
-                value={placesSearchQuery}
-                onChangeText={setPlacesSearchQuery}
-                placeholderTextColor="#666666"
+                placeholder='Try "romantic dinner in Paris" or "cozy cafe"'
+                value={placesInputValue}
+                onChangeText={setPlacesInputValue}
+                placeholderTextColor="#999999"
+                onSubmitEditing={handlePlacesSearch}
+                returnKeyType="search"
               />
+              <TouchableOpacity
+                onPress={handlePlacesSearch}
+                style={styles.searchSendButton}
+                disabled={placesInputValue.trim().length === 0}
+              >
+                <Send size={18} color={placesInputValue.trim().length > 0 ? '#FF6B35' : '#CCCCCC'} />
+              </TouchableOpacity>
             </View>
           </View>
 
           {placesQuery.isLoading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.loadingText}>Searching places...</Text>
+              <Animated.View style={[styles.loadingIconWrap, { opacity: pulseAnim }]}>
+                <Sparkles size={40} color="#FF6B35" />
+              </Animated.View>
+              <Text style={styles.loadingTitle}>AI is finding the best spots...</Text>
+              <Text style={styles.loadingSubtext}>Curating personalized recommendations</Text>
             </View>
           )}
 
-          {!placesQuery.isLoading && !placesSearchQuery && (
+          {placesQuery.isError && (
             <View style={styles.placesEmptyState}>
-              <Search size={48} color="#CCCCCC" />
-              <Text style={styles.placesEmptyText}>Search for places to meet up</Text>
-              <Text style={styles.placesEmptySubtext}>Try "romantic dinner" or "cozy cafe"</Text>
+              <Text style={styles.placesEmptyText}>Something went wrong</Text>
+              <Text style={styles.placesEmptySubtext}>Please try searching again</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={() => placesQuery.refetch()}>
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
             </View>
           )}
 
-          {!placesQuery.isLoading && placesSearchQuery && placesQuery.data && placesQuery.data.results.length === 0 && (
+          {!placesQuery.isLoading && !placesQuery.isError && !hasSearched && (
+            <View style={styles.placesEmptyState}>
+              <View style={styles.emptyIconWrap}>
+                <Sparkles size={48} color="#FF6B35" />
+              </View>
+              <Text style={styles.placesEmptyText}>AI-Powered Place Search</Text>
+              <Text style={styles.placesEmptySubtext}>Describe your ideal dining experience and our AI will find the perfect spots for you</Text>
+              <View style={styles.suggestionChips}>
+                {['Romantic dinner in NYC', 'Cozy ramen spot in Tokyo', 'Rooftop bar in London'].map((suggestion) => (
+                  <TouchableOpacity
+                    key={suggestion}
+                    style={styles.suggestionChip}
+                    onPress={() => {
+                      setPlacesInputValue(suggestion);
+                      setPlacesSearchQuery(suggestion);
+                      setHasSearched(true);
+                    }}
+                  >
+                    <Text style={styles.suggestionChipText}>{suggestion}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          {!placesQuery.isLoading && !placesQuery.isError && hasSearched && placesQuery.data && placesQuery.data.results.length === 0 && (
             <View style={styles.placesEmptyState}>
               <Text style={styles.placesEmptyText}>No places found</Text>
-              <Text style={styles.placesEmptySubtext}>Try a different search</Text>
+              <Text style={styles.placesEmptySubtext}>Try describing a different type of place</Text>
             </View>
           )}
 
-          {!placesQuery.isLoading && placesQuery.data && placesQuery.data.results.length > 0 && (
+          {!placesQuery.isLoading && !placesQuery.isError && placesQuery.data && placesQuery.data.results.length > 0 && (
             <ScrollView style={styles.placesResults} showsVerticalScrollIndicator={false}>
               <View style={styles.resultsHeader}>
                 <Text style={styles.resultsCount}>
                   {placesQuery.data.totalResults} {placesQuery.data.totalResults === 1 ? 'place' : 'places'} found
                 </Text>
-                <View style={styles.sourceBadge}>
-                  <Text style={styles.sourceBadgeText}>
-                    {placesQuery.data.source === 'internal' && '📍 Local DB'}
-                    {placesQuery.data.source === 'google' && '🌐 Google'}
-                    {placesQuery.data.source === 'hybrid' && '🔀 Mixed'}
-                  </Text>
+                <View style={styles.aiBadge}>
+                  <Sparkles size={12} color="#FF6B35" />
+                  <Text style={styles.aiBadgeText}>AI Picks</Text>
                 </View>
               </View>
 
-              {placesQuery.data.results.map((result, index) => (
+              {placesQuery.data.results.map((result: any, index: number) => (
                 <TouchableOpacity
-                  key={result.place.id}
+                  key={`${result.place.id}-${index}`}
                   style={styles.placeCard}
                   onPress={() => setSelectedPlace(result)}
+                  activeOpacity={0.8}
                 >
                   <View style={styles.placeImageContainer}>
                     {result.place.photoUrls && result.place.photoUrls.length > 0 ? (
@@ -219,7 +283,8 @@ export default function SearchScreen() {
                       </View>
                     )}
                     <View style={styles.placeMatchBadge}>
-                      <Text style={styles.placeMatchText}>{result.matchScore}% Match</Text>
+                      <Sparkles size={10} color="#FFFFFF" />
+                      <Text style={styles.placeMatchText}>{result.matchScore}%</Text>
                     </View>
                   </View>
 
@@ -247,8 +312,7 @@ export default function SearchScreen() {
                       </Text>
                     </View>
 
-                    <Text style={styles.placeDescription}>{result.description}</Text>
-
+                    <Text style={styles.placeDescription} numberOfLines={3}>{result.description}</Text>
 
                     <TouchableOpacity style={styles.inviteButton}>
                       <Gift size={18} color="#FFFFFF" />
@@ -257,6 +321,7 @@ export default function SearchScreen() {
                   </View>
                 </TouchableOpacity>
               ))}
+              <View style={{ height: 24 }} />
             </ScrollView>
           )}
         </View>
@@ -351,8 +416,8 @@ export default function SearchScreen() {
                     {selectedPlace.place.openingHours && selectedPlace.place.openingHours.length > 0 && (
                       <View style={styles.placeDetailSection}>
                         <Text style={styles.placeDetailSectionTitle}>Opening Hours</Text>
-                        {selectedPlace.place.openingHours.map((hours: string, index: number) => (
-                          <Text key={index} style={styles.placeDetailHours}>{hours}</Text>
+                        {selectedPlace.place.openingHours.map((hours: string, idx: number) => (
+                          <Text key={idx} style={styles.placeDetailHours}>{hours}</Text>
                         ))}
                       </View>
                     )}
@@ -362,13 +427,11 @@ export default function SearchScreen() {
                       <Text style={styles.placeDetailDescription}>{selectedPlace.description}</Text>
                     </View>
 
-
-
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
                         const url = `https://www.google.com/maps/search/?api=1&query=${selectedPlace.place.latitude},${selectedPlace.place.longitude}`;
-                        Linking.openURL(url);
+                        void Linking.openURL(url);
                       }}
                     >
                       <MapPin size={20} color="#FFFFFF" />
@@ -539,6 +602,7 @@ export default function SearchScreen() {
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -734,21 +798,86 @@ const styles = StyleSheet.create({
   },
   resultsCount: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '600' as const,
     color: '#000000',
   },
-  sourceBadge: {
-    backgroundColor: '#FFF8E7',
+  aiBadge: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: '#FFF0E6',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#888888',
+    gap: 4,
   },
-  sourceBadgeText: {
+  aiBadgeText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700' as const,
+    color: '#FF6B35',
+  },
+  searchSendButton: {
+    padding: 4,
+  },
+  loadingIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: '#FFF0E6',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginBottom: 16,
+  },
+  loadingTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
     color: '#000000',
+    marginBottom: 4,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: '#888888',
+  },
+  emptyIconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFF0E6',
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    marginBottom: 16,
+  },
+  suggestionChips: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: 'center' as const,
+    gap: 8,
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  suggestionChip: {
+    backgroundColor: '#FFF0E6',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#FFD5B8',
+  },
+  suggestionChipText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: '#FF6B35',
+  },
+  retryButton: {
+    marginTop: 16,
+    backgroundColor: '#000000',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  retryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600' as const,
   },
   placeCard: {
     backgroundColor: '#FFFFFF',
@@ -778,15 +907,18 @@ const styles = StyleSheet.create({
     position: 'absolute' as const,
     top: 12,
     right: 12,
-    backgroundColor: '#000000',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    backgroundColor: '#FF6B35',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 20,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 4,
   },
   placeMatchText: {
     color: '#FFFFFF',
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '700' as const,
   },
   placeContent: {
     padding: 16,
