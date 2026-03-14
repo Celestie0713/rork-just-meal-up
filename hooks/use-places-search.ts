@@ -1,0 +1,181 @@
+import { useState, useCallback } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { generateObject } from '@rork-ai/toolkit-sdk';
+import { z } from 'zod';
+
+const PlaceSchema = z.object({
+  name: z.string(),
+  address: z.string(),
+  city: z.string(),
+  country: z.string(),
+  latitude: z.number(),
+  longitude: z.number(),
+  rating: z.number(),
+  priceLevel: z.number(),
+  placeType: z.array(z.string()),
+  phoneNumber: z.string().optional(),
+  website: z.string().optional(),
+  openingHours: z.array(z.string()).optional(),
+  description: z.string(),
+  matchScore: z.number(),
+  photoKeyword: z.string(),
+});
+
+const PlacesResponseSchema = z.object({
+  places: z.array(PlaceSchema),
+});
+
+export interface PlaceResult {
+  place: {
+    id: string;
+    name: string;
+    address: string;
+    city: string;
+    country: string;
+    latitude: number;
+    longitude: number;
+    rating: number;
+    priceLevel: number;
+    photoUrls: string[];
+    placeType: string[];
+    phoneNumber?: string;
+    website?: string;
+    openingHours?: string[];
+  };
+  description: string;
+  matchScore: number;
+}
+
+export interface PlacesSearchResult {
+  results: PlaceResult[];
+  totalResults: number;
+}
+
+const photoKeywords: Record<string, string> = {
+  sushi: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800",
+  italian: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800",
+  cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800",
+  romantic: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
+  rooftop: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
+  bar: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800",
+  seafood: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=800",
+  steak: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
+  brunch: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800",
+  asian: "https://images.unsplash.com/photo-1617196034183-421b4917c92d?w=800",
+  mexican: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800",
+  french: "https://images.unsplash.com/photo-1550966871-3ed3cdb51f3a?w=800",
+  indian: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800",
+  pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
+  vegan: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800",
+  dessert: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800",
+  ramen: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800",
+  bbq: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800",
+  thai: "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=800",
+  chinese: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=800",
+  mediterranean: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
+  korean: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800",
+  wine: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800",
+  cocktail: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800",
+  cozy: "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800",
+  modern: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800",
+  garden: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=800",
+  breakfast: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800",
+  vietnamese: "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800",
+};
+const defaultPhoto = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800";
+
+async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesSearchResult> {
+  console.log("[Places AI Search] Query:", query);
+
+  const result = await generateObject({
+    messages: [
+      {
+        role: "user",
+        content: `You are a restaurant and venue discovery AI for a dating/social dining app called "Just Meal Up". 
+A user is searching for: "${query}"
+
+Generate ${limit} real-world inspired restaurant/venue suggestions that match this query. 
+Make them feel authentic with realistic names, addresses, ratings, and descriptions.
+Each place should feel like a real venue someone would want to visit for a meal or date.
+
+For each place:
+- Give a realistic name, full address, city, country
+- Provide realistic latitude/longitude coordinates for the city
+- Rating between 3.5 and 5.0
+- Price level 1-4 (1=cheap, 4=expensive)
+- Relevant place types (e.g. restaurant, cafe, bar, sushi, italian, etc.)
+- Optional phone number and website
+- Opening hours
+- A compelling 2-3 sentence description about why this place is great for dining/dates
+- A match score (0-100) based on how well it fits the query
+- A photoKeyword (one word like "sushi", "italian", "cafe", "romantic", "rooftop") for finding a photo
+
+Sort by match score descending. Make the places diverse - different vibes, price ranges, and styles.
+If the query mentions a specific city or location, use that. Otherwise, suggest places in popular cities worldwide.`,
+      },
+    ],
+    schema: PlacesResponseSchema,
+  });
+
+  console.log("[Places AI Search] Generated", result.places.length, "places");
+
+  const results: PlaceResult[] = result.places.map((place, index) => ({
+    place: {
+      id: `ai-place-${Date.now()}-${index}`,
+      name: place.name,
+      address: place.address,
+      city: place.city,
+      country: place.country,
+      latitude: place.latitude,
+      longitude: place.longitude,
+      rating: place.rating,
+      priceLevel: place.priceLevel,
+      photoUrls: [photoKeywords[place.photoKeyword.toLowerCase()] || defaultPhoto],
+      placeType: place.placeType,
+      phoneNumber: place.phoneNumber,
+      website: place.website,
+      openingHours: place.openingHours,
+    },
+    description: place.description,
+    matchScore: place.matchScore,
+  }));
+
+  return {
+    results,
+    totalResults: results.length,
+  };
+}
+
+export function usePlacesSearch() {
+  const [data, setData] = useState<PlacesSearchResult | null>(null);
+
+  const mutation = useMutation({
+    mutationFn: (query: string) => searchPlacesAI(query, 8),
+    onSuccess: (result) => {
+      console.log("[Places Search] Success:", result.totalResults, "results");
+      setData(result);
+    },
+    onError: (error) => {
+      console.error("[Places Search] Error:", error);
+    },
+  });
+
+  const search = useCallback((query: string) => {
+    if (query.trim().length > 0) {
+      mutation.mutate(query.trim());
+    }
+  }, [mutation]);
+
+  return {
+    data,
+    isLoading: mutation.isPending,
+    isError: mutation.isError,
+    error: mutation.error,
+    search,
+    refetch: () => {
+      if (mutation.variables) {
+        mutation.mutate(mutation.variables);
+      }
+    },
+  };
+}

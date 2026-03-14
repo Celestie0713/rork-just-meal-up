@@ -9,7 +9,7 @@ import { NotificationPopup } from '@/components/NotificationPopup';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
-import { trpc } from '@/lib/trpc';
+import { usePlacesSearch } from '@/hooks/use-places-search';
 
 import { Colors } from '@/constants/colors';
 
@@ -19,7 +19,6 @@ export default function SearchScreen() {
   const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
   const [searchQuery, setSearchQuery] = useState('');
   const [placesInputValue, setPlacesInputValue] = useState('');
-  const [placesSearchQuery, setPlacesSearchQuery] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
   const [selectedPlace, setSelectedPlace] = useState<any>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -38,13 +37,10 @@ export default function SearchScreen() {
   const { getUnreadCount } = useNotifications();
   const { matchedProfiles } = useChat();
 
-  const placesQuery = trpc.places.search.useQuery(
-    { query: placesSearchQuery, limit: 8 },
-    { enabled: placesSearchQuery.length > 0, retry: 1, staleTime: 1000 * 60 * 5 }
-  );
+  const placesSearch = usePlacesSearch();
 
   useEffect(() => {
-    if (placesQuery.isLoading) {
+    if (placesSearch.isLoading) {
       const pulse = Animated.loop(
         Animated.sequence([
           Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
@@ -56,16 +52,16 @@ export default function SearchScreen() {
     } else {
       pulseAnim.setValue(1);
     }
-  }, [placesQuery.isLoading, pulseAnim]);
+  }, [placesSearch.isLoading, pulseAnim]);
 
   const handlePlacesSearch = useCallback(() => {
     const trimmed = placesInputValue.trim();
     if (trimmed.length > 0) {
-      setPlacesSearchQuery(trimmed);
+      placesSearch.search(trimmed);
       setHasSearched(true);
       Keyboard.dismiss();
     }
-  }, [placesInputValue]);
+  }, [placesInputValue, placesSearch]);
 
   const handleUserPress = (user: User) => {
     router.push({
@@ -199,7 +195,7 @@ export default function SearchScreen() {
             </View>
           </View>
 
-          {placesQuery.isLoading && (
+          {placesSearch.isLoading && (
             <View style={styles.loadingContainer}>
               <Animated.View style={[styles.loadingIconWrap, { opacity: pulseAnim }]}>
                 <Sparkles size={40} color="#FF6B35" />
@@ -209,17 +205,17 @@ export default function SearchScreen() {
             </View>
           )}
 
-          {placesQuery.isError && (
+          {placesSearch.isError && (
             <View style={styles.placesEmptyState}>
               <Text style={styles.placesEmptyText}>Something went wrong</Text>
               <Text style={styles.placesEmptySubtext}>Please try searching again</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={() => placesQuery.refetch()}>
+              <TouchableOpacity style={styles.retryButton} onPress={() => placesSearch.refetch()}>
                 <Text style={styles.retryButtonText}>Retry</Text>
               </TouchableOpacity>
             </View>
           )}
 
-          {!placesQuery.isLoading && !placesQuery.isError && !hasSearched && (
+          {!placesSearch.isLoading && !placesSearch.isError && !hasSearched && (
             <View style={styles.placesEmptyState}>
               <View style={styles.emptyIconWrap}>
                 <Sparkles size={48} color="#FF6B35" />
@@ -233,7 +229,7 @@ export default function SearchScreen() {
                     style={styles.suggestionChip}
                     onPress={() => {
                       setPlacesInputValue(suggestion);
-                      setPlacesSearchQuery(suggestion);
+                      placesSearch.search(suggestion);
                       setHasSearched(true);
                     }}
                   >
@@ -244,18 +240,18 @@ export default function SearchScreen() {
             </View>
           )}
 
-          {!placesQuery.isLoading && !placesQuery.isError && hasSearched && placesQuery.data && placesQuery.data.results.length === 0 && (
+          {!placesSearch.isLoading && !placesSearch.isError && hasSearched && placesSearch.data && placesSearch.data.results.length === 0 && (
             <View style={styles.placesEmptyState}>
               <Text style={styles.placesEmptyText}>No places found</Text>
               <Text style={styles.placesEmptySubtext}>Try describing a different type of place</Text>
             </View>
           )}
 
-          {!placesQuery.isLoading && !placesQuery.isError && placesQuery.data && placesQuery.data.results.length > 0 && (
+          {!placesSearch.isLoading && !placesSearch.isError && placesSearch.data && placesSearch.data.results.length > 0 && (
             <ScrollView style={styles.placesResults} showsVerticalScrollIndicator={false}>
               <View style={styles.resultsHeader}>
                 <Text style={styles.resultsCount}>
-                  {placesQuery.data.totalResults} {placesQuery.data.totalResults === 1 ? 'place' : 'places'} found
+                  {placesSearch.data.totalResults} {placesSearch.data.totalResults === 1 ? 'place' : 'places'} found
                 </Text>
                 <View style={styles.aiBadge}>
                   <Sparkles size={12} color="#FF6B35" />
@@ -263,7 +259,7 @@ export default function SearchScreen() {
                 </View>
               </View>
 
-              {placesQuery.data.results.map((result: any, index: number) => (
+              {placesSearch.data.results.map((result, index) => (
                 <TouchableOpacity
                   key={`${result.place.id}-${index}`}
                   style={styles.placeCard}
