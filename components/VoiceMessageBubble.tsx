@@ -90,7 +90,7 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
               <TouchableOpacity onPress={handlePlayPause} style={styles.tipContainer}>
                 <DollarSign size={20} color={Colors.primary} />
                 <View style={styles.tipTextContainer}>
-                  <Text style={styles.tipTitle}>Pay tip to view</Text>
+                  <Text style={styles.tipTitle}>Tip us to view</Text>
                   <Text style={styles.tipSubtitle}>{formatDuration(message.duration)} message</Text>
                 </View>
               </TouchableOpacity>

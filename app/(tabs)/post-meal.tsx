@@ -1170,7 +1170,7 @@ export default function PostMealScreen() {
                             style={styles.payToViewButton}
                             onPress={() => handlePayToViewChoice(event.id)}
                           >
-                            <Text style={styles.payToViewButtonText}>💰 Pay tip to view</Text>
+                            <Text style={styles.payToViewButtonText}>💰 Tip us to view</Text>
                             <Text style={styles.payToViewSubtext}>Min $5</Text>
                           </TouchableOpacity>
                         </View>
