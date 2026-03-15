@@ -91,27 +91,29 @@ async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesS
     messages: [
       {
         role: "user",
-        content: `You are a restaurant and venue discovery AI for a dating/social dining app called "Just Meal Up". 
-A user is searching for: "${query}"
+        content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"
 
-Generate ${limit} real-world inspired restaurant/venue suggestions that match this query. 
-Make them feel authentic with realistic names, addresses, ratings, and descriptions.
-Each place should feel like a real venue someone would want to visit for a meal or date.
+IMPORTANT: You MUST only return REAL restaurants and venues that actually exist and are currently operating as of 2025. Do NOT invent or fabricate any place. Every restaurant name, address, and detail must be factual and verifiable.
+
+Return ${limit} REAL, existing restaurants/venues that match this query.
 
 For each place:
-- Give a realistic name, full address, city, country
-- Provide realistic latitude/longitude coordinates for the city
-- Rating between 3.5 and 5.0
-- Price level 1-4 (1=cheap, 4=expensive)
+- Use the REAL name of an actual restaurant/venue
+- Use the REAL full street address, city, and country
+- Use ACCURATE latitude/longitude coordinates for the actual location
+- Rating: use the real approximate rating (e.g. from Google Maps or Yelp)
+- Price level 1-4 (1=budget, 4=fine dining) based on real pricing
 - Relevant place types (e.g. restaurant, cafe, bar, sushi, italian, etc.)
-- Optional phone number and website
-- Opening hours
-- A compelling 2-3 sentence description about why this place is great for dining/dates
-- A match score (0-100) based on how well it fits the query
-- A photoKeyword (one word like "sushi", "italian", "cafe", "romantic", "rooftop") for finding a photo
+- Real phone number and website if known (omit if unsure)
+- Real opening hours if known (omit if unsure)
+- A 2-3 sentence description of what makes this place special, based on real reviews and reputation
+- A match score (0-100) based on how well it fits the search query
+- A photoKeyword (one word like "sushi", "italian", "cafe", "romantic", "rooftop", "bar", "seafood", "steak", "ramen", "korean", "thai", "chinese", "indian", "mexican", "french", "vegan", "pizza", "bbq", "brunch", "dessert", "modern", "cozy") that best describes the cuisine/vibe
 
-Sort by match score descending. Make the places diverse - different vibes, price ranges, and styles.
-If the query mentions a specific city or location, use that. Otherwise, suggest places in popular cities worldwide.`,
+Sort by match score descending. Include a mix of popular well-known spots and hidden gems.
+If the query mentions a specific city or location, only return places in that area. If no location is specified, focus on well-known places in major cities.
+
+Do NOT make up restaurant names or addresses. Only include places you are confident actually exist.`,
       },
     ],
     schema: PlacesResponseSchema,
