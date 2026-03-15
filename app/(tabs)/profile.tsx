@@ -691,9 +691,7 @@ export default function ProfileScreen() {
               <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
             </TouchableOpacity>
           )}
-
         </View>
-
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           
@@ -787,10 +785,8 @@ export default function ProfileScreen() {
 
         {renderTabBar()}
         {renderTabContent()}
-        
         <View style={styles.scrollViewBottomPadding} />
       </ScrollView>
-      
       {renderLanguageModal()}
       {renderPersonalIncomeModal()}
       {renderPersonalLanguageModal()}

@@ -133,9 +133,6 @@ export default function SearchScreen() {
             )}
           </TouchableOpacity>
         </View>
-        
-
-
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
             <Search size={20} color="#000000" />
@@ -167,7 +164,6 @@ export default function SearchScreen() {
           </TouchableOpacity>
         </View>
       </View>
-      
       {activeTab === 'user' && (
           <FlatList
           key="users-list"
@@ -180,7 +176,6 @@ export default function SearchScreen() {
           columnWrapperStyle={styles.row}
         />
       )}
-      
       {activeTab === 'places' && (
         <View style={styles.placesContainer}>
           <View style={styles.placesSearchContainer}>
@@ -290,7 +285,6 @@ export default function SearchScreen() {
 
                   <View style={styles.placeContent}>
                     <Text style={styles.placeName}>{result.place.name}</Text>
-                    
                     <View style={styles.placeRatingRow}>
                       {result.place.rating != null && result.place.rating > 0 && (
                         <View style={styles.placeRating}>
@@ -343,18 +337,15 @@ export default function SearchScreen() {
           )}
         </View>
       )}
-      
       <SuccessPopup
         visible={showSuccessPopup}
         message="Poof! Added successfully👌🤘"
         onHide={() => setShowSuccessPopup(false)}
       />
-      
       <NotificationPopup
         visible={showNotificationPopup}
         onClose={() => setShowNotificationPopup(false)}
       />
-
       <Modal
         visible={selectedPlace !== null}
         animationType="slide"
@@ -466,7 +457,6 @@ export default function SearchScreen() {
           </View>
         </View>
       </Modal>
-      
       <TipSelectionModal
         visible={showTipModal}
         onClose={() => {
@@ -490,7 +480,6 @@ export default function SearchScreen() {
         }}
         recipientName="the matchmaker"
       />
-
       <Modal
         visible={showFilterModal}
         animationType="slide"

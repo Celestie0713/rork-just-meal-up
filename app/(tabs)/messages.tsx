@@ -240,7 +240,6 @@ export default function MessagesScreen() {
         </View>
         {(isInvitationMode || isMealUpShareMode) && <View style={styles.placeholder} />}
       </View>
-      
       {isInvitationMode && invitationData && (
         <View style={styles.invitationSummary}>
           <Text style={styles.summaryTitle}>Meal Invitation</Text>
@@ -358,7 +357,6 @@ export default function MessagesScreen() {
         }}
         recipientName={selectedRecipient?.name || ''}
       />
-
     </SafeAreaView>
   );
 }
