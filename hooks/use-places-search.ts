@@ -100,7 +100,7 @@ BE CONSERVATIVE: It's better to return 3 real places than 8 made-up ones.`,
 
   console.log("[Places AI Search] Generated", result.places.length, "places");
 
-  const results: PlaceResult[] = result.places.map((place, index) => ({
+  const results: PlaceResult[] = result.places.map((place: any, index: number) => ({
     place: {
       id: `ai-place-${Date.now()}-${index}`,
       name: place.name,

@@ -73,7 +73,7 @@ Sort by matchScore descending. BE CONSERVATIVE: fewer real places > many fabrica
 
       console.log("[Places AI Search] Generated", result.places.length, "places");
 
-      const results = result.places.map((place, index) => ({
+      const results = result.places.map((place: z.infer<typeof PlaceSchema>, index: number) => ({
         place: {
           id: `ai-place-${Date.now()}-${index}`,
           name: place.name,
