@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking, Animated, Keyboard } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Linking, Animated, Keyboard } from 'react-native';
 import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
@@ -274,17 +274,11 @@ export default function SearchScreen() {
                   activeOpacity={0.8}
                 >
                   <View style={styles.placeImageContainer}>
-                    {result.place.photoUrls && result.place.photoUrls.length > 0 ? (
-                      <Image
-                        source={{ uri: result.place.photoUrls[0] }}
-                        style={styles.placeImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View style={styles.placePlaceholderImage}>
-                        <MapPin size={32} color="#CCCCCC" />
-                      </View>
-                    )}
+                    <View style={styles.placeEmojiContainer}>
+                      <Text style={styles.placeEmoji}>{result.place.cuisineEmoji || '🍽️'}</Text>
+                      <Text style={styles.placeInitials} numberOfLines={1}>{result.place.name}</Text>
+                      <Text style={styles.placeInitialsSub}>{result.place.city}, {result.place.country}</Text>
+                    </View>
                     <View style={styles.placeMatchBadge}>
                       <Sparkles size={10} color="#FFFFFF" />
                       <Text style={styles.placeMatchText}>{result.matchScore}%</Text>
@@ -316,6 +310,17 @@ export default function SearchScreen() {
                     </View>
 
                     <Text style={styles.placeDescription} numberOfLines={3}>{result.description}</Text>
+
+                    <TouchableOpacity
+                      style={styles.viewOnMapsButton}
+                      onPress={() => {
+                        const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(result.place.name + ' ' + result.place.city)}`;
+                        void Linking.openURL(url);
+                      }}
+                    >
+                      <MapPin size={16} color="#FF6B35" />
+                      <Text style={styles.viewOnMapsText}>View on Google Maps</Text>
+                    </TouchableOpacity>
 
                     <TouchableOpacity style={styles.inviteButton}>
                       <Gift size={18} color="#FFFFFF" />
@@ -359,17 +364,10 @@ export default function SearchScreen() {
                     <X size={24} color="#000000" />
                   </TouchableOpacity>
 
-                  {selectedPlace.place.photoUrls && selectedPlace.place.photoUrls.length > 0 ? (
-                    <Image
-                      source={{ uri: selectedPlace.place.photoUrls[0] }}
-                      style={styles.placeDetailImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={styles.placeDetailPlaceholderImage}>
-                      <MapPin size={48} color="#CCCCCC" />
-                    </View>
-                  )}
+                  <View style={styles.placeDetailEmojiContainer}>
+                    <Text style={styles.placeDetailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
+                    <Text style={styles.placeDetailEmojiName} numberOfLines={2}>{selectedPlace.place.name}</Text>
+                  </View>
 
                   <View style={styles.placeDetailBody}>
                     <Text style={styles.placeDetailName}>{selectedPlace.place.name}</Text>
@@ -433,13 +431,23 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
-                        const url = `https://www.google.com/maps/search/?api=1&query=${selectedPlace.place.latitude},${selectedPlace.place.longitude}`;
+                        const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(selectedPlace.place.name + ' ' + selectedPlace.place.city)}`;
                         void Linking.openURL(url);
                       }}
                     >
                       <MapPin size={20} color="#FFFFFF" />
-                      <Text style={styles.placeDetailMapButtonText}>Open in Maps</Text>
+                      <Text style={styles.placeDetailMapButtonText}>View on Google Maps</Text>
                     </TouchableOpacity>
+
+                    {selectedPlace.place.website && (
+                      <TouchableOpacity
+                        style={styles.placeDetailWebsiteButton}
+                        onPress={() => Linking.openURL(selectedPlace.place.website)}
+                      >
+                        <Globe size={20} color="#FF6B35" />
+                        <Text style={styles.placeDetailWebsiteButtonText}>Visit Website</Text>
+                      </TouchableOpacity>
+                    )}
 
                     <TouchableOpacity style={styles.placeDetailInviteButton}>
                       <Gift size={20} color="#FFFFFF" />
@@ -895,16 +903,28 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
   },
-  placeImage: {
+  placeEmojiContainer: {
     width: '100%',
     height: '100%',
-  },
-  placePlaceholderImage: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#FFF8E7',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 16,
+  },
+  placeEmoji: {
+    fontSize: 48,
+    marginBottom: 8,
+  },
+  placeInitials: {
+    fontSize: 16,
+    fontWeight: '700' as const,
+    color: '#333333',
+    textAlign: 'center' as const,
+  },
+  placeInitialsSub: {
+    fontSize: 13,
+    color: '#888888',
+    marginTop: 4,
   },
   placeMatchBadge: {
     position: 'absolute' as const,
@@ -1036,16 +1056,23 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  placeDetailImage: {
+  placeDetailEmojiContainer: {
     width: '100%',
-    height: 300,
-  },
-  placeDetailPlaceholderImage: {
-    width: '100%',
-    height: 300,
-    backgroundColor: '#F5F5F5',
+    height: 200,
+    backgroundColor: '#FFF8E7',
     justifyContent: 'center',
     alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  placeDetailEmoji: {
+    fontSize: 64,
+    marginBottom: 12,
+  },
+  placeDetailEmojiName: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#333333',
+    textAlign: 'center' as const,
   },
   placeDetailBody: {
     padding: 20,
@@ -1165,6 +1192,40 @@ const styles = StyleSheet.create({
   placeDetailMapButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: '600',
+  },
+  placeDetailWebsiteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF0E6',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: '#FFD5B8',
+  },
+  placeDetailWebsiteButtonText: {
+    color: '#FF6B35',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  viewOnMapsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    gap: 6,
+    marginBottom: 10,
+    backgroundColor: '#FFF0E6',
+    borderWidth: 1,
+    borderColor: '#FFD5B8',
+  },
+  viewOnMapsText: {
+    color: '#FF6B35',
+    fontSize: 14,
     fontWeight: '600',
   },
   placeDetailInviteButton: {

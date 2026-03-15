@@ -13,12 +13,13 @@ const PlaceSchema = z.object({
   rating: z.number(),
   priceLevel: z.number(),
   placeType: z.array(z.string()),
+  cuisineEmoji: z.string(),
   phoneNumber: z.string().optional(),
   website: z.string().optional(),
+  googleMapsUrl: z.string().optional(),
   openingHours: z.array(z.string()).optional(),
   description: z.string(),
   matchScore: z.number(),
-  photoKeyword: z.string(),
 });
 
 const PlacesResponseSchema = z.object({
@@ -36,10 +37,11 @@ export interface PlaceResult {
     longitude: number;
     rating: number;
     priceLevel: number;
-    photoUrls: string[];
     placeType: string[];
+    cuisineEmoji: string;
     phoneNumber?: string;
     website?: string;
+    googleMapsUrl?: string;
     openingHours?: string[];
   };
   description: string;
@@ -51,39 +53,6 @@ export interface PlacesSearchResult {
   totalResults: number;
 }
 
-const photoKeywords: Record<string, string> = {
-  sushi: "https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800",
-  italian: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=800",
-  cafe: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800",
-  romantic: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800",
-  rooftop: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800",
-  bar: "https://images.unsplash.com/photo-1543007630-9710e4a00a20?w=800",
-  seafood: "https://images.unsplash.com/photo-1615141982883-c7ad0e69fd62?w=800",
-  steak: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
-  brunch: "https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?w=800",
-  asian: "https://images.unsplash.com/photo-1617196034183-421b4917c92d?w=800",
-  mexican: "https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=800",
-  french: "https://images.unsplash.com/photo-1550966871-3ed3cdb51f3a?w=800",
-  indian: "https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800",
-  pizza: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=800",
-  vegan: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800",
-  dessert: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=800",
-  ramen: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800",
-  bbq: "https://images.unsplash.com/photo-1529193591184-b1d58069ecdd?w=800",
-  thai: "https://images.unsplash.com/photo-1562565652-a0d8f0c59eb4?w=800",
-  chinese: "https://images.unsplash.com/photo-1585032226651-759b368d7246?w=800",
-  mediterranean: "https://images.unsplash.com/photo-1544025162-d76694265947?w=800",
-  korean: "https://images.unsplash.com/photo-1590301157890-4810ed352733?w=800",
-  wine: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=800",
-  cocktail: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800",
-  cozy: "https://images.unsplash.com/photo-1559329007-40df8a9345d8?w=800",
-  modern: "https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800",
-  garden: "https://images.unsplash.com/photo-1600093463592-8e36ae95ef56?w=800",
-  breakfast: "https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800",
-  vietnamese: "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800",
-};
-const defaultPhoto = "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800";
-
 async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesSearchResult> {
   console.log("[Places AI Search] Query:", query);
 
@@ -91,29 +60,39 @@ async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesS
     messages: [
       {
         role: "user",
-        content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"
+        content: `You are a restaurant and venue discovery assistant with access to real-world knowledge. A user is searching for: "${query}"
 
-IMPORTANT: You MUST only return REAL restaurants and venues that actually exist and are currently operating as of 2025. Do NOT invent or fabricate any place. Every restaurant name, address, and detail must be factual and verifiable.
+CRITICAL RULES:
+1. ONLY return restaurants/venues that you are HIGHLY CONFIDENT actually exist and are currently operating as of 2026.
+2. Do NOT invent or guess any restaurant. If you're not sure a place exists, DO NOT include it.
+3. Every name, address, phone number, website, and detail MUST be real and accurate.
+4. Prefer well-known, established restaurants that are easy to verify.
+5. If you cannot find ${limit} real places matching the query, return fewer. Quality over quantity.
 
-Return ${limit} REAL, existing restaurants/venues that match this query.
+Return up to ${limit} REAL, verified restaurants/venues.
 
-For each place:
-- Use the REAL name of an actual restaurant/venue
-- Use the REAL full street address, city, and country
-- Use ACCURATE latitude/longitude coordinates for the actual location
-- Rating: use the real approximate rating (e.g. from Google Maps or Yelp)
-- Price level 1-4 (1=budget, 4=fine dining) based on real pricing
-- Relevant place types (e.g. restaurant, cafe, bar, sushi, italian, etc.)
-- Real phone number and website if known (omit if unsure)
-- Real opening hours if known (omit if unsure)
-- A 2-3 sentence description of what makes this place special, based on real reviews and reputation
-- A match score (0-100) based on how well it fits the search query
-- A photoKeyword (one word like "sushi", "italian", "cafe", "romantic", "rooftop", "bar", "seafood", "steak", "ramen", "korean", "thai", "chinese", "indian", "mexican", "french", "vegan", "pizza", "bbq", "brunch", "dessert", "modern", "cozy") that best describes the cuisine/vibe
+For each place provide:
+- name: The EXACT real name of the restaurant (not an approximation)
+- address: The REAL street address
+- city: The city where it's located
+- country: The country
+- latitude/longitude: Accurate coordinates
+- rating: Approximate real rating from Google/Yelp (1-5 scale)
+- priceLevel: 1-4 (1=budget, 4=fine dining)
+- placeType: Array of types like ["restaurant", "italian", "fine dining"]
+- cuisineEmoji: A single emoji that represents the cuisine (e.g. "🍣" for sushi, "🍕" for pizza, "🥩" for steak, "☕" for cafe, "🍜" for ramen, "🌮" for mexican, "🍷" for wine bar, "🥘" for indian, "🍔" for burgers, "🥗" for healthy, "🍰" for desserts/bakery, "🍺" for pub/bar)
+- phoneNumber: Real phone number (omit if not confident)
+- website: Real website URL (omit if not confident)
+- googleMapsUrl: A Google Maps search URL in format "https://www.google.com/maps/search/RESTAURANT+NAME+CITY" (URL-encode the name)
+- openingHours: Real hours if known (omit if not confident)
+- description: 2-3 sentences about what makes this place special, based on real reputation
+- matchScore: 0-100 how well it fits the query
 
-Sort by match score descending. Include a mix of popular well-known spots and hidden gems.
-If the query mentions a specific city or location, only return places in that area. If no location is specified, focus on well-known places in major cities.
+Sort by matchScore descending.
+If the query mentions a specific city/location, only return places there.
+If no location specified, include places from popular cities worldwide.
 
-Do NOT make up restaurant names or addresses. Only include places you are confident actually exist.`,
+BE CONSERVATIVE: It's better to return 3 real places than 8 made-up ones.`,
       },
     ],
     schema: PlacesResponseSchema,
@@ -132,10 +111,11 @@ Do NOT make up restaurant names or addresses. Only include places you are confid
       longitude: place.longitude,
       rating: place.rating,
       priceLevel: place.priceLevel,
-      photoUrls: [photoKeywords[place.photoKeyword.toLowerCase()] || defaultPhoto],
       placeType: place.placeType,
+      cuisineEmoji: place.cuisineEmoji || '🍽️',
       phoneNumber: place.phoneNumber,
       website: place.website,
+      googleMapsUrl: place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(place.name + ' ' + place.city)}`,
       openingHours: place.openingHours,
     },
     description: place.description,
