@@ -6,6 +6,7 @@ import { UserCard } from '@/components/UserCard';
 
 import { SuccessPopup } from '@/components/SuccessPopup';
 import { NotificationPopup } from '@/components/NotificationPopup';
+import { TipSelectionModal } from '@/components/TipSelectionModal';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
@@ -32,6 +33,8 @@ export default function SearchScreen() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showTipModal, setShowTipModal] = useState(false);
+  const [pendingInvitationPlace, setPendingInvitationPlace] = useState<any>(null);
   
   const [filters, setFilters] = useState({
     sex: [] as string[],
@@ -322,7 +325,13 @@ export default function SearchScreen() {
                       <Text style={styles.viewOnMapsText}>View on Google Maps</Text>
                     </TouchableOpacity>
 
-                    <TouchableOpacity style={styles.inviteButton}>
+                    <TouchableOpacity
+                      style={styles.inviteButton}
+                      onPress={() => {
+                        setPendingInvitationPlace(result);
+                        setShowTipModal(true);
+                      }}
+                    >
                       <Gift size={18} color="#FFFFFF" />
                       <Text style={styles.inviteButtonText}>Send Invitation</Text>
                     </TouchableOpacity>
@@ -439,19 +448,16 @@ export default function SearchScreen() {
                       <Text style={styles.placeDetailMapButtonText}>View on Google Maps</Text>
                     </TouchableOpacity>
 
-                    {selectedPlace.place.website && (
-                      <TouchableOpacity
-                        style={styles.placeDetailWebsiteButton}
-                        onPress={() => Linking.openURL(selectedPlace.place.website)}
-                      >
-                        <Globe size={20} color="#FF6B35" />
-                        <Text style={styles.placeDetailWebsiteButtonText}>Visit Website</Text>
-                      </TouchableOpacity>
-                    )}
-
-                    <TouchableOpacity style={styles.placeDetailInviteButton}>
+                    <TouchableOpacity
+                      style={styles.placeDetailInviteButton}
+                      onPress={() => {
+                        setPendingInvitationPlace(selectedPlace);
+                        setSelectedPlace(null);
+                        setShowTipModal(true);
+                      }}
+                    >
                       <Gift size={20} color="#FFFFFF" />
-                      <Text style={styles.placeDetailInviteButtonText}>Send Invitation with Gift</Text>
+                      <Text style={styles.placeDetailInviteButtonText}>Send Invitation</Text>
                     </TouchableOpacity>
                   </View>
                 </>
@@ -461,6 +467,30 @@ export default function SearchScreen() {
         </View>
       </Modal>
       
+      <TipSelectionModal
+        visible={showTipModal}
+        onClose={() => {
+          setShowTipModal(false);
+          setPendingInvitationPlace(null);
+        }}
+        onConfirm={(amount) => {
+          console.log('Tip amount:', amount);
+          setShowTipModal(false);
+          if (pendingInvitationPlace) {
+            router.push({
+              pathname: '/create-invitation' as any,
+              params: {
+                placeName: pendingInvitationPlace.place.name,
+                placeAddress: pendingInvitationPlace.place.address,
+                placeId: pendingInvitationPlace.place.id,
+              },
+            });
+            setPendingInvitationPlace(null);
+          }
+        }}
+        recipientName="the matchmaker"
+      />
+
       <Modal
         visible={showFilterModal}
         animationType="slide"
