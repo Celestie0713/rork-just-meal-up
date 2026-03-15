@@ -320,11 +320,12 @@ export default function ProfileScreen() {
           <TouchableOpacity 
             style={styles.addPlaceButton}
             testID="add-favorite-place-button"
+            onPress={() => router.push({ pathname: '/(tabs)', params: { tab: 'places' } } as any)}
           >
             <View style={styles.addPlaceIconContainer}>
               <Plus size={24} color={Colors.primary} />
             </View>
-            <Text style={styles.addPlaceText}>Coming Soon</Text>
+            <Text style={styles.addPlaceText}>Add Places</Text>
           </TouchableOpacity>
         </View>
       </View>

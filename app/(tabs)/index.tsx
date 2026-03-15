@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Image, Linking, Animated, Keyboard } from 'react-native';
 import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send } from 'lucide-react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
 import { SuccessPopup } from '@/components/SuccessPopup';
@@ -16,7 +16,14 @@ import { Colors } from '@/constants/colors';
 import type { User } from '@/types/user';
 
 export default function SearchScreen() {
+  const params = useLocalSearchParams<{ tab?: string }>();
   const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
+
+  useEffect(() => {
+    if (params.tab === 'places') {
+      setActiveTab('places');
+    }
+  }, [params.tab]);
   const [searchQuery, setSearchQuery] = useState('');
   const [placesInputValue, setPlacesInputValue] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
