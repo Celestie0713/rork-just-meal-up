@@ -385,9 +385,7 @@ export default function SearchScreen() {
                         <Text style={styles.placeDetailMatchText}>{selectedPlace.matchScore}% Match</Text>
                       </View>
                     </View>
-
                     <Text style={styles.placeDescription}>{selectedPlace.description}</Text>
-
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
