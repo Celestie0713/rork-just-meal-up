@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Linking, Animated, Keyboard } from 'react-native';
-import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send } from 'lucide-react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send, Utensils } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -11,6 +11,7 @@ import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
 import { usePlacesSearch } from '@/hooks/use-places-search';
+import { useFavorites } from '@/hooks/use-favorites';
 
 import { Colors } from '@/constants/colors';
 
@@ -48,6 +49,7 @@ export default function SearchScreen() {
   const { matchedProfiles } = useChat();
 
   const placesSearch = usePlacesSearch();
+  const { addToFavorites } = useFavorites();
 
   useEffect(() => {
     if (placesSearch.isLoading) {
@@ -320,6 +322,22 @@ export default function SearchScreen() {
                     </TouchableOpacity>
 
                     <TouchableOpacity
+                      style={styles.bribeFoodButton}
+                      onPress={() => {
+                        void addToFavorites({
+                          place_id: result.place.id,
+                          name: result.place.name,
+                          formatted_address: result.place.address,
+                          rating: result.place.rating ?? undefined,
+                          price_level: result.place.priceLevel ?? undefined,
+                        }).then(() => setShowSuccessPopup(true));
+                      }}
+                    >
+                      <Utensils size={18} color="#FF6B35" />
+                      <Text style={styles.bribeFoodButtonText}>Add to Food to bribe me with</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
                       style={styles.inviteButton}
                       onPress={() => {
                         setPendingInvitationPlace(result);
@@ -437,6 +455,23 @@ export default function SearchScreen() {
                     >
                       <MapPin size={20} color="#FFFFFF" />
                       <Text style={styles.placeDetailMapButtonText}>View on Google Maps</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.placeDetailBribeFoodButton}
+                      onPress={() => {
+                        void addToFavorites({
+                          place_id: selectedPlace.place.id,
+                          name: selectedPlace.place.name,
+                          formatted_address: selectedPlace.place.address,
+                          rating: selectedPlace.place.rating ?? undefined,
+                          price_level: selectedPlace.place.priceLevel ?? undefined,
+                        }).then(() => setShowSuccessPopup(true));
+                        setSelectedPlace(null);
+                      }}
+                    >
+                      <Utensils size={20} color="#FF6B35" />
+                      <Text style={styles.placeDetailBribeFoodButtonText}>Add to Food to bribe me with</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -1036,6 +1071,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666666',
   },
+  bribeFoodButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF0E6',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FFD5B8',
+  },
+  bribeFoodButtonText: {
+    color: '#FF6B35',
+    fontSize: 16,
+    fontWeight: '600' as const,
+  },
   inviteButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1246,6 +1298,23 @@ const styles = StyleSheet.create({
     color: '#FF6B35',
     fontSize: 14,
     fontWeight: '600',
+  },
+  placeDetailBribeFoodButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFF0E6',
+    paddingVertical: 16,
+    borderRadius: 12,
+    gap: 8,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: '#FFD5B8',
+  },
+  placeDetailBribeFoodButtonText: {
+    color: '#FF6B35',
+    fontSize: 16,
+    fontWeight: '600' as const,
   },
   placeDetailInviteButton: {
     flexDirection: 'row',
