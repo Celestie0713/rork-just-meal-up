@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send, Utensils } from 'lucide-react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -385,36 +385,7 @@ export default function SearchScreen() {
                         <Text style={styles.placeDetailMatchText}>{selectedPlace.matchScore}% Match</Text>
                       </View>
                     </View>
-                    {selectedPlace.place.phoneNumber && (
-                      <TouchableOpacity
-                        style={styles.placeDetailRow}
-                        onPress={() => WebBrowser.openBrowserAsync(`tel:${selectedPlace.place.phoneNumber}`)}
-                      >
-                        <Phone size={18} color="#666666" />
-                        <Text style={styles.placeDetailContact}>{selectedPlace.place.phoneNumber}</Text>
-                      </TouchableOpacity>
-                    )}
-                    {selectedPlace.place.website && (
-                      <TouchableOpacity
-                        style={styles.placeDetailRow}
-                        onPress={() => WebBrowser.openBrowserAsync(selectedPlace.place.website)}
-                      >
-                        <Globe size={18} color="#666666" />
-                        <Text style={styles.placeDetailContact}>{selectedPlace.place.website}</Text>
-                      </TouchableOpacity>
-                    )}
-                    {selectedPlace.place.openingHours && selectedPlace.place.openingHours.length > 0 && (
-                      <View style={styles.placeDetailSection}>
-                        <Text style={styles.placeDetailSectionTitle}>Opening Hours</Text>
-                        {selectedPlace.place.openingHours.map((hours: string, idx: number) => (
-                          <Text key={idx} style={styles.placeDetailHours}>{hours}</Text>
-                        ))}
-                      </View>
-                    )}
-                    <View style={styles.placeDetailSection}>
-                      <Text style={styles.placeDetailSectionTitle}>About</Text>
-                      <Text style={styles.placeDetailDescription}>{selectedPlace.description}</Text>
-                    </View>
+
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
@@ -1147,41 +1118,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
-  placeDetailRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  placeDetailAddress: {
-    fontSize: 14,
-    color: '#666666',
-    flex: 1,
-  },
-  placeDetailContact: {
-    fontSize: 14,
-    color: '#0066CC',
-    flex: 1,
-  },
-  placeDetailSection: {
-    marginTop: 20,
-  },
-  placeDetailSectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  placeDetailHours: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 4,
-  },
-  placeDetailDescription: {
-    fontSize: 14,
-    color: '#333333',
-    lineHeight: 20,
-  },
+
   placeDetailGift: {
     marginTop: 20,
   },
