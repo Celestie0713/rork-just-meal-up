@@ -386,6 +386,8 @@ export default function SearchScreen() {
                       </View>
                     </View>
 
+                    <Text style={styles.placeDescription}>{selectedPlace.description}</Text>
+
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
