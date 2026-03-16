@@ -43,7 +43,6 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
         <Image source={{ uri: user.photos[0] }} style={styles.avatar} />
         <View style={[styles.statusDot, { backgroundColor: getStatusColor() }]} />
       </View>
-      
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.name} numberOfLines={1}>{user.name}</Text>
@@ -51,7 +50,6 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
             <Text style={styles.time}>{formatTime(lastMessageTime)}</Text>
           )}
         </View>
-        
         <View style={styles.messageRow}>
           <Text style={styles.lastMessage} numberOfLines={1}>
             {lastMessage || 'No messages yet'}

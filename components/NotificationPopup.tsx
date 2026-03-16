@@ -90,7 +90,6 @@ export function NotificationPopup({ visible, onClose }: NotificationPopupProps) 
               </TouchableOpacity>
             </View>
           </View>
-
           <ScrollView style={styles.notificationsList} showsVerticalScrollIndicator={false}>
             {notifications.length === 0 ? (
               <View style={styles.emptyState}>
@@ -116,7 +115,6 @@ export function NotificationPopup({ visible, onClose }: NotificationPopupProps) 
                     ))}
                   </>
                 )}
-                
                 {readNotifications.length > 0 && (
                   <>
                     <Text style={styles.sectionTitle}>Earlier</Text>
@@ -158,7 +156,6 @@ function NotificationItem({ notification, onPress, formatTimeAgo, getNotificatio
       <View style={styles.notificationIcon}>
         {getNotificationIcon(notification.type)}
       </View>
-      
       <View style={styles.notificationContent}>
         <Text style={[styles.notificationTitle, !notification.read && styles.unreadText]}>
           {notification.title}
@@ -170,7 +167,6 @@ function NotificationItem({ notification, onPress, formatTimeAgo, getNotificatio
           {formatTimeAgo(notification.timestamp)}
         </Text>
       </View>
-      
       {!notification.read && <View style={styles.unreadDot} />}
     </TouchableOpacity>
   );

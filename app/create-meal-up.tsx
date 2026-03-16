@@ -199,12 +199,10 @@ export default function CreateMealUpScreen() {
           ),
         }} 
       />
-      
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Event Details</Text>
-            
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Title *</Text>
               <TextInput
@@ -215,7 +213,6 @@ export default function CreateMealUpScreen() {
                 placeholderTextColor={Colors.textLight}
               />
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Description</Text>
               <TextInput
@@ -228,7 +225,6 @@ export default function CreateMealUpScreen() {
                 placeholderTextColor={Colors.textLight}
               />
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Keywords</Text>
               <TextInput
@@ -240,10 +236,8 @@ export default function CreateMealUpScreen() {
               />
             </View>
           </View>
-
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>When & Where</Text>
-            
             <View style={styles.row}>
               <View style={[styles.inputGroup, styles.halfWidth]}>
                 <Text style={styles.label}>Date *</Text>
@@ -258,7 +252,6 @@ export default function CreateMealUpScreen() {
                   />
                 </View>
               </View>
-
               <View style={[styles.inputGroup, styles.halfWidth]}>
                 <Text style={styles.label}>Time *</Text>
                 <View style={styles.inputWithIcon}>
@@ -273,7 +266,6 @@ export default function CreateMealUpScreen() {
                 </View>
               </View>
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Venue Name *</Text>
               <View style={styles.inputWithIcon}>
@@ -287,7 +279,6 @@ export default function CreateMealUpScreen() {
                 />
               </View>
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Address</Text>
               <TextInput
@@ -298,13 +289,9 @@ export default function CreateMealUpScreen() {
                 placeholderTextColor={Colors.textLight}
               />
             </View>
-
-
           </View>
-
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Group Settings</Text>
-            
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Max Attendees</Text>
               <View style={styles.inputWithIcon}>
@@ -320,10 +307,8 @@ export default function CreateMealUpScreen() {
               </View>
             </View>
           </View>
-
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>What&apos;s included?</Text>
-            
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Female Ticket Price</Text>
               <View style={styles.priceRow}>
@@ -354,7 +339,6 @@ export default function CreateMealUpScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Male Ticket Price</Text>
               <View style={styles.priceRow}>
@@ -385,10 +369,8 @@ export default function CreateMealUpScreen() {
                 </TouchableOpacity>
               </View>
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Inclusions</Text>
-              
               <TouchableOpacity
                 style={[
                   styles.checkboxOption,
@@ -415,7 +397,6 @@ export default function CreateMealUpScreen() {
                   formData.includesFood && styles.checkboxSelected,
                 ]} />
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[
                   styles.checkboxOption,
@@ -442,7 +423,6 @@ export default function CreateMealUpScreen() {
                   formData.includesDrinks && styles.checkboxSelected,
                 ]} />
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={[
                   styles.checkboxOption,
@@ -470,7 +450,6 @@ export default function CreateMealUpScreen() {
                 ]} />
               </TouchableOpacity>
             </View>
-
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Additional Details</Text>
               <TextInput
@@ -484,11 +463,9 @@ export default function CreateMealUpScreen() {
               />
             </View>
           </View>
-
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Photos & Videos</Text>
             <Text style={styles.sectionSubtitle}>Add photos and videos to showcase your meal up (videos max 30 seconds)</Text>
-            
             <View style={styles.mediaGrid}>
               {mediaFiles.map((media, index) => (
                 <View key={index} style={[styles.mediaItem, { width: mediaItemWidth, height: mediaItemWidth }]}>
@@ -523,7 +500,6 @@ export default function CreateMealUpScreen() {
                   </TouchableOpacity>
                 </View>
               ))}
-              
               {mediaFiles.length < 9 && (
                 <TouchableOpacity
                   style={[styles.addMediaButton, { width: mediaItemWidth, height: mediaItemWidth }]}
@@ -534,14 +510,12 @@ export default function CreateMealUpScreen() {
                 </TouchableOpacity>
               )}
             </View>
-            
             {mediaFiles.length > 0 && (
               <Text style={styles.mediaCount}>
                 {mediaFiles.length} media file{mediaFiles.length !== 1 ? 's' : ''} added
               </Text>
             )}
           </View>
-
           <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
             <Text style={styles.createButtonText}>Create Meal Up</Text>
           </TouchableOpacity>

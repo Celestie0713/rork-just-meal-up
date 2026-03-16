@@ -261,7 +261,6 @@ export default function MessagesScreen() {
           </View>
         </View>
       )}
-      
       {isMealUpShareMode && mealUpData && (
         <View style={styles.mealUpSummary}>
           <View style={styles.mealUpHeader}>
@@ -298,7 +297,6 @@ export default function MessagesScreen() {
           </View>
         </View>
       )}
-      
       <FlatList
         data={filteredChats}
         renderItem={renderChatItem}
@@ -308,7 +306,6 @@ export default function MessagesScreen() {
         showsVerticalScrollIndicator={false}
         ListEmptyComponent={renderEmptyState}
       />
-      
       <TipSelectionModal
         visible={showTipModal}
         onClose={() => {

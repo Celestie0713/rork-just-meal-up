@@ -89,17 +89,14 @@ export default function GroupDetailsScreen() {
           headerTitleStyle: { fontSize: 16 }
         }} 
       />
-      
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <Image source={{ uri: group.imageUrl }} style={styles.headerImage} />
-        
         <LinearGradient
           colors={Gradients.secondary}
           style={styles.headerGradient}
         >
           <Text style={styles.groupName}>{group.name}</Text>
           <Text style={styles.groupDescription}>{group.description}</Text>
-          
           <View style={styles.infoContainer}>
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
@@ -113,14 +110,12 @@ export default function GroupDetailsScreen() {
                 {group.isPaid ? `$${group.monthlyFee}/month` : 'Free'}
               </Text>
             </View>
-            
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
                 <Users size={18} color={Colors.primary} />
               </View>
               <Text style={styles.infoLabel}>{group.memberCount} members</Text>
             </View>
-            
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
                 <MapPin size={18} color={Colors.primary} />
@@ -128,7 +123,6 @@ export default function GroupDetailsScreen() {
               <Text style={styles.infoLabel}>{group.location}</Text>
             </View>
           </View>
-          
           <TouchableOpacity 
             style={[styles.joinButton, isMember && styles.leaveButton]}
             onPress={isMember ? handleLeaveGroup : handleJoinGroup}
@@ -138,7 +132,6 @@ export default function GroupDetailsScreen() {
             </Text>
           </TouchableOpacity>
         </LinearGradient>
-        
         {upcomingMealUpsData.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeader}>
@@ -154,7 +147,6 @@ export default function GroupDetailsScreen() {
             ))}
           </View>
         )}
-        
         {group.posts.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Member Posts</Text>
@@ -167,13 +159,10 @@ export default function GroupDetailsScreen() {
                     <Text style={styles.postTime}>{formatTimeAgo(post.timestamp)}</Text>
                   </View>
                 </View>
-                
                 <Text style={styles.postContent}>{post.content}</Text>
-                
                 {post.imageUrl && (
                   <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
                 )}
-                
                 <View style={styles.postFooter}>
                   <TouchableOpacity style={styles.likeButton}>
                     <Heart size={18} color={Colors.primary} />
@@ -184,7 +173,6 @@ export default function GroupDetailsScreen() {
             ))}
           </View>
         )}
-        
         {group.posts.length === 0 && upcomingMealUpsData.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>

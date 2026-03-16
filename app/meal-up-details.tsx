@@ -107,7 +107,6 @@ export default function MealUpDetailsScreen() {
             colors={['transparent', 'rgba(0,0,0,0.7)']}
             style={styles.gradient}
           />
-          
           <TouchableOpacity 
             style={styles.backButton}
             onPress={() => router.back()}
@@ -115,7 +114,6 @@ export default function MealUpDetailsScreen() {
           >
             <ArrowLeft size={24} color={Colors.background} />
           </TouchableOpacity>
-          
           <View style={styles.topActions}>
             <TouchableOpacity 
               style={styles.actionButton}
@@ -132,12 +130,10 @@ export default function MealUpDetailsScreen() {
               <Share2 size={20} color={Colors.background} />
             </TouchableOpacity>
           </View>
-          
           <View style={styles.priceTag}>
             <DollarSign size={16} color={Colors.background} />
             <Text style={styles.priceText}>{mealUp.ticketPrice}</Text>
           </View>
-          
           {displayImages.length > 1 && (
             <>
               <TouchableOpacity 
@@ -147,7 +143,6 @@ export default function MealUpDetailsScreen() {
               >
                 <ChevronLeft size={28} color="#333" />
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={styles.rightArrow}
                 onPress={handleNextImage}
@@ -155,7 +150,6 @@ export default function MealUpDetailsScreen() {
               >
                 <ChevronRight size={28} color="#333" />
               </TouchableOpacity>
-              
               <View style={styles.imageIndicators}>
                 {displayImages.map((_, index) => (
                   <View 
@@ -170,10 +164,8 @@ export default function MealUpDetailsScreen() {
             </>
           )}
         </View>
-        
         <View style={styles.content}>
           <Text style={styles.title}>{mealUp.title}</Text>
-          
           {organizer && (
             <TouchableOpacity 
               style={styles.organizerContainer}
@@ -187,21 +179,18 @@ export default function MealUpDetailsScreen() {
               </View>
             </TouchableOpacity>
           )}
-          
           <View style={styles.detailsGrid}>
             <View style={styles.detailCard}>
               <Calendar size={20} color={Colors.primary} />
               <Text style={styles.detailLabel}>Date</Text>
               <Text style={styles.detailValue}>{formatDate(mealUp.date)}</Text>
             </View>
-            
             <View style={styles.detailCard}>
               <Clock size={20} color={Colors.primary} />
               <Text style={styles.detailLabel}>Time</Text>
               <Text style={styles.detailValue}>{mealUp.time}</Text>
             </View>
           </View>
-          
           <View style={styles.venueSection}>
             <View style={styles.sectionHeader}>
               <MapPin size={20} color={Colors.primary} />
@@ -213,12 +202,10 @@ export default function MealUpDetailsScreen() {
               <Text style={styles.venueCuisine}>{mealUp.venue.cuisine} Cuisine</Text>
             </View>
           </View>
-          
           <View style={styles.descriptionSection}>
             <Text style={styles.sectionTitle}>About This Experience</Text>
             <Text style={styles.description}>{mealUp.description}</Text>
           </View>
-          
           <View style={styles.includedSection}>
             <Text style={styles.sectionTitle}>What's included with this price?</Text>
             <View style={styles.includedList}>
@@ -240,7 +227,6 @@ export default function MealUpDetailsScreen() {
               </View>
             </View>
           </View>
-          
           <TouchableOpacity 
             style={styles.attendeesSection}
             onPress={handleViewAttendees}
@@ -260,16 +246,13 @@ export default function MealUpDetailsScreen() {
             </View>
           </TouchableOpacity>
         </View>
-        
         <View style={styles.bottomPadding} />
       </ScrollView>
-      
       <View style={styles.bottomBar}>
         <View style={styles.priceInfo}>
           <Text style={styles.bottomPriceLabel}>Price per person</Text>
           <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
         </View>
-        
         <LinearGradient
           colors={spotsLeft > 0 ? Gradients.primary : ['#ccc', '#999']}
           style={[styles.joinButton, spotsLeft === 0 && styles.disabledButton]}

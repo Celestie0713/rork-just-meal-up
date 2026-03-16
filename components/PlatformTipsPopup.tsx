@@ -70,13 +70,11 @@ export function PlatformTipsPopup({ visible, onComplete }: PlatformTipsPopupProp
           <View style={styles.iconContainer}>
             <Heart size={48} color={colors.primary} fill={colors.primary} />
           </View>
-          
           <Text style={styles.title}>Support the Platform</Text>
           <Text style={styles.subtitle}>
             Help us keep connecting food lovers!{'\n'}
             Minimum tip: ${MINIMUM_TIP}
           </Text>
-
           <View style={styles.presetContainer}>
             {PRESET_AMOUNTS.map((amount) => (
               <TouchableOpacity
@@ -96,7 +94,6 @@ export function PlatformTipsPopup({ visible, onComplete }: PlatformTipsPopupProp
               </TouchableOpacity>
             ))}
           </View>
-
           <View style={styles.customInputContainer}>
             <DollarSign size={20} color={colors.textLight} style={styles.dollarIcon} />
             <TextInput
@@ -109,11 +106,9 @@ export function PlatformTipsPopup({ visible, onComplete }: PlatformTipsPopupProp
               onFocus={() => setIsCustom(true)}
             />
           </View>
-
           {error ? (
             <Text style={styles.errorText}>{error}</Text>
           ) : null}
-
           <TouchableOpacity
             style={[
               styles.continueButton,
@@ -126,7 +121,6 @@ export function PlatformTipsPopup({ visible, onComplete }: PlatformTipsPopupProp
               Continue with ${isValidAmount ? currentAmount.toFixed(2) : '0.00'}
             </Text>
           </TouchableOpacity>
-
           <Text style={styles.disclaimer}>
             This tip goes directly to supporting the platform.
           </Text>

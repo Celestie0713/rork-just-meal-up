@@ -307,7 +307,6 @@ export default function ProfileScreen() {
               )}
             </View>
           ))}
-          
           {isEditing && photos.length < 5 && (
             <View style={styles.addPictureContainer}>
               <Camera size={24} color={Colors.textLight} />
@@ -325,7 +324,6 @@ export default function ProfileScreen() {
             </View>
           )}
         </View>
-        
         {!isEditing && photos.length < 5 && (
           <TouchableOpacity 
             style={styles.addPicturesButton}
@@ -356,7 +354,6 @@ export default function ProfileScreen() {
               <Text style={styles.statusTextUpcoming}>Upcoming</Text>
             </View>
           </View>
-          
           <View style={styles.mealUpItem}>
             <View style={styles.mealUpInfo}>
               <Text style={styles.mealUpTitle}>Brunch & Mimosas</Text>
@@ -395,9 +392,7 @@ export default function ProfileScreen() {
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          
           <Text style={styles.modalSubtitle}>Select all that apply (optional)</Text>
-          
           <FlatList
             data={LANGUAGE_OPTIONS}
             keyExtractor={(item, index) => `language-option-${index}-${item.replace(/\s+/g, '-')}`}
@@ -431,9 +426,7 @@ export default function ProfileScreen() {
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          
           <Text style={styles.modalSubtitle}>Select your income range (optional)</Text>
-          
           <FlatList
             data={INCOME_LEVELS}
             keyExtractor={(item, index) => `income-level-${index}-${item.replace(/\s+/g, '-')}`}
@@ -467,9 +460,7 @@ export default function ProfileScreen() {
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          
           <Text style={styles.modalSubtitle}>Select your language (optional)</Text>
-          
           <FlatList
             data={LANGUAGE_OPTIONS.filter(option => option !== 'No preference')}
             keyExtractor={(item, index) => `personal-language-${index}-${item.replace(/\s+/g, '-')}`}
@@ -503,9 +494,7 @@ export default function ProfileScreen() {
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          
           <Text style={styles.modalSubtitle}>Select preferred income range for matches (optional)</Text>
-          
           <FlatList
             data={PREFERRED_INCOME_LEVELS}
             keyExtractor={(item, index) => `preferred-income-level-${index}-${item.replace(/\s+/g, '-')}`}
@@ -539,7 +528,6 @@ export default function ProfileScreen() {
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          
           <View style={styles.settingsContent}>
             <TouchableOpacity style={styles.settingsItem}>
               <Settings size={20} color={Colors.textLight} />
@@ -572,14 +560,12 @@ export default function ProfileScreen() {
             </View>
           )}
         </View>
-
         <View style={styles.profileSection}>
           {isEditing && (
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveButtonText}>Save</Text>
             </TouchableOpacity>
           )}
-          
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
             <View style={styles.profileLoveIconsContainer}>
@@ -618,19 +604,16 @@ export default function ProfileScreen() {
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
           </View>
-          
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.textLight} />
             <Text style={styles.location}>{user.location}</Text>
           </View>
-          
           {!isEditing && (
             <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
               <Edit3 size={20} color={Colors.primary} />
               <Text style={styles.editButtonText}>Edit</Text>
             </TouchableOpacity>
           )}
-          
           {!isEditing && (
             <TouchableOpacity 
               style={styles.voiceNoteButtonProfile}
@@ -643,7 +626,6 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          
           <View style={styles.personalInfoRow}>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
@@ -658,7 +640,6 @@ export default function ProfileScreen() {
                 {(isEditing ? editedUser?.ethnicity : user.ethnicity) || 'Not specified'}
               </Text>
             </TouchableOpacity>
-
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
               onPress={() => isEditing && setShowPersonalIncomeModal(true)}
@@ -674,7 +655,6 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
         <View style={styles.bioSection}>
           <Text style={styles.sectionTitle}>Bio</Text>
           {isEditing ? (
@@ -694,10 +674,8 @@ export default function ProfileScreen() {
             <Text style={styles.bio}>{user.bio}</Text>
           )}
         </View>
-
         <View style={styles.preferencesSection}>
           <Text style={styles.sectionTitle}>Dating Preferences</Text>
-          
           <View style={styles.personalInfoRow}>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
@@ -715,7 +693,6 @@ export default function ProfileScreen() {
                 }
               </Text>
             </TouchableOpacity>
-
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
               onPress={() => isEditing && setShowPreferredIncomeModal(true)}
@@ -731,7 +708,6 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
         {renderTabBar()}
         {renderTabContent()}
         <View style={styles.scrollViewBottomPadding} />

@@ -188,7 +188,6 @@ export default function CreateInvitationScreen() {
               ))}
             </ScrollView>
           </View>
-
           <View style={styles.timePickerColumn}>
             <Text style={styles.timePickerColumnLabel}>Minute</Text>
             <ScrollView 
@@ -216,7 +215,6 @@ export default function CreateInvitationScreen() {
               ))}
             </ScrollView>
           </View>
-
           <View style={styles.timePickerColumn}>
             <Text style={styles.timePickerColumnLabel}>Period</Text>
             <ScrollView 
@@ -289,7 +287,6 @@ export default function CreateInvitationScreen() {
             <ChevronRight size={24} color={Colors.primary} />
           </TouchableOpacity>
         </View>
-
         <View style={styles.weekDaysRow}>
           {weekDays.map((day) => (
             <View key={day} style={styles.weekDayCell}>
@@ -297,7 +294,6 @@ export default function CreateInvitationScreen() {
             </View>
           ))}
         </View>
-
         <View style={styles.daysGrid}>
           {days.map((date, index) => {
             if (!date) {
@@ -480,7 +476,6 @@ export default function CreateInvitationScreen() {
         <Text style={styles.headerTitle}>Create Invitation</Text>
         <View style={styles.placeholder} />
       </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Restaurant</Text>
@@ -494,10 +489,8 @@ export default function CreateInvitationScreen() {
             </View>
           </View>
         </View>
-
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Date & Time</Text>
-          
           <TouchableOpacity 
             style={styles.dateTimeButton}
             onPress={() => {
@@ -516,7 +509,6 @@ export default function CreateInvitationScreen() {
               </View>
             </View>
           </TouchableOpacity>
-
           <TouchableOpacity 
             style={styles.dateTimeButton}
             onPress={() => {
@@ -536,7 +528,6 @@ export default function CreateInvitationScreen() {
             </View>
           </TouchableOpacity>
         </View>
-
         <View style={styles.section}>
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Invitation Summary</Text>
@@ -555,7 +546,6 @@ export default function CreateInvitationScreen() {
           </View>
         </View>
       </ScrollView>
-
       <View style={styles.footer}>
         <TouchableOpacity
           onPress={handleSendInvitation}
@@ -566,7 +556,6 @@ export default function CreateInvitationScreen() {
           <Text style={styles.sendButtonText}>Send Invitation To</Text>
         </TouchableOpacity>
       </View>
-
       {renderDateTimePicker()}
     </SafeAreaView>
   );

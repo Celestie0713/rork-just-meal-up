@@ -151,7 +151,6 @@ export default function SearchScreen() {
             <Filter size={20} color="#000000" />
           </TouchableOpacity>
         </View>
-        
         <View style={styles.tabContainer}>
           <TouchableOpacity 
             style={[styles.tab, styles.tabLeft, activeTab === 'user' && styles.activeTab]}
@@ -202,7 +201,6 @@ export default function SearchScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
           {placesSearch.isLoading && (
             <View style={styles.loadingContainer}>
               <Animated.View style={[styles.loadingIconWrap, { opacity: pulseAnim }]}>
@@ -212,7 +210,6 @@ export default function SearchScreen() {
               <Text style={styles.loadingSubtext}>Curating personalized recommendations</Text>
             </View>
           )}
-
           {placesSearch.isError && (
             <View style={styles.placesEmptyState}>
               <Text style={styles.placesEmptyText}>Something went wrong</Text>
@@ -222,7 +219,6 @@ export default function SearchScreen() {
               </TouchableOpacity>
             </View>
           )}
-
           {!placesSearch.isLoading && !placesSearch.isError && !hasSearched && (
             <View style={styles.placesEmptyState}>
               <View style={styles.emptyIconWrap}>
@@ -247,14 +243,12 @@ export default function SearchScreen() {
               </View>
             </View>
           )}
-
           {!placesSearch.isLoading && !placesSearch.isError && hasSearched && placesSearch.data && placesSearch.data.results.length === 0 && (
             <View style={styles.placesEmptyState}>
               <Text style={styles.placesEmptyText}>No places found</Text>
               <Text style={styles.placesEmptySubtext}>Try describing a different type of place</Text>
             </View>
           )}
-
           {!placesSearch.isLoading && !placesSearch.isError && placesSearch.data && placesSearch.data.results.length > 0 && (
             <ScrollView style={styles.placesResults} showsVerticalScrollIndicator={false}>
               <View style={styles.resultsHeader}>
@@ -266,7 +260,6 @@ export default function SearchScreen() {
                   <Text style={styles.aiBadgeText}>AI Picks</Text>
                 </View>
               </View>
-
               {placesSearch.data.results.map((result, index) => (
                 <TouchableOpacity
                   key={`${result.place.id}-${index}`}
@@ -285,7 +278,6 @@ export default function SearchScreen() {
                       <Text style={styles.placeMatchText}>{result.matchScore}%</Text>
                     </View>
                   </View>
-
                   <View style={styles.placeContent}>
                     <Text style={styles.placeName}>{result.place.name}</Text>
                     <View style={styles.placeRatingRow}>
@@ -301,9 +293,7 @@ export default function SearchScreen() {
                         </Text>
                       )}
                     </View>
-
                     <Text style={styles.placeDescription} numberOfLines={3}>{result.description}</Text>
-
                     <TouchableOpacity
                       style={styles.viewOnMapsButton}
                       onPress={() => {
@@ -314,7 +304,6 @@ export default function SearchScreen() {
                       <MapPin size={16} color="#FF6B35" />
                       <Text style={styles.viewOnMapsText}>View on Google Maps</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
                       style={styles.bribeFoodButton}
                       onPress={() => {
@@ -330,7 +319,6 @@ export default function SearchScreen() {
                       <Utensils size={18} color="#FF6B35" />
                       <Text style={styles.bribeFoodButtonText}>Add to Food to bribe me with</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
                       style={styles.inviteButton}
                       onPress={() => {
@@ -375,15 +363,12 @@ export default function SearchScreen() {
                   >
                     <X size={24} color="#000000" />
                   </TouchableOpacity>
-
                   <View style={styles.placeDetailEmojiContainer}>
                     <Text style={styles.placeDetailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
                     <Text style={styles.placeDetailEmojiName} numberOfLines={2}>{selectedPlace.place.name}</Text>
                   </View>
-
                   <View style={styles.placeDetailBody}>
                     <Text style={styles.placeDetailName}>{selectedPlace.place.name}</Text>
-
                     <View style={styles.placeDetailRatingRow}>
                       {selectedPlace.place.rating != null && selectedPlace.place.rating > 0 && (
                         <View style={styles.placeDetailRating}>
@@ -400,9 +385,6 @@ export default function SearchScreen() {
                         <Text style={styles.placeDetailMatchText}>{selectedPlace.matchScore}% Match</Text>
                       </View>
                     </View>
-
-
-
                     {selectedPlace.place.phoneNumber && (
                       <TouchableOpacity
                         style={styles.placeDetailRow}
@@ -412,7 +394,6 @@ export default function SearchScreen() {
                         <Text style={styles.placeDetailContact}>{selectedPlace.place.phoneNumber}</Text>
                       </TouchableOpacity>
                     )}
-
                     {selectedPlace.place.website && (
                       <TouchableOpacity
                         style={styles.placeDetailRow}
@@ -422,7 +403,6 @@ export default function SearchScreen() {
                         <Text style={styles.placeDetailContact}>{selectedPlace.place.website}</Text>
                       </TouchableOpacity>
                     )}
-
                     {selectedPlace.place.openingHours && selectedPlace.place.openingHours.length > 0 && (
                       <View style={styles.placeDetailSection}>
                         <Text style={styles.placeDetailSectionTitle}>Opening Hours</Text>
@@ -431,12 +411,10 @@ export default function SearchScreen() {
                         ))}
                       </View>
                     )}
-
                     <View style={styles.placeDetailSection}>
                       <Text style={styles.placeDetailSectionTitle}>About</Text>
                       <Text style={styles.placeDetailDescription}>{selectedPlace.description}</Text>
                     </View>
-
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
@@ -447,7 +425,6 @@ export default function SearchScreen() {
                       <MapPin size={20} color="#FFFFFF" />
                       <Text style={styles.placeDetailMapButtonText}>View on Google Maps</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
                       style={styles.placeDetailBribeFoodButton}
                       onPress={() => {
@@ -464,7 +441,6 @@ export default function SearchScreen() {
                       <Utensils size={20} color="#FF6B35" />
                       <Text style={styles.placeDetailBribeFoodButtonText}>Add to Food to bribe me with</Text>
                     </TouchableOpacity>
-
                     <TouchableOpacity
                       style={styles.placeDetailInviteButton}
                       onPress={() => {
@@ -520,7 +496,6 @@ export default function SearchScreen() {
                 <X size={24} color="#000000" />
               </TouchableOpacity>
             </View>
-            
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Age Range</Text>
@@ -550,7 +525,6 @@ export default function SearchScreen() {
                   </View>
                 </View>
               </View>
-              
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Distance</Text>
                 <TextInput
@@ -562,7 +536,6 @@ export default function SearchScreen() {
                   placeholderTextColor="#999999"
                 />
               </View>
-              
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Sex</Text>
                 <View style={styles.checkboxGroup}>
@@ -585,7 +558,6 @@ export default function SearchScreen() {
                   ))}
                 </View>
               </View>
-              
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Income Level</Text>
                 <View style={styles.checkboxGroup}>
@@ -606,7 +578,6 @@ export default function SearchScreen() {
                   ))}
                 </View>
               </View>
-              
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Languages</Text>
                 <View style={styles.checkboxGroup}>
@@ -630,7 +601,6 @@ export default function SearchScreen() {
                 </View>
               </View>
             </ScrollView>
-            
             <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={styles.clearButton}

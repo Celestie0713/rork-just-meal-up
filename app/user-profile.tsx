@@ -187,7 +187,6 @@ export default function UserProfileScreen() {
             <View style={styles.headerSpacer} />
           </View>
         </View>
-
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
@@ -206,12 +205,10 @@ export default function UserProfileScreen() {
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
           </View>
-          
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.textLight} />
             <Text style={styles.location}>{user.location}</Text>
           </View>
-          
           {currentUser?.id !== userId && (
             <View style={styles.voiceNoteSection}>
               <TouchableOpacity 
@@ -224,12 +221,9 @@ export default function UserProfileScreen() {
               </TouchableOpacity>
             </View>
           )}
-
         </View>
-
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          
           <View style={styles.personalInfoRow}>
             <View style={styles.halfPreferenceItem}>
               <Text style={styles.preferenceLabel}>Language</Text>
@@ -237,7 +231,6 @@ export default function UserProfileScreen() {
                 {user.ethnicity || 'Not specified'}
               </Text>
             </View>
-
             <View style={styles.halfPreferenceItem}>
               <Text style={styles.preferenceLabel}>Income Level</Text>
               <Text style={styles.preferenceValue}>
@@ -246,15 +239,12 @@ export default function UserProfileScreen() {
             </View>
           </View>
         </View>
-
         <View style={styles.bioSection}>
           <Text style={styles.sectionTitle}>Bio</Text>
           <Text style={styles.bio}>{user.bio}</Text>
         </View>
-
         <View style={styles.preferencesSection}>
           <Text style={styles.sectionTitle}>Dating Preferences</Text>
-          
           <View style={styles.personalInfoRow}>
             <View style={styles.halfPreferenceItem}>
               <Text style={styles.preferenceLabel}>Preferred Language</Text>
@@ -265,7 +255,6 @@ export default function UserProfileScreen() {
                 }
               </Text>
             </View>
-
             <View style={styles.halfPreferenceItem}>
               <Text style={styles.preferenceLabel}>Preferred Income Level</Text>
               <Text style={styles.preferenceValue}>
@@ -274,14 +263,10 @@ export default function UserProfileScreen() {
             </View>
           </View>
         </View>
-
         {renderTabBar()}
         {renderTabContent()}
-        
         <View style={styles.scrollViewBottomPadding} />
       </ScrollView>
-      
-
     </SafeAreaView>
   );
 }

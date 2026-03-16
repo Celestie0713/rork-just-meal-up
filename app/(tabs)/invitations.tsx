@@ -104,7 +104,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             {statusConfig.text}
           </Text>
         </View>
-        
         {isConfirmed && onEdit && (
           <TouchableOpacity 
             style={styles.editButton}
@@ -115,7 +114,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           </TouchableOpacity>
         )}
       </View>
-
       <View style={styles.inviterInfo}>
         <View style={styles.avatar}>
           {inviter?.photos?.[0] ? (
@@ -139,7 +137,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           </Text>
         </View>
       </View>
-
       <View style={styles.mealDetails}>
         <View style={styles.detailRow}>
           <Calendar size={16} color={colors.textLight} />
@@ -147,14 +144,12 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             {formatDate(invitation.date)} at {invitation.time}
           </Text>
         </View>
-        
         <View style={styles.detailRow}>
           <ChefHat size={16} color={colors.textLight} />
           <Text style={styles.detailText}>
             {invitation.venue.name} • {invitation.venue.cuisine}
           </Text>
         </View>
-        
         <View style={styles.detailRow}>
           <MapPin size={16} color={colors.textLight} />
           <Text style={styles.detailText}>
@@ -162,7 +157,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           </Text>
         </View>
       </View>
-
       {isPending && showActions && (
         <View style={styles.actionButtons}>
           <TouchableOpacity 
@@ -174,7 +168,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
               Decline
             </Text>
           </TouchableOpacity>
-          
           <TouchableOpacity 
             style={[styles.actionButton, styles.acceptButton]}
             onPress={() => onAccept(invitation.id)}
@@ -416,7 +409,6 @@ export default function InvitationsScreen() {
       <View style={styles.header}>
         <Text style={styles.title}>Meal Invitations</Text>
       </View>
-      
       <View style={styles.tabContainer}>
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'sent' && styles.activeTab]}
@@ -426,7 +418,6 @@ export default function InvitationsScreen() {
             Invitation sent
           </Text>
         </TouchableOpacity>
-        
         <TouchableOpacity 
           style={[styles.tab, activeTab === 'received' && styles.activeTab]}
           onPress={() => setActiveTab('received')}
@@ -436,7 +427,6 @@ export default function InvitationsScreen() {
           </Text>
         </TouchableOpacity>
       </View>
-      
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         {activeTab === 'sent' ? (
           <View style={styles.mainSection}>
@@ -449,7 +439,6 @@ export default function InvitationsScreen() {
                   All ({sentInvitations.length})
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'pending' && styles.filterChipActive]}
                 onPress={() => setStatusFilter('pending')}
@@ -458,7 +447,6 @@ export default function InvitationsScreen() {
                   Pending ({pendingSent.length})
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'confirmed' && styles.filterChipActive]}
                 onPress={() => setStatusFilter('confirmed')}
@@ -467,7 +455,6 @@ export default function InvitationsScreen() {
                   Confirmed ({confirmedSent.length})
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'declined' && styles.filterChipActive]}
                 onPress={() => setStatusFilter('declined')}
@@ -477,7 +464,6 @@ export default function InvitationsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            
             {filteredSentInvitations.length > 0 ? (
               filteredSentInvitations.map(invitation => (
                 <InvitationCard
@@ -496,7 +482,6 @@ export default function InvitationsScreen() {
                 </Text>
               </View>
             )}
-            
             {sentInvitations.length === 0 && (
               <View style={styles.emptyStateSmall}>
                 <Text style={styles.emptySubtitle}>
@@ -516,7 +501,6 @@ export default function InvitationsScreen() {
                   All ({receivedInvitations.length})
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'pending' && styles.filterChipActive]}
                 onPress={() => setStatusFilter('pending')}
@@ -525,7 +509,6 @@ export default function InvitationsScreen() {
                   Pending ({pendingReceived.length})
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'confirmed' && styles.filterChipActive]}
                 onPress={() => setStatusFilter('confirmed')}
@@ -534,7 +517,6 @@ export default function InvitationsScreen() {
                   Confirmed ({confirmedReceived.length})
                 </Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'declined' && styles.filterChipActive]}
                 onPress={() => setStatusFilter('declined')}
@@ -544,7 +526,6 @@ export default function InvitationsScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            
             {filteredReceivedInvitations.length > 0 ? (
               filteredReceivedInvitations.map(invitation => (
                 <InvitationCard
@@ -562,7 +543,6 @@ export default function InvitationsScreen() {
                 </Text>
               </View>
             )}
-            
             {receivedInvitations.length === 0 && (
               <View style={styles.emptyStateSmall}>
                 <Text style={styles.emptySubtitle}>
@@ -573,7 +553,6 @@ export default function InvitationsScreen() {
           </View>
         )}
       </ScrollView>
-      
       <Modal
         visible={editModalVisible}
         transparent
@@ -583,7 +562,6 @@ export default function InvitationsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Invitation</Text>
-            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Date</Text>
               <TextInput
@@ -594,7 +572,6 @@ export default function InvitationsScreen() {
                 placeholderTextColor={colors.textLight}
               />
             </View>
-            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Time</Text>
               <TextInput
@@ -605,7 +582,6 @@ export default function InvitationsScreen() {
                 placeholderTextColor={colors.textLight}
               />
             </View>
-            
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Venue</Text>
               <TextInput
@@ -616,7 +592,6 @@ export default function InvitationsScreen() {
                 placeholderTextColor={colors.textLight}
               />
             </View>
-            
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.cancelButton]}
@@ -624,7 +599,6 @@ export default function InvitationsScreen() {
               >
                 <Text style={[styles.modalButtonText, { color: colors.textLight }]}>Cancel</Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[styles.modalButton, styles.saveButton]}
                 onPress={handleSaveEdit}
@@ -635,7 +609,6 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
-      
       <Modal
         visible={confirmModalVisible}
         transparent
@@ -646,7 +619,6 @@ export default function InvitationsScreen() {
           <View style={styles.confirmModalContent}>
             <Text style={styles.confirmTitle}>{confirmData?.title}</Text>
             <Text style={styles.confirmMessage}>{confirmData?.message}</Text>
-            
             <View style={styles.confirmButtons}>
               <TouchableOpacity 
                 style={[styles.confirmButton, styles.cancelConfirmButton]}
@@ -654,7 +626,6 @@ export default function InvitationsScreen() {
               >
                 <Text style={[styles.confirmButtonText, { color: colors.textLight }]}>Cancel</Text>
               </TouchableOpacity>
-              
               <TouchableOpacity 
                 style={[
                   styles.confirmButton, 
@@ -673,12 +644,10 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
-
       <PlatformTipsPopup
         visible={tipsModalVisible}
         onComplete={handleTipsComplete}
       />
-
     </SafeAreaView>
   );
 }

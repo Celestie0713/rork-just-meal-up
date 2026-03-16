@@ -75,7 +75,6 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
             <Text style={styles.priceText}>{mealUp.ticketPrice}</Text>
           </View>
         </View>
-        
         {displayImages.length > 1 && (
           <>
             <TouchableOpacity 
@@ -85,7 +84,6 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
             >
               <ChevronLeft size={24} color="#333" />
             </TouchableOpacity>
-            
             <TouchableOpacity 
               style={styles.rightArrow}
               onPress={handleNextImage}
@@ -93,7 +91,6 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
             >
               <ChevronRight size={24} color="#333" />
             </TouchableOpacity>
-            
             <View style={styles.imageIndicators}>
               {displayImages.map((_, index) => (
                 <View 
@@ -108,22 +105,18 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
           </>
         )}
       </View>
-      
       <View style={styles.content}>
         <Text style={styles.title}>{mealUp.title}</Text>
-        
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
             <Calendar size={16} color={Colors.primary} />
             <Text style={styles.detailText}>{formatDate(mealUp.date)}</Text>
           </View>
-          
           <View style={styles.detailRow}>
             <Clock size={16} color={Colors.primary} />
             <Text style={styles.detailText}>{mealUp.time}</Text>
           </View>
         </View>
-        
         <View style={styles.venueContainer}>
           <MapPin size={16} color={Colors.textLight} />
           <View style={styles.venueInfo}>
@@ -131,11 +124,9 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
             <Text style={styles.venueAddress}>{mealUp.venue.address}</Text>
           </View>
         </View>
-        
         <Text style={styles.description} numberOfLines={2}>
           {mealUp.description}
         </Text>
-        
         <View style={styles.footer}>
           <TouchableOpacity 
             style={styles.attendeesInfo}
@@ -147,7 +138,6 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
               {mealUp.currentAttendees.length}/{mealUp.maxAttendees} going
             </Text>
           </TouchableOpacity>
-          
           <View style={styles.rightSection}>
             <LinearGradient
               colors={spotsLeft > 0 ? Gradients.primary : ['#ccc', '#999']}
@@ -159,7 +149,6 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
                 {spotsLeft > 0 ? 'Join Meal' : 'Full'}
               </Text>
             </LinearGradient>
-            
             <View style={styles.arrowContainer}>
               <ChevronRight size={24} color={Colors.primary} />
             </View>

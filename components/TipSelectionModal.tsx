@@ -64,12 +64,10 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
               <X size={24} color={Colors.textLight} />
             </TouchableOpacity>
           </View>
-
           <View style={styles.body}>
             <Text style={styles.subtitle}>
               Ice cream for the matchmakers 🍦
             </Text>
-            
             <View style={styles.amountGrid}>
               {TIP_AMOUNTS.map((amount) => (
                 <TouchableOpacity
@@ -89,7 +87,6 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                 </TouchableOpacity>
               ))}
             </View>
-
             <View style={styles.customAmountContainer}>
               <Text style={styles.customAmountLabel}>Custom Amount</Text>
               <View style={styles.customAmountInputWrapper}>
@@ -108,7 +105,6 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                 <Text style={styles.errorText}>Minimum tip is $5</Text>
               )}
             </View>
-
             <TouchableOpacity
               style={[styles.confirmButton, !isValid && styles.confirmButtonDisabled]}
               onPress={handleConfirm}

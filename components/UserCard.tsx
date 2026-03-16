@@ -67,7 +67,6 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         <View style={styles.onlineIndicator}>
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
-        
         {/* Show love icon for fight_for_fries match */}
         {hasLoveMatch && (
           <View style={styles.loveIconContainer}>
@@ -77,7 +76,6 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
           </View>
         )}
       </View>
-      
       <View style={[styles.content, isGridView && styles.gridContent]}>
         <View style={styles.header}>
           <View style={styles.nameRow}>
@@ -95,20 +93,17 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
             {!isGridView && !showOrganizerBadge && getMembershipIcon()}
           </View>
         </View>
-        
         {!isGridView && (
           <View style={styles.locationContainer}>
             <MapPin size={14} color={Colors.textLight} />
             <Text style={styles.location}>{user.location}</Text>
           </View>
         )}
-        
         {!isGridView && (
           <Text style={styles.bio} numberOfLines={2}>
             {user.bio}
           </Text>
         )}
-        
         <TouchableOpacity
           style={[styles.actionButton, isGridView && styles.gridActionButton, { backgroundColor: '#f37021' }]}
           onPress={handleVoiceNotePress}

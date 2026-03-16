@@ -350,7 +350,6 @@ export default function ChatScreen() {
             >
               <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
             </TouchableOpacity>
-
           </View>
           <Text style={styles.headerSubtitle}>
             {chatUser.isOnline ? 'Online' : 'Voice messages only'}
@@ -358,7 +357,6 @@ export default function ChatScreen() {
         </View>
         <View style={styles.placeholder} />
       </View>
-      
       {voiceMessageCount > 10 && (
         <View style={styles.inviteContainer}>
           <TouchableOpacity 
@@ -369,7 +367,6 @@ export default function ChatScreen() {
           </TouchableOpacity>
         </View>
       )}
-      
       {mealHistory.length > 0 && (
         <View style={styles.mealRecordContainer}>
           <Text style={styles.mealRecordTitle}>Meal Record</Text>
@@ -386,7 +383,6 @@ export default function ChatScreen() {
           </View>
         </View>
       )}
-      
       <FlatList
         data={messages}
         renderItem={renderMessage}
@@ -395,14 +391,12 @@ export default function ChatScreen() {
         contentContainerStyle={styles.messagesContent}
         showsVerticalScrollIndicator={false}
       />
-      
       <View style={styles.inputContainer}>
         <VoiceRecorder
           onSend={handleSendVoiceMessage}
           onCancel={handleCancelRecording}
         />
       </View>
-      
       <Modal
         visible={showMealDetailsModal}
         transparent
@@ -420,7 +414,6 @@ export default function ChatScreen() {
                 <X size={24} color={Colors.textLight} />
               </TouchableOpacity>
             </View>
-            
             {mealHistory[selectedMealIndex] && (
               <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                 <View style={styles.detailSection}>
@@ -432,7 +425,6 @@ export default function ChatScreen() {
                       <Text style={styles.detailSubtext}>{mealHistory[selectedMealIndex].venue.address}</Text>
                     </View>
                   </View>
-                  
                   <View style={styles.detailRow}>
                     <Clock size={18} color={Colors.primary} />
                     <View style={styles.detailContent}>
@@ -442,7 +434,6 @@ export default function ChatScreen() {
                       </Text>
                     </View>
                   </View>
-                  
                   <View style={styles.detailRow}>
                     <Users size={18} color={Colors.primary} />
                     <View style={styles.detailContent}>
@@ -452,7 +443,6 @@ export default function ChatScreen() {
                       </Text>
                     </View>
                   </View>
-                  
                   <View style={styles.detailRow}>
                     <Users size={18} color={Colors.primary} />
                     <View style={styles.detailContent}>
@@ -465,7 +455,6 @@ export default function ChatScreen() {
                 </View>
               </ScrollView>
             )}
-            
             <TouchableOpacity 
               style={styles.closeModalButton}
               onPress={() => setShowMealDetailsModal(false)}
@@ -475,8 +464,6 @@ export default function ChatScreen() {
           </View>
         </View>
       </Modal>
-      
-
     </SafeAreaView>
   );
 }

@@ -155,14 +155,12 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
       <TouchableOpacity onPress={handleCancel} style={styles.cancelButton}>
         <X size={24} color={Colors.error} />
       </TouchableOpacity>
-      
       <View style={styles.recordingInfo}>
         <Animated.View style={[styles.recordingIndicator, { transform: [{ scale: pulseAnim }] }]}>
           <View style={styles.recordingDot} />
         </Animated.View>
         <Text style={styles.durationText}>{formatDuration(duration)}</Text>
       </View>
-      
       <TouchableOpacity onPress={handleSend} style={styles.sendButton} testID="send-recording">
         <LinearGradient
           colors={Gradients.primary}

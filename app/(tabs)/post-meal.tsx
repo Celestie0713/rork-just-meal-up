@@ -1092,20 +1092,17 @@ export default function PostMealScreen() {
               )}
             </View>
           </View>
-          
           <View style={styles.eventDetails}>
             <View style={styles.eventDetailRow}>
               <MapPin size={16} color={colors.textLight} />
               <Text style={styles.eventDetailText}>{event.venue}</Text>
             </View>
-            
             <View style={styles.eventDetailRow}>
               <Clock size={16} color={colors.textLight} />
               <Text style={styles.eventDetailText}>
                 {formatDate(event.date)} at {event.time}
               </Text>
             </View>
-            
             {event.attendees && event.attendees.length > 1 && (
               <View style={styles.eventDetailRow}>
                 <Users size={16} color={colors.textLight} />
@@ -1115,7 +1112,6 @@ export default function PostMealScreen() {
               </View>
             )}
           </View>
-          
           {isGroup ? (
             <View style={styles.groupActionContainer}>
               <View style={styles.groupActionContent}>
@@ -1179,10 +1175,8 @@ export default function PostMealScreen() {
                   );
                 })()}
               </View>
-              
               <View style={styles.userChoicesSection}>
                 <Text style={styles.userChoicesTitle}>What&apos;s your decision? 🤘</Text>
-                
                 {/* Check if this is a mixed signals extension case where user can retake decision */}
                 {(() => {
                   const invitationId = event.id.replace('invitation-', '');
@@ -1228,7 +1222,6 @@ export default function PostMealScreen() {
                               • ⚠️ Last 24 hours to decide again.{"\n"}• No match = chat gone forever.{"\n"}• Chat it out 💝
                             </Text>
                           </View>
-                          
                           <TouchableOpacity 
                             style={[
                               styles.choiceButton,
@@ -1245,7 +1238,6 @@ export default function PostMealScreen() {
                               extendedChoices[event.id] === 'buddy_pass' && styles.selectedChoiceButtonText
                             ]}>(Stay Friend)</Text>
                           </TouchableOpacity>
-                          
                           <TouchableOpacity 
                             style={[
                               styles.choiceButton,
@@ -1262,7 +1254,6 @@ export default function PostMealScreen() {
                               extendedChoices[event.id] === 'next_round' && styles.selectedChoiceButtonText
                             ]}>(Next date)</Text>
                           </TouchableOpacity>
-                          
                           <TouchableOpacity 
                             style={[
                               styles.choiceButton,
@@ -1316,7 +1307,6 @@ export default function PostMealScreen() {
                         userSelectedChoice === 'buddy_pass' && styles.selectedChoiceButtonText
                       ]}>(Stay Friend)</Text>
                     </TouchableOpacity>
-                    
                     <TouchableOpacity 
                       style={[
                         styles.choiceButton,
@@ -1333,7 +1323,6 @@ export default function PostMealScreen() {
                         userSelectedChoice === 'next_round' && styles.selectedChoiceButtonText
                       ]}>(Next date)</Text>
                     </TouchableOpacity>
-                    
                     <TouchableOpacity 
                       style={[
                         styles.choiceButton,
@@ -1404,7 +1393,6 @@ export default function PostMealScreen() {
             Your completed dining experiences (10+ hours after the meal)
           </Text>
         </View>
-
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           <TouchableOpacity
@@ -1424,7 +1412,6 @@ export default function PostMealScreen() {
             </Text>
           </TouchableOpacity>
         </View>
-
         {postMealEvents.filter(event => 
           selectedTab === '1on1' ? event.type === 'invitation' : event.type === 'mealup'
         ).length === 0 ? (
@@ -1446,7 +1433,6 @@ export default function PostMealScreen() {
               .map(renderPostMealEvent)}
           </View>
         )}
-
         <View style={styles.infoSection}>
           <Text style={styles.infoTitle}>About Post Meal:</Text>
           <Text style={styles.infoText}>Your post-meal-ups only show up here after 10 hours of the meal time.</Text>
@@ -1456,7 +1442,6 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>{"\n"}❌ No spark? Poof! Profile and chat vanish like a bad date story.</Text>
         </View>
       </ScrollView>
-
       {/* Success Modal */}
       <Modal
         visible={showSuccessModal}
@@ -1487,7 +1472,6 @@ export default function PostMealScreen() {
           </View>
         </View>
       </Modal>
-
       {/* Tip Selection Modal */}
       <TipSelectionModal
         visible={showTipModal}
@@ -1509,7 +1493,6 @@ export default function PostMealScreen() {
           return 'your date';
         })()}
       />
-
       {/* Match/No Match Modal */}
       <Modal
         visible={showMatchModal}
@@ -1610,7 +1593,6 @@ export default function PostMealScreen() {
                 </Text>
               </>
             )}
-            
             {matchResult?.matchType === 'mixed_signals_extension' ? (
               <TouchableOpacity 
                 style={[styles.upgradeButton, styles.chatButton]}
@@ -1723,7 +1705,6 @@ export default function PostMealScreen() {
               </TouchableOpacity>
             )}
           </View>
-          
           {/* Animated Balloons */}
           {matchResult?.isMatch && (
             <Animated.View 
@@ -1749,11 +1730,7 @@ export default function PostMealScreen() {
             </Animated.View>
           )}
         </View>
-        
-
       </Modal>
-
-
     </View>
   );
 }

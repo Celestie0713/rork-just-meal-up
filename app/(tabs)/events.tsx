@@ -118,7 +118,6 @@ export default function EventsScreen() {
             <Plus size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
-        
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
             <Search size={20} color="#666666" />
@@ -134,7 +133,6 @@ export default function EventsScreen() {
             <Filter size={20} color="#000000" />
           </TouchableOpacity>
         </View>
-        
         <View style={styles.tabContainer}>
           <TouchableOpacity 
             style={[styles.tab, activeTab === 'groups' && styles.activeTab]}
@@ -150,7 +148,6 @@ export default function EventsScreen() {
           </TouchableOpacity>
         </View>
       </LinearGradient>
-      
       <Modal
         visible={showFilterModal}
         transparent
@@ -165,7 +162,6 @@ export default function EventsScreen() {
                 <X size={24} color="#000000" />
               </TouchableOpacity>
             </View>
-            
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.filterSectionTitle}>Distance Near Me</Text>
               <View style={styles.distanceGrid}>
@@ -194,7 +190,6 @@ export default function EventsScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
-              
               <Text style={styles.filterSectionTitle}>Price Range</Text>
               <View style={styles.priceGrid}>
                 {[
@@ -225,7 +220,6 @@ export default function EventsScreen() {
                 ))}
               </View>
             </ScrollView>
-            
             <View style={styles.modalFooter}>
               <TouchableOpacity 
                 style={styles.clearButton}
@@ -246,7 +240,6 @@ export default function EventsScreen() {
           </View>
         </View>
       </Modal>
-      
       {activeTab === 'upcoming' ? (
         <FlatList
           key="upcoming-meal-ups"

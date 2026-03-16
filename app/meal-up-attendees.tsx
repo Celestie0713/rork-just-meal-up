@@ -58,7 +58,6 @@ export default function MealUpAttendeesScreen() {
           headerTintColor: Colors.text,
         }} 
       />
-      
       <LinearGradient
         colors={Gradients.secondary}
         style={styles.header}
@@ -71,7 +70,6 @@ export default function MealUpAttendeesScreen() {
           </Text>
         </View>
       </LinearGradient>
-      
       <View style={styles.participantsSection}>
         <Text style={styles.sectionTitle}>Participants ({allParticipants.length})</Text>
         <FlatList
@@ -88,9 +86,6 @@ export default function MealUpAttendeesScreen() {
           contentContainerStyle={styles.listContent}
         />
       </View>
-      
-
-      
       {allParticipants.length === 0 && (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No participants yet</Text>

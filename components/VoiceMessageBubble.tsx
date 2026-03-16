@@ -47,7 +47,6 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
       {!isOwn && senderName && (
         <Text style={styles.senderName}>{senderName}</Text>
       )}
-      
       <View style={[styles.bubble, bubbleStyle]}>
         {isOwn ? (
           <LinearGradient
@@ -64,7 +63,6 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
                   <Play size={20} color={Colors.background} />
                 )}
               </TouchableOpacity>
-              
               <View style={styles.waveform}>
                 {waveformHeights.map((height, i) => (
                   <View
@@ -80,7 +78,6 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
                   />
                 ))}
               </View>
-              
               <Text style={styles.ownDuration}>{formatDuration(message.duration)}</Text>
             </View>
           </LinearGradient>
@@ -103,7 +100,6 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
                     <Play size={20} color={Colors.primary} />
                   )}
                 </TouchableOpacity>
-                
                 <View style={styles.waveform}>
                   {waveformHeights.map((height, i) => (
                     <View
@@ -119,14 +115,12 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
                     />
                   ))}
                 </View>
-                
                 <Text style={styles.otherDuration}>{formatDuration(message.duration)}</Text>
               </>
             )}
           </View>
         )}
       </View>
-      
       <Text style={[styles.timestamp, isOwn && styles.ownTimestamp]}>
         {message.timestamp.toLocaleTimeString('en-US', { 
           hour: 'numeric', 
