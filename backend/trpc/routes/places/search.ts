@@ -38,32 +38,34 @@ export const searchPlacesProcedure = publicProcedure
             role: "user",
             content: `You are a restaurant and venue discovery assistant with access to real-world knowledge. A user is searching for: "${input.query}"
 
-CRITICAL RULES:
-1. Return restaurants/venues that you are reasonably confident exist and are currently operating.
-2. Do NOT completely fabricate restaurants, but include both famous and lesser-known local favorites.
-3. Every name and address should be as accurate as possible.
-4. Include a wide variety: fine dining, casual, street food, cafes, bars, bakeries, food trucks, etc.
-5. Try to return the MAXIMUM number of results (up to ${input.limit}). Cast a wide net.
+CRITICAL ACCURACY RULES:
+1. The NAME and ADDRESS of each restaurant MUST belong to the SAME real place. NEVER mix up names with wrong addresses.
+2. ONLY return restaurants you are CERTAIN currently exist. Do NOT guess or fabricate.
+3. Double-check: Does this exact restaurant name exist at this exact address? If not sure, SKIP it.
+4. It is BETTER to return fewer accurate results than many inaccurate ones.
+5. Include a variety: fine dining, casual, street food, cafes, bars, bakeries, food trucks, etc.
+6. Every field must be for the SAME restaurant. Do not copy an address from one place and pair it with a different restaurant's name.
 
-Return up to ${input.limit} REAL, verified restaurants/venues.
+Return up to ${input.limit} REAL restaurants/venues where you are confident the name and address match.
 
 For each place provide:
-- name: The EXACT real name of the restaurant
-- address: The REAL street address
-- city, country: Location
-- latitude/longitude: Accurate coordinates
-- rating: Real rating (1-5)
-- priceLevel: 1-4
+- name: The EXACT official name of the restaurant
+- address: The REAL street address OF THAT SAME restaurant. If unsure of exact street number, provide the street name and area.
+- city, country: Location of THIS restaurant
+- latitude/longitude: Coordinates for THIS specific restaurant
+- rating: Real rating (1-5, use 0 if unknown)
+- priceLevel: 1-4 (use 0 if unknown)
 - placeType: Array of types
 - cuisineEmoji: A single emoji for the cuisine
-- phoneNumber: Real phone (omit if unsure)
-- website: Real URL (omit if unsure)
+- phoneNumber: Only if certain it belongs to THIS restaurant (omit if unsure)
+- website: Only if certain it belongs to THIS restaurant (omit if unsure)
 - googleMapsUrl: Google Maps search URL
 - openingHours: Real hours (omit if unsure)
 - description: 2-3 sentences about the place
 - matchScore: 0-100
 
-Sort by matchScore descending. MAXIMIZE RESULTS: return as many diverse places as possible up to ${input.limit}. Include popular local spots, hidden gems, and well-known chains.`,
+BEFORE returning each result, verify: "Is this name at this address correct?" If not, remove it.
+Sort by matchScore descending. Include popular local spots, hidden gems, and well-known chains.`,
           },
         ],
         schema: z.object({
