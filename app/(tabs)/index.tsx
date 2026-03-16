@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Linking, Animated, Keyboard } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { Search, Filter, Heart, X, MapPin, Star, Phone, Globe, Gift, Sparkles, Send, Utensils } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
@@ -301,20 +302,13 @@ export default function SearchScreen() {
                       )}
                     </View>
 
-                    <View style={styles.placeLocationRow}>
-                      <MapPin size={14} color="#666666" />
-                      <Text style={styles.placeAddress} numberOfLines={1}>
-                        {result.place.address}
-                      </Text>
-                    </View>
-
                     <Text style={styles.placeDescription} numberOfLines={3}>{result.description}</Text>
 
                     <TouchableOpacity
                       style={styles.viewOnMapsButton}
                       onPress={() => {
                         const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(result.place.name + ' ' + result.place.city)}`;
-                        void Linking.openURL(url);
+                        void WebBrowser.openBrowserAsync(url);
                       }}
                     >
                       <MapPin size={16} color="#FF6B35" />
@@ -407,15 +401,12 @@ export default function SearchScreen() {
                       </View>
                     </View>
 
-                    <View style={styles.placeDetailRow}>
-                      <MapPin size={18} color="#666666" />
-                      <Text style={styles.placeDetailAddress}>{selectedPlace.place.address}</Text>
-                    </View>
+
 
                     {selectedPlace.place.phoneNumber && (
                       <TouchableOpacity
                         style={styles.placeDetailRow}
-                        onPress={() => Linking.openURL(`tel:${selectedPlace.place.phoneNumber}`)}
+                        onPress={() => WebBrowser.openBrowserAsync(`tel:${selectedPlace.place.phoneNumber}`)}
                       >
                         <Phone size={18} color="#666666" />
                         <Text style={styles.placeDetailContact}>{selectedPlace.place.phoneNumber}</Text>
@@ -425,7 +416,7 @@ export default function SearchScreen() {
                     {selectedPlace.place.website && (
                       <TouchableOpacity
                         style={styles.placeDetailRow}
-                        onPress={() => Linking.openURL(selectedPlace.place.website)}
+                        onPress={() => WebBrowser.openBrowserAsync(selectedPlace.place.website)}
                       >
                         <Globe size={18} color="#666666" />
                         <Text style={styles.placeDetailContact}>{selectedPlace.place.website}</Text>
@@ -450,7 +441,7 @@ export default function SearchScreen() {
                       style={styles.placeDetailMapButton}
                       onPress={() => {
                         const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(selectedPlace.place.name + ' ' + selectedPlace.place.city)}`;
-                        void Linking.openURL(url);
+                        void WebBrowser.openBrowserAsync(url);
                       }}
                     >
                       <MapPin size={20} color="#FFFFFF" />
