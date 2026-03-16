@@ -25,7 +25,7 @@ export const searchPlacesProcedure = publicProcedure
   .input(
     z.object({
       query: z.string().min(1),
-      limit: z.number().optional().default(8),
+      limit: z.number().optional().default(20),
     })
   )
   .query(async ({ input }) => {
@@ -39,11 +39,11 @@ export const searchPlacesProcedure = publicProcedure
             content: `You are a restaurant and venue discovery assistant with access to real-world knowledge. A user is searching for: "${input.query}"
 
 CRITICAL RULES:
-1. ONLY return restaurants/venues that you are HIGHLY CONFIDENT actually exist and are currently operating as of 2026.
-2. Do NOT invent or guess any restaurant. If you're not sure a place exists, DO NOT include it.
-3. Every name, address, phone number, website, and detail MUST be real and accurate.
-4. Prefer well-known, established restaurants that are easy to verify.
-5. If you cannot find ${input.limit} real places matching the query, return fewer. Quality over quantity.
+1. Return restaurants/venues that you are reasonably confident exist and are currently operating.
+2. Do NOT completely fabricate restaurants, but include both famous and lesser-known local favorites.
+3. Every name and address should be as accurate as possible.
+4. Include a wide variety: fine dining, casual, street food, cafes, bars, bakeries, food trucks, etc.
+5. Try to return the MAXIMUM number of results (up to ${input.limit}). Cast a wide net.
 
 Return up to ${input.limit} REAL, verified restaurants/venues.
 
@@ -63,7 +63,7 @@ For each place provide:
 - description: 2-3 sentences about the place
 - matchScore: 0-100
 
-Sort by matchScore descending. BE CONSERVATIVE: fewer real places > many fabricated ones.`,
+Sort by matchScore descending. MAXIMIZE RESULTS: return as many diverse places as possible up to ${input.limit}. Include popular local spots, hidden gems, and well-known chains.`,
           },
         ],
         schema: z.object({

@@ -67,9 +67,9 @@ CRITICAL ACCURACY RULES:
 2. NEVER invent, fabricate, or guess any restaurant name, address, or detail.
 3. Stick to ICONIC and WIDELY KNOWN restaurants - the kind featured in major food publications (Michelin, Eater, Infatuation, TimeOut).
 4. Every detail MUST be factually correct. If you are not absolutely sure about a detail, OMIT it.
-5. Return FEWER results rather than risk including a closed or non-existent place. 3-5 verified places is ideal.
-6. Do NOT include any restaurant you are less than 95% confident about.
-7. Prefer restaurants that have been open for multiple years and are unlikely to have closed.
+5. Return AS MANY results as possible (up to ${limit}). Include both famous and lesser-known local favorites.
+6. Include restaurants you are at least 80% confident about.
+7. Include a wide variety: fine dining, casual, street food, cafes, bars, bakeries, etc.
 
 Return up to ${limit} REAL, verified restaurants/venues.
 
@@ -94,7 +94,7 @@ Sort by matchScore descending.
 If the query mentions a specific city/location, only return places in that area.
 If no location specified, return places from major cities worldwide.
 
-QUALITY OVER QUANTITY: Return only places you would bet money on being real and open.`,
+MAXIMIZE RESULTS: Return as many places as possible (up to ${limit}). Include a diverse mix of well-known spots and popular local favorites. Cast a wide net.`,
       },
     ],
     schema: PlacesResponseSchema,
@@ -134,7 +134,7 @@ export function usePlacesSearch() {
   const [data, setData] = useState<PlacesSearchResult | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 8),
+    mutationFn: (query: string) => searchPlacesAI(query, 20),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
