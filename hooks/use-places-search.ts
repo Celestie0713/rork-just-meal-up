@@ -62,38 +62,40 @@ async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesS
         role: "user",
         content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"
 
+CRITICAL RELEVANCE RULES:
+1. ONLY return restaurants that DIRECTLY match the search query. If the user searches for "wantan mee", return ONLY places known for wantan mee / wonton noodles. Do NOT return places serving different dishes (e.g. hokkien mee, char kuey teow, laksa) even if they are noodle places.
+2. The dish or cuisine in the search query must be the PRIMARY specialty or a well-known menu item of the restaurant.
+3. If the query is a specific dish name, focus on places FAMOUS for that exact dish.
+
 CRITICAL ACCURACY RULES:
 1. The NAME and ADDRESS of each restaurant MUST belong to the SAME real place. NEVER mix up names with wrong addresses.
 2. ONLY return restaurants you are CERTAIN currently exist. Do NOT guess or fabricate.
-3. Double-check: Does this exact restaurant name exist at this exact address? If not sure, SKIP it.
-4. It is BETTER to return fewer accurate results than many inaccurate ones.
-5. Include a variety: fine dining, casual, street food, cafes, bars, bakeries, etc.
-6. Every field must be for the SAME restaurant. Do not copy an address from one place and pair it with a different restaurant's name.
+3. Every field must be for the SAME restaurant.
 
-Return up to ${limit} REAL restaurants/venues where you are confident the name and address match.
+Return up to ${limit} REAL restaurants/venues. Try to return as many relevant results as possible.
+Include well-known places, popular local spots, hawker stalls, coffee shops, and hidden gems.
+Cast a wide net across different areas and neighborhoods.
 
 For each place provide:
 - name: The EXACT official name of the restaurant
-- address: The REAL street address OF THAT SAME restaurant (not a different one). If unsure of exact street number, provide the street name and area.
+- address: The REAL street address OF THAT SAME restaurant. If unsure of exact street number, provide the street name and area.
 - city: The city where THIS restaurant is located
 - country: The country
 - latitude/longitude: Coordinates for THIS specific restaurant location
 - rating: Approximate rating 1-5 (use 0 if unknown)
 - priceLevel: 1-4 (1=budget, 4=fine dining, use 0 if unknown)
-- placeType: Array like ["restaurant", "italian", "fine dining"]
+- placeType: Array like ["restaurant", "noodles", "hawker"]
 - cuisineEmoji: Single emoji for the cuisine type
-- phoneNumber: Only if you are certain it belongs to THIS restaurant (omit otherwise)
-- website: Only if you are certain it belongs to THIS restaurant (omit otherwise)
+- phoneNumber: Only if you are certain (omit otherwise)
+- website: Only if you are certain (omit otherwise)
 - googleMapsUrl: Format "https://www.google.com/maps/search/RESTAURANT+NAME+CITY"
 - openingHours: Only if you are certain (omit otherwise)
 - description: 2-3 sentences about what makes this place special
-- matchScore: 0-100 how well it fits the query
-
-BEFORE returning each result, verify: "Is this name at this address correct?" If not, remove it.
+- matchScore: 0-100 how relevant to the EXACT search query (penalize places that serve a different dish)
 
 Sort by matchScore descending.
 If the query mentions a specific city/location, only return places in that area.
-If no location specified, return places from major cities worldwide.`,
+If no location specified, return places from popular cities for that cuisine.`,
       },
     ],
     schema: PlacesResponseSchema,
@@ -133,7 +135,7 @@ export function usePlacesSearch() {
   const [data, setData] = useState<PlacesSearchResult | null>(null);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 20),
+    mutationFn: (query: string) => searchPlacesAI(query, 30),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
