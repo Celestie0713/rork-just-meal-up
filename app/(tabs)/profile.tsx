@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Crown, Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic } from 'lucide-react-native';
-import { Colors, Gradients } from '@/constants/colors';
+import { Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic } from 'lucide-react-native';
+import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
-import { hasMutualLoveMatch, mockCurrentUserResponses, mockPostDateResponses } from '@/mocks/post-date-responses';
-import { VoiceRecorder } from '@/components/VoiceRecorder';
+import { useFavorites } from '@/hooks/use-favorites';
 
 
 import { router } from 'expo-router';
@@ -50,8 +49,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
   const { matchedProfiles, removeMatchedProfile } = useChat();
-  
-
+  const { favoritePlaces, removeFromFavorites } = useFavorites();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editedUser, setEditedUser] = useState<User | null>(null);
@@ -70,28 +68,11 @@ export default function ProfileScreen() {
 
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('food');
-  const [newFoodItem, setNewFoodItem] = useState('');
-  const [editedBio, setEditedBio] = useState(user?.bio || '');
-  const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
 
+  const [editedBio, setEditedBio] = useState(user?.bio || '');
 
 
   console.log('Profile screen render - user:', user);
-  
-  // Debug: Check for matches
-  if (user) {
-    const matchedUsers = mockUsers.filter(u => u.id !== user.id && hasMutualLoveMatch(user.id, u.id));
-    console.log('=== PROFILE DEBUG ===');
-    console.log('Current user ID:', user.id);
-    console.log('Matched users for Alex Chen:', matchedUsers.map(u => ({ id: u.id, name: u.name })));
-    console.log('hasMutualLoveMatch(1, 5):', hasMutualLoveMatch('1', '5'));
-    console.log('Current user responses:', mockCurrentUserResponses);
-    console.log('Sofia Kim responses:', mockPostDateResponses.filter((r: any) => r.userId === '5'));
-    console.log('All post date responses:', mockPostDateResponses);
-    console.log('mockUsers length:', mockUsers.length);
-    console.log('Sofia Kim user data:', mockUsers.find(u => u.id === '5'));
-    console.log('=== END DEBUG ===');
-  }
 
   if (!user) {
     console.log('User not found, showing loading...');
@@ -106,44 +87,7 @@ export default function ProfileScreen() {
 
 
 
-  const getMembershipInfo = () => {
-    switch (user.membershipTier) {
-      case 'organizer':
-        return {
-          icon: <Crown size={20} color={Colors.organizer} />,
-          title: 'Organizer Member',
-          price: '$59/month',
-          gradient: Gradients.organizer,
-        };
-      case 'premium':
-        return {
-          icon: <Star size={20} color={Colors.premium} />,
-          title: 'Premium Member',
-          price: '$27/month',
-          gradient: Gradients.premium,
-        };
-      default:
-        return {
-          icon: <Heart size={20} color={Colors.textLight} />,
-          title: 'Free Member',
-          price: 'Free',
-          gradient: ['#f0f0f0', '#e0e0e0'] as const,
-        };
-    }
-  };
 
-  const membershipInfo = getMembershipInfo();
-
-  const getMembershipColor = () => {
-    switch (user.membershipTier) {
-      case 'organizer':
-        return Colors.organizer;
-      case 'premium':
-        return Colors.primary;
-      default:
-        return Colors.surface;
-    }
-  };
 
   const handleSave = async () => {
     console.log('handleSave called');
@@ -178,25 +122,6 @@ export default function ProfileScreen() {
       setNewPhotoUrl('');
     } else {
       Alert.alert('Limit Reached', 'You can only add up to 5 photos');
-    }
-  };
-
-  const addFoodItem = () => {
-    if (!newFoodItem.trim()) {
-      Alert.alert('Error', 'Please enter a food item');
-      return;
-    }
-    
-    if (editedUser) {
-      const updatedUser = {
-        ...editedUser,
-        preferences: {
-          ...editedUser.preferences,
-          cuisinePreferences: [...editedUser.preferences.cuisinePreferences, newFoodItem.trim()]
-        }
-      };
-      setEditedUser(updatedUser);
-      setNewFoodItem('');
     }
   };
 
@@ -277,10 +202,6 @@ export default function ProfileScreen() {
     setShowPreferredIncomeModal(false);
   };
 
-
-
-
-
   const renderTabBar = () => {
     const tabs = [
       { id: 'food' as TabType, label: 'Food to bribe me with', icon: Utensils },
@@ -317,6 +238,35 @@ export default function ProfileScreen() {
           These make me say YES to a date 🍕
         </Text>
         <View style={styles.foodGrid}>
+          {favoritePlaces.map((place) => (
+            <View key={place.place_id} style={styles.foodGridItem}>
+              <View style={styles.favPlaceCard}>
+                <View style={styles.favPlaceHeader}>
+                  <Text style={styles.favPlaceName} numberOfLines={2}>{place.name}</Text>
+                  <TouchableOpacity
+                    style={styles.removeFavButton}
+                    onPress={() => removeFromFavorites(place.place_id)}
+                  >
+                    <X size={14} color={Colors.textLight} />
+                  </TouchableOpacity>
+                </View>
+                {place.formatted_address ? (
+                  <Text style={styles.favPlaceAddress} numberOfLines={1}>{place.formatted_address}</Text>
+                ) : null}
+                <View style={styles.favPlaceMeta}>
+                  {place.rating != null && place.rating > 0 && (
+                    <View style={styles.favPlaceRating}>
+                      <Star size={12} color="#FFB800" fill="#FFB800" />
+                      <Text style={styles.favPlaceRatingText}>{place.rating.toFixed(1)}</Text>
+                    </View>
+                  )}
+                  {place.price_level != null && place.price_level > 0 && (
+                    <Text style={styles.favPlacePriceText}>{'$'.repeat(place.price_level)}</Text>
+                  )}
+                </View>
+              </View>
+            </View>
+          ))}
           <TouchableOpacity 
             style={styles.addPlaceButton}
             testID="add-favorite-place-button"
@@ -328,6 +278,9 @@ export default function ProfileScreen() {
             <Text style={styles.addPlaceText}>Add Places</Text>
           </TouchableOpacity>
         </View>
+        {favoritePlaces.length === 0 && (
+          <Text style={styles.emptyFoodHint}>Search for places and add your favorites here!</Text>
+        )}
       </View>
     );
   };
@@ -629,22 +582,19 @@ export default function ProfileScreen() {
           
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            {/* Show love icon for fight_for_fries match at lower right of profile picture */}
             <View style={styles.profileLoveIconsContainer}>
               {Object.values(matchedProfiles)
                 .filter(profile => profile.matchType === 'fight_for_fries' && profile.userId !== user.id)
-                .slice(0, 1) // Show only one love icon for fight_for_fries match
+                .slice(0, 1)
                 .map((matchedProfile) => {
                   const matchedUser = mockUsers.find(u => u.id === matchedProfile.userId);
                   if (!matchedUser) return null;
                   
-                  console.log('Profile: Rendering love icon for matched user:', matchedUser.name);
                   return (
                     <View key={matchedProfile.userId} style={styles.profileLoveIconWrapper}>
                       <TouchableOpacity 
                         style={styles.profileLoveIconBackground}
                         onPress={() => {
-                          // Navigate to matched user's profile
                           router.push(`/user-profile?userId=${matchedProfile.userId}` as any);
                         }}
                       >
@@ -653,7 +603,6 @@ export default function ProfileScreen() {
                       <TouchableOpacity 
                         style={styles.removeLoveButton}
                         onPress={() => {
-                          console.log('Remove fight_for_fries match');
                           removeMatchedProfile(matchedProfile.userId);
                         }}
                         testID="remove-love-button"
@@ -876,7 +825,6 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
   },
-
   nameContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -914,7 +862,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.text,
   },
-
   locationContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -924,119 +871,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textLight,
     marginLeft: 4,
-  },
-  membershipCard: {
-    marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 24,
-  },
-  membershipHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  membershipTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.background,
-    marginLeft: 8,
-  },
-  membershipPrice: {
-    fontSize: 16,
-    color: Colors.background,
-    opacity: 0.9,
-    marginBottom: 16,
-  },
-  membershipFeatures: {
-    marginBottom: 16,
-  },
-  featureText: {
-    fontSize: 14,
-    color: Colors.background,
-    opacity: 0.9,
-    marginBottom: 4,
-  },
-  upgradeButton: {
-    backgroundColor: Colors.background,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 25,
-    alignItems: 'center',
-  },
-  upgradeButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.primary,
-  },
-  statsSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-    backgroundColor: Colors.surface,
-    marginHorizontal: 20,
-    borderRadius: 16,
-    marginBottom: 24,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statNumber: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: Colors.primary,
-    marginBottom: 4,
-  },
-  statLabel: {
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  membershipBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 28,
-    paddingVertical: 14,
-    borderRadius: 25,
-    marginTop: 24,
-    alignSelf: 'center',
-    minWidth: 200,
-    maxWidth: 240,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
-  },
-  membershipBadgeText: {
-    fontSize: 14,
-    fontFamily: 'Montserrat_700Bold',
-    color: '#FFFFFF',
-    marginLeft: 12,
-    textAlign: 'center',
-    letterSpacing: 0.8,
-    textShadowColor: 'rgba(0,0,0,0.5)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
-    textTransform: 'capitalize',
-  },
-
-  membershipBadgeContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
-    marginBottom: 8,
-    position: 'relative',
-  },
-  membershipBadgeContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 2,
   },
   bioSection: {
     paddingHorizontal: 20,
@@ -1060,13 +894,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.primary,
     marginLeft: 6,
-  },
-  voiceRecorderContainerProfile: {
-    marginTop: 16,
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 20,
   },
   personalInfoSection: {
     paddingHorizontal: 20,
@@ -1146,77 +973,93 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     lineHeight: 22,
   },
-  foodContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
   foodGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    gap: 8,
   },
   foodGridItem: {
-    width: '31.5%',
+    width: '31%',
+    aspectRatio: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    padding: 8,
+  },
+  favPlaceCard: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  favPlaceHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  favPlaceName: {
+    fontSize: 11,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    flex: 1,
+    marginRight: 2,
+  },
+  removeFavButton: {
+    padding: 2,
+  },
+  favPlaceAddress: {
+    fontSize: 9,
+    color: Colors.textLight,
+    marginTop: 3,
+  },
+  favPlaceMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  favPlaceRating: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  favPlaceRatingText: {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    color: Colors.text,
+  },
+  favPlacePriceText: {
+    fontSize: 10,
+    fontWeight: '600' as const,
+    color: '#4CAF50',
+  },
+  addPlaceButton: {
+    width: '31%',
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.surface,
     borderRadius: 8,
     padding: 12,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+  },
+  addPlaceIconContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
-  placeImage: {
-    width: '100%',
-    height: '70%',
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  foodLabel: {
+  addPlaceText: {
     fontSize: 12,
     fontWeight: '500',
-    color: Colors.text,
+    color: Colors.primary,
     textAlign: 'center',
     lineHeight: 16,
   },
-  foodTag: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  foodText: {
+  emptyFoodHint: {
     fontSize: 14,
-    fontWeight: '600',
-    color: Colors.background,
-  },
-  removeFoodButton: {
-    marginLeft: 8,
-    padding: 2,
-  },
-  addFoodContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-  foodInput: {
-    fontSize: 14,
-    color: Colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  addFoodButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: 4,
+    color: Colors.textLight,
+    textAlign: 'center',
+    marginTop: 8,
+    fontStyle: 'italic',
   },
   picturesGrid: {
     flexDirection: 'row',
@@ -1301,21 +1144,10 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: Colors.primary,
   },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: Colors.background,
-  },
   statusTextUpcoming: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.background,
-  },
-  preferenceItem: {
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
   },
   personalInfoRow: {
     flexDirection: 'row',
@@ -1393,7 +1225,6 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontWeight: '600',
   },
-
   addPicturesButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -1441,146 +1272,6 @@ const styles = StyleSheet.create({
   scrollViewBottomPadding: {
     height: 40,
   },
-  addPlaceButton: {
-    width: '31.5%',
-    aspectRatio: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    borderStyle: 'dashed',
-  },
-  addPlaceIconContainer: {
-    width: '70%',
-    height: '50%',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
-  },
-  addPlaceText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: Colors.primary,
-    textAlign: 'center',
-    lineHeight: 16,
-  },
-  placeImageContainer: {
-    position: 'relative',
-    width: '100%',
-    height: '70%',
-    marginBottom: 8,
-  },
-  removePlaceButton: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    borderRadius: 10,
-    padding: 4,
-    zIndex: 1,
-  },
-  emptyFoodHint: {
-    fontSize: 14,
-    color: Colors.textLight,
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
-  },
-  placeSearchContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  placeSearchInputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 10,
-  },
-  placeSearchInput: {
-    flex: 1,
-    fontSize: 15,
-    color: Colors.text,
-    marginLeft: 10,
-  },
-  placeSearchButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-  },
-  placeSearchButtonText: {
-    fontSize: 15,
-    fontWeight: '600' as const,
-    color: '#fff',
-  },
-  placesLoadingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 20,
-    gap: 8,
-  },
-  placesLoadingText: {
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  placeResultItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.surface,
-  },
-  placeResultImage: {
-    width: 56,
-    height: 56,
-    borderRadius: 10,
-  },
-  placeResultInfo: {
-    flex: 1,
-    marginLeft: 12,
-    marginRight: 8,
-  },
-  placeResultName: {
-    fontSize: 15,
-    fontWeight: '600' as const,
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  placeResultAddress: {
-    fontSize: 13,
-    color: Colors.textLight,
-    marginBottom: 4,
-  },
-  placeResultMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  placeResultRating: {
-    fontSize: 12,
-    fontWeight: '600' as const,
-    color: Colors.text,
-  },
-  placeResultPrice: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginLeft: 6,
-  },
-  noPlacesText: {
-    fontSize: 14,
-    color: Colors.textLight,
-    textAlign: 'center',
-    paddingVertical: 24,
-  },
   removeLoveButton: {
     position: 'absolute',
     bottom: -2,
@@ -1600,5 +1291,4 @@ const styles = StyleSheet.create({
     elevation: 3,
     zIndex: 11,
   },
-
 });

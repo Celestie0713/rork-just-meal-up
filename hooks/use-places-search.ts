@@ -60,39 +60,41 @@ async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesS
     messages: [
       {
         role: "user",
-        content: `You are a restaurant and venue discovery assistant with access to real-world knowledge. A user is searching for: "${query}"
+        content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"
 
-CRITICAL RULES:
-1. ONLY return restaurants/venues that you are HIGHLY CONFIDENT actually exist and are currently operating as of 2026.
-2. Do NOT invent or guess any restaurant. If you're not sure a place exists, DO NOT include it.
-3. Every name, address, phone number, website, and detail MUST be real and accurate.
-4. Prefer well-known, established restaurants that are easy to verify.
-5. If you cannot find ${limit} real places matching the query, return fewer. Quality over quantity.
+CRITICAL ACCURACY RULES:
+1. ONLY return restaurants that are FAMOUS, WELL-ESTABLISHED, and you are 100% CERTAIN currently exist and operate in 2026.
+2. NEVER invent, fabricate, or guess any restaurant name, address, or detail.
+3. Stick to ICONIC and WIDELY KNOWN restaurants - the kind featured in major food publications (Michelin, Eater, Infatuation, TimeOut).
+4. Every detail MUST be factually correct. If you are not absolutely sure about a detail, OMIT it.
+5. Return FEWER results rather than risk including a closed or non-existent place. 3-5 verified places is ideal.
+6. Do NOT include any restaurant you are less than 95% confident about.
+7. Prefer restaurants that have been open for multiple years and are unlikely to have closed.
 
 Return up to ${limit} REAL, verified restaurants/venues.
 
 For each place provide:
-- name: The EXACT real name of the restaurant (not an approximation)
-- address: The REAL street address
-- city: The city where it's located
+- name: The EXACT official name (no approximations or variations)
+- address: The real street address (omit street number if unsure, but city must be correct)
+- city: The city
 - country: The country
-- latitude/longitude: Accurate coordinates
-- rating: Approximate real rating from Google/Yelp (1-5 scale)
-- priceLevel: 1-4 (1=budget, 4=fine dining)
-- placeType: Array of types like ["restaurant", "italian", "fine dining"]
-- cuisineEmoji: A single emoji that represents the cuisine (e.g. "🍣" for sushi, "🍕" for pizza, "🥩" for steak, "☕" for cafe, "🍜" for ramen, "🌮" for mexican, "🍷" for wine bar, "🥘" for indian, "🍔" for burgers, "🥗" for healthy, "🍰" for desserts/bakery, "🍺" for pub/bar)
-- phoneNumber: Real phone number (omit if not confident)
-- website: Real website URL (omit if not confident)
-- googleMapsUrl: A Google Maps search URL in format "https://www.google.com/maps/search/RESTAURANT+NAME+CITY" (URL-encode the name)
-- openingHours: Real hours if known (omit if not confident)
-- description: 2-3 sentences about what makes this place special, based on real reputation
+- latitude/longitude: Best estimate coordinates for the area
+- rating: Approximate rating 1-5 (use 0 if unknown)
+- priceLevel: 1-4 (1=budget, 4=fine dining, use 0 if unknown)
+- placeType: Array like ["restaurant", "italian", "fine dining"]
+- cuisineEmoji: Single emoji for the cuisine type
+- phoneNumber: Only if you are certain (omit otherwise)
+- website: Only if you are certain (omit otherwise)
+- googleMapsUrl: Format "https://www.google.com/maps/search/RESTAURANT+NAME+CITY"
+- openingHours: Only if you are certain (omit otherwise)
+- description: 2-3 sentences about what makes this place special and well-known
 - matchScore: 0-100 how well it fits the query
 
 Sort by matchScore descending.
-If the query mentions a specific city/location, only return places there.
-If no location specified, include places from popular cities worldwide.
+If the query mentions a specific city/location, only return places in that area.
+If no location specified, return places from major cities worldwide.
 
-BE CONSERVATIVE: It's better to return 3 real places than 8 made-up ones.`,
+QUALITY OVER QUANTITY: Return only places you would bet money on being real and open.`,
       },
     ],
     schema: PlacesResponseSchema,
