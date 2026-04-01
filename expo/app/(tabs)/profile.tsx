@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic } from 'lucide-react-native';
+import { Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic, ExternalLink } from 'lucide-react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
@@ -70,6 +71,15 @@ export default function ProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('food');
 
   const [editedBio, setEditedBio] = useState(user?.bio || '');
+  const [selectedPlace, setSelectedPlace] = useState<{
+    place_id: string;
+    name: string;
+    formatted_address?: string;
+    rating?: number;
+    price_level?: number;
+    geometry?: { location: { lat: number; lng: number } };
+  } | null>(null);
+  const [showPlaceModal, setShowPlaceModal] = useState(false);
 
 
   console.log('Profile screen render - user:', user);
@@ -84,10 +94,6 @@ export default function ProfileScreen() {
       </SafeAreaView>
     );
   }
-
-
-
-
 
   const handleSave = async () => {
     console.log('handleSave called');
@@ -124,8 +130,6 @@ export default function ProfileScreen() {
       Alert.alert('Limit Reached', 'You can only add up to 5 photos');
     }
   };
-
-
 
   const updateBio = () => {
     if (editedUser) {
@@ -202,6 +206,19 @@ export default function ProfileScreen() {
     setShowPreferredIncomeModal(false);
   };
 
+  const handleViewOnGoogleMaps = async () => {
+    if (!selectedPlace) return;
+    const query = encodeURIComponent(selectedPlace.name);
+    const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    try {
+      await WebBrowser.openBrowserAsync(url, {
+        presentationStyle: WebBrowser.WebBrowserPresentationStyle.POPOVER,
+      });
+    } catch (error) {
+      console.error('Failed to open Google Maps:', error);
+    }
+  };
+
   const renderTabBar = () => {
     const tabs = [
       { id: 'food' as TabType, label: 'Food to bribe me with', icon: Utensils },
@@ -239,7 +256,15 @@ export default function ProfileScreen() {
         </Text>
         <View style={styles.foodGrid}>
           {favoritePlaces.map((place) => (
-            <View key={place.place_id} style={styles.foodGridItem}>
+            <TouchableOpacity
+              key={place.place_id}
+              style={styles.foodGridItem}
+              activeOpacity={0.7}
+              onPress={() => {
+                setSelectedPlace(place);
+                setShowPlaceModal(true);
+              }}
+            >
               <View style={styles.favPlaceCard}>
                 <View style={styles.favPlaceHeader}>
                   <Text style={styles.favPlaceName} numberOfLines={2}>{place.name}</Text>
@@ -250,9 +275,6 @@ export default function ProfileScreen() {
                     <X size={14} color={Colors.textLight} />
                   </TouchableOpacity>
                 </View>
-                {place.formatted_address ? (
-                  <Text style={styles.favPlaceAddress} numberOfLines={1}>{place.formatted_address}</Text>
-                ) : null}
                 <View style={styles.favPlaceMeta}>
                   {place.rating != null && place.rating > 0 && (
                     <View style={styles.favPlaceRating}>
@@ -265,7 +287,7 @@ export default function ProfileScreen() {
                   )}
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
           <TouchableOpacity 
             style={styles.addPlaceButton}
@@ -381,6 +403,49 @@ export default function ProfileScreen() {
         return renderFoodTab();
     }
   };
+
+  const renderPlaceDetailModal = () => (
+    <Modal visible={showPlaceModal} transparent animationType="fade">
+      <TouchableOpacity
+        style={styles.placeModalOverlay}
+        activeOpacity={1}
+        onPress={() => setShowPlaceModal(false)}
+      >
+        <TouchableOpacity activeOpacity={1} style={styles.placeModalCard}>
+          <View style={styles.placeModalHandle} />
+          <Text style={styles.placeModalName}>{selectedPlace?.name}</Text>
+          <View style={styles.placeModalMetaRow}>
+            {selectedPlace?.rating != null && selectedPlace.rating > 0 && (
+              <View style={styles.placeModalRatingBadge}>
+                <Star size={14} color="#FFB800" fill="#FFB800" />
+                <Text style={styles.placeModalRatingText}>{selectedPlace.rating.toFixed(1)}</Text>
+              </View>
+            )}
+            {selectedPlace?.price_level != null && selectedPlace.price_level > 0 && (
+              <View style={styles.placeModalPriceBadge}>
+                <Text style={styles.placeModalPriceText}>{'$'.repeat(selectedPlace.price_level)}</Text>
+              </View>
+            )}
+          </View>
+          <TouchableOpacity
+            style={styles.placeModalGoogleButton}
+            onPress={handleViewOnGoogleMaps}
+            activeOpacity={0.8}
+          >
+            <MapPin size={18} color="#fff" />
+            <Text style={styles.placeModalGoogleButtonText}>View on Google Maps</Text>
+            <ExternalLink size={16} color="#fff" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.placeModalCloseButton}
+            onPress={() => setShowPlaceModal(false)}
+          >
+            <Text style={styles.placeModalCloseText}>Close</Text>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
 
   const renderLanguageModal = () => (
     <Modal visible={showLanguageModal} transparent animationType="slide">
@@ -712,6 +777,7 @@ export default function ProfileScreen() {
         {renderTabContent()}
         <View style={styles.scrollViewBottomPadding} />
       </ScrollView>
+      {renderPlaceDetailModal()}
       {renderLanguageModal()}
       {renderPersonalIncomeModal()}
       {renderPersonalLanguageModal()}
@@ -1247,6 +1313,92 @@ const styles = StyleSheet.create({
   },
   scrollViewBottomPadding: {
     height: 40,
+  },
+  placeModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  placeModalCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center' as const,
+  },
+  placeModalHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    marginBottom: 20,
+  },
+  placeModalName: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'center' as const,
+    marginBottom: 12,
+  },
+  placeModalMetaRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 10,
+    marginBottom: 24,
+  },
+  placeModalRatingBadge: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: 'rgba(255,184,0,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    gap: 4,
+  },
+  placeModalRatingText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#FFB800',
+  },
+  placeModalPriceBadge: {
+    backgroundColor: 'rgba(76,175,80,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+  },
+  placeModalPriceText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#4CAF50',
+  },
+  placeModalGoogleButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: Colors.primary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 14,
+    width: '100%',
+    gap: 8,
+    marginBottom: 12,
+  },
+  placeModalGoogleButtonText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: '#fff',
+  },
+  placeModalCloseButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+  },
+  placeModalCloseText: {
+    fontSize: 15,
+    fontWeight: '500' as const,
+    color: Colors.textLight,
   },
   removeLoveButton: {
     position: 'absolute',
