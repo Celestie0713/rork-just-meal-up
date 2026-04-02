@@ -1,7 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { generateObject } from '@rork-ai/toolkit-sdk';
 import { z } from 'zod';
+import * as Location from 'expo-location';
 
 const PlaceSchema = z.object({
   name: z.string(),
@@ -53,14 +55,42 @@ export interface PlacesSearchResult {
   totalResults: number;
 }
 
-async function searchPlacesAI(query: string, limit: number = 8): Promise<PlacesSearchResult> {
-  console.log("[Places AI Search] Query:", query);
+interface UserLocation {
+  latitude: number;
+  longitude: number;
+  city?: string;
+  country?: string;
+}
+
+async function reverseGeocode(latitude: number, longitude: number): Promise<{ city?: string; country?: string }> {
+  try {
+    if (Platform.OS !== 'web') {
+      const results = await Location.reverseGeocodeAsync({ latitude, longitude });
+      if (results.length > 0) {
+        return {
+          city: results[0].city ?? results[0].subregion ?? undefined,
+          country: results[0].country ?? undefined,
+        };
+      }
+    }
+  } catch (e) {
+    console.log('[Places] Reverse geocode failed:', e);
+  }
+  return {};
+}
+
+async function searchPlacesAI(query: string, limit: number = 8, userLocation?: UserLocation | null): Promise<PlacesSearchResult> {
+  console.log("[Places AI Search] Query:", query, "Location:", userLocation);
+
+  const locationContext = userLocation
+    ? `\n\nUSER LOCATION CONTEXT:\nThe user is currently located at latitude ${userLocation.latitude}, longitude ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}.\nWhen the user says "near me" or doesn't specify a location, prioritize restaurants near these coordinates and in this city/area.\nAlways prefer results close to the user's current location unless they specify a different location.`
+    : '';
 
   const result = await generateObject({
     messages: [
       {
         role: "user",
-        content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"
+        content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"${locationContext}
 
 CRITICAL RELEVANCE RULES:
 1. ONLY return restaurants that DIRECTLY match the search query. If the user searches for "wantan mee", return ONLY places known for wantan mee / wonton noodles. Do NOT return places serving different dishes (e.g. hokkien mee, char kuey teow, laksa) even if they are noodle places.
@@ -95,7 +125,8 @@ For each place provide:
 
 Sort by matchScore descending.
 If the query mentions a specific city/location, only return places in that area.
-If no location specified, return places from popular cities for that cuisine.`,
+If the user's location is known and no other location is specified, return places near the user's location.
+If no location is specified and user location is unknown, return places from popular cities for that cuisine.`,
       },
     ],
     schema: PlacesResponseSchema,
@@ -133,9 +164,73 @@ If no location specified, return places from popular cities for that cuisine.`,
 
 export function usePlacesSearch() {
   const [data, setData] = useState<PlacesSearchResult | null>(null);
+  const userLocationRef = useRef<UserLocation | null>(null);
+  const [_locationReady, setLocationReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function getLocation() {
+      try {
+        if (Platform.OS === 'web') {
+          if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                if (cancelled) return;
+                const loc: UserLocation = {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                };
+                const geo = await reverseGeocode(loc.latitude, loc.longitude);
+                loc.city = geo.city;
+                loc.country = geo.country;
+                userLocationRef.current = loc;
+                setLocationReady(true);
+                console.log('[Places] Web location:', loc);
+              },
+              (err) => {
+                console.log('[Places] Web geolocation error:', err.message);
+                setLocationReady(true);
+              },
+              { timeout: 10000, enableHighAccuracy: false }
+            );
+          } else {
+            setLocationReady(true);
+          }
+        } else {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+          if (status !== 'granted') {
+            console.log('[Places] Location permission denied');
+            setLocationReady(true);
+            return;
+          }
+          const position = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          if (cancelled) return;
+          const loc: UserLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          const geo = await reverseGeocode(loc.latitude, loc.longitude);
+          loc.city = geo.city;
+          loc.country = geo.country;
+          userLocationRef.current = loc;
+          setLocationReady(true);
+          console.log('[Places] Native location:', loc);
+        }
+      } catch (error) {
+        console.log('[Places] Location error:', error);
+        if (!cancelled) setLocationReady(true);
+      }
+    }
+
+    void getLocation();
+    return () => { cancelled = true; };
+  }, []);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 30),
+    mutationFn: (query: string) => searchPlacesAI(query, 30, userLocationRef.current),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
