@@ -8,6 +8,8 @@ import type { User } from '@/types/user';
 import { useChat } from '@/hooks/use-chat';
 import { mockUsers } from '@/mocks/users';
 import { useFavorites } from '@/hooks/use-favorites';
+import { mockMealUps } from '@/mocks/meal-ups';
+import { ChevronRight } from 'lucide-react-native';
 
 
 import { router } from 'expo-router';
@@ -360,32 +362,43 @@ export default function ProfileScreen() {
   };
 
   const renderMealUpsTab = () => {
+    const userMealUps = mockMealUps.filter(m => user && m.currentAttendees.includes(user.id));
+
     return (
       <View style={styles.tabContent}>
         <Text style={styles.tabDescription}>
-          Your upcoming meal up events
+          Your meal up events
         </Text>
         <View style={styles.mealUpsContainer}>
-          <View style={styles.mealUpItem}>
-            <View style={styles.mealUpInfo}>
-              <Text style={styles.mealUpTitle}>Sushi Social</Text>
-              <Text style={styles.mealUpDate}>Dec 20, 2024</Text>
-              <Text style={styles.mealUpVenue}>Sakura Sushi</Text>
-            </View>
-            <View style={styles.mealUpStatus}>
-              <Text style={styles.statusTextUpcoming}>Upcoming</Text>
-            </View>
-          </View>
-          <View style={styles.mealUpItem}>
-            <View style={styles.mealUpInfo}>
-              <Text style={styles.mealUpTitle}>Brunch & Mimosas</Text>
-              <Text style={styles.mealUpDate}>Dec 25, 2024</Text>
-              <Text style={styles.mealUpVenue}>The Garden Cafe</Text>
-            </View>
-            <View style={styles.mealUpStatus}>
-              <Text style={styles.statusTextUpcoming}>Upcoming</Text>
-            </View>
-          </View>
+          {userMealUps.length === 0 ? (
+            <Text style={styles.emptyFoodHint}>You haven't joined any meal ups yet!</Text>
+          ) : (
+            userMealUps.map((mealUp) => {
+              const formattedDate = new Date(mealUp.date).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              });
+              return (
+                <TouchableOpacity
+                  key={mealUp.id}
+                  style={styles.mealUpItem}
+                  activeOpacity={0.7}
+                  onPress={() => router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any)}
+                >
+                  <View style={styles.mealUpInfo}>
+                    <Text style={styles.mealUpTitle}>{mealUp.title}</Text>
+                    <Text style={styles.mealUpDate}>{formattedDate}</Text>
+                    <Text style={styles.mealUpVenue}>{mealUp.venue.name}</Text>
+                  </View>
+                  <View style={styles.mealUpDetailsButton}>
+                    <Text style={styles.mealUpDetailsButtonText}>Details</Text>
+                    <ChevronRight size={14} color={Colors.background} />
+                  </View>
+                </TouchableOpacity>
+              );
+            })
+          )}
         </View>
       </View>
     );
@@ -1147,13 +1160,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
   },
-  mealUpStatus: {
+  mealUpDetailsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
     backgroundColor: Colors.primary,
+    gap: 2,
   },
-  statusTextUpcoming: {
+  mealUpDetailsButtonText: {
     fontSize: 12,
     fontWeight: '600',
     color: Colors.background,
