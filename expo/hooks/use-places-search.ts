@@ -194,8 +194,11 @@ export function usePlacesSearch() {
 
     async function getLocation() {
       try {
+        console.log('[Places] Starting location detection, platform:', Platform.OS);
+
         if (Platform.OS === 'web') {
           if ('geolocation' in navigator) {
+            console.log('[Places] Requesting web geolocation...');
             navigator.geolocation.getCurrentPosition(
               async (position) => {
                 if (cancelled) return;
@@ -220,7 +223,7 @@ export function usePlacesSearch() {
                   setLocationReady(true);
                 }
               },
-              { timeout: 15000, enableHighAccuracy: true, maximumAge: 60000 }
+              { timeout: 15000, enableHighAccuracy: false, maximumAge: 300000 }
             );
           } else {
             console.log('[Places] Web geolocation not available');
@@ -228,17 +231,33 @@ export function usePlacesSearch() {
             setLocationReady(true);
           }
         } else {
-          const { status } = await Location.requestForegroundPermissionsAsync();
-          if (status !== 'granted') {
+          console.log('[Places] Checking existing location permissions...');
+          const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+          console.log('[Places] Existing permission status:', existingStatus);
+
+          let finalStatus = existingStatus;
+          if (existingStatus !== 'granted') {
+            console.log('[Places] Requesting location permission...');
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            finalStatus = status;
+            console.log('[Places] Permission result:', status);
+          }
+
+          if (finalStatus !== 'granted') {
             console.log('[Places] Location permission denied');
-            setLocationError('Permission denied');
-            setLocationReady(true);
+            if (!cancelled) {
+              setLocationError('Location permission denied. Please enable location in your device settings.');
+              setLocationReady(true);
+            }
             return;
           }
+
+          console.log('[Places] Getting current position...');
           const position = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Balanced,
           });
           if (cancelled) return;
+          console.log('[Places] Got position:', position.coords.latitude, position.coords.longitude);
           const loc: UserLocation = {
             latitude: position.coords.latitude,
             longitude: position.coords.longitude,
@@ -246,21 +265,29 @@ export function usePlacesSearch() {
           const geo = await reverseGeocode(loc.latitude, loc.longitude);
           loc.city = geo.city;
           loc.country = geo.country;
-          setUserLocation(loc);
-          setLocationReady(true);
-          console.log('[Places] Native location detected:', loc);
+          if (!cancelled) {
+            setUserLocation(loc);
+            setLocationReady(true);
+            console.log('[Places] Native location detected:', loc);
+          }
         }
       } catch (error) {
         console.log('[Places] Location error:', error);
         if (!cancelled) {
-          setLocationError('Failed to get location');
+          setLocationError('Failed to get location. Please check your location settings.');
           setLocationReady(true);
         }
       }
     }
 
-    void getLocation();
-    return () => { cancelled = true; };
+    const timer = setTimeout(() => {
+      void getLocation();
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
   }, []);
 
   const mutation = useMutation({
