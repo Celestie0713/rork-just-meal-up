@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils } from 'lucide-react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -199,6 +199,19 @@ export default function SearchScreen() {
               >
                 <Send size={18} color={placesInputValue.trim().length > 0 ? '#FF6B35' : '#CCCCCC'} />
               </TouchableOpacity>
+            </View>
+            <View style={styles.locationStatusRow}>
+              <Navigation size={14} color={placesSearch.locationDetected ? '#4CAF50' : '#999999'} />
+              <Text style={[
+                styles.locationStatusText,
+                placesSearch.locationDetected ? styles.locationDetected : styles.locationNotDetected
+              ]}>
+                {!placesSearch.locationReady
+                  ? 'Detecting your location...'
+                  : placesSearch.locationDetected
+                    ? `Location: ${placesSearch.locationCity || 'Detected'}`
+                    : 'Location not available — results may be less relevant'}
+              </Text>
             </View>
           </View>
           {placesSearch.isLoading && (
@@ -1372,5 +1385,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  locationStatusRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 6,
+    marginTop: 10,
+    paddingHorizontal: 4,
+  },
+  locationStatusText: {
+    fontSize: 12,
+    fontWeight: '500' as const,
+  },
+  locationDetected: {
+    color: '#4CAF50',
+  },
+  locationNotDetected: {
+    color: '#999999',
   },
 });

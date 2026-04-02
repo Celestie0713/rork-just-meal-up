@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { generateObject } from '@rork-ai/toolkit-sdk';
@@ -162,10 +162,32 @@ If no location is specified and user location is unknown, return places from pop
   };
 }
 
+async function reverseGeocodeWeb(latitude: number, longitude: number): Promise<{ city?: string; country?: string }> {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&accept-language=en`
+    );
+    if (response.ok) {
+      const data = await response.json();
+      const address = data?.address;
+      if (address) {
+        return {
+          city: address.city || address.town || address.village || address.suburb || address.state,
+          country: address.country,
+        };
+      }
+    }
+  } catch (e) {
+    console.log('[Places] Web reverse geocode failed:', e);
+  }
+  return {};
+}
+
 export function usePlacesSearch() {
   const [data, setData] = useState<PlacesSearchResult | null>(null);
-  const userLocationRef = useRef<UserLocation | null>(null);
-  const [_locationReady, setLocationReady] = useState(false);
+  const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
+  const [locationReady, setLocationReady] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -177,30 +199,39 @@ export function usePlacesSearch() {
             navigator.geolocation.getCurrentPosition(
               async (position) => {
                 if (cancelled) return;
+                console.log('[Places] Web raw coords:', position.coords.latitude, position.coords.longitude);
                 const loc: UserLocation = {
                   latitude: position.coords.latitude,
                   longitude: position.coords.longitude,
                 };
-                const geo = await reverseGeocode(loc.latitude, loc.longitude);
+                const geo = await reverseGeocodeWeb(loc.latitude, loc.longitude);
                 loc.city = geo.city;
                 loc.country = geo.country;
-                userLocationRef.current = loc;
-                setLocationReady(true);
-                console.log('[Places] Web location:', loc);
+                if (!cancelled) {
+                  setUserLocation(loc);
+                  setLocationReady(true);
+                  console.log('[Places] Web location detected:', loc);
+                }
               },
               (err) => {
-                console.log('[Places] Web geolocation error:', err.message);
-                setLocationReady(true);
+                console.log('[Places] Web geolocation error:', err.message, 'code:', err.code);
+                if (!cancelled) {
+                  setLocationError(err.message);
+                  setLocationReady(true);
+                }
               },
-              { timeout: 10000, enableHighAccuracy: false }
+              { timeout: 15000, enableHighAccuracy: true, maximumAge: 60000 }
             );
           } else {
+            console.log('[Places] Web geolocation not available');
+            setLocationError('Geolocation not supported');
             setLocationReady(true);
           }
         } else {
           const { status } = await Location.requestForegroundPermissionsAsync();
           if (status !== 'granted') {
             console.log('[Places] Location permission denied');
+            setLocationError('Permission denied');
             setLocationReady(true);
             return;
           }
@@ -215,13 +246,16 @@ export function usePlacesSearch() {
           const geo = await reverseGeocode(loc.latitude, loc.longitude);
           loc.city = geo.city;
           loc.country = geo.country;
-          userLocationRef.current = loc;
+          setUserLocation(loc);
           setLocationReady(true);
-          console.log('[Places] Native location:', loc);
+          console.log('[Places] Native location detected:', loc);
         }
       } catch (error) {
         console.log('[Places] Location error:', error);
-        if (!cancelled) setLocationReady(true);
+        if (!cancelled) {
+          setLocationError('Failed to get location');
+          setLocationReady(true);
+        }
       }
     }
 
@@ -230,7 +264,7 @@ export function usePlacesSearch() {
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 30, userLocationRef.current),
+    mutationFn: (query: string) => searchPlacesAI(query, 30, userLocation),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
@@ -252,6 +286,10 @@ export function usePlacesSearch() {
     isError: mutation.isError,
     error: mutation.error,
     search,
+    locationReady,
+    locationDetected: userLocation !== null,
+    locationCity: userLocation?.city ?? null,
+    locationError,
     refetch: () => {
       if (mutation.variables) {
         mutation.mutate(mutation.variables);
