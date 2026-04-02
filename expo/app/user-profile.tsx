@@ -243,26 +243,7 @@ export default function UserProfileScreen() {
           <Text style={styles.sectionTitle}>Bio</Text>
           <Text style={styles.bio}>{user.bio}</Text>
         </View>
-        <View style={styles.preferencesSection}>
-          <Text style={styles.sectionTitle}>Dating Preferences</Text>
-          <View style={styles.personalInfoRow}>
-            <View style={styles.halfPreferenceItem}>
-              <Text style={styles.preferenceLabel}>Preferred Language</Text>
-              <Text style={styles.preferenceValue}>
-                {user.preferences.preferredEthnicity?.length 
-                  ? user.preferences.preferredEthnicity.join(', ')
-                  : 'Not specified'
-                }
-              </Text>
-            </View>
-            <View style={styles.halfPreferenceItem}>
-              <Text style={styles.preferenceLabel}>Preferred Income Level</Text>
-              <Text style={styles.preferenceValue}>
-                {user.preferences.preferredIncomeLevel || 'Not specified'}
-              </Text>
-            </View>
-          </View>
-        </View>
+
         {renderTabBar()}
         {renderTabContent()}
         <View style={styles.scrollViewBottomPadding} />

@@ -739,40 +739,7 @@ export default function ProfileScreen() {
             <Text style={styles.bio}>{user.bio}</Text>
           )}
         </View>
-        <View style={styles.preferencesSection}>
-          <Text style={styles.sectionTitle}>Dating Preferences</Text>
-          <View style={styles.personalInfoRow}>
-            <TouchableOpacity 
-              style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowLanguageModal(true)}
-              disabled={!isEditing}
-            >
-              <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Preferred language</Text>
-                {isEditing && <Edit3 size={16} color={Colors.primary} />}
-              </View>
-              <Text style={styles.preferenceValue}>
-                {(isEditing ? editedUser?.preferences.preferredEthnicity : user.preferences.preferredEthnicity)?.length 
-                  ? (isEditing ? editedUser?.preferences.preferredEthnicity : user.preferences.preferredEthnicity)?.join(', ')
-                  : 'Not specified'
-                }
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowPreferredIncomeModal(true)}
-              disabled={!isEditing}
-            >
-              <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Preferred Income Level</Text>
-                {isEditing && <Edit3 size={16} color={Colors.primary} />}
-              </View>
-              <Text style={styles.preferenceValue}>
-                {(isEditing ? editedUser?.preferences.preferredIncomeLevel : user.preferences.preferredIncomeLevel) || 'Not specified'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+
         {renderTabBar()}
         {renderTabContent()}
         <View style={styles.scrollViewBottomPadding} />
