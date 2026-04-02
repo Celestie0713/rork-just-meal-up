@@ -72,15 +72,6 @@ export default function GroupDetailsScreen() {
     router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any);
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const seconds = Math.floor((Date.now() - date.getTime()) / 1000);
-    
-    if (seconds < 60) return 'just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return `${Math.floor(seconds / 86400)}d ago`;
-  };
-
   return (
     <View style={styles.container}>
       <Stack.Screen 
@@ -147,33 +138,7 @@ export default function GroupDetailsScreen() {
             ))}
           </View>
         )}
-        {group.posts.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Member Posts</Text>
-            {group.posts.map(post => (
-              <View key={post.id} style={styles.postCard}>
-                <View style={styles.postHeader}>
-                  <Image source={{ uri: post.userImage }} style={styles.postUserImage} />
-                  <View style={styles.postUserInfo}>
-                    <Text style={styles.postUserName}>{post.userName}</Text>
-                    <Text style={styles.postTime}>{formatTimeAgo(post.timestamp)}</Text>
-                  </View>
-                </View>
-                <Text style={styles.postContent}>{post.content}</Text>
-                {post.imageUrl && (
-                  <Image source={{ uri: post.imageUrl }} style={styles.postImage} />
-                )}
-                <View style={styles.postFooter}>
-                  <TouchableOpacity style={styles.likeButton}>
-                    <Heart size={18} color={Colors.primary} />
-                    <Text style={styles.likeCount}>{post.likes}</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
-        {group.posts.length === 0 && upcomingMealUpsData.length === 0 && (
+        {upcomingMealUpsData.length === 0 && (
           <View style={styles.emptyState}>
             <Text style={styles.emptyStateText}>
               No posts or upcoming events yet. Be the first to start the conversation!
@@ -279,70 +244,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 16,
   },
-  postCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  postHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  postUserImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  postUserInfo: {
-    flex: 1,
-  },
-  postUserName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: Colors.text,
-    marginBottom: 2,
-  },
-  postTime: {
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  postContent: {
-    fontSize: 15,
-    color: Colors.text,
-    lineHeight: 22,
-    marginBottom: 12,
-  },
-  postImage: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  postFooter: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  likeButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  likeCount: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
+
   emptyState: {
     padding: 40,
     alignItems: 'center',
