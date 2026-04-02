@@ -310,7 +310,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.viewOnMapsButton}
                       onPress={() => {
-                        const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(result.place.name + ' ' + result.place.city)}`;
+                        const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(result.place.name + ', ' + (result.place.address || '') + ', ' + result.place.city)}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >
@@ -402,7 +402,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
-                        const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(selectedPlace.place.name + ' ' + selectedPlace.place.city)}`;
+                        const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.place.name + ', ' + (selectedPlace.place.address || '') + ', ' + selectedPlace.place.city)}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >

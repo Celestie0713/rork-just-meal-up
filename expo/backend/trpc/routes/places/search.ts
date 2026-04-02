@@ -95,7 +95,9 @@ If no location specified, return places from popular cities for that cuisine.`,
           cuisineEmoji: place.cuisineEmoji || '\ud83c\udf7d\ufe0f',
           phoneNumber: place.phoneNumber,
           website: place.website,
-          googleMapsUrl: place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(place.name + ' ' + place.city)}`,
+          googleMapsUrl: place.latitude && place.longitude
+            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.address + ', ' + place.city)}&center=${place.latitude},${place.longitude}&zoom=17`
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.address + ', ' + place.city + ', ' + place.country)}`,
           openingHours: place.openingHours,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
