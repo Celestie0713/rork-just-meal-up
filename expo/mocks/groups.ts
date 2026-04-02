@@ -20,6 +20,11 @@ export interface Group {
   description: string;
   posts: GroupPost[];
   upcomingMealUps: string[];
+  hostedBy: {
+    userId: string;
+    name: string;
+    avatar: string;
+  };
 }
 
 export const mockGroups: Group[] = [
@@ -54,6 +59,7 @@ export const mockGroups: Group[] = [
       },
     ],
     upcomingMealUps: ['1', '2'],
+    hostedBy: { userId: '2', name: 'Sarah Chen', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
   },
   {
     id: '2',
@@ -76,6 +82,7 @@ export const mockGroups: Group[] = [
       },
     ],
     upcomingMealUps: ['3'],
+    hostedBy: { userId: '3', name: 'Emma Wilson', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop' },
   },
   {
     id: '3',
@@ -88,6 +95,7 @@ export const mockGroups: Group[] = [
     description: 'Exploring Brooklyn\'s incredible food scene, one meal at a time. From hidden gems to Michelin stars, we eat it all!',
     posts: [],
     upcomingMealUps: ['1'],
+    hostedBy: { userId: '1', name: 'Alex Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
   {
     id: '4',
@@ -100,6 +108,7 @@ export const mockGroups: Group[] = [
     description: 'For those who appreciate fine wine and great company. Monthly tastings, winery tours, and sophisticated dining experiences.',
     posts: [],
     upcomingMealUps: ['2'],
+    hostedBy: { userId: '5', name: 'Michael Rodriguez', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
   {
     id: '5',
@@ -111,6 +120,7 @@ export const mockGroups: Group[] = [
     description: 'Plant-based dating and dining. Meet fellow vegans for meals, cooking classes, and ethical living discussions.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '3', name: 'Emma Wilson', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop' },
   },
   {
     id: '6',
@@ -122,6 +132,7 @@ export const mockGroups: Group[] = [
     description: 'Dog lovers unite for park meetups, brunch dates, and pup-friendly adventures across NYC.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '2', name: 'Sarah Chen', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
   },
   {
     id: '7',
@@ -133,6 +144,7 @@ export const mockGroups: Group[] = [
     description: 'Casual coffee meetups for meaningful conversations. Perfect for introverts and deep thinkers.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '1', name: 'Alex Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
   {
     id: '8',
@@ -145,6 +157,7 @@ export const mockGroups: Group[] = [
     description: 'Combining our love of literature and food. Monthly book discussions over dinner at cozy restaurants.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '5', name: 'Michael Rodriguez', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
   {
     id: '9',
@@ -156,6 +169,7 @@ export const mockGroups: Group[] = [
     description: 'Work out together, then brunch together. Yoga, runs, and the best brunch spots in NYC.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '2', name: 'Sarah Chen', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
   },
   {
     id: '10',
@@ -168,6 +182,7 @@ export const mockGroups: Group[] = [
     description: 'Appreciating live jazz over dinner and drinks. From smooth classics to avant-garde performances.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '3', name: 'Emma Wilson', avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop' },
   },
   {
     id: '11',
@@ -179,6 +194,7 @@ export const mockGroups: Group[] = [
     description: 'Enjoying NYC\'s best rooftop views during golden hour. Sunset gatherings with drinks and small bites.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '1', name: 'Alex Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
   {
     id: '12',
@@ -191,5 +207,6 @@ export const mockGroups: Group[] = [
     description: 'Exploring NYC\'s craft beer scene. Brewery tours, tastings, and pub crawls with fellow beer enthusiasts.',
     posts: [],
     upcomingMealUps: [],
+    hostedBy: { userId: '5', name: 'Michael Rodriguez', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
 ];

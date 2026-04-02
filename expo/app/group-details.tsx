@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { MapPin, Users, DollarSign, Heart, Calendar } from 'lucide-react-native';
+import { MapPin, Users, DollarSign, Heart, Calendar, Crown } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockGroups } from '@/mocks/groups';
@@ -114,6 +114,18 @@ export default function GroupDetailsScreen() {
               <Text style={styles.infoLabel}>{group.location}</Text>
             </View>
           </View>
+          <TouchableOpacity
+            style={styles.hostRow}
+            onPress={() => router.push(`/user-profile?userId=${group.hostedBy.userId}` as any)}
+            activeOpacity={0.7}
+          >
+            <Image source={{ uri: group.hostedBy.avatar }} style={styles.hostAvatar} />
+            <View style={styles.hostInfo}>
+              <Text style={styles.hostLabel}>Hosted by</Text>
+              <Text style={styles.hostName}>{group.hostedBy.name}</Text>
+            </View>
+            <Crown size={18} color={Colors.primary} />
+          </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.joinButton, isMember && styles.leaveButton]}
             onPress={isMember ? handleLeaveGroup : handleJoinGroup}
@@ -204,6 +216,35 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 14,
     fontWeight: '600',
+    color: '#000000',
+  },
+  hostRow: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 14,
+    marginBottom: 16,
+    gap: 12,
+  },
+  hostAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  hostInfo: {
+    flex: 1,
+  },
+  hostLabel: {
+    fontSize: 12,
+    color: '#888888',
+    fontWeight: '500' as const,
+  },
+  hostName: {
+    fontSize: 16,
+    fontWeight: '700' as const,
     color: '#000000',
   },
   joinButton: {
