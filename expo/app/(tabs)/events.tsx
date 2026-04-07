@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Alert, Image, Dimensions, Modal, ScrollView } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Filter, Plus, Users, X } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -16,50 +16,17 @@ export default function EventsScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedDistance, setSelectedDistance] = useState<number | null>(null);
   const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
-  const { user } = useAuth();
+  const _auth = useAuth();
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
     router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any);
   };
 
-  const handleCreateMealUp = () => {
-    console.log('=== CREATE MEAL UP BUTTON CLICKED ===');
-    console.log('User:', user);
-    console.log('Is paid member:', isPaidMember);
-    
-    if (isPaidMember) {
-      console.log('Navigating to create-meal-up screen...');
-      try {
-        router.push('/create-meal-up' as any);
-        console.log('Navigation successful');
-      } catch (error) {
-        console.error('Navigation error:', error);
-      }
-    } else {
-      // Show upgrade prompt for non-premium members
-      Alert.alert(
-        'Upgrade to Premium',
-        'Only premium members can organize meal ups. Upgrade now to start creating amazing dining experiences!',
-        [
-          {
-            text: 'Maybe Later',
-            style: 'cancel'
-          },
-          {
-            text: 'Upgrade Now',
-            onPress: () => {
-              console.log('User wants to upgrade');
-              // TODO: Navigate to upgrade screen
-              Alert.alert('Upgrade', 'Upgrade feature coming soon!');
-            }
-          }
-        ]
-      );
-    }
+  const handleCreateGroup = () => {
+    console.log('=== CREATE GROUP BUTTON CLICKED ===');
+    router.push('/create-group' as any);
   };
-
-  const isPaidMember = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
 
   const now = new Date();
 
@@ -114,7 +81,7 @@ export default function EventsScreen() {
             <Text style={styles.title}>Meal Ups</Text>
             <Text style={styles.subtitle}>Join group dining experiences</Text>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={handleCreateMealUp}>
+          <TouchableOpacity style={styles.addButton} onPress={handleCreateGroup}>
             <Plus size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>

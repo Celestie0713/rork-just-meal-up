@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert } from 'react-native';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { MapPin, Users, DollarSign, Heart, Calendar, Crown } from 'lucide-react-native';
+import { MapPin, Users, DollarSign, Heart, Calendar, Crown, Plus } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockGroups } from '@/mocks/groups';
@@ -134,6 +134,15 @@ export default function GroupDetailsScreen() {
               {isMember ? 'Leave Group' : 'Join Group'}
             </Text>
           </TouchableOpacity>
+          {isMember && (
+            <TouchableOpacity 
+              style={styles.createMealUpButton}
+              onPress={() => router.push(`/create-meal-up?groupId=${group.id}&groupName=${encodeURIComponent(group.name)}` as any)}
+            >
+              <Plus size={20} color="#FFFFFF" />
+              <Text style={styles.createMealUpButtonText}>Create Meal Up Session</Text>
+            </TouchableOpacity>
+          )}
         </LinearGradient>
         {upcomingMealUpsData.length > 0 && (
           <View style={styles.section}>
@@ -267,6 +276,26 @@ const styles = StyleSheet.create({
   joinButtonText: {
     fontSize: 18,
     fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  createMealUpButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: '#1A8D1A',
+    paddingVertical: 14,
+    borderRadius: 12,
+    marginTop: 12,
+    gap: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  createMealUpButtonText: {
+    fontSize: 16,
+    fontWeight: '700' as const,
     color: '#FFFFFF',
   },
   section: {

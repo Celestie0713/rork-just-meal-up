@@ -12,7 +12,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { Calendar, Clock, MapPin, Users, ArrowLeft, Video, X, Plus } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -22,6 +22,7 @@ import { Video as ExpoVideo, ResizeMode } from 'expo-av';
 
 export default function CreateMealUpScreen() {
   useAuth();
+  const { groupId: _groupId, groupName } = useLocalSearchParams<{ groupId?: string; groupName?: string }>();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -170,9 +171,10 @@ export default function CreateMealUpScreen() {
     }
 
     // Show success message and navigate back
+    const groupLabel = groupName ? ` in ${decodeURIComponent(groupName)}` : '';
     Alert.alert(
       'Meal Up Created!',
-      `Your meal up has been created successfully with ${mediaFiles.length} media files. Other users can now join!`,
+      `Your meal up has been created successfully${groupLabel} with ${mediaFiles.length} media files. Group members can now join!`,
       [
         {
           text: 'OK',
@@ -191,7 +193,7 @@ export default function CreateMealUpScreen() {
     >
       <Stack.Screen 
         options={{
-          title: 'Create Meal Up',
+          title: groupName ? `New Meal Up — ${decodeURIComponent(groupName)}` : 'Create Meal Up',
           headerLeft: () => (
             <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
               <ArrowLeft size={24} color="#FF0000" />
