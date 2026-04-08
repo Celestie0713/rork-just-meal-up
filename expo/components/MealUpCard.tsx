@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors, Gradients } from '@/constants/colors';
 import type { MealUp } from '@/types/user';
@@ -107,6 +107,14 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
       </View>
       <View style={styles.content}>
         <Text style={styles.title}>{mealUp.title}</Text>
+        {mealUp.group && (
+          <View style={styles.groupBadge}>
+            <UsersRound size={13} color={Colors.primary} />
+            <Text style={styles.groupText}>
+              {mealUp.organizerName} <Text style={styles.groupFromText}>from</Text> <Text style={styles.groupName}>{mealUp.group.name}</Text>
+            </Text>
+          </View>
+        )}
         <View style={styles.detailsContainer}>
           <View style={styles.detailRow}>
             <Calendar size={16} color={Colors.primary} />
@@ -349,6 +357,30 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
+  },
+  groupBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginBottom: 12,
+    gap: 6,
+  },
+  groupText: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: '500' as const,
+    flex: 1,
+  },
+  groupFromText: {
+    color: Colors.textLight,
+    fontWeight: '400' as const,
+  },
+  groupName: {
+    color: Colors.primary,
+    fontWeight: '600' as const,
   },
   attendeesInfo: {
     flexDirection: 'row',

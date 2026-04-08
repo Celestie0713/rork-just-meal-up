@@ -83,6 +83,7 @@ export interface PostDateResponse {
 export interface MealUp {
   id: string;
   organizerId: string;
+  organizerName: string;
   title: string;
   description: string;
   date: Date;
@@ -97,6 +98,10 @@ export interface MealUp {
   ticketPrice: number;
   imageUrl: string;
   images?: string[];
+  group?: {
+    id: string;
+    name: string;
+  };
   priceDetails: {
     includesFood: boolean;
     paymentType: 'go_dutch' | 'organizer_pays' | 'individual_pays';

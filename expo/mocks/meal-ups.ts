@@ -4,6 +4,7 @@ export const mockMealUps: MealUp[] = [
   {
     id: '1',
     organizerId: '4',
+    organizerName: 'Marcus Johnson',
     title: 'Farm-to-Table Dinner Experience',
     description: 'Join us for an intimate dinner featuring locally sourced ingredients and seasonal flavors. Perfect for meeting fellow food enthusiasts!',
     date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000), // 3 days from now
@@ -23,6 +24,10 @@ export const mockMealUps: MealUp[] = [
       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
       'https://images.unsplash.com/photo-1565299624946-b28f40a0ca4b?w=800&h=400&fit=crop'
     ],
+    group: {
+      id: '1',
+      name: '35+ singles in NY with cats',
+    },
     priceDetails: {
       includesFood: true,
       paymentType: 'individual_pays',
@@ -32,6 +37,7 @@ export const mockMealUps: MealUp[] = [
   {
     id: '2',
     organizerId: '4',
+    organizerName: 'Marcus Johnson',
     title: 'Wine & Tapas Social',
     description: 'Casual evening of Spanish tapas and wine pairings. Great for breaking the ice and making new connections!',
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
@@ -51,6 +57,10 @@ export const mockMealUps: MealUp[] = [
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=400&fit=crop',
       'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=400&fit=crop'
     ],
+    group: {
+      id: '4',
+      name: 'Manhattan Wine Lovers',
+    },
     priceDetails: {
       includesFood: true,
       paymentType: 'go_dutch',
@@ -60,6 +70,7 @@ export const mockMealUps: MealUp[] = [
   {
     id: '3',
     organizerId: '6',
+    organizerName: 'David Kim',
     title: 'Sushi Making Workshop',
     description: 'Learn the art of sushi making while meeting amazing people. All skill levels welcome!',
     date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
@@ -79,6 +90,10 @@ export const mockMealUps: MealUp[] = [
       'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&h=400&fit=crop',
       'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=800&h=400&fit=crop'
     ],
+    group: {
+      id: '2',
+      name: 'Golden retriever owner in NY',
+    },
     priceDetails: {
       includesFood: true,
       paymentType: 'organizer_pays',
@@ -88,6 +103,7 @@ export const mockMealUps: MealUp[] = [
   {
     id: '4',
     organizerId: '4',
+    organizerName: 'Marcus Johnson',
     title: 'Italian Cooking Class',
     description: 'Master the art of authentic Italian pasta making in this hands-on cooking experience.',
     date: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000), // 4 days ago
@@ -105,6 +121,10 @@ export const mockMealUps: MealUp[] = [
       'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
       'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=800&h=400&fit=crop'
     ],
+    group: {
+      id: '3',
+      name: 'Brooklyn Foodies',
+    },
     priceDetails: {
       includesFood: true,
       paymentType: 'individual_pays',
@@ -114,6 +134,7 @@ export const mockMealUps: MealUp[] = [
   {
     id: '5',
     organizerId: '4',
+    organizerName: 'Marcus Johnson',
     title: 'Rooftop BBQ Social',
     description: 'Summer BBQ with city views, great food, and even better company!',
     date: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000), // 6 days ago
@@ -131,6 +152,10 @@ export const mockMealUps: MealUp[] = [
       'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
       'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop'
     ],
+    group: {
+      id: '11',
+      name: 'Rooftop Sunset Socials',
+    },
     priceDetails: {
       includesFood: true,
       paymentType: 'go_dutch',
