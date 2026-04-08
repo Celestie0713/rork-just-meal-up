@@ -264,7 +264,7 @@ export default function MessagesScreen() {
       {isMealUpShareMode && mealUpData && (
         <View style={styles.mealUpSummary}>
           <View style={styles.mealUpHeader}>
-            {mealUpData.image && (
+            {!!mealUpData.image && (
               <Image source={{ uri: mealUpData.image }} style={styles.mealUpImage} />
             )}
             <View style={styles.mealUpInfo}>

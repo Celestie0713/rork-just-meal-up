@@ -1008,7 +1008,7 @@ export default function PostMealScreen() {
         onPress={() => handleEventPress(event)}
         disabled={!isGroup}
       >
-        {event.imageUrl && (
+        {!!event.imageUrl && (
           <Image source={{ uri: event.imageUrl }} style={styles.eventImage} />
         )}
         <View style={styles.eventContent}>
@@ -1154,7 +1154,7 @@ export default function PostMealScreen() {
                         <Text style={[styles.choiceButtonText, styles.selectedChoiceText, !hasPaid && styles.blurredChoiceText]}>
                           {displayChoice ? displayChoice.text : 'No decision yet — currently marinating 🍖 #patience'}
                         </Text>
-                        {displayChoice && (
+                        {!!displayChoice && (
                           <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, !hasPaid && styles.blurredChoiceText]}>
                             {displayChoice.subtext}
                           </Text>
@@ -1561,7 +1561,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🥩</Text>
                 <Text style={styles.matchModalDescription}>
                   No decision yet — currently marinating 🍖 #patience
-                  {matchResult?.eventId && (() => {
+                  {!!matchResult?.eventId && (() => {
                     const eventId = matchResult.eventId;
                     const event = postMealEvents.find(e => e.id === eventId);
                     if (event) {
@@ -1706,7 +1706,7 @@ export default function PostMealScreen() {
             )}
           </View>
           {/* Animated Balloons */}
-          {matchResult?.isMatch && (
+          {!!matchResult?.isMatch && (
             <Animated.View 
               style={[
                 styles.balloonsContainer,

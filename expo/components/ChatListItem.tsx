@@ -46,7 +46,7 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.name} numberOfLines={1}>{user.name}</Text>
-          {lastMessageTime && (
+          {!!lastMessageTime && (
             <Text style={styles.time}>{formatTime(lastMessageTime)}</Text>
           )}
         </View>

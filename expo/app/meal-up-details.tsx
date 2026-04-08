@@ -166,7 +166,7 @@ export default function MealUpDetailsScreen() {
         </View>
         <View style={styles.content}>
           <Text style={styles.title}>{mealUp.title}</Text>
-          {organizer && (
+          {!!organizer && (
             <TouchableOpacity 
               style={styles.organizerContainer}
               onPress={() => router.push(`/user-profile?userId=${organizer.id}` as any)}

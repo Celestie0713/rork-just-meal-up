@@ -368,7 +368,7 @@ export default function SearchScreen() {
         <View style={styles.placeDetailOverlay}>
           <View style={styles.placeDetailContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
-              {selectedPlace && (
+              {!!selectedPlace && (
                 <>
                   <TouchableOpacity
                     style={styles.closeDetailButton}
