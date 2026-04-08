@@ -1033,7 +1033,7 @@ export default function PostMealScreen() {
                   const inviter = invitation ? mockUsers.find(u => u.id === invitation.inviterId) : null;
                   return (
                     <View style={styles.profileInfo}>
-                      {inviter?.photos?.[0] && (
+                      {!!inviter?.photos?.[0] && (
                         <Image 
                           source={{ uri: inviter.photos[0] }} 
                           style={styles.profileImage} 
