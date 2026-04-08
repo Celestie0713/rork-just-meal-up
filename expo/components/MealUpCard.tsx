@@ -110,9 +110,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
         {mealUp.group && (
           <View style={styles.groupBadge}>
             <UsersRound size={13} color={Colors.primary} />
-            <Text style={styles.groupText}>
-              {mealUp.organizerName} <Text style={styles.groupFromText}>from</Text> <Text style={styles.groupName}>{mealUp.group.name}</Text>
-            </Text>
+            <Text style={styles.groupName}>{mealUp.group.name}</Text>
           </View>
         )}
         <View style={styles.detailsContainer}>
