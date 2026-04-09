@@ -101,7 +101,7 @@ export default function MessagesScreen() {
         image: params.mealUpImage,
       });
     }
-  }, [params]);
+  }, [params.fromInvitation, params.fromMealUpShare, params.placeName, params.placeAddress, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
