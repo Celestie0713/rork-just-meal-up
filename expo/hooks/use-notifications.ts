@@ -7,6 +7,7 @@ export interface Notification {
   id: string;
   type: NotificationType;
   title: string;
+  subtitle?: string;
   message: string;
   userId?: string;
   mealId?: string;
@@ -52,7 +53,8 @@ export const [NotificationProvider, useNotifications] = createContextHook(() => 
   const addMatchDecisionNotification = useCallback((userName: string, decision: string, venue: string, userId: string, mealId: string, isPremiumUser: boolean) => {
     addNotification({
       type: 'match_decision',
-      title: `${userName} had made a decision. Make your decision now before the timer runs out.`,
+      title: `${userName} had made a decision.`,
+      subtitle: 'Make your decision now before the timer runs out.',
       message: `Your date at ${venue} is waiting for your decision.`,
       userId,
       mealId

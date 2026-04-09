@@ -157,9 +157,14 @@ function NotificationItem({ notification, onPress, formatTimeAgo, getNotificatio
         {getNotificationIcon(notification.type)}
       </View>
       <View style={styles.notificationContent}>
-        <Text style={[styles.notificationTitle, !notification.read && styles.unreadText]}>
+        <Text style={[styles.notificationTitle, notification.type === 'match_decision' && styles.redText]}>
           {notification.title}
         </Text>
+        {notification.subtitle ? (
+          <Text style={styles.notificationSubtitle}>
+            {notification.subtitle}
+          </Text>
+        ) : null}
         <Text style={styles.notificationMessage}>
           {notification.message}
         </Text>
@@ -263,6 +268,15 @@ const styles = StyleSheet.create({
   },
   unreadText: {
     color: colors.primary,
+  },
+  redText: {
+    color: '#E53935',
+  },
+  notificationSubtitle: {
+    fontSize: 15,
+    fontWeight: '500' as const,
+    color: colors.text,
+    marginBottom: 4,
   },
   notificationMessage: {
     fontSize: 14,
