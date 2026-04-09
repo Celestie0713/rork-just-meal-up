@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, clearChatForFightForFries } = useChat();
   const { addMatchDecisionNotification, addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -87,6 +87,7 @@ export default function PostMealScreen() {
   const [selectedTab, setSelectedTab] = useState<'1on1' | 'group'>('1on1');
   const [paidToViewChoices, setPaidToViewChoices] = useState<Record<string, boolean>>({});
   const [profilesToRemove, setProfilesToRemove] = useState<{ userId: string; invitationId: string }[]>([]);
+  const [fightForFriesVanished, setFightForFriesVanished] = useState<Record<string, boolean>>({});
   const [showTipModal, setShowTipModal] = useState(false);
   const [selectedEventForTip, setSelectedEventForTip] = useState<string | null>(null);
 
@@ -236,6 +237,12 @@ export default function PostMealScreen() {
       )
       .forEach(invitation => {
         const eventId = `invitation-${invitation.id}`;
+        
+        if (fightForFriesVanished[eventId]) {
+          console.log(`Event ${eventId} - vanished due to mutual fight_for_fries match`);
+          return;
+        }
+        
         const eventDateTime = parseDateTime(invitation.date, invitation.time);
         const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
         const invitationId = invitation.id;
@@ -294,8 +301,13 @@ export default function PostMealScreen() {
             const isMatch = userChoice === dateChoice;
             
             if (isMatch) {
-              // When there's a match, remove the profile from post-meal page to keep it clean
-              // The chat remains available in the Messages tab
+              // When there's a match, remove the profile from post-meal page
+              if (userChoice === 'fight_for_fries') {
+                // fight_for_fries match: vanish the date AND chat history
+                console.log(`Event ${eventId} - fight_for_fries mutual match, vanishing date and chat`);
+                return; // Skip this event
+              }
+              // Other matches: remove from post-meal page but keep chat
               console.log(`Event ${eventId} - match detected (${userChoice}), removing from post-meal page but keeping chat`);
               return; // Skip this event (remove from post-meal page)
             } else {
@@ -381,7 +393,7 @@ export default function PostMealScreen() {
     
     // Sort by date (most recent first)
     return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, fightForFriesVanished]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -502,9 +514,15 @@ export default function PostMealScreen() {
         
         // Track the match with the NEW match type for BOTH users
         addMatchedProfile(dateUserId, invitationId, matchType);
-        addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
+        addMatchedProfile('1', invitationId, matchType);
         console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
         console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
+        
+        if (matchType === 'fight_for_fries') {
+          console.log(`[FightForFries Extension] Both chose fight_for_fries - vanishing date and clearing chat history`);
+          clearChatForFightForFries(dateUserId, invitationId);
+          setFightForFriesVanished(prev => ({ ...prev, [eventId]: true }));
+        }
         
         console.log(`Setting match result with isMatch=true, matchType=${matchType}`);
         setMatchResult({
@@ -697,12 +715,15 @@ export default function PostMealScreen() {
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
           addMatchedProfile(dateUserId, invitationId, matchType);
-          addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
+          addMatchedProfile('1', invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
           
-          // Special handling for buddy_pass: it's a match but profile gets removed from post-meal
-          // Chat remains available (handled in useChat hook)
+          if (matchType === 'fight_for_fries') {
+            console.log(`[FightForFries] Both chose fight_for_fries - vanishing date and clearing chat history`);
+            clearChatForFightForFries(dateUserId, invitationId);
+            setFightForFriesVanished(prev => ({ ...prev, [eventId]: true }));
+          }
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries

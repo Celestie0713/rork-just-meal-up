@@ -289,6 +289,24 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return !!matchedProfiles[userId];
   }, [matchedProfiles]);
 
+  const clearChatForFightForFries = useCallback((userId: string, invitationId: string) => {
+    console.log(`[clearChatForFightForFries] Clearing chat history and removing date for user ${userId}, invitation ${invitationId}`);
+    
+    const chatId1 = `1-${userId}`;
+    const chatId2 = `${userId}-1`;
+    
+    setChats(prev => {
+      const updated = { ...prev };
+      delete updated[chatId1];
+      delete updated[chatId2];
+      console.log(`[clearChatForFightForFries] Cleared chat history for ${chatId1} and ${chatId2}`);
+      return updated;
+    });
+    
+    removeProfileFromChat(userId, invitationId, 'no_match');
+    console.log(`[clearChatForFightForFries] Removed profile ${userId} from chat list`);
+  }, [removeProfileFromChat]);
+
   const removeMatchedProfile = useCallback((userId: string) => {
     console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
     
@@ -360,6 +378,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     removeMatchedProfile,
     resetAllMatches,
     matchedProfiles,
-    isLoaded
+    isLoaded,
+    clearChatForFightForFries
   };
 });
