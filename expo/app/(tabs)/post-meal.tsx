@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, removeAllExceptExclusiveMatch } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch } = useChat();
   const { addMatchDecisionNotification, addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -384,8 +384,17 @@ export default function PostMealScreen() {
       });
     
     // Sort by date (most recent first)
-    return events.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice]);
+    let sortedEvents = events.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    // If there's an active exclusive match, only show that date
+    if (exclusiveMatch) {
+      const exclusiveEventId = `invitation-${exclusiveMatch.invitationId}`;
+      sortedEvents = sortedEvents.filter(e => e.id === exclusiveEventId);
+      console.log(`[Exclusive Match Active] Filtering to only show event: ${exclusiveEventId}`);
+    }
+
+    return sortedEvents;
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, exclusiveMatch]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
