@@ -1517,7 +1517,7 @@ export default function PostMealScreen() {
                 </View>
                 <Text style={styles.matchModalTitle}>Taken! 💕</Text>
                 <Text style={styles.matchModalDescription}>
-                  You both chose the same, and it is now official! Even the stars just winked at each other. A tiny tip to keep the universe spinning?
+                  You both chose the same and it is now official! The stars just winked at each other. A tiny tip to keep the universe spinning?
                 </Text>
               </>
             ) : matchResult?.matchType === 'buddy_pass' ? (
