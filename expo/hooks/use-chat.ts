@@ -303,6 +303,54 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     });
   }, []);
 
+  const removeAllExceptExclusiveMatch = useCallback((exclusiveUserId: string, exclusiveInvitationId: string) => {
+    console.log(`[removeAllExceptExclusiveMatch] Keeping only exclusive match: userId=${exclusiveUserId}, invitationId=${exclusiveInvitationId}`);
+    
+    setMatchedProfiles(prev => {
+      const updated: MatchedProfilesState = {};
+      Object.entries(prev).forEach(([key, profile]) => {
+        if (profile.userId === exclusiveUserId || profile.userId === '1') {
+          if (profile.matchType === 'fight_for_fries') {
+            updated[key] = profile;
+          }
+        }
+      });
+      console.log(`[removeAllExceptExclusiveMatch] Kept profiles:`, Object.keys(updated));
+      return updated;
+    });
+
+    setRemovedProfiles(prev => {
+      const updated = { ...prev };
+      Object.values(matchedProfiles).forEach(profile => {
+        if (profile.userId !== exclusiveUserId && profile.userId !== '1') {
+          updated[profile.userId] = {
+            userId: profile.userId,
+            invitationId: profile.invitationId,
+            removedAt: new Date(),
+            reason: 'no_match'
+          };
+          console.log(`[removeAllExceptExclusiveMatch] Marked profile ${profile.userId} as removed`);
+        }
+      });
+      return updated;
+    });
+
+    setChats(prev => {
+      const updated: ChatState = {};
+      const exclusiveChatId1 = `1-${exclusiveUserId}`;
+      const exclusiveChatId2 = `${exclusiveUserId}-1`;
+      Object.entries(prev).forEach(([chatId, messages]) => {
+        if (chatId === exclusiveChatId1 || chatId === exclusiveChatId2) {
+          updated[chatId] = messages;
+        }
+      });
+      console.log(`[removeAllExceptExclusiveMatch] Kept chats:`, Object.keys(updated));
+      return updated;
+    });
+
+    console.log(`[removeAllExceptExclusiveMatch] Cleanup complete. Only exclusive match with ${exclusiveUserId} remains.`);
+  }, [matchedProfiles]);
+
   const resetAllMatches = useCallback(() => {
     console.log('[resetAllMatches] Clearing all matched profiles');
     setMatchedProfiles({});
@@ -358,6 +406,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     isProfileMatched,
     getMatchType,
     removeMatchedProfile,
+    removeAllExceptExclusiveMatch,
     resetAllMatches,
     matchedProfiles,
     isLoaded

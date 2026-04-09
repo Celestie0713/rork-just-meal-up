@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, removeAllExceptExclusiveMatch } = useChat();
   const { addMatchDecisionNotification, addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -510,6 +510,11 @@ export default function PostMealScreen() {
         console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
         console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
         
+        if (matchType === 'fight_for_fries') {
+          console.log(`[Exclusive Match] fight_for_fries match after extension! Removing all other dates and chats.`);
+          removeAllExceptExclusiveMatch(dateUserId, invitationId);
+        }
+        
         console.log(`Setting match result with isMatch=true, matchType=${matchType}`);
         setMatchResult({
           isMatch: true,
@@ -705,8 +710,10 @@ export default function PostMealScreen() {
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
           
-          // Special handling for buddy_pass: it's a match but profile gets removed from post-meal
-          // Chat remains available (handled in useChat hook)
+          if (matchType === 'fight_for_fries') {
+            console.log(`[Exclusive Match] fight_for_fries match! Removing all other dates and chats.`);
+            removeAllExceptExclusiveMatch(dateUserId, invitationId);
+          }
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
