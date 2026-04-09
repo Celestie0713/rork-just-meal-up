@@ -1277,11 +1277,6 @@ export default function PostMealScreen() {
                               extendedChoices[event.id] === 'fight_for_fries' && styles.selectedChoiceButtonText,
                               isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                             ]}>(Be my +1?)</Text>
-                            {isFightForFriesDisabled(event.id) && (
-                              <Text style={styles.disabledReasonText}>
-                                Already chosen for another date
-                              </Text>
-                            )}
                           </TouchableOpacity>
                         </>
                       );
@@ -1346,11 +1341,6 @@ export default function PostMealScreen() {
                         userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
                         isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                       ]}>(Be my +1?)</Text>
-                      {isFightForFriesDisabled(event.id) && (
-                        <Text style={styles.disabledReasonText}>
-                          Already chosen for another date
-                        </Text>
-                      )}
                     </TouchableOpacity>
                   </>
                 ) : (
