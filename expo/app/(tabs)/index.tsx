@@ -7,7 +7,7 @@ import { UserCard } from '@/components/UserCard';
 
 import { SuccessPopup } from '@/components/SuccessPopup';
 import { NotificationPopup } from '@/components/NotificationPopup';
-import { TipSelectionModal } from '@/components/TipSelectionModal';
+
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
@@ -35,8 +35,7 @@ export default function SearchScreen() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showTipModal, setShowTipModal] = useState(false);
-  const [pendingInvitationPlace, setPendingInvitationPlace] = useState<any>(null);
+
   
   const [filters, setFilters] = useState({
     sex: [] as string[],
@@ -335,8 +334,14 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.inviteButton}
                       onPress={() => {
-                        setPendingInvitationPlace(result);
-                        setShowTipModal(true);
+                        router.push({
+                          pathname: '/create-invitation' as any,
+                          params: {
+                            placeName: result.place.name,
+                            placeAddress: result.place.address,
+                            placeId: result.place.id,
+                          },
+                        });
                       }}
                     >
                       <Gift size={18} color="#FFFFFF" />
@@ -428,9 +433,16 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.placeDetailInviteButton}
                       onPress={() => {
-                        setPendingInvitationPlace(selectedPlace);
+                        const place = selectedPlace;
                         setSelectedPlace(null);
-                        setShowTipModal(true);
+                        router.push({
+                          pathname: '/create-invitation' as any,
+                          params: {
+                            placeName: place.place.name,
+                            placeAddress: place.place.address,
+                            placeId: place.place.id,
+                          },
+                        });
                       }}
                     >
                       <Gift size={20} color="#FFFFFF" />
@@ -443,29 +455,7 @@ export default function SearchScreen() {
           </View>
         </View>
       </Modal>
-      <TipSelectionModal
-        visible={showTipModal}
-        onClose={() => {
-          setShowTipModal(false);
-          setPendingInvitationPlace(null);
-        }}
-        onConfirm={(amount) => {
-          console.log('Tip amount:', amount);
-          setShowTipModal(false);
-          if (pendingInvitationPlace) {
-            router.push({
-              pathname: '/create-invitation' as any,
-              params: {
-                placeName: pendingInvitationPlace.place.name,
-                placeAddress: pendingInvitationPlace.place.address,
-                placeId: pendingInvitationPlace.place.id,
-              },
-            });
-            setPendingInvitationPlace(null);
-          }
-        }}
-        recipientName="the matchmaker"
-      />
+
       <Modal
         visible={showFilterModal}
         animationType="slide"
