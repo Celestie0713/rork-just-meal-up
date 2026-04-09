@@ -50,20 +50,10 @@ export const [NotificationProvider, useNotifications] = createContextHook(() => 
   }, [notifications]);
 
   const addMatchDecisionNotification = useCallback((userName: string, decision: string, venue: string, userId: string, mealId: string, isPremiumUser: boolean) => {
-    const decisionText = decision === 'fight_for_fries' 
-      ? 'Fight for fries for life' 
-      : decision === 'next_round' 
-      ? "Let's do next round" 
-      : 'Buddy pass';
-    
-    const message = isPremiumUser 
-      ? `${userName} chose "${decisionText}" for your meal at ${venue}`
-      : `${userName} made a decision for your meal at ${venue}`;
-    
     addNotification({
       type: 'match_decision',
-      title: `${userName} made a decision!`,
-      message,
+      title: 'Make your decision before the timer runs out!',
+      message: `Your date at ${venue} is waiting for your decision.`,
       userId,
       mealId
     });
