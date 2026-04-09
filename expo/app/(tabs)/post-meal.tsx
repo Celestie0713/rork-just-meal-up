@@ -295,10 +295,13 @@ export default function PostMealScreen() {
             const isMatch = userChoice === dateChoice;
             
             if (isMatch) {
-              // When there's a match, remove the profile from post-meal page to keep it clean
-              // The chat remains available in the Messages tab
-              console.log(`Event ${eventId} - match detected (${userChoice}), removing from post-meal page but keeping chat`);
-              return; // Skip this event (remove from post-meal page)
+              // Handle buddy_pass matches (remove from post-meal page but keep chat)
+              if (userChoice === 'buddy_pass') {
+                console.log(`Event ${eventId} - buddy pass match, removing from post-meal page but keeping chat`);
+                return; // Skip this event (remove from post-meal page)
+              }
+              // For fight_for_fries and next_round matches, keep the profile on post-meal page
+              console.log(`Event ${eventId} - match detected (${userChoice}), keeping on post-meal page`);
             } else {
               // Check for mixed signals case: one wants next_round, other wants fight_for_fries
               const isMixedSignals = (userChoice === 'next_round' && dateChoice === 'fight_for_fries') ||
