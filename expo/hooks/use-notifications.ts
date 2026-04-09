@@ -55,7 +55,7 @@ export const [NotificationProvider, useNotifications] = createContextHook(() => 
       type: 'match_decision',
       title: `${userName} had made a decision.`,
       subtitle: 'Make your decision now before the timer runs out.',
-      message: `Your date at ${venue} is waiting for your decision.`,
+      message: '',
       userId,
       mealId
     });
