@@ -63,7 +63,7 @@ function isPostMeal(date: Date, time: string): boolean {
 export default function PostMealScreen() {
   const { user } = useAuth();
   const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch } = useChat();
-  const { addMatchDecisionNotification, addMixedSignalsNotification } = useNotifications();
+  const { addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
 
@@ -484,20 +484,8 @@ export default function PostMealScreen() {
     console.log(`Date's second choice: ${dateExtendedChoice}`);
     console.log(`Following SECOND decision: User=${choice}, Date=${dateExtendedChoice}`);
     
-    // Add notification for the date's extended decision (only if they've decided)
-    if (invitation && dateExtendedChoice) {
-      const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
-      if (dateUser) {
-        addMatchDecisionNotification(
-          dateUser.name,
-          dateExtendedChoice,
-          invitation.venue.name,
-          dateUser.id,
-          invitationId,
-          isPremium
-        );
-      }
-    }
+    // Note: No notification for the current user when THEY make a choice.
+    // Notifications should only appear on the OTHER person's device.
     
     if (dateExtendedChoice !== null) {
       // Both parties have made their extended decisions
@@ -692,20 +680,7 @@ export default function PostMealScreen() {
     const dateChoice = getDateChoice(invitationId);
     
     if (dateChoice) {
-      // Add notification for the date's decision (if not already notified)
-      if (invitation) {
-        const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
-        if (dateUser) {
-          addMatchDecisionNotification(
-            dateUser.name,
-            dateChoice,
-            invitation.venue.name,
-            dateUser.id,
-            invitationId,
-            isPremium
-          );
-        }
-      }
+      // Note: No notification for the current user - notifications go to the OTHER person's device.
       const isMatch = choice === dateChoice;
       let matchType: 'fight_for_fries' | 'buddy_pass' | 'next_round' | 'mixed_signals' | 'mixed_signals_extension' | 'match_permanent' | null = null;
       
@@ -858,24 +833,8 @@ export default function PostMealScreen() {
       
       setShowMatchModal(true);
       
-      // Simulate the date making a decision after a short delay (for demo purposes)
-      setTimeout(() => {
-        if (invitation) {
-          const dateUser = mockUsers.find(u => u.id === (invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId));
-          if (dateUser) {
-            // Simulate Sofia making a decision
-            const simulatedDateChoice = 'fight_for_fries';
-            addMatchDecisionNotification(
-              dateUser.name,
-              simulatedDateChoice,
-              invitation.venue.name,
-              dateUser.id,
-              invitationId,
-              isPremium
-            );
-          }
-        }
-      }, 5000); // 5 seconds delay for demo
+      // Note: No notification for the current user when they make a choice.
+      // Notifications should only appear on the other person's device.
     }
   };
 
