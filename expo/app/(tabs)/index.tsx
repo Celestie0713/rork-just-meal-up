@@ -256,13 +256,13 @@ export default function SearchScreen() {
               </View>
             </View>
           )}
-          {!placesSearch.isLoading && !placesSearch.isError && hasSearched && placesSearch.data && placesSearch.data.results.length === 0 && (
+          {!placesSearch.isLoading && !placesSearch.isError && hasSearched && !!placesSearch.data && placesSearch.data.results.length === 0 && (
             <View style={styles.placesEmptyState}>
               <Text style={styles.placesEmptyText}>No places found</Text>
               <Text style={styles.placesEmptySubtext}>Try describing a different type of place</Text>
             </View>
           )}
-          {!placesSearch.isLoading && !placesSearch.isError && placesSearch.data && placesSearch.data.results.length > 0 && (
+          {!placesSearch.isLoading && !placesSearch.isError && !!placesSearch.data && placesSearch.data.results.length > 0 && (
             <ScrollView style={styles.placesResults} showsVerticalScrollIndicator={false}>
               <View style={styles.resultsHeader}>
                 <Text style={styles.resultsCount}>

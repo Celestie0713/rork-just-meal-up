@@ -44,7 +44,7 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
 
   return (
     <View style={[styles.container, isOwn && styles.ownContainer]}>
-      {!isOwn && senderName && (
+      {!isOwn && !!senderName && (
         <Text style={styles.senderName}>{senderName}</Text>
       )}
       <View style={[styles.bubble, bubbleStyle]}>

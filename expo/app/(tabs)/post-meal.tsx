@@ -1123,7 +1123,7 @@ export default function PostMealScreen() {
                 {formatDate(event.date)} at {event.time}
               </Text>
             </View>
-            {event.attendees && event.attendees.length > 1 && (
+            {!!event.attendees && event.attendees.length > 1 && (
               <View style={styles.eventDetailRow}>
                 <Users size={16} color={colors.textLight} />
                 <Text style={styles.eventDetailText}>

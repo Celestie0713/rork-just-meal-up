@@ -414,7 +414,7 @@ export default function ChatScreen() {
                 <X size={24} color={Colors.textLight} />
               </TouchableOpacity>
             </View>
-            {mealHistory[selectedMealIndex] && (
+            {!!mealHistory[selectedMealIndex] && (
               <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
                 <View style={styles.detailSection}>
                   <View style={styles.detailRow}>

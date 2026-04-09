@@ -240,7 +240,7 @@ export default function MessagesScreen() {
         </View>
         {(isInvitationMode || isMealUpShareMode) && <View style={styles.placeholder} />}
       </View>
-      {isInvitationMode && invitationData && (
+      {isInvitationMode && !!invitationData && (
         <View style={styles.invitationSummary}>
           <Text style={styles.summaryTitle}>Meal Invitation</Text>
           <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
@@ -261,7 +261,7 @@ export default function MessagesScreen() {
           </View>
         </View>
       )}
-      {isMealUpShareMode && mealUpData && (
+      {isMealUpShareMode && !!mealUpData && (
         <View style={styles.mealUpSummary}>
           <View style={styles.mealUpHeader}>
             {!!mealUpData.image && (

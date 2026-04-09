@@ -101,7 +101,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                   maxLength={8}
                 />
               </View>
-              {customAmount && customAmountValue < 5 && (
+              {!!customAmount && customAmountValue < 5 && (
                 <Text style={styles.errorText}>Minimum tip is $5</Text>
               )}
             </View>
