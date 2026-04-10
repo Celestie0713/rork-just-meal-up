@@ -90,7 +90,7 @@ export default function ProfileScreen() {
 
   const handleRemoveLoveIcon = () => {
     if (!exclusivePartner) return;
-    RNAlert.alert(
+    Alert.alert(
       'Remove Love Icon',
       `Are you sure? Removing the love icon means ${partnerUser?.name || 'your match'} will be gone forever and your other dates will resume.`,
       [
