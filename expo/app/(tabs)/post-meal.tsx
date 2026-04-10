@@ -1583,7 +1583,7 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>• Shows up 10 hours after your meal.</Text>
           <Text style={styles.infoText}>• You&apos;ve got 7 days to decide — no rush, this isn&apos;t instant noodles. If one decides early, the clock keeps ticking (except if one chose buddy pass).</Text>
           <Text style={styles.infoText}>{"\n"}✅ Both agree:</Text>
-          <Text style={styles.infoText}>   • Next round → Profile disappears, chat stays to arrange next meal.</Text>
+          <Text style={styles.infoText}>   • Next round → Profile disappears on Post Meal page, chat stays to arrange next meal.</Text>
           <Text style={styles.infoText}>   • Fight for fries for life 🍟 → All other dates vanish (exclusive mode).</Text>
           <Text style={styles.infoText}>{"\n"}🔀 Mixed signals?</Text>
           <Text style={styles.infoText}>   • One chose next round while the other chose exclusive? You both get 24 more hours to rethink your life choices.</Text>
