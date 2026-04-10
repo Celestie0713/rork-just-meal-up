@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback, MutableRefObject } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
@@ -81,6 +81,7 @@ export default function PostMealScreen() {
   } | null>(null);
 
   const balloonAnimation = useRef(new Animated.Value(0)).current;
+  const prevHadFriesMatch = useRef(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [mixedSignalsExtensions, setMixedSignalsExtensions] = useState<Record<string, MixedSignalsExtension>>({});
   const [extendedChoices, setExtendedChoices] = useState<Record<string, string>>({});
@@ -128,6 +129,8 @@ export default function PostMealScreen() {
 
   // When matchedProfiles changes (e.g. love icon removed), clear old fight_for_fries selections
   // so the option becomes available again for other dates
+  // IMPORTANT: Only clear when a fight_for_fries match was REMOVED (breakup),
+  // not when an unrelated match is added.
   useEffect(() => {
     console.log('[PostMealScreen] matchedProfiles changed:', Object.keys(matchedProfiles).map(key => ({
       userId: key,
@@ -138,10 +141,11 @@ export default function PostMealScreen() {
       profile => profile.matchType === 'fight_for_fries'
     );
 
-    if (!hasActiveFriesMatch) {
-      // Also clear pending fight_for_fries if the match was broken
+    // Only clear fight_for_fries state if we previously HAD an active fries match
+    // and now we don't (i.e., a breakup occurred). Don't clear if we never had one.
+    if (prevHadFriesMatch.current && !hasActiveFriesMatch) {
+      console.log('[PostMealScreen] fight_for_fries match was removed (breakup), clearing state');
       clearPendingFightForFries();
-      // Clear any old fight_for_fries selections from local state
       setSelectedChoices(prev => {
         const updated = { ...prev };
         let changed = false;
@@ -179,6 +183,9 @@ export default function PostMealScreen() {
         return changed ? updated : prev;
       });
     }
+
+    // Track the current state for next render
+    prevHadFriesMatch.current = hasActiveFriesMatch;
   }, [matchedProfiles]);
 
   // Update current time every second for timer display
