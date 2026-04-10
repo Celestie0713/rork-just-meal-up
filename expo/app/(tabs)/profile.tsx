@@ -681,7 +681,6 @@ export default function ProfileScreen() {
                 activeOpacity={0.7}
               >
                 <Heart size={18} color="#FF3B6F" fill="#FF3B6F" />
-                <Text style={styles.loveIconText}>{partnerUser.name}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.removeLoveButton}
