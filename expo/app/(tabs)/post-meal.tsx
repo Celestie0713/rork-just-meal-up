@@ -1408,6 +1408,7 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>{"\n"}You&apos;ve got 7 days to decide. If one person makes their decision while the other is still thinking (Life choices aren&apos;t instant noodles), the timer keeps ticking like a microwaved burrito.</Text>
           <Text style={styles.infoText}>{"\n"}When both have decided:</Text>
           <Text style={styles.infoText}>{"\n"}✅ It&apos;s a match? Profile stays and the chat lives on.</Text>
+          <Text style={styles.infoText}>{"\n"}All other dates disappear once you both pick &quot;Fight for Fries for Life&quot; 🍟</Text>
           <Text style={styles.infoText}>{"\n"}❌ No spark? Poof! Profile and chat vanish like a bad date story.</Text>
         </View>
       </ScrollView>
