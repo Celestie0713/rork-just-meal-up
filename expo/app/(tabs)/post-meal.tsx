@@ -91,6 +91,24 @@ export default function PostMealScreen() {
   const [selectedEventForTip, setSelectedEventForTip] = useState<string | null>(null);
 
 
+  // Initialize choices from existing matched profiles (e.g. fight_for_fries match)
+  // This ensures the post-meal page reflects the exclusive match state
+  useEffect(() => {
+    const exclusivePartner = getExclusiveMatchPartner();
+    if (exclusivePartner && exclusivePartner.matchType === 'fight_for_fries') {
+      const eventId = `invitation-${exclusivePartner.invitationId}`;
+      setSelectedChoices(prev => {
+        if (prev[eventId]) return prev;
+        console.log(`[PostMealScreen] Initializing fight_for_fries choice for ${eventId} from matched profiles`);
+        return { ...prev, [eventId]: 'fight_for_fries' };
+      });
+      setFinalizedChoices(prev => {
+        if (prev[eventId]) return prev;
+        return { ...prev, [eventId]: true };
+      });
+    }
+  }, [getExclusiveMatchPartner]);
+
   // When matchedProfiles changes (e.g. love icon removed), clear old fight_for_fries selections
   // so the option becomes available again for other dates
   useEffect(() => {
