@@ -1585,6 +1585,8 @@ export default function PostMealScreen() {
           <Text style={styles.infoText}>{"\n"}✅ When both have decided:</Text>
           <Text style={styles.infoText}>   • Let&apos;s do next round: The user disappears from the post-meal but the chat lives on.</Text>
           <Text style={styles.infoText}>   • Fight for fries for life🍟: All other dates disappear (Exclusive date)</Text>
+          <Text style={styles.infoText}>{"\n"}🔀 Mixed signal?</Text>
+          <Text style={styles.infoText}>   • If one chose Let&apos;s do next round while the other chose Fight for fries for life🍟, both users are now given another 24 hours to decide again.</Text>
           <Text style={styles.infoText}>{"\n"}❌ No spark?</Text>
           <Text style={styles.infoText}>   • Either one chose buddy pass: Poof! Profile and chat vanish like a bad date story.</Text>
         </View>
