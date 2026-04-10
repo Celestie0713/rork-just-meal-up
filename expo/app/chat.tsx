@@ -152,7 +152,7 @@ const getMockMessagesForUser = (userId: string): ChatMessage[] => {
 
 export default function ChatScreen() {
   const params = useLocalSearchParams<{ userId: string }>();
-  const { getChatMessages, addVoiceMessage, initializeChat, matchedProfiles } = useChat();
+  const { getChatMessages, addVoiceMessage, initializeChat, matchedProfiles, hasActiveExclusiveMatch, getExclusiveMatchPartner } = useChat();
   const currentUserId = '1';
   const chatId = `${currentUserId}-${params.userId}`;
   const [showMealDetailsModal, setShowMealDetailsModal] = useState(false);
@@ -359,6 +359,9 @@ export default function ChatScreen() {
       </View>
       {voiceMessageCount > 10 && (
         <View style={styles.inviteContainer}>
+          {hasActiveExclusiveMatch() && getExclusiveMatchPartner()?.userId === params.userId && (
+            <Text style={styles.exclusiveLabel}>In exclusive ❤️ but you can still say hi</Text>
+          )}
           <TouchableOpacity 
             style={styles.inviteButton}
             onPress={() => router.push('/(tabs)' as any)}
@@ -538,6 +541,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
+  },
+  exclusiveLabel: {
+    fontSize: 13,
+    color: '#999',
+    textAlign: 'center' as const,
+    marginBottom: 10,
   },
   inviteButton: {
     backgroundColor: Colors.primary,

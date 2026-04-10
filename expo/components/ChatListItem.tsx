@@ -61,9 +61,7 @@ export function ChatListItem({ user, lastMessage, lastMessageTime, unreadCount =
             </View>
           )}
         </View>
-        {isExclusive && (
-          <Text style={styles.exclusiveLabel}>In exclusive ❤️ but you can still say hi</Text>
-        )}
+
       </View>
     </TouchableOpacity>
   );
@@ -143,9 +141,5 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.background,
   },
-  exclusiveLabel: {
-    fontSize: 12,
-    color: '#999',
-    marginTop: 4,
-  },
+
 });
