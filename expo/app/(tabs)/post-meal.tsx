@@ -1580,13 +1580,12 @@ export default function PostMealScreen() {
           </View>
         )}
         <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>About Post Meal:</Text>
-          <Text style={styles.infoText}>Your post-meal-ups only show up here after 10 hours of the meal time.</Text>
+          <Text style={styles.infoText}>Your post-meal-ups only appear here after 10 hours from the meal time.</Text>
           <Text style={styles.infoText}>{"\n"}You&apos;ve got 7 days to decide. If one person makes their decision while the other is still thinking (Life choices aren&apos;t instant noodles), the timer keeps ticking like a microwaved burrito.</Text>
-          <Text style={styles.infoText}>{"\n"}When both have decided:</Text>
-          <Text style={styles.infoText}>{"\n"}✅ It&apos;s a match? Profile stays and the chat lives on.</Text>
-          <Text style={styles.infoText}>{"\n"}All other dates disappear once you both pick &quot;Fight for Fries for Life&quot; 🍟</Text>
-          <Text style={styles.infoText}>{"\n"}❌ No spark? Poof! Profile and chat vanish like a bad date story.</Text>
+          <Text style={styles.infoText}>{"\n"}✅When both have decided:</Text>
+          <Text style={styles.infoText}>{'              '}Let&apos;s do next round: The user disappears from the post-meal but the chat lives on.</Text>
+          <Text style={styles.infoText}>{'              '}Fight for fries for life🍟: All other dates disappear  (Exclusive date)</Text>
+          <Text style={styles.infoText}>{"\n"}❌ No spark? Either one chose buddy pass: Poof! Profile and chat vanish like a bad date story.</Text>
         </View>
       </ScrollView>
       {/* Success Modal */}
