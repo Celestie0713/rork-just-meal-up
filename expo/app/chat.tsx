@@ -351,9 +351,7 @@ export default function ChatScreen() {
               <Text style={[styles.headerTitle, styles.clickableHeaderTitle]}>{chatUser.name}</Text>
             </TouchableOpacity>
           </View>
-          <Text style={styles.headerSubtitle}>
-            {chatUser.isOnline ? 'Online' : 'Voice messages only'}
-          </Text>
+
         </View>
         <View style={styles.placeholder} />
       </View>
