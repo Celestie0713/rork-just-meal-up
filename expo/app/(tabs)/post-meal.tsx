@@ -332,6 +332,12 @@ export default function PostMealScreen() {
         const dateChoice = getDateChoice(invitationId);
         const userChoice = selectedChoices[eventId];
         
+        // If user chose buddy_pass, immediately hide from post-meal page regardless of date's response
+        if (userChoice === 'buddy_pass') {
+          console.log(`Event ${eventId} - user chose buddy_pass, hiding from post-meal page`);
+          return;
+        }
+        
         // Check if both parties have made decisions
         const bothPartiesDecided = userChoice && dateChoice;
         
@@ -800,6 +806,23 @@ export default function PostMealScreen() {
     
     console.log(`Choice made for ${eventId}: ${choice} at ${now.toISOString()}`);
     console.log('Waiting for other party to make their decision...');
+    
+    // If user chose buddy_pass, immediately remove from chat regardless of date's response
+    if (choice === 'buddy_pass' && invitation) {
+      const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+      removeProfileFromChat(dateUserId, invitationId, 'no_match');
+      console.log(`[handleChoiceSelect] Buddy pass chosen - immediately removed ${dateUserId} from chat`);
+      
+      setMatchResult({
+        isMatch: false,
+        matchType: 'buddy_pass',
+        userChoice: choice,
+        dateChoice: null,
+        eventId
+      });
+      setShowMatchModal(true);
+      return;
+    }
     
     // Check for match after user makes a choice
     const dateChoice = getDateChoice(invitationId);
