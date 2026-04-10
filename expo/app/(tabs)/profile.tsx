@@ -94,10 +94,10 @@ export default function ProfileScreen() {
       'Remove Love Icon',
       'Are you sure? Removing the love icon means your current exclusive date will be gone forever and your other dates will resume.',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Cancel', style: 'default' },
         {
           text: 'Remove',
-          style: 'destructive',
+          style: 'default',
           onPress: () => {
             console.log('[Profile] Removing exclusive match with:', exclusivePartner.userId);
             removeMatchedProfile(exclusivePartner.userId);
