@@ -275,6 +275,10 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return () => clearInterval(interval);
   }, [isLoaded]);
 
+  const isProfilePermanentlyGone = useCallback((userId: string): boolean => {
+    return !!permanentlyGoneProfiles[userId];
+  }, [permanentlyGoneProfiles]);
+
   const getAvailableChats = useCallback((allChats: any[]) => {
     return allChats.filter(chat => {
       if (isProfileRemoved(chat.user.id)) return false;
@@ -321,10 +325,6 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   const isProfileMatched = useCallback((userId: string): boolean => {
     return !!matchedProfiles[userId];
   }, [matchedProfiles]);
-
-  const isProfilePermanentlyGone = useCallback((userId: string): boolean => {
-    return !!permanentlyGoneProfiles[userId];
-  }, [permanentlyGoneProfiles]);
 
   const removeMatchedProfile = useCallback((userId: string) => {
     console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
