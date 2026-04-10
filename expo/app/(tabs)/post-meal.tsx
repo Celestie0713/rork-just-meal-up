@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, isProfileRemoved } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, isProfileRemoved, getExclusiveMatchPartner, isProfileBrokenUp } = useChat();
   const { addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -436,8 +436,43 @@ export default function PostMealScreen() {
     // Sort by date (most recent first)
     let sortedEvents = events.sort((a, b) => b.date.getTime() - a.date.getTime());
 
+    // Filter based on exclusive match and broken-up status
+    const exclusivePartner = getExclusiveMatchPartner();
+    
+    if (exclusivePartner) {
+      // If there's an active exclusive match, only show that partner's events
+      sortedEvents = sortedEvents.filter(event => {
+        if (event.type === 'invitation') {
+          const invitationId = event.id.replace('invitation-', '');
+          const invitation = mockInvitations.find(inv => inv.id === invitationId);
+          if (invitation) {
+            const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+            return dateUserId === exclusivePartner.userId;
+          }
+        }
+        return false; // Hide group events too during exclusive
+      });
+      console.log('[PostMeal] Exclusive match active, filtered to partner events only');
+    } else {
+      // No exclusive match - hide any broken-up profiles
+      sortedEvents = sortedEvents.filter(event => {
+        if (event.type === 'invitation') {
+          const invitationId = event.id.replace('invitation-', '');
+          const invitation = mockInvitations.find(inv => inv.id === invitationId);
+          if (invitation) {
+            const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+            if (isProfileBrokenUp(dateUserId)) {
+              console.log(`[PostMeal] Hiding broken-up profile ${dateUserId}`);
+              return false;
+            }
+          }
+        }
+        return true;
+      });
+    }
+
     return sortedEvents;
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, isProfileRemoved]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, isProfileRemoved, getExclusiveMatchPartner, isProfileBrokenUp]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {

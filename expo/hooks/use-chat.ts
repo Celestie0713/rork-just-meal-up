@@ -41,12 +41,22 @@ type MatchedProfilesState = {
   [userId: string]: MatchedProfile;
 };
 
+type BrokenUpProfile = {
+  userId: string;
+  brokenUpAt: Date;
+};
+
+type BrokenUpProfilesState = {
+  [userId: string]: BrokenUpProfile;
+};
+
 
 export const [ChatProvider, useChat] = createContextHook(() => {
   const [chats, setChats] = useState<ChatState>({});
   const [removedProfiles, setRemovedProfiles] = useState<RemovedProfilesState>({});
   const [mixedSignalsCases, setMixedSignalsCases] = useState<MixedSignalsState>({});
   const [matchedProfiles, setMatchedProfiles] = useState<MatchedProfilesState>({});
+  const [brokenUpProfiles, setBrokenUpProfiles] = useState<BrokenUpProfilesState>({});
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -251,12 +261,33 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return () => clearInterval(interval);
   }, [isLoaded]);
 
+  const hasActiveExclusiveMatch = useCallback((): boolean => {
+    return Object.values(matchedProfiles).some(
+      profile => profile.matchType === 'fight_for_fries' && profile.userId !== '1'
+    );
+  }, [matchedProfiles]);
+
+  const getExclusiveMatchPartner = useCallback((): MatchedProfile | null => {
+    const match = Object.values(matchedProfiles).find(
+      profile => profile.matchType === 'fight_for_fries' && profile.userId !== '1'
+    );
+    return match || null;
+  }, [matchedProfiles]);
+
+  const isProfileBrokenUp = useCallback((userId: string): boolean => {
+    return !!brokenUpProfiles[userId];
+  }, [brokenUpProfiles]);
+
   const getAvailableChats = useCallback((allChats: any[]) => {
+    const exclusivePartner = getExclusiveMatchPartner();
+    
     return allChats.filter(chat => {
       if (isProfileRemoved(chat.user.id)) return false;
+      if (isProfileBrokenUp(chat.user.id)) return false;
+      if (exclusivePartner && chat.user.id !== exclusivePartner.userId) return false;
       return true;
     });
-  }, [isProfileRemoved]);
+  }, [isProfileRemoved, isProfileBrokenUp, getExclusiveMatchPartner]);
 
   const trackMixedSignalsCase = useCallback((userId: string, invitationId: string) => {
     const mixedSignalsCase: MixedSignalsCase = {
@@ -296,6 +327,12 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
   const removeMatchedProfile = useCallback((userId: string) => {
     console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
+    
+    setBrokenUpProfiles(prev => ({
+      ...prev,
+      [userId]: { userId, brokenUpAt: new Date() }
+    }));
+    console.log(`[removeMatchedProfile] Added ${userId} to brokenUpProfiles`);
     
     setMatchedProfiles(prev => {
       const updated = { ...prev };
@@ -363,6 +400,10 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     removeMatchedProfile,
     resetAllMatches,
     matchedProfiles,
-    isLoaded
+    isLoaded,
+    hasActiveExclusiveMatch,
+    getExclusiveMatchPartner,
+    isProfileBrokenUp,
+    brokenUpProfiles
   };
 });

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Star, Settings, MapPin, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic, ExternalLink } from 'lucide-react-native';
+import { Star, Settings, MapPin, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -51,7 +51,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
-  const { } = useChat();
+  const { getExclusiveMatchPartner, removeMatchedProfile, hasActiveExclusiveMatch } = useChat();
   const { favoritePlaces, removeFromFavorites } = useFavorites();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -83,6 +83,29 @@ export default function ProfileScreen() {
   } | null>(null);
   const [showPlaceModal, setShowPlaceModal] = useState(false);
 
+
+  const exclusivePartner = getExclusiveMatchPartner();
+  const partnerUser = exclusivePartner ? mockUsers.find(u => u.id === exclusivePartner.userId) : null;
+  const isExclusive = hasActiveExclusiveMatch();
+
+  const handleRemoveLoveIcon = () => {
+    if (!exclusivePartner) return;
+    RNAlert.alert(
+      'Remove Love Icon',
+      `Are you sure? Removing the love icon means ${partnerUser?.name || 'your match'} will be gone forever and your other dates will resume.`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            console.log('[Profile] Removing exclusive match with:', exclusivePartner.userId);
+            removeMatchedProfile(exclusivePartner.userId);
+          }
+        }
+      ]
+    );
+  };
 
   console.log('Profile screen render - user:', user);
 
@@ -650,6 +673,25 @@ export default function ProfileScreen() {
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
           </View>
+          {isExclusive && partnerUser && (
+            <View style={styles.loveIconRow}>
+              <TouchableOpacity
+                style={styles.loveIconButton}
+                onPress={() => router.push(`/user-profile?userId=${partnerUser.id}` as any)}
+                activeOpacity={0.7}
+              >
+                <Heart size={18} color="#FF3B6F" fill="#FF3B6F" />
+                <Text style={styles.loveIconText}>{partnerUser.name}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.removeLoveButton}
+                onPress={handleRemoveLoveIcon}
+                activeOpacity={0.7}
+              >
+                <X size={14} color={Colors.textLight} />
+              </TouchableOpacity>
+            </View>
+          )}
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.textLight} />
             <Text style={styles.location}>{user.location}</Text>
@@ -1238,6 +1280,31 @@ const styles = StyleSheet.create({
   },
   scrollViewBottomPadding: {
     height: 40,
+  },
+  loveIconRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+    gap: 8,
+  },
+  loveIconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 59, 111, 0.15)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 6,
+  },
+  loveIconText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#FF3B6F',
+  },
+  removeLoveButton: {
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 6,
   },
   placeModalOverlay: {
     flex: 1,
