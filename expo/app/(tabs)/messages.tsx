@@ -51,7 +51,7 @@ const mockChats: ChatData[] = [
 ];
 
 export default function MessagesScreen() {
-  const { getAvailableChats, isLoaded, addSystemMessage, hasActiveExclusiveMatch } = useChat();
+  const { getAvailableChats, isLoaded, addSystemMessage, hasActiveExclusiveMatch, getExclusiveMatchPartner } = useChat();
   const { addInvitation } = useInvitations();
   const params = useLocalSearchParams<{
     placeName?: string;
@@ -72,6 +72,7 @@ export default function MessagesScreen() {
   
   const [chats] = useState<ChatData[]>(mockChats);
   const [filteredChats, setFilteredChats] = useState<ChatData[]>(mockChats);
+  const exclusivePartner = getExclusiveMatchPartner();
   const [isInvitationMode, setIsInvitationMode] = useState<boolean>(false);
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
   const [invitationData, setInvitationData] = useState<any>(null);
@@ -185,12 +186,14 @@ export default function MessagesScreen() {
 
   const renderChatItem = ({ item }: { item: ChatData }) => {
     console.log('[renderChatItem] Rendering chat item for user:', item.user.name);
+    const isExclusive = exclusivePartner?.userId === item.user.id;
     return (
       <ChatListItem
         user={item.user}
         lastMessage={item.lastMessage}
         lastMessageTime={item.lastMessageTime}
         unreadCount={item.unreadCount}
+        isExclusive={isExclusive}
         onPress={() => {
           console.log('[renderChatItem] onPress called for user:', item.user.name);
           handleChatPress(item.user);
@@ -282,11 +285,6 @@ export default function MessagesScreen() {
               </View>
             </View>
           </View>
-        </View>
-      )}
-      {hasActiveExclusiveMatch() && (
-        <View style={styles.exclusiveBanner}>
-          <Text style={styles.exclusiveBannerText}>In exclusive ❤️ but you can still say hi</Text>
         </View>
       )}
       <FlatList
@@ -504,19 +502,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  exclusiveBanner: {
-    backgroundColor: '#FFF0F0',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#FFD6D6',
-  },
-  exclusiveBannerText: {
-    fontSize: 14,
-    fontWeight: '500' as const,
-    color: '#333',
-  },
+
   mealUpDetailText: {
     fontSize: 12,
     fontWeight: '500',
