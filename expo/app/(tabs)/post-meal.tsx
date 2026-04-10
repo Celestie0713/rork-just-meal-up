@@ -328,12 +328,12 @@ export default function PostMealScreen() {
               // Second decisions match - handle based on match type
               console.log(`Event ${eventId} - second decisions match: ${extension.userChoice}`);
               
-              // Handle buddy_pass matches (remove from post-meal page but keep chat)
-              if (extension.userChoice === 'buddy_pass') {
-                console.log(`Event ${eventId} - buddy pass match after extension, removing from post-meal page`);
+              // Handle buddy_pass and next_round matches (remove from post-meal page but keep chat)
+              if (extension.userChoice === 'buddy_pass' || extension.userChoice === 'next_round') {
+                console.log(`Event ${eventId} - ${extension.userChoice} match after extension, removing from post-meal page`);
                 return; // Skip this event (remove from post-meal page)
               }
-              // For fight_for_fries and next_round matches, keep the profile on post-meal page
+              // For fight_for_fries matches, keep the profile on post-meal page
               console.log(`Event ${eventId} - keeping profile on post-meal page after extension match`);
             } else {
               // Extension is active but not both parties have re-decided yet
@@ -354,12 +354,12 @@ export default function PostMealScreen() {
             const isMatch = userChoice === dateChoice;
             
             if (isMatch) {
-              // Handle buddy_pass matches (remove from post-meal page but keep chat)
-              if (userChoice === 'buddy_pass') {
-                console.log(`Event ${eventId} - buddy pass match, removing from post-meal page but keeping chat`);
+              // Handle buddy_pass and next_round matches (remove from post-meal page but keep chat)
+              if (userChoice === 'buddy_pass' || userChoice === 'next_round') {
+                console.log(`Event ${eventId} - ${userChoice} match, removing from post-meal page but keeping chat`);
                 return; // Skip this event (remove from post-meal page)
               }
-              // For fight_for_fries and next_round matches, keep the profile on post-meal page
+              // For fight_for_fries matches, keep the profile on post-meal page
               console.log(`Event ${eventId} - match detected (${userChoice}), keeping on post-meal page`);
             } else {
               // Check for mixed signals case: one wants next_round, other wants fight_for_fries
@@ -992,15 +992,15 @@ export default function PostMealScreen() {
         const isMatch = userChoice === dateChoice;
         
         if (isMatch) {
-          // Special case: buddy_pass matches are removed from post-meal page
-          if (userChoice === 'buddy_pass') {
+          // buddy_pass and next_round matches are removed from post-meal page
+          if (userChoice === 'buddy_pass' || userChoice === 'next_round') {
             return {
               timeLeft: 0,
               type: 'no_match_removed' as const,
               totalTime: 0
             };
           } else {
-            // For other matches: no timer needed, profile stays permanently
+            // For fight_for_fries matches: no timer needed, profile stays permanently
             return {
               timeLeft: Infinity,
               type: 'match_permanent' as const,
@@ -1614,7 +1614,7 @@ export default function PostMealScreen() {
                 <Text style={styles.noMatchEmoji}>🎯</Text>
                 <Text style={styles.matchModalTitle}>You&apos;re both in for the Next Round!</Text>
                 <Text style={styles.matchModalDescription}>
-                  YAY! Another successful pairing. Your heart is full, let our ice cream fund be too?
+                  YAY! Another successful pairing. Your heart is full, let our ice cream fund be too?{"\n\n"}Heads up: This profile will be removed from the Post Meal page, but your chat and meal history are still available in Messages.
                 </Text>
               </>
             ) : matchResult?.matchType === 'mixed_signals' || matchResult?.matchType === 'mixed_signals_extension' ? (
