@@ -458,8 +458,12 @@ export default function PostMealScreen() {
     const exclusivePartner = getExclusiveMatchPartner();
     
     if (exclusivePartner) {
-      // If there's an active exclusive match, only show that partner's events
+      // If there's an active exclusive match, only show that partner's 1-on-1 events
+      // Group meals should still show up normally
       sortedEvents = sortedEvents.filter(event => {
+        if (event.type === 'mealup') {
+          return true; // Always show group meals
+        }
         if (event.type === 'invitation') {
           const invitationId = event.id.replace('invitation-', '');
           const invitation = mockInvitations.find(inv => inv.id === invitationId);
@@ -468,9 +472,9 @@ export default function PostMealScreen() {
             return dateUserId === exclusivePartner.userId;
           }
         }
-        return false; // Hide group events too during exclusive
+        return false;
       });
-      console.log('[PostMeal] Exclusive match active, filtered to partner events only');
+      console.log('[PostMeal] Exclusive match active, filtered 1-on-1 to partner only, group meals still visible');
     } else {
       // No exclusive match - hide any broken-up profiles
       sortedEvents = sortedEvents.filter(event => {
