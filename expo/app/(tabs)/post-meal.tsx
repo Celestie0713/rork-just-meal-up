@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch, isProfileRemoved } = useChat();
   const { addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -316,6 +316,15 @@ export default function PostMealScreen() {
                 // and chat is also removed immediately
                 console.log(`Removing event ${eventId} - both parties decided but no match (${userChoice} vs ${dateChoice})`);
                 
+                // Also remove from chat
+                const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+                if (!isProfileRemoved(dateUserId)) {
+                  setProfilesToRemove(prev => {
+                    if (prev.some(p => p.userId === dateUserId)) return prev;
+                    return [...prev, { userId: dateUserId, invitationId: invitation.id }];
+                  });
+                }
+                
                 return; // Skip this event
               }
             }
@@ -394,7 +403,7 @@ export default function PostMealScreen() {
     }
 
     return sortedEvents;
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, exclusiveMatch]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, exclusiveMatch, isProfileRemoved]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -786,7 +795,16 @@ export default function PostMealScreen() {
             }
           }
         }
-        // Note: For non-matches, the profile is removed from post meal and chat immediately
+        // For non-matches (not mixed signals), remove chat immediately
+        if (invitation) {
+          const isMixedSignals = (choice === 'next_round' && dateChoice === 'fight_for_fries') ||
+                                 (choice === 'fight_for_fries' && dateChoice === 'next_round');
+          if (!isMixedSignals) {
+            const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+            removeProfileFromChat(dateUserId, invitationId, 'no_match');
+            console.log(`[No Match] Immediately removed ${dateUserId} from chat - choices don't match (${choice} vs ${dateChoice})`);
+          }
+        }
       }
       
       // Choice is already finalized at the start of handleChoiceSelect
