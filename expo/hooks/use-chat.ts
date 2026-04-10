@@ -46,12 +46,21 @@ type ExclusiveMatchState = {
   invitationId: string;
 } | null;
 
+type PermanentlyGoneState = {
+  [userId: string]: {
+    userId: string;
+    removedAt: Date;
+    reason: 'love_icon_removed';
+  };
+};
+
 export const [ChatProvider, useChat] = createContextHook(() => {
   const [chats, setChats] = useState<ChatState>({});
   const [removedProfiles, setRemovedProfiles] = useState<RemovedProfilesState>({});
   const [mixedSignalsCases, setMixedSignalsCases] = useState<MixedSignalsState>({});
   const [matchedProfiles, setMatchedProfiles] = useState<MatchedProfilesState>({});
   const [exclusiveMatch, setExclusiveMatch] = useState<ExclusiveMatchState>(null);
+  const [permanentlyGoneProfiles, setPermanentlyGoneProfiles] = useState<PermanentlyGoneState>({});
   const [isLoaded, setIsLoaded] = useState(false);
 
   const addVoiceMessage = useCallback((chatId: string, message: VoiceMessage) => {
@@ -269,12 +278,13 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   const getAvailableChats = useCallback((allChats: any[]) => {
     return allChats.filter(chat => {
       if (isProfileRemoved(chat.user.id)) return false;
+      if (isProfilePermanentlyGone(chat.user.id)) return false;
       if (exclusiveMatch) {
         return chat.user.id === exclusiveMatch.userId;
       }
       return true;
     });
-  }, [isProfileRemoved, exclusiveMatch]);
+  }, [isProfileRemoved, isProfilePermanentlyGone, exclusiveMatch]);
 
   const trackMixedSignalsCase = useCallback((userId: string, invitationId: string) => {
     const mixedSignalsCase: MixedSignalsCase = {
@@ -312,6 +322,10 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return !!matchedProfiles[userId];
   }, [matchedProfiles]);
 
+  const isProfilePermanentlyGone = useCallback((userId: string): boolean => {
+    return !!permanentlyGoneProfiles[userId];
+  }, [permanentlyGoneProfiles]);
+
   const removeMatchedProfile = useCallback((userId: string) => {
     console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
     
@@ -328,11 +342,21 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       return updated;
     });
 
+    setPermanentlyGoneProfiles(prev => ({
+      ...prev,
+      [userId]: {
+        userId,
+        removedAt: new Date(),
+        reason: 'love_icon_removed'
+      }
+    }));
+    console.log(`[removeMatchedProfile] ${userId} is now PERMANENTLY GONE - will never appear again`);
+
     removeProfileFromChat(userId, invitationId, 'no_match');
-    console.log(`[removeMatchedProfile] Removed ${userId} from chat - love icon removed, previous match is gone`);
+    console.log(`[removeMatchedProfile] Removed ${userId} from chat - love icon removed, previous match is forever gone`);
 
     if (exclusiveMatch && exclusiveMatch.userId === userId) {
-      console.log(`[removeMatchedProfile] Clearing exclusive match - resuming all dates and chats`);
+      console.log(`[removeMatchedProfile] Clearing exclusive match - resuming all other dates and chats`);
       setExclusiveMatch(null);
     }
   }, [exclusiveMatch, matchedProfiles, removeProfileFromChat]);
@@ -402,6 +426,8 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     resetAllMatches,
     matchedProfiles,
     exclusiveMatch,
-    isLoaded
+    isLoaded,
+    isProfilePermanentlyGone,
+    permanentlyGoneProfiles
   };
 });

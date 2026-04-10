@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch, isProfileRemoved } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch, isProfileRemoved, isProfilePermanentlyGone } = useChat();
   const { addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -282,6 +282,13 @@ export default function PostMealScreen() {
       .forEach(invitation => {
         const eventId = `invitation-${invitation.id}`;
         
+        const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+        
+        if (isProfilePermanentlyGone(dateUserId)) {
+          console.log(`[PostMeal] Skipping event ${eventId} - ${dateUserId} is permanently gone`);
+          return;
+        }
+        
         const eventDateTime = parseDateTime(invitation.date, invitation.time);
         const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
         const invitationId = invitation.id;
@@ -448,7 +455,7 @@ export default function PostMealScreen() {
     }
 
     return sortedEvents;
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, exclusiveMatch, isProfileRemoved]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, exclusiveMatch, isProfileRemoved, isProfilePermanentlyGone]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
