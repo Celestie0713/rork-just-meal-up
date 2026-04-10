@@ -1684,6 +1684,16 @@ export default function PostMealScreen() {
                 <Text style={styles.matchModalDescription}>
                   This profile will now remove from Post Meal page and chat page. Next one gonna shine 💝
                 </Text>
+                <TouchableOpacity 
+                  style={[styles.upgradeButton, styles.noMatchButton]}
+                  onPress={() => {
+                    setShowMatchModal(false);
+                    setMatchResult(null);
+                    setCurrentTime(new Date());
+                  }}
+                >
+                  <Text style={[styles.upgradeButtonText, styles.noMatchButtonText]}>OK</Text>
+                </TouchableOpacity>
               </>
             ) : matchResult?.isMatch && matchResult?.matchType === 'next_round' ? (
               <>
@@ -1804,13 +1814,14 @@ export default function PostMealScreen() {
                   </Text>
                 </TouchableOpacity>
               </View>
+            ) : matchResult?.matchType === 'buddy_pass' ? (
+              null
             ) : matchResult?.matchType === 'no_decision' ? (
               <TouchableOpacity 
                 style={[styles.upgradeButton, styles.noMatchButton]}
                 onPress={() => {
                   setShowMatchModal(false);
                   setMatchResult(null);
-                  // Force a re-render to update the UI after closing the modal
                   setCurrentTime(new Date());
                 }}
               >
@@ -1828,17 +1839,7 @@ export default function PostMealScreen() {
                   setShowMatchModal(false);
                   setMatchResult(null);
                   setCurrentTime(new Date());
-                  if (matchResult?.matchType === 'buddy_pass') {
-                    // Navigate to chat page for buddy pass match
-                    if (matchResult?.eventId) {
-                      const invitationId = matchResult.eventId.replace('invitation-', '');
-                      const invitation = mockInvitations.find(inv => inv.id === invitationId);
-                      if (invitation) {
-                        const otherUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
-                        router.push(`/chat?userId=${otherUserId}` as any);
-                      }
-                    }
-                  } else if (matchResult?.isMatch) {
+                  if (matchResult?.isMatch) {
                     router.push('/(tabs)/profile' as any);
                   }
                 }}
@@ -1847,7 +1848,7 @@ export default function PostMealScreen() {
                   styles.upgradeButtonText,
                   !matchResult?.isMatch && styles.noMatchButtonText
                 ]}>
-                  {matchResult?.matchType === 'buddy_pass' ? 'Cheers🎉' : matchResult?.isMatch ? '❤ icon is on' : 'OK'}
+                  {matchResult?.isMatch ? '❤ icon is on' : 'OK'}
                 </Text>
               </TouchableOpacity>
             )}
