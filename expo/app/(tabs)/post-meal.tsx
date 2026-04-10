@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, isProfileRemoved, getExclusiveMatchPartner, isProfileBrokenUp } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, isProfileRemoved, getExclusiveMatchPartner, isProfileBrokenUp, setPendingFightForFries, clearPendingFightForFries, getPendingFightForFries, pendingFightForFries } = useChat();
   const { addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -109,6 +109,23 @@ export default function PostMealScreen() {
     }
   }, [getExclusiveMatchPartner]);
 
+  // Initialize choices from pending fight_for_fries state (user selected but date hasn't confirmed)
+  useEffect(() => {
+    const pending = getPendingFightForFries();
+    if (pending) {
+      const eventId = pending.eventId;
+      setSelectedChoices(prev => {
+        if (prev[eventId]) return prev;
+        console.log(`[PostMealScreen] Initializing pending fight_for_fries choice for ${eventId}`);
+        return { ...prev, [eventId]: 'fight_for_fries' };
+      });
+      setFinalizedChoices(prev => {
+        if (prev[eventId]) return prev;
+        return { ...prev, [eventId]: true };
+      });
+    }
+  }, [getPendingFightForFries]);
+
   // When matchedProfiles changes (e.g. love icon removed), clear old fight_for_fries selections
   // so the option becomes available again for other dates
   useEffect(() => {
@@ -122,6 +139,8 @@ export default function PostMealScreen() {
     );
 
     if (!hasActiveFriesMatch) {
+      // Also clear pending fight_for_fries if the match was broken
+      clearPendingFightForFries();
       // Clear any old fight_for_fries selections from local state
       setSelectedChoices(prev => {
         const updated = { ...prev };
@@ -272,10 +291,14 @@ export default function PostMealScreen() {
     const hasExtendedChoiceForOtherEvent = Object.entries(extendedChoices).some(
       ([id, choice]) => id !== eventId && choice === 'fight_for_fries'
     );
+
+    // Also check pending fight_for_fries from context (persists across navigations)
+    const pending = getPendingFightForFries();
+    const hasPendingForOtherEvent = pending !== null && pending.eventId !== eventId;
     
-    console.log(`[isFightForFriesDisabled] eventId=${eventId}, hasChosenForOtherEvent=${hasChosenForOtherEvent}, hasExtendedChoiceForOtherEvent=${hasExtendedChoiceForOtherEvent}`);
+    console.log(`[isFightForFriesDisabled] eventId=${eventId}, hasChosenForOtherEvent=${hasChosenForOtherEvent}, hasExtendedChoiceForOtherEvent=${hasExtendedChoiceForOtherEvent}, hasPendingForOtherEvent=${hasPendingForOtherEvent}`);
     
-    return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent;
+    return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent || hasPendingForOtherEvent;
   };
 
   const postMealEvents = useMemo(() => {
@@ -785,11 +808,15 @@ export default function PostMealScreen() {
         if (invitation) {
           const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
           addMatchedProfile(dateUserId, invitationId, matchType);
-          addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
+          addMatchedProfile('1', invitationId, matchType);
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
           
-
+          // If fight_for_fries match confirmed, clear pending state
+          if (matchType === 'fight_for_fries') {
+            clearPendingFightForFries();
+            console.log('[handleChoiceSelect] Cleared pending fight_for_fries - match confirmed!');
+          }
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries
@@ -923,7 +950,15 @@ export default function PostMealScreen() {
 
       }
     } else {
-      // Date hasn't made a decision yet - show the "no decision yet" popup
+      // Date hasn't made a decision yet
+      // If user chose fight_for_fries, set it as pending (not exclusive yet)
+      if (choice === 'fight_for_fries' && invitation) {
+        const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
+        setPendingFightForFries(dateUserId, invitationId, eventId);
+        console.log(`[handleChoiceSelect] Set pending fight_for_fries for user ${dateUserId} - waiting for their decision`);
+      }
+      
+      // Show the "no decision yet" popup
       setMatchResult({
         isMatch: false,
         matchType: 'no_decision',
@@ -1421,28 +1456,39 @@ export default function PostMealScreen() {
                         userSelectedChoice === 'fight_for_fries' && styles.selectedChoiceButtonText,
                         isFightForFriesDisabled(event.id) && styles.disabledChoiceText
                       ]}>(Be my +1?)</Text>
+                      {isFightForFriesDisabled(event.id) && (
+                        <Text style={pendingBadgeStyles.lockedText}>🔒 Already chosen for another date</Text>
+                      )}
                     </TouchableOpacity>
                   </>
                 ) : (
                   /* Show only the selected choice when finalized */
-                  <View style={[
-                    styles.choiceButton, 
-                    styles.finalizedBuddyPassButton
-                  ]}>
-                    <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
-                      {(extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && 'Buddy pass ✅'}
-                      {(extendedChoices[event.id] || userSelectedChoice) === 'next_round' && "Let's do next round"}
-                      {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && 'Fight for fries for life'}
-                    </Text>
-                    <Text style={[styles.choiceSubtext, styles.finalizedChoiceText]}>
-                      {(extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && '(Stay Friend)'}
-                      {(extendedChoices[event.id] || userSelectedChoice) === 'next_round' && '(Next date)'}
-                      {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && '(Be my +1?)'}
-                    </Text>
-                    <Text style={[
-                      styles.finalizedLabel,
-                      (extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && styles.finalizedBuddyPassLabel
-                    ]}>{extendedChoices[event.id] ? 'New Choice' : 'Your Choice'}</Text>
+                  <View>
+                    <View style={[
+                      styles.choiceButton, 
+                      styles.finalizedBuddyPassButton
+                    ]}>
+                      <Text style={[styles.choiceButtonText, styles.finalizedChoiceText]}>
+                        {(extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && 'Buddy pass ✅'}
+                        {(extendedChoices[event.id] || userSelectedChoice) === 'next_round' && "Let's do next round"}
+                        {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && 'Fight for fries for life'}
+                      </Text>
+                      <Text style={[styles.choiceSubtext, styles.finalizedChoiceText]}>
+                        {(extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && '(Stay Friend)'}
+                        {(extendedChoices[event.id] || userSelectedChoice) === 'next_round' && '(Next date)'}
+                        {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && '(Be my +1?)'}
+                      </Text>
+                      <Text style={[
+                        styles.finalizedLabel,
+                        (extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && styles.finalizedBuddyPassLabel
+                      ]}>{extendedChoices[event.id] ? 'New Choice' : 'Your Choice'}</Text>
+                    </View>
+                    {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && pendingFightForFries?.eventId === event.id && !getExclusiveMatchPartner() && (
+                      <View style={pendingBadgeStyles.pendingContainer}>
+                        <Text style={pendingBadgeStyles.pendingIcon}>⏳</Text>
+                        <Text style={pendingBadgeStyles.pendingText}>Pending — waiting for your date&apos;s decision</Text>
+                      </View>
+                    )}
                   </View>
                 );
                 })()}
@@ -1805,3 +1851,34 @@ export default function PostMealScreen() {
     </View>
   );
 }
+
+const pendingBadgeStyles = StyleSheet.create({
+  pendingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF8E1',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#FFE082',
+  },
+  pendingIcon: {
+    fontSize: 14,
+    marginRight: 6,
+  },
+  pendingText: {
+    fontSize: 13,
+    color: '#F57F17',
+    fontWeight: '500',
+    flex: 1,
+  },
+  lockedText: {
+    fontSize: 11,
+    color: '#999',
+    fontStyle: 'italic',
+    marginTop: 4,
+    textAlign: 'center',
+  },
+});

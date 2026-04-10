@@ -50,6 +50,13 @@ type BrokenUpProfilesState = {
   [userId: string]: BrokenUpProfile;
 };
 
+type PendingFightForFries = {
+  userId: string;
+  invitationId: string;
+  eventId: string;
+  selectedAt: Date;
+};
+
 
 export const [ChatProvider, useChat] = createContextHook(() => {
   const [chats, setChats] = useState<ChatState>({});
@@ -57,6 +64,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   const [mixedSignalsCases, setMixedSignalsCases] = useState<MixedSignalsState>({});
   const [matchedProfiles, setMatchedProfiles] = useState<MatchedProfilesState>({});
   const [brokenUpProfiles, setBrokenUpProfiles] = useState<BrokenUpProfilesState>({});
+  const [pendingFightForFries, setPendingFightForFriesState] = useState<PendingFightForFries | null>(null);
 
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -261,6 +269,29 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     return () => clearInterval(interval);
   }, [isLoaded]);
 
+  const setPendingFightForFries = useCallback((userId: string, invitationId: string, eventId: string) => {
+    console.log(`[setPendingFightForFries] Setting pending for user ${userId}, invitation ${invitationId}`);
+    setPendingFightForFriesState({
+      userId,
+      invitationId,
+      eventId,
+      selectedAt: new Date()
+    });
+  }, []);
+
+  const clearPendingFightForFries = useCallback(() => {
+    console.log('[clearPendingFightForFries] Clearing pending fight for fries');
+    setPendingFightForFriesState(null);
+  }, []);
+
+  const hasPendingFightForFries = useCallback((): boolean => {
+    return pendingFightForFries !== null;
+  }, [pendingFightForFries]);
+
+  const getPendingFightForFries = useCallback((): PendingFightForFries | null => {
+    return pendingFightForFries;
+  }, [pendingFightForFries]);
+
   const hasActiveExclusiveMatch = useCallback((): boolean => {
     return Object.values(matchedProfiles).some(
       profile => profile.matchType === 'fight_for_fries' && profile.userId !== '1'
@@ -414,6 +445,11 @@ export const [ChatProvider, useChat] = createContextHook(() => {
     hasActiveExclusiveMatch,
     getExclusiveMatchPartner,
     isProfileBrokenUp,
-    brokenUpProfiles
+    brokenUpProfiles,
+    setPendingFightForFries,
+    clearPendingFightForFries,
+    hasPendingFightForFries,
+    getPendingFightForFries,
+    pendingFightForFries
   };
 });

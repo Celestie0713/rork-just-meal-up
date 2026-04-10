@@ -76,7 +76,7 @@ export interface MealInvitation {
 export interface PostDateResponse {
   userId: string;
   mealId: string;
-  choice: 'buddy_pass' | 'next_round' | 'fight_for_fries';
+  choice: 'buddy_pass' | 'next_round' | 'fight_for_fries' | null;
   timestamp: Date;
 }
 
