@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeGoBack } from '@/utils/navigation';
 import {
   View,
   Text,
@@ -470,7 +471,7 @@ export default function CreateInvitationScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+        <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
           <ArrowLeft size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create Invitation</Text>

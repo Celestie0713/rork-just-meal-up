@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { safeGoBack } from '@/utils/navigation';
 import { ArrowLeft, MapPin, Camera, Users, Utensils, Plus, Mic } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
@@ -34,7 +35,7 @@ export default function UserProfileScreen() {
         <Stack.Screen options={{ headerShown: false }} />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>User not found</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
             <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -170,7 +171,7 @@ export default function UserProfileScreen() {
           <View style={styles.normalHeader}>
             <TouchableOpacity 
               style={styles.backButtonHeader}
-              onPress={() => router.back()}
+              onPress={() => safeGoBack()}
               testID="back-button"
             >
               <ArrowLeft size={24} color={Colors.text} />

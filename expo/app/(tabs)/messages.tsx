@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
+import { safeGoBack } from '@/utils/navigation';
 import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign } from 'lucide-react-native';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
@@ -139,7 +140,7 @@ export default function MessagesScreen() {
               Alert.alert(
                 'Meal Up Shared!',
                 `"${mealUpData.title}" has been shared with ${user.name}.`,
-                [{ text: 'OK', onPress: () => router.back() }]
+                [{ text: 'OK', onPress: () => safeGoBack() }]
               );
             }
           }
@@ -216,7 +217,7 @@ export default function MessagesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         {(isInvitationMode || isMealUpShareMode) && (
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+          <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
             <ArrowLeft size={24} color={Colors.text} />
           </TouchableOpacity>
         )}

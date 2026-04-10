@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { safeGoBack } from '@/utils/navigation';
 import {
   Text,
   StyleSheet,
@@ -178,7 +179,7 @@ export default function CreateMealUpScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => safeGoBack(),
         },
       ]
     );
@@ -195,7 +196,7 @@ export default function CreateMealUpScreen() {
         options={{
           title: groupName ? `New Meal Up — ${decodeURIComponent(groupName)}` : 'Create Meal Up',
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
               <ArrowLeft size={24} color="#FF0000" />
             </TouchableOpacity>
           ),

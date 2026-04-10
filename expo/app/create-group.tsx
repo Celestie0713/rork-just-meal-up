@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { safeGoBack } from '@/utils/navigation';
 import {
   Text,
   StyleSheet,
@@ -56,7 +57,7 @@ export default function CreateGroupScreen() {
       [
         {
           text: 'OK',
-          onPress: () => router.back(),
+          onPress: () => safeGoBack(),
         },
       ]
     );
@@ -71,7 +72,7 @@ export default function CreateGroupScreen() {
         options={{
           title: 'Create Group',
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
               <ArrowLeft size={24} color={Colors.primary} />
             </TouchableOpacity>
           ),
