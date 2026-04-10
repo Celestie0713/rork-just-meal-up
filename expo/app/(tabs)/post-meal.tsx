@@ -62,7 +62,7 @@ function isPostMeal(date: Date, time: string): boolean {
 
 export default function PostMealScreen() {
   const { user } = useAuth();
-  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, exclusiveMatch, removeProfileFromChat, removeAllExceptExclusiveMatch, isProfileRemoved, isProfilePermanentlyGone } = useChat();
+  const { checkAndRemoveNonMatchingProfiles, trackMixedSignalsCase, addMatchedProfile, matchedProfiles, removeProfileFromChat, isProfileRemoved } = useChat();
   const { addMixedSignalsNotification } = useNotifications();
   const insets = useSafeAreaInsets();
   const isPremium = user?.membershipTier === 'premium' || user?.membershipTier === 'organizer';
@@ -255,16 +255,9 @@ export default function PostMealScreen() {
       ([id, choice]) => id !== eventId && choice === 'fight_for_fries'
     );
     
-    // Disable if user already has an exclusive match (love icon on profile)
-    // IMPORTANT: This checks the matchedProfiles state, which is updated when love icon is removed
-    const hasExistingLoveMatch = Object.values(matchedProfiles).some(
-      profile => profile.matchType === 'fight_for_fries'
-    );
+    console.log(`[isFightForFriesDisabled] eventId=${eventId}, hasChosenForOtherEvent=${hasChosenForOtherEvent}, hasExtendedChoiceForOtherEvent=${hasExtendedChoiceForOtherEvent}`);
     
-    console.log(`[isFightForFriesDisabled] eventId=${eventId}, hasChosenForOtherEvent=${hasChosenForOtherEvent}, hasExtendedChoiceForOtherEvent=${hasExtendedChoiceForOtherEvent}, hasExistingLoveMatch=${hasExistingLoveMatch}`);
-    console.log(`[isFightForFriesDisabled] matchedProfiles:`, Object.values(matchedProfiles).map(p => ({ userId: p.userId, matchType: p.matchType })));
-    
-    return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent || hasExistingLoveMatch;
+    return hasChosenForOtherEvent || hasExtendedChoiceForOtherEvent;
   };
 
   const postMealEvents = useMemo(() => {
@@ -284,10 +277,6 @@ export default function PostMealScreen() {
         
         const dateUserId = invitation.inviterId === '1' ? invitation.inviteeId : invitation.inviterId;
         
-        if (isProfilePermanentlyGone(dateUserId)) {
-          console.log(`[PostMeal] Skipping event ${eventId} - ${dateUserId} is permanently gone`);
-          return;
-        }
         
         const eventDateTime = parseDateTime(invitation.date, invitation.time);
         const tenHoursAfterEvent = new Date(eventDateTime.getTime() + (10 * 60 * 60 * 1000));
@@ -447,15 +436,8 @@ export default function PostMealScreen() {
     // Sort by date (most recent first)
     let sortedEvents = events.sort((a, b) => b.date.getTime() - a.date.getTime());
 
-    // If there's an active exclusive match, only show that date
-    if (exclusiveMatch) {
-      const exclusiveEventId = `invitation-${exclusiveMatch.invitationId}`;
-      sortedEvents = sortedEvents.filter(e => e.id === exclusiveEventId);
-      console.log(`[Exclusive Match Active] Filtering to only show event: ${exclusiveEventId}`);
-    }
-
     return sortedEvents;
-  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, exclusiveMatch, isProfileRemoved, isProfilePermanentlyGone]);
+  }, [choiceTimestamps, selectedChoices, mixedSignalsExtensions, getDateChoice, isProfileRemoved]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
@@ -567,11 +549,6 @@ export default function PostMealScreen() {
         addMatchedProfile('1', invitationId, matchType); // Add current user to matched profiles
         console.log(`Added matched profile after extension: ${dateUserId} with match type: ${matchType}`);
         console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
-        
-        if (matchType === 'fight_for_fries') {
-          console.log(`[Exclusive Match] fight_for_fries match after extension! Removing all other dates and chats.`);
-          removeAllExceptExclusiveMatch(dateUserId, invitationId);
-        }
         
         console.log(`Setting match result with isMatch=true, matchType=${matchType}`);
         setMatchResult({
@@ -755,10 +732,7 @@ export default function PostMealScreen() {
           console.log(`Added matched profile: ${dateUserId} with match type: ${matchType}`);
           console.log(`Added current user (1) to matched profiles with match type: ${matchType}`);
           
-          if (matchType === 'fight_for_fries') {
-            console.log(`[Exclusive Match] fight_for_fries match! Removing all other dates and chats.`);
-            removeAllExceptExclusiveMatch(dateUserId, invitationId);
-          }
+
         }
       } else {
         // Check for mixed signals case: one wants next_round, other wants fight_for_fries

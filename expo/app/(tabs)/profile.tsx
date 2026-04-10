@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Star, Settings, MapPin, Heart, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic, ExternalLink } from 'lucide-react-native';
+import { Star, Settings, MapPin, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic, ExternalLink } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -51,7 +51,7 @@ type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
   const { user, updateUser } = useAuth();
-  const { matchedProfiles, removeMatchedProfile } = useChat();
+  const { } = useChat();
   const { favoritePlaces, removeFromFavorites } = useFavorites();
 
   const [isEditing, setIsEditing] = useState(false);
@@ -646,38 +646,6 @@ export default function ProfileScreen() {
           )}
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            <View style={styles.profileLoveIconsContainer}>
-              {Object.values(matchedProfiles)
-                .filter(profile => profile.matchType === 'fight_for_fries' && profile.userId !== user.id)
-                .slice(0, 1)
-                .map((matchedProfile) => {
-                  const matchedUser = mockUsers.find(u => u.id === matchedProfile.userId);
-                  if (!matchedUser) return null;
-                  
-                  return (
-                    <View key={matchedProfile.userId} style={styles.profileLoveIconWrapper}>
-                      <TouchableOpacity 
-                        style={styles.profileLoveIconBackground}
-                        onPress={() => {
-                          router.push(`/user-profile?userId=${matchedProfile.userId}` as any);
-                        }}
-                      >
-                        <Heart size={16} color={Colors.primary} fill={Colors.primary} />
-                      </TouchableOpacity>
-                      <TouchableOpacity 
-                        style={styles.removeLoveButton}
-                        onPress={() => {
-                          removeMatchedProfile(matchedProfile.userId);
-                        }}
-                        testID="remove-love-button"
-                      >
-                        <X size={10} color={Colors.primary} strokeWidth={3} />
-                      </TouchableOpacity>
-                    </View>
-                  );
-                })
-              }
-            </View>
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
@@ -852,33 +820,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
-  profileLoveIconsContainer: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    zIndex: 10,
-  },
-  profileLoveIconWrapper: {
-    position: 'relative',
-  },
-  profileLoveIconBackground: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    padding: 8,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
-    minWidth: 32,
-    minHeight: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
   name: {
     fontSize: 24,
     fontWeight: '700',
@@ -1383,23 +1325,5 @@ const styles = StyleSheet.create({
     fontWeight: '500' as const,
     color: Colors.textLight,
   },
-  removeLoveButton: {
-    position: 'absolute',
-    bottom: -2,
-    right: -2,
-    backgroundColor: Colors.background,
-    borderRadius: 10,
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 3,
-    zIndex: 11,
-  },
+
 });

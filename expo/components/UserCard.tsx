@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { MapPin, Crown, Star, Heart } from 'lucide-react-native';
+import { MapPin, Crown, Star } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -18,8 +18,6 @@ interface UserCardProps {
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
   const { user: currentUser } = useAuth();
-  const { matchedProfiles } = useChat();
-  
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
       return <Crown size={16} color={Colors.organizer} />;
@@ -30,24 +28,6 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
     return null;
   };
   
-  // Check if this user has a fight_for_fries match with current user
-  // Show love icon only if there's an active match in matchedProfiles
-  // Need to check if both the current user and this user have matching profiles for the same invitation
-  const currentUserMatches = Object.values(matchedProfiles).filter(
-    profile => profile.userId === currentUser?.id && profile.matchType === 'fight_for_fries'
-  );
-  
-  const otherUserMatches = Object.values(matchedProfiles).filter(
-    profile => profile.userId === user.id && profile.matchType === 'fight_for_fries'
-  );
-  
-  // Check if there's a common invitationId between the two users
-  const hasLoveMatch = currentUserMatches.some(currentMatch =>
-    otherUserMatches.some(otherMatch => currentMatch.invitationId === otherMatch.invitationId)
-  );
-  
-  console.log(`UserCard for ${user.name} (ID: ${user.id}): hasLoveMatch=${hasLoveMatch}, currentUserMatches:`, currentUserMatches, 'otherUserMatches:', otherUserMatches);
-
   const handleVoiceNotePress = (e: any) => {
     e.stopPropagation();
     router.push({
@@ -67,14 +47,6 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
         <View style={styles.onlineIndicator}>
           <View style={[styles.onlineDot, { backgroundColor: user.isOnline ? Colors.success : Colors.textLight }]} />
         </View>
-        {/* Show love icon for fight_for_fries match */}
-        {hasLoveMatch && (
-          <View style={styles.loveIconContainer}>
-            <View style={styles.loveIconBackground}>
-              <Heart size={16} color="#FF6B35" fill="#FF6B35" />
-            </View>
-          </View>
-        )}
       </View>
       <View style={[styles.content, isGridView && styles.gridContent]}>
         <View style={styles.header}>
@@ -249,24 +221,5 @@ const styles = StyleSheet.create({
     gap: 4,
     flex: 1,
   },
-  loveIconContainer: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    zIndex: 10,
-  },
-  loveIconBackground: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    padding: 6,
-    borderWidth: 2,
-    borderColor: '#FF6B35',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+
 });

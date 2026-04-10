@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { ArrowLeft, MapPin, Heart, Camera, Users, Utensils, Plus, Mic } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Camera, Users, Utensils, Plus, Mic } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -19,21 +19,12 @@ export default function UserProfileScreen() {
   const [activeTab, setActiveTab] = useState<TabType>('food');
   const [showVoiceRecorder, setShowVoiceRecorder] = useState(false);
   const { user: currentUser } = useAuth();
-  const { getMatchType } = useChat();
+  useChat();
   useFavorites();
   
   const user = mockUsers.find(u => u.id === userId);
   
-  // Check if this user has a "fight_for_fries" match with current user
-  const hasLoveMatch = userId && getMatchType(userId) === 'fight_for_fries';
-  
-  const handleNavigateToMatchedUser = () => {
-    // When viewing someone else's profile who has an exclusive match with current user,
-    // clicking the love icon should navigate to current user's profile
-    if (currentUser && userId !== currentUser.id) {
-      router.push('/(tabs)/profile' as any);
-    }
-  };
+
   
 
   
@@ -190,17 +181,7 @@ export default function UserProfileScreen() {
         <View style={styles.profileSection}>
           <View style={styles.profileImageContainer}>
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
-            {hasLoveMatch && (
-              <View style={styles.profileLoveIconWrapper}>
-                <TouchableOpacity 
-                  style={styles.profileLoveIconBackground}
-                  onPress={handleNavigateToMatchedUser}
-                  testID="navigate-to-matched-user-button"
-                >
-                  <Heart size={16} color={Colors.primary} fill={Colors.primary} />
-                </TouchableOpacity>
-              </View>
-            )}
+
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
@@ -285,28 +266,6 @@ const styles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-  },
-  profileLoveIconWrapper: {
-    position: 'absolute',
-    bottom: 8,
-    right: 8,
-    zIndex: 10,
-  },
-  profileLoveIconBackground: {
-    backgroundColor: Colors.background,
-    borderRadius: 16,
-    padding: 8,
-    borderWidth: 2,
-    borderColor: Colors.primary,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.4,
-    shadowRadius: 6,
-    elevation: 6,
-    minWidth: 32,
-    minHeight: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 
   nameContainer: {

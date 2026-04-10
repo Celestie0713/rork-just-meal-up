@@ -54,39 +54,4 @@ export const mockMatchedProfiles: {
   }
 ];
 
-// Utility function to check if two users have a mutual "fight for fries" match
-// This should only return true if the match was confirmed through the Post Meal process
-export function hasMutualLoveMatch(userId1: string, userId2: string): boolean {
-  // Check if there's a confirmed match in the matched profiles
-  // This ensures the love icon only shows after the Post Meal matching process
-  const matchKey1 = userId1 === '1' ? userId2 : userId1;
-  const matchKey2 = userId2 === '1' ? userId1 : userId2;
-  
-  // Check if either user has the other as a fight_for_fries match
-  const hasMatch = mockMatchedProfiles.some(profile => 
-    (profile.userId === matchKey1 || profile.userId === matchKey2) && 
-    profile.matchType === 'fight_for_fries'
-  );
-  
-  return hasMatch;
-}
-
-// Get the current user's love match (if any)
-export function getCurrentUserLoveMatch(): string | null {
-  // Check all users to see if current user (id: '1') has a mutual love match with anyone
-  const allUserIds = ['2', '3', '4', '5', '6', '7', '8', '9', '10', '11']; // All other user IDs
-  
-  for (const userId of allUserIds) {
-    if (hasMutualLoveMatch('1', userId)) {
-      return userId;
-    }
-  }
-  
-  return null;
-}
-
-// Check if current user has any love match (used to disable fight_for_fries option)
-export function hasCurrentUserLoveMatch(): boolean {
-  return getCurrentUserLoveMatch() !== null;
-}
 
