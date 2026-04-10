@@ -1679,10 +1679,10 @@ export default function PostMealScreen() {
               </>
             ) : matchResult?.matchType === 'buddy_pass' ? (
               <>
-                <Text style={styles.noMatchEmoji}>🍻</Text>
-                <Text style={styles.matchModalTitle}>Opps!</Text>
+                <Text style={styles.noMatchEmoji}>✨</Text>
+                <Text style={styles.matchModalTitle}>No Spark This Time ✨</Text>
                 <Text style={styles.matchModalDescription}>
-                  This profile will now remove from Post Meal page and chat page. Next one gonna shine 💝
+                  Not a match. Go on to the next meal🍜 This profile and chat will be removed now.
                 </Text>
                 <TouchableOpacity 
                   style={[styles.upgradeButton, styles.noMatchButton]}
