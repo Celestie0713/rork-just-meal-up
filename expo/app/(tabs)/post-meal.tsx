@@ -1680,9 +1680,9 @@ export default function PostMealScreen() {
             ) : matchResult?.matchType === 'buddy_pass' ? (
               <>
                 <Text style={styles.noMatchEmoji}>🍻</Text>
-                <Text style={styles.matchModalTitle}>Congrats—you just unlocked a new friend!</Text>
+                <Text style={styles.matchModalTitle}>Opps!</Text>
                 <Text style={styles.matchModalDescription}>
-                  Great minds think alike! You both chose to stay friends.{"\n\n"}Heads up: This profile will be removed from the Post Meal page, but your chat is still available in Messages.
+                  This profile will now remove from Post Meal page and chat page. Next one gonna shine 💝
                 </Text>
               </>
             ) : matchResult?.isMatch && matchResult?.matchType === 'next_round' ? (
