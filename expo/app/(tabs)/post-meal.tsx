@@ -91,12 +91,57 @@ export default function PostMealScreen() {
   const [selectedEventForTip, setSelectedEventForTip] = useState<string | null>(null);
 
 
-  // Log when matchedProfiles changes
+  // When matchedProfiles changes (e.g. love icon removed), clear old fight_for_fries selections
+  // so the option becomes available again for other dates
   useEffect(() => {
     console.log('[PostMealScreen] matchedProfiles changed:', Object.keys(matchedProfiles).map(key => ({
       userId: key,
       matchType: matchedProfiles[key].matchType
     })));
+
+    const hasActiveFriesMatch = Object.values(matchedProfiles).some(
+      profile => profile.matchType === 'fight_for_fries'
+    );
+
+    if (!hasActiveFriesMatch) {
+      // Clear any old fight_for_fries selections from local state
+      setSelectedChoices(prev => {
+        const updated = { ...prev };
+        let changed = false;
+        Object.entries(updated).forEach(([key, value]) => {
+          if (value === 'fight_for_fries') {
+            delete updated[key];
+            changed = true;
+            console.log(`[PostMealScreen] Cleared old fight_for_fries selection for ${key}`);
+          }
+        });
+        return changed ? updated : prev;
+      });
+      setFinalizedChoices(prev => {
+        const updated = { ...prev };
+        let changed = false;
+        Object.entries(selectedChoices).forEach(([key, value]) => {
+          if (value === 'fight_for_fries' && updated[key]) {
+            delete updated[key];
+            changed = true;
+            console.log(`[PostMealScreen] Cleared finalized flag for old fight_for_fries event ${key}`);
+          }
+        });
+        return changed ? updated : prev;
+      });
+      setExtendedChoices(prev => {
+        const updated = { ...prev };
+        let changed = false;
+        Object.entries(updated).forEach(([key, value]) => {
+          if (value === 'fight_for_fries') {
+            delete updated[key];
+            changed = true;
+            console.log(`[PostMealScreen] Cleared old extended fight_for_fries selection for ${key}`);
+          }
+        });
+        return changed ? updated : prev;
+      });
+    }
   }, [matchedProfiles]);
 
   // Update current time every second for timer display

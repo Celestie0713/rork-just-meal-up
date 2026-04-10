@@ -315,6 +315,9 @@ export const [ChatProvider, useChat] = createContextHook(() => {
   const removeMatchedProfile = useCallback((userId: string) => {
     console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
     
+    const matchedProfile = matchedProfiles[userId];
+    const invitationId = matchedProfile?.invitationId || '';
+    
     setMatchedProfiles(prev => {
       console.log(`[removeMatchedProfile] Previous state:`, prev);
       const updated = { ...prev };
@@ -325,11 +328,14 @@ export const [ChatProvider, useChat] = createContextHook(() => {
       return updated;
     });
 
+    removeProfileFromChat(userId, invitationId, 'no_match');
+    console.log(`[removeMatchedProfile] Removed ${userId} from chat - love icon removed, previous match is gone`);
+
     if (exclusiveMatch && exclusiveMatch.userId === userId) {
       console.log(`[removeMatchedProfile] Clearing exclusive match - resuming all dates and chats`);
       setExclusiveMatch(null);
     }
-  }, [exclusiveMatch]);
+  }, [exclusiveMatch, matchedProfiles, removeProfileFromChat]);
 
   const removeAllExceptExclusiveMatch = useCallback((exclusiveUserId: string, exclusiveInvitationId: string) => {
     console.log(`[removeAllExceptExclusiveMatch] Setting exclusive match: userId=${exclusiveUserId}, invitationId=${exclusiveInvitationId}`);
