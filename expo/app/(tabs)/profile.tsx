@@ -773,24 +773,29 @@ export default function ProfileScreen() {
           onPress={() => setShowRemoveLoveModal(false)}
         >
           <TouchableOpacity activeOpacity={1} style={styles.removeLoveModalCard}>
+            <View style={styles.removeLoveModalIconWrap}>
+              <Heart size={28} color="#FF3B6F" fill="#FF3B6F" />
+            </View>
             <Text style={styles.removeLoveModalTitle}>Remove Love Icon</Text>
             <Text style={styles.removeLoveModalMessage}>
-              Are you sure? Removing the love icon means your current exclusive date will be gone forever and your other dates will resume.
+              Removing the love icon means your current exclusive date will be gone forever and your other dates will resume.
             </Text>
-            <View style={styles.removeLoveModalDivider} />
-            <TouchableOpacity
-              style={styles.removeLoveModalButton}
-              onPress={() => setShowRemoveLoveModal(false)}
-            >
-              <Text style={styles.removeLoveModalButtonText}>Cancel</Text>
-            </TouchableOpacity>
-            <View style={styles.removeLoveModalDivider} />
-            <TouchableOpacity
-              style={styles.removeLoveModalButton}
-              onPress={confirmRemoveLoveIcon}
-            >
-              <Text style={styles.removeLoveModalButtonText}>Remove</Text>
-            </TouchableOpacity>
+            <View style={styles.removeLoveModalActions}>
+              <TouchableOpacity
+                style={styles.removeLoveModalCancelBtn}
+                onPress={() => setShowRemoveLoveModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.removeLoveModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.removeLoveModalRemoveBtn}
+                onPress={confirmRemoveLoveIcon}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.removeLoveModalRemoveText}>Remove</Text>
+              </TouchableOpacity>
+            </View>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -1415,48 +1420,74 @@ const styles = StyleSheet.create({
   },
   removeLoveModalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.6)',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 40,
+    padding: 32,
   },
   removeLoveModalCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
     width: '100%',
-    maxWidth: 300,
-    overflow: 'hidden' as const,
-    borderWidth: 1,
-    borderColor: '#000000',
+    maxWidth: 320,
+    paddingTop: 28,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    alignItems: 'center' as const,
+  },
+  removeLoveModalIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,59,111,0.12)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 16,
   },
   removeLoveModalTitle: {
-    fontSize: 17,
-    fontWeight: '600' as const,
-    color: '#000000',
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
     textAlign: 'center' as const,
-    paddingTop: 20,
-    paddingHorizontal: 20,
+    marginBottom: 8,
   },
   removeLoveModalMessage: {
-    fontSize: 13,
-    color: '#333333',
+    fontSize: 14,
+    color: Colors.textLight,
     textAlign: 'center' as const,
-    paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 20,
-    lineHeight: 18,
+    lineHeight: 20,
+    marginBottom: 24,
   },
-  removeLoveModalDivider: {
-    height: 1,
-    backgroundColor: '#000000',
+  removeLoveModalActions: {
+    flexDirection: 'row' as const,
+    gap: 12,
+    width: '100%',
   },
-  removeLoveModalButton: {
-    paddingVertical: 12,
+  removeLoveModalCancelBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
-  removeLoveModalButtonText: {
-    fontSize: 16,
-    color: '#000000',
+  removeLoveModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+  },
+  removeLoveModalRemoveBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: '#FF3B6F',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  removeLoveModalRemoveText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
   },
 });
