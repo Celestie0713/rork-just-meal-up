@@ -92,7 +92,7 @@ export default function ProfileScreen() {
     if (!exclusivePartner) return;
     Alert.alert(
       'Remove Love Icon',
-      `Are you sure? Removing the love icon means ${partnerUser?.name || 'your match'} will be gone forever and your other dates will resume.`,
+      'Are you sure? Removing the love icon means your current exclusive date will be gone forever and your other dates will resume.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
