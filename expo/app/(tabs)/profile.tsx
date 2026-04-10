@@ -68,6 +68,7 @@ export default function ProfileScreen() {
   const [showPersonalLanguageModal, setShowPersonalLanguageModal] = useState(false);
   const [showPreferredIncomeModal, setShowPreferredIncomeModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [showRemoveLoveModal, setShowRemoveLoveModal] = useState(false);
 
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('food');
@@ -90,21 +91,14 @@ export default function ProfileScreen() {
 
   const handleRemoveLoveIcon = () => {
     if (!exclusivePartner) return;
-    Alert.alert(
-      'Remove Love Icon',
-      'Are you sure? Removing the love icon means your current exclusive date will be gone forever and your other dates will resume.',
-      [
-        { text: 'Cancel', style: 'default' },
-        {
-          text: 'Remove',
-          style: 'default',
-          onPress: () => {
-            console.log('[Profile] Removing exclusive match with:', exclusivePartner.userId);
-            removeMatchedProfile(exclusivePartner.userId);
-          }
-        }
-      ]
-    );
+    setShowRemoveLoveModal(true);
+  };
+
+  const confirmRemoveLoveIcon = () => {
+    if (!exclusivePartner) return;
+    console.log('[Profile] Removing exclusive match with:', exclusivePartner.userId);
+    removeMatchedProfile(exclusivePartner.userId);
+    setShowRemoveLoveModal(false);
   };
 
   console.log('Profile screen render - user:', user);
@@ -772,6 +766,34 @@ export default function ProfileScreen() {
       {renderPersonalLanguageModal()}
       {renderPreferredIncomeModal()}
       {renderSettingsModal()}
+      <Modal visible={showRemoveLoveModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.removeLoveModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowRemoveLoveModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.removeLoveModalCard}>
+            <Text style={styles.removeLoveModalTitle}>Remove Love Icon</Text>
+            <Text style={styles.removeLoveModalMessage}>
+              Are you sure? Removing the love icon means your current exclusive date will be gone forever and your other dates will resume.
+            </Text>
+            <View style={styles.removeLoveModalDivider} />
+            <TouchableOpacity
+              style={styles.removeLoveModalButton}
+              onPress={() => setShowRemoveLoveModal(false)}
+            >
+              <Text style={styles.removeLoveModalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            <View style={styles.removeLoveModalDivider} />
+            <TouchableOpacity
+              style={styles.removeLoveModalButton}
+              onPress={confirmRemoveLoveIcon}
+            >
+              <Text style={styles.removeLoveModalButtonText}>Remove</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1391,5 +1413,48 @@ const styles = StyleSheet.create({
     fontWeight: '500' as const,
     color: Colors.textLight,
   },
-
+  removeLoveModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+  },
+  removeLoveModalCard: {
+    backgroundColor: Colors.background,
+    borderRadius: 14,
+    width: '100%',
+    maxWidth: 300,
+    overflow: 'hidden' as const,
+  },
+  removeLoveModalTitle: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    textAlign: 'center' as const,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+  },
+  removeLoveModalMessage: {
+    fontSize: 13,
+    color: Colors.textLight,
+    textAlign: 'center' as const,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
+    lineHeight: 18,
+  },
+  removeLoveModalDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  removeLoveModalButton: {
+    paddingVertical: 12,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  removeLoveModalButtonText: {
+    fontSize: 16,
+    color: Colors.text,
+  },
 });
