@@ -1580,15 +1580,15 @@ export default function PostMealScreen() {
           </View>
         )}
         <View style={styles.infoSection}>
-          <Text style={styles.infoText}>• Your post-meal-ups only appear here after 10 hours from the meal time.</Text>
-          <Text style={styles.infoText}>• You&apos;ve got 7 days to decide. If one person makes their decision while the other is still thinking (Life choices aren&apos;t instant noodles), the timer keeps ticking like a microwaved burrito.</Text>
-          <Text style={styles.infoText}>{"\n"}✅ When both have decided:</Text>
-          <Text style={styles.infoText}>   • Let&apos;s do next round: The user disappears from the post-meal but the chat lives on.</Text>
-          <Text style={styles.infoText}>   • Fight for fries for life🍟: All other dates disappear (Exclusive date)</Text>
-          <Text style={styles.infoText}>{"\n"}🔀 Mixed signal?</Text>
-          <Text style={styles.infoText}>   • If one chose Let&apos;s do next round while the other chose Fight for fries for life🍟, both users are now given another 24 hours to decide again.</Text>
+          <Text style={styles.infoText}>• Shows up 10 hours after your meal.</Text>
+          <Text style={styles.infoText}>• You&apos;ve got 7 days to decide — no rush, this isn&apos;t instant noodles. If one decides early, the clock keeps ticking (except if one chose buddy pass).</Text>
+          <Text style={styles.infoText}>{"\n"}✅ Both agree:</Text>
+          <Text style={styles.infoText}>   • Next round → Profile disappears, chat stays to arrange next meal.</Text>
+          <Text style={styles.infoText}>   • Fight for fries for life 🍟 → All other dates vanish (exclusive mode).</Text>
+          <Text style={styles.infoText}>{"\n"}🔀 Mixed signals?</Text>
+          <Text style={styles.infoText}>   • One chose next round while the other chose exclusive? You both get 24 more hours to rethink your life choices.</Text>
           <Text style={styles.infoText}>{"\n"}❌ No spark?</Text>
-          <Text style={styles.infoText}>   • Either one chose buddy pass: Poof! Profile and chat vanish like a bad date story.</Text>
+          <Text style={styles.infoText}>   • One hits buddy pass → Poof. Profile + chat = gone.</Text>
         </View>
       </ScrollView>
       {/* Success Modal */}
