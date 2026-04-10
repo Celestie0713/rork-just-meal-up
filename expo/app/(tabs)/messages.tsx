@@ -51,7 +51,7 @@ const mockChats: ChatData[] = [
 ];
 
 export default function MessagesScreen() {
-  const { getAvailableChats, isLoaded, addSystemMessage } = useChat();
+  const { getAvailableChats, isLoaded, addSystemMessage, hasActiveExclusiveMatch } = useChat();
   const { addInvitation } = useInvitations();
   const params = useLocalSearchParams<{
     placeName?: string;
@@ -284,6 +284,11 @@ export default function MessagesScreen() {
           </View>
         </View>
       )}
+      {hasActiveExclusiveMatch() && (
+        <View style={styles.exclusiveBanner}>
+          <Text style={styles.exclusiveBannerText}>In exclusive ❤️ but you can still say hi</Text>
+        </View>
+      )}
       <FlatList
         data={filteredChats}
         renderItem={renderChatItem}
@@ -498,6 +503,19 @@ const styles = StyleSheet.create({
   mealUpDetailItem: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  exclusiveBanner: {
+    backgroundColor: '#FFF0F0',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#FFD6D6',
+  },
+  exclusiveBannerText: {
+    fontSize: 14,
+    fontWeight: '500' as const,
+    color: '#333',
   },
   mealUpDetailText: {
     fontSize: 12,
