@@ -37,7 +37,7 @@ export const mockMatchedProfiles: {
   {
     userId: '5',
     mealId: '7',
-    matchType: 'fight_for_fries',
+    matchType: 'buddy_pass',
     matchedAt: new Date('2024-01-15T20:30:00Z')
   },
   {

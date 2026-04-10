@@ -115,15 +115,26 @@ export const [ChatProvider, useChat] = createContextHook(() => {
         
         // Initialize with all matched profiles
         const initialMatchedProfiles: MatchedProfilesState = {};
+        let initialExclusiveMatch: ExclusiveMatchState = null;
         mockMatchedProfiles.forEach(profile => {
           initialMatchedProfiles[profile.userId] = {
             userId: profile.userId,
-            invitationId: profile.mealId, // Map mealId to invitationId
+            invitationId: profile.mealId,
             matchType: profile.matchType,
             matchedAt: profile.matchedAt
           };
+          if (profile.matchType === 'fight_for_fries' && profile.userId !== '1') {
+            initialExclusiveMatch = {
+              userId: profile.userId,
+              invitationId: profile.mealId
+            };
+          }
         });
         setMatchedProfiles(initialMatchedProfiles);
+        if (initialExclusiveMatch) {
+          setExclusiveMatch(initialExclusiveMatch);
+          console.log('Initialized exclusive match:', initialExclusiveMatch);
+        }
         console.log('Initialized with matched profiles:', initialMatchedProfiles);
         
         setIsLoaded(true);
