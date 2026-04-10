@@ -327,12 +327,7 @@ export const [ChatProvider, useChat] = createContextHook(() => {
 
   const removeMatchedProfile = useCallback((userId: string) => {
     console.log(`[removeMatchedProfile] Removing matched profile: ${userId}`);
-    
-    setBrokenUpProfiles(prev => ({
-      ...prev,
-      [userId]: { userId, brokenUpAt: new Date() }
-    }));
-    console.log(`[removeMatchedProfile] Added ${userId} to brokenUpProfiles`);
+    console.log(`[removeMatchedProfile] Resuming all dates for both users`);
     
     setMatchedProfiles(prev => {
       const updated = { ...prev };
