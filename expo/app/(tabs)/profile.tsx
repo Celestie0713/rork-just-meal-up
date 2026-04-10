@@ -1421,23 +1421,25 @@ const styles = StyleSheet.create({
     padding: 40,
   },
   removeLoveModalCard: {
-    backgroundColor: Colors.background,
+    backgroundColor: '#FFFFFF',
     borderRadius: 14,
     width: '100%',
     maxWidth: 300,
     overflow: 'hidden' as const,
+    borderWidth: 1,
+    borderColor: '#000000',
   },
   removeLoveModalTitle: {
     fontSize: 17,
     fontWeight: '600' as const,
-    color: Colors.text,
+    color: '#000000',
     textAlign: 'center' as const,
     paddingTop: 20,
     paddingHorizontal: 20,
   },
   removeLoveModalMessage: {
     fontSize: 13,
-    color: Colors.textLight,
+    color: '#333333',
     textAlign: 'center' as const,
     paddingHorizontal: 20,
     paddingTop: 8,
@@ -1446,7 +1448,7 @@ const styles = StyleSheet.create({
   },
   removeLoveModalDivider: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: '#000000',
   },
   removeLoveModalButton: {
     paddingVertical: 12,
@@ -1455,6 +1457,6 @@ const styles = StyleSheet.create({
   },
   removeLoveModalButtonText: {
     fontSize: 16,
-    color: Colors.text,
+    color: '#000000',
   },
 });
