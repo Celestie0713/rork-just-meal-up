@@ -1074,7 +1074,6 @@ const styles = StyleSheet.create({
   },
   addressText: {
     color: colors.primary,
-    textDecorationLine: 'underline',
   },
   navModalOverlay: {
     flex: 1,
