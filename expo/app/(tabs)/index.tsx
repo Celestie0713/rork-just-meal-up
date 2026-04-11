@@ -317,12 +317,12 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.viewOnMapsButton}
                       onPress={() => {
-                        const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(result.place.name + ', ' + (result.place.address || '') + ', ' + result.place.city)}`;
+                        const url = `https://www.google.com/search?q=${encodeURIComponent(result.place.name + ' ' + (result.place.address || '') + ' ' + result.place.city)}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >
                       <MapPin size={16} color="#FF6B35" />
-                      <Text style={styles.viewOnMapsText}>View on Google Maps</Text>
+                      <Text style={styles.viewOnMapsText}>View on Google</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.bribeFoodButton}
@@ -466,12 +466,12 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
-                        const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.place.name + ', ' + (selectedPlace.place.address || '') + ', ' + selectedPlace.place.city)}`;
+                        const url = `https://www.google.com/search?q=${encodeURIComponent(selectedPlace.place.name + ' ' + (selectedPlace.place.address || '') + ' ' + selectedPlace.place.city)}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >
                       <MapPin size={20} color="#FFFFFF" />
-                      <Text style={styles.placeDetailMapButtonText}>View on Google Maps</Text>
+                      <Text style={styles.placeDetailMapButtonText}>View on Google</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.placeDetailBribeFoodButton}

@@ -228,7 +228,7 @@ export default function ProfileScreen() {
   const handleViewOnGoogleMaps = async () => {
     if (!selectedPlace) return;
     const query = encodeURIComponent(selectedPlace.name);
-    const url = `https://www.google.com/maps/search/?api=1&query=${query}`;
+    const url = `https://www.google.com/search?q=${query}`;
     try {
       await WebBrowser.openBrowserAsync(url, {
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.POPOVER,
@@ -463,7 +463,7 @@ export default function ProfileScreen() {
             activeOpacity={0.8}
           >
             <MapPin size={18} color="#fff" />
-            <Text style={styles.placeModalGoogleButtonText}>View on Google Maps</Text>
+            <Text style={styles.placeModalGoogleButtonText}>View on Google</Text>
             <ExternalLink size={16} color="#fff" />
           </TouchableOpacity>
           <TouchableOpacity
