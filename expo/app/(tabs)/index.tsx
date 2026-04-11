@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard, Alert, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -66,9 +66,59 @@ export default function SearchScreen() {
     }
   }, [placesSearch.isLoading, pulseAnim]);
 
-  const handlePlacesSearch = useCallback(() => {
+  const handlePlacesSearch = useCallback(async () => {
     const trimmed = placesInputValue.trim();
     if (trimmed.length > 0) {
+      if (placesSearch.needsLocationForQuery(trimmed)) {
+        console.log('[Search] Near-me query detected, requesting location...');
+        const showLocationAlert = () => {
+          Alert.alert(
+            'Enable Location',
+            'To find places near you, we need access to your location. Would you like to enable it?',
+            [
+              {
+                text: 'Search Without Location',
+                style: 'cancel',
+                onPress: () => {
+                  placesSearch.search(trimmed);
+                  setHasSearched(true);
+                  Keyboard.dismiss();
+                },
+              },
+              {
+                text: 'Enable Location',
+                onPress: async () => {
+                  const granted = await placesSearch.requestLocationPermission();
+                  if (granted) {
+                    setTimeout(() => {
+                      placesSearch.search(trimmed);
+                      setHasSearched(true);
+                      Keyboard.dismiss();
+                    }, 500);
+                  } else {
+                    Alert.alert(
+                      'Location Not Available',
+                      'Please enable location in your device settings for better "near me" results.',
+                      [
+                        {
+                          text: 'Search Anyway',
+                          onPress: () => {
+                            placesSearch.search(trimmed);
+                            setHasSearched(true);
+                            Keyboard.dismiss();
+                          },
+                        },
+                      ]
+                    );
+                  }
+                },
+              },
+            ]
+          );
+        };
+        showLocationAlert();
+        return;
+      }
       placesSearch.search(trimmed);
       setHasSearched(true);
       Keyboard.dismiss();

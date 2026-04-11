@@ -185,11 +185,17 @@ async function reverseGeocodeWeb(latitude: number, longitude: number): Promise<{
   return {};
 }
 
+function isNearMeQuery(query: string): boolean {
+  const q = query.toLowerCase();
+  return q.includes('near me') || q.includes('nearby') || q.includes('around me') || q.includes('close to me') || q.includes('my area');
+}
+
 export function usePlacesSearch() {
   const [data, setData] = useState<PlacesSearchResult | null>(null);
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null);
   const [locationReady, setLocationReady] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -248,6 +254,7 @@ export function usePlacesSearch() {
           if (finalStatus !== 'granted') {
             console.log('[Places] Location permission denied');
             if (!cancelled) {
+              setLocationPermissionDenied(true);
               setLocationError('Location permission denied. Please enable location in your device settings.');
               setLocationReady(true);
             }
@@ -292,6 +299,61 @@ export function usePlacesSearch() {
     };
   }, []);
 
+  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
+    try {
+      if (Platform.OS === 'web') {
+        return new Promise((resolve) => {
+          if ('geolocation' in navigator) {
+            navigator.geolocation.getCurrentPosition(
+              async (position) => {
+                const loc: UserLocation = {
+                  latitude: position.coords.latitude,
+                  longitude: position.coords.longitude,
+                };
+                const geo = await reverseGeocodeWeb(loc.latitude, loc.longitude);
+                loc.city = geo.city;
+                loc.country = geo.country;
+                setUserLocation(loc);
+                setLocationReady(true);
+                setLocationError(null);
+                setLocationPermissionDenied(false);
+                resolve(true);
+              },
+              () => resolve(false),
+              { timeout: 15000, enableHighAccuracy: false, maximumAge: 300000 }
+            );
+          } else {
+            resolve(false);
+          }
+        });
+      } else {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const position = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          const loc: UserLocation = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          };
+          const geo = await reverseGeocode(loc.latitude, loc.longitude);
+          loc.city = geo.city;
+          loc.country = geo.country;
+          setUserLocation(loc);
+          setLocationReady(true);
+          setLocationError(null);
+          setLocationPermissionDenied(false);
+          return true;
+        }
+        setLocationPermissionDenied(true);
+        return false;
+      }
+    } catch (error) {
+      console.log('[Places] Manual location request error:', error);
+      return false;
+    }
+  }, []);
+
   const mutation = useMutation({
     mutationFn: (query: string) => searchPlacesAI(query, 30, userLocation),
     onSuccess: (result) => {
@@ -309,6 +371,10 @@ export function usePlacesSearch() {
     }
   }, [mutation]);
 
+  const needsLocationForQuery = useCallback((query: string): boolean => {
+    return isNearMeQuery(query) && !userLocation;
+  }, [userLocation]);
+
   return {
     data,
     isLoading: mutation.isPending,
@@ -319,6 +385,9 @@ export function usePlacesSearch() {
     locationDetected: userLocation !== null,
     locationCity: userLocation?.city ?? null,
     locationError,
+    locationPermissionDenied,
+    needsLocationForQuery,
+    requestLocationPermission,
     refetch: () => {
       if (mutation.variables) {
         mutation.mutate(mutation.variables);
