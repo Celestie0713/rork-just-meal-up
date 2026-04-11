@@ -78,7 +78,7 @@ export default function SearchScreen() {
             [
               {
                 text: 'Search Without Location',
-                style: 'cancel',
+                style: 'default',
                 onPress: () => {
                   placesSearch.search(trimmed);
                   setHasSearched(true);
