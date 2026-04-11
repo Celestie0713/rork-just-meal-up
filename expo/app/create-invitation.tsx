@@ -656,8 +656,6 @@ const styles = StyleSheet.create({
     color: Colors.text,
     flex: 1,
     lineHeight: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.primary,
     paddingVertical: 4,
     paddingHorizontal: 0,
   },
