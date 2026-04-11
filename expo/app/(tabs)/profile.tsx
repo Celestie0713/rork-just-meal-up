@@ -227,7 +227,7 @@ export default function ProfileScreen() {
 
   const handleViewOnGoogleMaps = async () => {
     if (!selectedPlace) return;
-    const query = encodeURIComponent('"' + selectedPlace.name + '" restaurant ' + (selectedPlace.formatted_address || ''));
+    const query = encodeURIComponent('"' + selectedPlace.name + '"' + (selectedPlace.formatted_address ? ' ' + selectedPlace.formatted_address.split(',')[0] : ''));
     const url = `https://www.google.com/search?q=${query}`;
     try {
       await WebBrowser.openBrowserAsync(url, {

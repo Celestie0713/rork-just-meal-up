@@ -317,7 +317,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.viewOnMapsButton}
                       onPress={() => {
-                        const url = `https://www.google.com/search?q=${encodeURIComponent('"' + result.place.name + '" restaurant ' + (result.place.address || '') + ' ' + result.place.city + ' ' + (result.place.country || ''))}`;
+                        const url = `https://www.google.com/search?q=${encodeURIComponent('"' + result.place.name + '" ' + (result.place.city || ''))}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >
@@ -466,7 +466,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
-                        const url = `https://www.google.com/search?q=${encodeURIComponent('"' + selectedPlace.place.name + '" restaurant ' + (selectedPlace.place.address || '') + ' ' + selectedPlace.place.city + ' ' + (selectedPlace.place.country || ''))}`;
+                        const url = `https://www.google.com/search?q=${encodeURIComponent('"' + selectedPlace.place.name + '" ' + (selectedPlace.place.city || ''))}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >
