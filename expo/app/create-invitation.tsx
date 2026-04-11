@@ -11,7 +11,8 @@ import {
   Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, Pencil, Check } from 'lucide-react-native';
+import { TextInput } from 'react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -34,6 +35,8 @@ export default function CreateInvitationScreen() {
   const [tempHour, setTempHour] = useState<number>(19);
   const [tempMinute, setTempMinute] = useState<number>(0);
   const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('PM');
+  const [editableAddress, setEditableAddress] = useState<string>(placeAddress || '');
+  const [isEditingAddress, setIsEditingAddress] = useState(false);
 
   const formatDate = (date: Date) => {
     const today = new Date();
@@ -251,7 +254,7 @@ export default function CreateInvitationScreen() {
   const handleSendInvitation = () => {
     const invitationData = {
       placeName,
-      placeAddress,
+      placeAddress: editableAddress,
       placeId,
       date: selectedDate.toISOString(),
       time: selectedTime.toISOString(),
@@ -483,10 +486,33 @@ export default function CreateInvitationScreen() {
           <View style={styles.restaurantCard}>
             <Text style={styles.restaurantName}>{placeName || 'Restaurant Name'}</Text>
             <View style={styles.addressRow}>
-              <MapPin size={14} color={Colors.textLight} />
-              <Text style={styles.restaurantAddress} numberOfLines={2}>
-                {placeAddress || 'Restaurant Address'}
-              </Text>
+              <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
+              {isEditingAddress ? (
+                <TextInput
+                  style={styles.addressInput}
+                  value={editableAddress}
+                  onChangeText={setEditableAddress}
+                  multiline
+                  autoFocus
+                  placeholder="Enter address"
+                  placeholderTextColor={Colors.textLight}
+                />
+              ) : (
+                <Text style={styles.restaurantAddress} numberOfLines={2}>
+                  {editableAddress || 'Restaurant Address'}
+                </Text>
+              )}
+              <TouchableOpacity
+                style={styles.editAddressButton}
+                onPress={() => setIsEditingAddress(!isEditingAddress)}
+                activeOpacity={0.7}
+              >
+                {isEditingAddress ? (
+                  <Check size={16} color={Colors.primary} />
+                ) : (
+                  <Pencil size={14} color={Colors.textLight} />
+                )}
+              </TouchableOpacity>
             </View>
           </View>
         </View>
@@ -624,6 +650,22 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     flex: 1,
     lineHeight: 20,
+  },
+  addressInput: {
+    fontSize: 14,
+    color: Colors.text,
+    flex: 1,
+    lineHeight: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.primary,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+  },
+  editAddressButton: {
+    padding: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    marginLeft: 8,
   },
   dateTimeButton: {
     backgroundColor: Colors.surface,
