@@ -363,7 +363,7 @@ export default function ChatScreen() {
           )}
           <TouchableOpacity 
             style={styles.inviteButton}
-            onPress={() => router.push('/(tabs)' as any)}
+            onPress={() => router.push('/(tabs)?tab=places' as any)}
           >
             <Text style={styles.inviteButtonText}>Invite to eat</Text>
           </TouchableOpacity>
