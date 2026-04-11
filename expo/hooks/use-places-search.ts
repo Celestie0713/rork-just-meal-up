@@ -118,7 +118,7 @@ For each place provide:
 - cuisineEmoji: Single emoji for the cuisine type
 - phoneNumber: Only if you are certain (omit otherwise)
 - website: Only if you are certain (omit otherwise)
-- googleMapsUrl: Format "https://www.google.com/maps/search/RESTAURANT+NAME+CITY"
+- googleMapsUrl: ALWAYS use this format: "https://www.google.com/maps/search/?api=1&query=EXACT+RESTAURANT+NAME+FULL+ADDRESS+CITY+COUNTRY" — include the FULL street address for precision. Never use just the name.
 - openingHours: Only if you are certain (omit otherwise)
 - description: 2-3 sentences about what makes this place special
 - matchScore: 0-100 how relevant to the EXACT search query (penalize places that serve a different dish)
@@ -149,7 +149,9 @@ If no location is specified and user location is unknown, return places from pop
       cuisineEmoji: place.cuisineEmoji || '🍽️',
       phoneNumber: place.phoneNumber,
       website: place.website,
-      googleMapsUrl: place.googleMapsUrl || `https://www.google.com/maps/search/${encodeURIComponent(place.name + ' ' + place.city)}`,
+      googleMapsUrl: place.latitude && place.longitude
+        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.address + ', ' + place.city)}&center=${place.latitude},${place.longitude}&zoom=17`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.address + ', ' + place.city + ', ' + place.country)}`,
       openingHours: place.openingHours,
     },
     description: place.description,
