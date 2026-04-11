@@ -35,6 +35,8 @@ export default function SearchScreen() {
   const [showSuccessPopup, setShowSuccessPopup] = useState(false);
   const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [pendingLocationQuery, setPendingLocationQuery] = useState('');
 
   
   const [filters, setFilters] = useState({
@@ -71,52 +73,8 @@ export default function SearchScreen() {
     if (trimmed.length > 0) {
       if (placesSearch.needsLocationForQuery(trimmed)) {
         console.log('[Search] Near-me query detected, requesting location...');
-        const showLocationAlert = () => {
-          Alert.alert(
-            'Enable Location',
-            'To find places near you, we need access to your location. Would you like to enable it?',
-            [
-              {
-                text: 'Search Without Location',
-                style: 'cancel',
-                onPress: () => {
-                  placesSearch.search(trimmed);
-                  setHasSearched(true);
-                  Keyboard.dismiss();
-                },
-              },
-              {
-                text: 'Enable Location',
-                onPress: async () => {
-                  const granted = await placesSearch.requestLocationPermission();
-                  if (granted) {
-                    setTimeout(() => {
-                      placesSearch.search(trimmed);
-                      setHasSearched(true);
-                      Keyboard.dismiss();
-                    }, 500);
-                  } else {
-                    Alert.alert(
-                      'Location Not Available',
-                      'Please enable location in your device settings for better "near me" results.',
-                      [
-                        {
-                          text: 'Search Anyway',
-                          onPress: () => {
-                            placesSearch.search(trimmed);
-                            setHasSearched(true);
-                            Keyboard.dismiss();
-                          },
-                        },
-                      ]
-                    );
-                  }
-                },
-              },
-            ]
-          );
-        };
-        showLocationAlert();
+        setPendingLocationQuery(trimmed);
+        setShowLocationModal(true);
         return;
       }
       placesSearch.search(trimmed);
@@ -414,6 +372,57 @@ export default function SearchScreen() {
         visible={showNotificationPopup}
         onClose={() => setShowNotificationPopup(false)}
       />
+      <Modal
+        visible={showLocationModal}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowLocationModal(false)}
+      >
+        <View style={styles.locationModalOverlay}>
+          <View style={styles.locationModalContent}>
+            <View style={styles.locationModalIconWrap}>
+              <Navigation size={28} color="#FF6B35" />
+            </View>
+            <Text style={styles.locationModalTitle}>Enable Location</Text>
+            <Text style={styles.locationModalMessage}>To find places near you, we need access to your location. Would you like to enable it?</Text>
+            <TouchableOpacity
+              style={styles.locationModalPrimaryButton}
+              onPress={async () => {
+                setShowLocationModal(false);
+                const granted = await placesSearch.requestLocationPermission();
+                if (granted) {
+                  setTimeout(() => {
+                    placesSearch.search(pendingLocationQuery);
+                    setHasSearched(true);
+                    Keyboard.dismiss();
+                  }, 500);
+                } else {
+                  placesSearch.search(pendingLocationQuery);
+                  setHasSearched(true);
+                  Keyboard.dismiss();
+                }
+              }}
+              activeOpacity={0.8}
+            >
+              <Navigation size={18} color="#FFFFFF" />
+              <Text style={styles.locationModalPrimaryText}>Enable Location</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.locationModalSecondaryButton}
+              onPress={() => {
+                setShowLocationModal(false);
+                placesSearch.search(pendingLocationQuery);
+                setHasSearched(true);
+                Keyboard.dismiss();
+              }}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.locationModalSecondaryText}>Search Without Location</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={selectedPlace !== null}
         animationType="slide"
@@ -1442,5 +1451,71 @@ const styles = StyleSheet.create({
   },
   locationNotDetected: {
     color: '#999999',
+  },
+  locationModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 32,
+  },
+  locationModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingTop: 28,
+    paddingBottom: 24,
+    width: '100%',
+    maxWidth: 340,
+    alignItems: 'center',
+  },
+  locationModalIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FFF0E6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  locationModalTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#000000',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  locationModalMessage: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  locationModalPrimaryButton: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: '#000000',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+    width: '100%',
+    marginBottom: 10,
+  },
+  locationModalPrimaryText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '600' as const,
+  },
+  locationModalSecondaryButton: {
+    paddingVertical: 12,
+    width: '100%',
+    alignItems: 'center' as const,
+  },
+  locationModalSecondaryText: {
+    color: '#888888',
+    fontSize: 14,
+    fontWeight: '500' as const,
   },
 });
