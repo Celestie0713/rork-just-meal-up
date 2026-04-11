@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3 } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3, Navigation, Map } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
@@ -30,6 +30,27 @@ type InvitationCardProps = {
 };
 
 function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions = true }: InvitationCardProps) {
+  const [navModalVisible, setNavModalVisible] = useState(false);
+
+  const openWaze = () => {
+    const address = encodeURIComponent(invitation.venue.address);
+    const wazeUrl = `https://waze.com/ul?q=${address}&navigate=yes`;
+    Linking.openURL(wazeUrl);
+    setNavModalVisible(false);
+  };
+
+  const openGoogleMaps = () => {
+    const address = encodeURIComponent(invitation.venue.address);
+    const url = Platform.select({
+      ios: `comgooglemaps://?q=${address}`,
+      android: `geo:0,0?q=${address}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${address}`,
+    }) as string;
+    Linking.openURL(url).catch(() => {
+      Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${address}`);
+    });
+    setNavModalVisible(false);
+  };
   const inviter = mockUsers.find(user => user.id === invitation.inviterId);
   const isPending = invitation.status === 'pending';
   const isConfirmed = invitation.status === 'accepted';
@@ -150,12 +171,48 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             {invitation.venue.name} • {invitation.venue.cuisine}
           </Text>
         </View>
-        <View style={styles.detailRow}>
-          <MapPin size={16} color={colors.textLight} />
-          <Text style={styles.detailText}>
+        <TouchableOpacity style={styles.detailRow} onPress={() => setNavModalVisible(true)} activeOpacity={0.7}>
+          <MapPin size={16} color={colors.primary} />
+          <Text style={[styles.detailText, styles.addressText]}>
             {invitation.venue.address}
           </Text>
-        </View>
+        </TouchableOpacity>
+        <Modal
+          visible={navModalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setNavModalVisible(false)}
+        >
+          <TouchableOpacity 
+            style={styles.navModalOverlay} 
+            activeOpacity={1} 
+            onPress={() => setNavModalVisible(false)}
+          >
+            <View style={styles.navModalContent}>
+              <Text style={styles.navModalTitle}>Navigate to</Text>
+              <Text style={styles.navModalAddress} numberOfLines={2}>{invitation.venue.address}</Text>
+              <View style={styles.navOptions}>
+                <TouchableOpacity style={styles.navOption} onPress={openWaze} activeOpacity={0.7}>
+                  <View style={[styles.navIconCircle, { backgroundColor: '#33CCFF20' }]}>
+                    <Navigation size={24} color="#33CCFF" />
+                  </View>
+                  <Text style={styles.navOptionLabel}>Waze</Text>
+                  <Text style={styles.navOptionSub}>Live traffic</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.navOption} onPress={openGoogleMaps} activeOpacity={0.7}>
+                  <View style={[styles.navIconCircle, { backgroundColor: '#4285F420' }]}>
+                    <Map size={24} color="#4285F4" />
+                  </View>
+                  <Text style={styles.navOptionLabel}>Google Maps</Text>
+                  <Text style={styles.navOptionSub}>Directions</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity style={styles.navCancelButton} onPress={() => setNavModalVisible(false)}>
+                <Text style={styles.navCancelText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
       </View>
       {isPending && showActions && (
         <View style={styles.actionButtons}>
@@ -1014,5 +1071,83 @@ const styles = StyleSheet.create({
   confirmButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  addressText: {
+    color: colors.primary,
+    textDecorationLine: 'underline',
+  },
+  navModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.85)',
+    justifyContent: 'flex-end',
+    padding: 16,
+    paddingBottom: 32,
+  },
+  navModalContent: {
+    backgroundColor: colors.surface,
+    borderRadius: 20,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  navModalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  navModalAddress: {
+    fontSize: 14,
+    color: colors.textLight,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  navOptions: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 20,
+  },
+  navOption: {
+    flex: 1,
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    paddingVertical: 20,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  navIconCircle: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  navOptionLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  navOptionSub: {
+    fontSize: 12,
+    color: colors.textLight,
+  },
+  navCancelButton: {
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  navCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.textLight,
   },
 });
