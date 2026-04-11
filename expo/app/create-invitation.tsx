@@ -748,7 +748,7 @@ const styles = StyleSheet.create({
   },
   iosModalCancelButton: {
     fontSize: 17,
-    color: '#007AFF',
+    color: '#888888',
   },
   iosModalDoneButton: {
     fontSize: 17,
