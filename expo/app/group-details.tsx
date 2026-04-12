@@ -287,10 +287,6 @@ export default function GroupDetailsScreen() {
                       </View>
                     </View>
                     <View style={styles.modalPriceDivider} />
-                    <View style={styles.modalPricePerks}>
-                      <Text style={styles.modalPerkItem}>Exclusive events</Text>
-                      <Text style={styles.modalPerkItem}>Priority access</Text>
-                    </View>
                   </View>
                 )}
 
