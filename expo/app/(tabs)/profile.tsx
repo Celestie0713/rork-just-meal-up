@@ -379,7 +379,10 @@ export default function ProfileScreen() {
   };
 
   const renderMealUpsTab = () => {
-    const userMealUps = mockMealUps.filter(m => user && m.currentAttendees.includes(user.id));
+    const now = Date.now();
+    const userMealUps = mockMealUps
+      .filter(m => user && m.currentAttendees.includes(user.id) && new Date(m.date).getTime() >= now)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
     return (
       <View style={styles.tabContent}>
@@ -388,7 +391,7 @@ export default function ProfileScreen() {
         </Text>
         <View style={styles.mealUpsContainer}>
           {userMealUps.length === 0 ? (
-            <Text style={styles.emptyFoodHint}>You haven't joined any meal ups yet!</Text>
+            <Text style={styles.emptyFoodHint}>No upcoming meal ups</Text>
           ) : (
             userMealUps.map((mealUp) => {
               const formattedDate = new Date(mealUp.date).toLocaleDateString('en-US', {
