@@ -49,16 +49,13 @@ export default function CreateInvitationScreen() {
     
     if (compareDate.getTime() === today.getTime()) {
       return 'Today';
-    } else if (compareDate.getTime() === tomorrow.getTime()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric',
-        year: 'numeric'
-      });
     }
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
 
   const formatTime = (time: Date) => {
