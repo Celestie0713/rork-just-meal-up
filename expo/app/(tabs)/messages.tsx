@@ -9,6 +9,7 @@ import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
 import { TipSelectionModal } from '@/components/TipSelectionModal';
+import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 import type { User, SystemMessage } from '@/types/user';
 
 interface ChatData {
@@ -79,6 +80,8 @@ export default function MessagesScreen() {
   const [invitationData, setInvitationData] = useState<any>(null);
   const [mealUpData, setMealUpData] = useState<any>(null);
   const [showTipModal, setShowTipModal] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [pendingTipAmount, setPendingTipAmount] = useState<number>(0);
   const [selectedRecipient, setSelectedRecipient] = useState<User | null>(null);
   
   useEffect(() => {
@@ -315,45 +318,59 @@ export default function MessagesScreen() {
         }}
         onConfirm={(amount) => {
           console.log(`Tip amount selected: ${amount}`);
+          setPendingTipAmount(amount);
           setShowTipModal(false);
-          
-          if (selectedRecipient && invitationData) {
+          setShowPaymentModal(true);
+        }}
+        recipientName={selectedRecipient?.name || ''}
+      />
+      <PaymentGatewayModal
+        visible={showPaymentModal}
+        amount={pendingTipAmount}
+        onClose={() => {
+          setShowPaymentModal(false);
+          setPendingTipAmount(0);
+          setSelectedRecipient(null);
+        }}
+        onSuccess={() => {
+          setShowPaymentModal(false);
+          const recipient = selectedRecipient;
+          const amount = pendingTipAmount;
+          if (recipient && invitationData) {
             const newInvitationId = `inv-${Date.now()}`;
-            
             addInvitation({
               id: newInvitationId,
               inviterId: '1',
-              inviteeId: selectedRecipient.id,
+              inviteeId: recipient.id,
               date: invitationData.date,
               time: formatInvitationTime(invitationData.time),
               venue: {
                 name: invitationData.placeName,
                 address: invitationData.placeAddress,
                 cuisine: 'Restaurant',
-                placeId: invitationData.placeId
+                placeId: invitationData.placeId,
               },
               status: 'pending',
-              createdAt: new Date()
+              createdAt: new Date(),
             });
-            
-            const chatId = `1-${selectedRecipient.id}`;
+
+            const chatId = `1-${recipient.id}`;
             const systemMessage: SystemMessage = {
               id: Date.now().toString(),
               type: 'invitation_sent',
-              content: 'Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘',
+              content: `Payment of ${amount.toFixed(2)} successful. Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘`,
               timestamp: new Date(),
             };
             addSystemMessage(chatId, systemMessage);
-            
+
             router.push({
               pathname: '/chat' as any,
-              params: { userId: selectedRecipient.id }
+              params: { userId: recipient.id },
             });
           }
-          
+          setPendingTipAmount(0);
           setSelectedRecipient(null);
         }}
-        recipientName={selectedRecipient?.name || ''}
       />
     </SafeAreaView>
   );
