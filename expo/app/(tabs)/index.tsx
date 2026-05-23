@@ -207,19 +207,6 @@ export default function SearchScreen() {
                 <Send size={18} color={placesInputValue.trim().length > 0 ? '#FF6B35' : '#CCCCCC'} />
               </TouchableOpacity>
             </View>
-            <View style={styles.locationStatusRow}>
-              <Navigation size={14} color={placesSearch.locationDetected ? '#4CAF50' : '#999999'} />
-              <Text style={[
-                styles.locationStatusText,
-                placesSearch.locationDetected ? styles.locationDetected : styles.locationNotDetected
-              ]}>
-                {!placesSearch.locationReady
-                  ? 'Detecting your location...'
-                  : placesSearch.locationDetected
-                    ? `Near me: ${placesSearch.locationCity || 'Detected'} · Type a city to search elsewhere`
-                    : 'Tip: include a city in your search (e.g. "ramen in Tokyo")'}
-              </Text>
-            </View>
           </View>
           {placesSearch.isLoading && (
             <View style={styles.loadingContainer}>
