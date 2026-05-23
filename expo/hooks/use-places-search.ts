@@ -80,11 +80,12 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
 }
 
 async function searchPlacesAI(query: string, limit: number = 8, userLocation?: UserLocation | null): Promise<PlacesSearchResult> {
-  console.log("[Places AI Search] Query:", query, "Location:", userLocation);
+  const useLocation = isNearMeQuery(query) && !!userLocation;
+  console.log("[Places AI Search] Query:", query, "useLocation:", useLocation);
 
-  const locationContext = userLocation
-    ? `\n\nUSER LOCATION CONTEXT:\nThe user is currently located at latitude ${userLocation.latitude}, longitude ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}.\nWhen the user says "near me" or doesn't specify a location, prioritize restaurants near these coordinates and in this city/area.\nAlways prefer results close to the user's current location unless they specify a different location.`
-    : '';
+  const locationContext = useLocation && userLocation
+    ? `\n\nUSER LOCATION CONTEXT:\nThe user said "near me" and is currently located at latitude ${userLocation.latitude}, longitude ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}.\nReturn restaurants close to these coordinates.`
+    : '\n\nDo NOT bias results by the user\'s current location. Search globally based on the query. If the query mentions a city or location, return places in THAT location. If no location is mentioned, return the most famous/relevant places worldwide that match the query.';
 
   const result = await generateObject({
     messages: [
@@ -125,8 +126,7 @@ For each place provide:
 
 Sort by matchScore descending.
 If the query mentions a specific city/location, only return places in that area.
-If the user's location is known and no other location is specified, return places near the user's location.
-If no location is specified and user location is unknown, return places from popular cities for that cuisine.`,
+If no location is specified, return places from popular cities for that cuisine — do not assume the user's current location.`,
       },
     ],
     schema: PlacesResponseSchema,

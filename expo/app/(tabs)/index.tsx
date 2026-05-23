@@ -216,8 +216,8 @@ export default function SearchScreen() {
                 {!placesSearch.locationReady
                   ? 'Detecting your location...'
                   : placesSearch.locationDetected
-                    ? `Location: ${placesSearch.locationCity || 'Detected'}`
-                    : 'Location not available — results may be less relevant'}
+                    ? `Near me: ${placesSearch.locationCity || 'Detected'} · Type a city to search elsewhere`
+                    : 'Tip: include a city in your search (e.g. "ramen in Tokyo")'}
               </Text>
             </View>
           </View>
