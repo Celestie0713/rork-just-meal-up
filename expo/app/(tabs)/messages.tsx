@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, ChevronRight } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
@@ -86,6 +86,8 @@ export default function MessagesScreen() {
   const [selectedRecipient, setSelectedRecipient] = useState<User | null>(null);
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+  const [editDraft, setEditDraft] = useState<{ placeName: string; placeAddress: string; date: Date; time: Date } | null>(null);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -199,7 +201,7 @@ export default function MessagesScreen() {
       return;
     }
     if (date) {
-      setInvitationData((prev: any) => ({ ...prev, date }));
+      setEditDraft((prev) => (prev ? { ...prev, date } : prev));
     }
   };
 
@@ -211,8 +213,31 @@ export default function MessagesScreen() {
       return;
     }
     if (time) {
-      setInvitationData((prev: any) => ({ ...prev, time }));
+      setEditDraft((prev) => (prev ? { ...prev, time } : prev));
     }
+  };
+
+  const openEditModal = () => {
+    if (!invitationData) return;
+    setEditDraft({
+      placeName: invitationData.placeName ?? '',
+      placeAddress: invitationData.placeAddress ?? '',
+      date: invitationData.date ?? new Date(),
+      time: invitationData.time ?? new Date(),
+    });
+    setShowEditModal(true);
+  };
+
+  const saveEditModal = () => {
+    if (!editDraft) return;
+    setInvitationData((prev: any) => ({
+      ...prev,
+      placeName: editDraft.placeName.trim() || prev?.placeName,
+      placeAddress: editDraft.placeAddress.trim() || prev?.placeAddress,
+      date: editDraft.date,
+      time: editDraft.time,
+    }));
+    setShowEditModal(false);
   };
 
   const renderInvitationDateTimePickers = () => {
@@ -221,7 +246,7 @@ export default function MessagesScreen() {
         <>
           {showDatePicker && (
             <DateTimePicker
-              value={invitationData?.date ?? new Date()}
+              value={editDraft?.date ?? new Date()}
               mode="date"
               display="default"
               onChange={handleDateChange}
@@ -230,7 +255,7 @@ export default function MessagesScreen() {
           )}
           {showTimePicker && (
             <DateTimePicker
-              value={invitationData?.time ?? new Date()}
+              value={editDraft?.time ?? new Date()}
               mode="time"
               display="default"
               onChange={handleTimeChange}
@@ -257,12 +282,12 @@ export default function MessagesScreen() {
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
-                  value={invitationData?.date ?? new Date()}
+                  value={editDraft?.date ?? new Date()}
                   mode="date"
                   display="inline"
                   onChange={handleDateChange}
                   minimumDate={new Date()}
-                  themeVariant="light"
+                  themeVariant="dark"
                 />
               </View>
             </View>
@@ -283,17 +308,87 @@ export default function MessagesScreen() {
                   </TouchableOpacity>
                 </View>
                 <DateTimePicker
-                  value={invitationData?.time ?? new Date()}
+                  value={editDraft?.time ?? new Date()}
                   mode="time"
                   display="spinner"
                   onChange={handleTimeChange}
-                  textColor="#000000"
+                  textColor={Colors.text}
                 />
               </View>
             </View>
           </Modal>
         )}
       </>
+    );
+  };
+
+  const renderEditModal = () => {
+    if (!editDraft) return null;
+    return (
+      <Modal visible={showEditModal} transparent animationType="slide" onRequestClose={() => setShowEditModal(false)}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.iosModalOverlay}
+        >
+          <TouchableOpacity style={styles.iosModalBackdrop} activeOpacity={1} onPress={() => setShowEditModal(false)} />
+          <View style={styles.editModalContainer}>
+            <View style={styles.iosModalHeader}>
+              <TouchableOpacity onPress={() => setShowEditModal(false)} testID="edit-modal-cancel">
+                <Text style={styles.iosModalCancelButton}>Cancel</Text>
+              </TouchableOpacity>
+              <Text style={styles.iosModalTitle}>Edit Invitation</Text>
+              <TouchableOpacity onPress={saveEditModal} testID="edit-modal-save">
+                <Text style={styles.iosModalDoneButton}>Save</Text>
+              </TouchableOpacity>
+            </View>
+            <ScrollView contentContainerStyle={styles.editModalContent} keyboardShouldPersistTaps="handled">
+              <Text style={styles.fieldLabel}>Place</Text>
+              <TextInput
+                value={editDraft.placeName}
+                onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeName: t } : prev))}
+                placeholder="Restaurant name"
+                placeholderTextColor={Colors.textLight}
+                style={styles.textInput}
+                testID="edit-place-name"
+              />
+
+              <Text style={styles.fieldLabel}>Address</Text>
+              <TextInput
+                value={editDraft.placeAddress}
+                onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeAddress: t } : prev))}
+                placeholder="Street, city"
+                placeholderTextColor={Colors.textLight}
+                style={[styles.textInput, styles.textInputMultiline]}
+                multiline
+                testID="edit-place-address"
+              />
+
+              <Text style={styles.fieldLabel}>Date</Text>
+              <TouchableOpacity
+                style={styles.pickerRow}
+                onPress={() => setShowDatePicker(true)}
+                testID="edit-open-date"
+                activeOpacity={0.7}
+              >
+                <Calendar size={18} color={Colors.primary} />
+                <Text style={styles.pickerRowText}>{formatInvitationDate(editDraft.date)}</Text>
+              </TouchableOpacity>
+
+              <Text style={styles.fieldLabel}>Time</Text>
+              <TouchableOpacity
+                style={styles.pickerRow}
+                onPress={() => setShowTimePicker(true)}
+                testID="edit-open-time"
+                activeOpacity={0.7}
+              >
+                <Clock size={18} color={Colors.primary} />
+                <Text style={styles.pickerRowText}>{formatInvitationTime(editDraft.time)}</Text>
+              </TouchableOpacity>
+            </ScrollView>
+            {renderInvitationDateTimePickers()}
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
     );
   };
 
@@ -347,49 +442,35 @@ export default function MessagesScreen() {
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
             <Text style={styles.summaryTitle}>Meal Invitation</Text>
-            <Text style={styles.summaryHint}>Tap to edit</Text>
-          </View>
-          <TouchableOpacity
-            onPress={() => safeGoBack()}
-            style={styles.editableRow}
-            testID="change-restaurant-button"
-            activeOpacity={0.7}
-          >
-            <View style={styles.editableRowContent}>
-              <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
-              <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
-            </View>
-            <View style={styles.editIconWrap}>
-              <Pencil size={14} color={Colors.primary} />
-            </View>
-          </TouchableOpacity>
-          <View style={styles.summaryDateTime}>
             <TouchableOpacity
-              style={styles.summaryDateTimeItem}
-              onPress={() => setShowDatePicker(true)}
-              testID="change-date-button"
-              activeOpacity={0.7}
+              onPress={openEditModal}
+              style={styles.editButton}
+              testID="edit-invitation-button"
+              activeOpacity={0.8}
             >
+              <Pencil size={14} color={Colors.text} />
+              <Text style={styles.editButtonText}>Edit</Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.summaryBlock}>
+            <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
+            <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
+          </View>
+          <View style={styles.summaryDateTime}>
+            <View style={styles.summaryDateTimeItem}>
               <Calendar size={16} color={Colors.primary} />
               <Text style={styles.summaryDateTimeText}>
                 {invitationData.date ? formatInvitationDate(invitationData.date) : 'Date not set'}
               </Text>
-              <ChevronRight size={14} color={Colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.summaryDateTimeItem}
-              onPress={() => setShowTimePicker(true)}
-              testID="change-time-button"
-              activeOpacity={0.7}
-            >
+            </View>
+            <View style={styles.summaryDateTimeItem}>
               <Clock size={16} color={Colors.primary} />
               <Text style={styles.summaryDateTimeText}>
                 {invitationData.time ? formatInvitationTime(invitationData.time) : 'Time not set'}
               </Text>
-              <ChevronRight size={14} color={Colors.primary} />
-            </TouchableOpacity>
+            </View>
           </View>
-          {renderInvitationDateTimePickers()}
+          {renderEditModal()}
         </View>
       )}
       {isMealUpShareMode && !!mealUpData && (
@@ -588,6 +669,74 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '500',
     color: Colors.primary,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: Colors.primary,
+  },
+  editButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  summaryBlock: {
+    marginBottom: 12,
+  },
+  editModalContainer: {
+    backgroundColor: Colors.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 24,
+    maxHeight: '85%',
+  },
+  editModalContent: {
+    padding: 20,
+    paddingBottom: 32,
+  },
+  fieldLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.textLight,
+    marginBottom: 8,
+    marginTop: 8,
+    textTransform: 'uppercase' as const,
+    letterSpacing: 0.5,
+  },
+  textInput: {
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    color: Colors.text,
+    fontSize: 15,
+    marginBottom: 4,
+  },
+  textInputMultiline: {
+    minHeight: 60,
+    textAlignVertical: 'top' as const,
+  },
+  pickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  pickerRowText: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: Colors.text,
   },
   editableRow: {
     flexDirection: 'row',
