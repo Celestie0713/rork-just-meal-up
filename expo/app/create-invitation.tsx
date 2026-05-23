@@ -47,9 +47,6 @@ export default function CreateInvitationScreen() {
     const compareDate = new Date(date);
     compareDate.setHours(0, 0, 0, 0);
     
-    if (compareDate.getTime() === today.getTime()) {
-      return 'Today';
-    }
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',
