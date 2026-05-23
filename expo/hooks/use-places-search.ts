@@ -80,12 +80,19 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
 }
 
 async function searchPlacesAI(query: string, limit: number = 8, userLocation?: UserLocation | null): Promise<PlacesSearchResult> {
-  const useLocation = isNearMeQuery(query) && !!userLocation;
-  console.log("[Places AI Search] Query:", query, "useLocation:", useLocation);
+  const nearMe = isNearMeQuery(query);
+  const useNearMe = nearMe && !!userLocation;
+  const useCountryBias = !nearMe && !!userLocation?.country;
+  console.log("[Places AI Search] Query:", query, "nearMe:", useNearMe, "countryBias:", useCountryBias, userLocation?.country);
 
-  const locationContext = useLocation && userLocation
-    ? `\n\nUSER LOCATION CONTEXT:\nThe user said "near me" and is currently located at latitude ${userLocation.latitude}, longitude ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}.\nReturn restaurants close to these coordinates.`
-    : '\n\nDo NOT bias results by the user\'s current location. Search globally based on the query. If the query mentions a city or location, return places in THAT location. If no location is mentioned, return the most famous/relevant places worldwide that match the query.';
+  let locationContext = '';
+  if (useNearMe && userLocation) {
+    locationContext = `\n\nUSER LOCATION CONTEXT:\nThe user said "near me" and is currently located at latitude ${userLocation.latitude}, longitude ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}.\nReturn restaurants close to these coordinates.`;
+  } else if (useCountryBias && userLocation) {
+    locationContext = `\n\nUSER COUNTRY CONTEXT:\nThe user is located in ${userLocation.country}${userLocation.city ? ` (currently near ${userLocation.city})` : ''}.\n- If the query does NOT mention any specific country or city, ONLY return places located in ${userLocation.country}. Do not return results from other countries.\n- If the query explicitly mentions a different country or city (e.g. "don omakase tokyo", "sushi in new york"), return places from THAT location instead and ignore the user's country.\n- Do NOT narrow to the user's exact city unless they said "near me" — search across all of ${userLocation.country}.`;
+  } else {
+    locationContext = '\n\nDo NOT bias results by the user\'s current location. Search globally based on the query. If the query mentions a city or location, return places in THAT location. If no location is mentioned, return the most famous/relevant places worldwide that match the query.';
+  }
 
   const result = await generateObject({
     messages: [
@@ -125,8 +132,8 @@ For each place provide:
 - matchScore: 0-100 how relevant to the EXACT search query (penalize places that serve a different dish)
 
 Sort by matchScore descending.
-If the query mentions a specific city/location, only return places in that area.
-If no location is specified, return places from popular cities for that cuisine — do not assume the user's current location.`,
+If the query mentions a specific city/location, only return places in that area (overriding any country context above).
+Otherwise, follow the location context above.`,
       },
     ],
     schema: PlacesResponseSchema,
