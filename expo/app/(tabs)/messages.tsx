@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, ChevronRight } from 'lucide-react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
@@ -83,6 +84,8 @@ export default function MessagesScreen() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [pendingTipAmount, setPendingTipAmount] = useState<number>(0);
   const [selectedRecipient, setSelectedRecipient] = useState<User | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
+  const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -188,6 +191,112 @@ export default function MessagesScreen() {
     });
   };
 
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+    if (event?.type === 'dismissed') {
+      return;
+    }
+    if (date) {
+      setInvitationData((prev: any) => ({ ...prev, date }));
+    }
+  };
+
+  const handleTimeChange = (event: any, time?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+    if (event?.type === 'dismissed') {
+      return;
+    }
+    if (time) {
+      setInvitationData((prev: any) => ({ ...prev, time }));
+    }
+  };
+
+  const renderInvitationDateTimePickers = () => {
+    if (Platform.OS === 'android') {
+      return (
+        <>
+          {showDatePicker && (
+            <DateTimePicker
+              value={invitationData?.date ?? new Date()}
+              mode="date"
+              display="default"
+              onChange={handleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+          {showTimePicker && (
+            <DateTimePicker
+              value={invitationData?.time ?? new Date()}
+              mode="time"
+              display="default"
+              onChange={handleTimeChange}
+              is24Hour={true}
+            />
+          )}
+        </>
+      );
+    }
+    return (
+      <>
+        {showDatePicker && (
+          <Modal visible transparent animationType="slide" onRequestClose={() => setShowDatePicker(false)}>
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity style={styles.iosModalBackdrop} activeOpacity={1} onPress={() => setShowDatePicker(false)} />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Date</Text>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={invitationData?.date ?? new Date()}
+                  mode="date"
+                  display="inline"
+                  onChange={handleDateChange}
+                  minimumDate={new Date()}
+                  themeVariant="light"
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
+        {showTimePicker && (
+          <Modal visible transparent animationType="slide" onRequestClose={() => setShowTimePicker(false)}>
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity style={styles.iosModalBackdrop} activeOpacity={1} onPress={() => setShowTimePicker(false)} />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Time</Text>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  value={invitationData?.time ?? new Date()}
+                  mode="time"
+                  display="spinner"
+                  onChange={handleTimeChange}
+                  textColor="#000000"
+                />
+              </View>
+            </View>
+          </Modal>
+        )}
+      </>
+    );
+  };
+
   const renderChatItem = ({ item }: { item: ChatData }) => {
     console.log('[renderChatItem] Rendering chat item for user:', item.user.name);
     const isExclusive = exclusivePartner?.userId === item.user.id;
@@ -238,31 +347,49 @@ export default function MessagesScreen() {
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
             <Text style={styles.summaryTitle}>Meal Invitation</Text>
-            <TouchableOpacity
-              onPress={() => safeGoBack()}
-              style={styles.changeButton}
-              testID="change-restaurant-button"
-            >
-              <Pencil size={14} color={Colors.primary} />
-              <Text style={styles.changeButtonText}>Change</Text>
-            </TouchableOpacity>
+            <Text style={styles.summaryHint}>Tap to edit</Text>
           </View>
-          <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
-          <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
+          <TouchableOpacity
+            onPress={() => safeGoBack()}
+            style={styles.editableRow}
+            testID="change-restaurant-button"
+            activeOpacity={0.7}
+          >
+            <View style={styles.editableRowContent}>
+              <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
+              <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
+            </View>
+            <View style={styles.editIconWrap}>
+              <Pencil size={14} color={Colors.primary} />
+            </View>
+          </TouchableOpacity>
           <View style={styles.summaryDateTime}>
-            <View style={styles.summaryDateTimeItem}>
+            <TouchableOpacity
+              style={styles.summaryDateTimeItem}
+              onPress={() => setShowDatePicker(true)}
+              testID="change-date-button"
+              activeOpacity={0.7}
+            >
               <Calendar size={16} color={Colors.primary} />
               <Text style={styles.summaryDateTimeText}>
                 {invitationData.date ? formatInvitationDate(invitationData.date) : 'Date not set'}
               </Text>
-            </View>
-            <View style={styles.summaryDateTimeItem}>
+              <ChevronRight size={14} color={Colors.primary} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.summaryDateTimeItem}
+              onPress={() => setShowTimePicker(true)}
+              testID="change-time-button"
+              activeOpacity={0.7}
+            >
               <Clock size={16} color={Colors.primary} />
               <Text style={styles.summaryDateTimeText}>
                 {invitationData.time ? formatInvitationTime(invitationData.time) : 'Time not set'}
               </Text>
-            </View>
+              <ChevronRight size={14} color={Colors.primary} />
+            </TouchableOpacity>
           </View>
+          {renderInvitationDateTimePickers()}
         </View>
       )}
       {isMealUpShareMode && !!mealUpData && (
@@ -457,39 +584,93 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: Colors.text,
   },
-  changeButton: {
+  summaryHint: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: Colors.primary,
+  },
+  editableRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'space-between',
+    paddingVertical: 8,
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 14,
-    backgroundColor: Colors.primary + '15',
+    marginHorizontal: -10,
+    borderRadius: 10,
+    backgroundColor: Colors.primary + '08',
+    marginBottom: 12,
   },
-  changeButtonText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.primary,
+  editableRowContent: {
+    flex: 1,
+  },
+  editIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.primary + '20',
+    marginLeft: 8,
   },
   summaryRestaurant: {
     fontSize: 18,
     fontWeight: '700',
     color: Colors.text,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   summaryAddress: {
     fontSize: 14,
     color: Colors.textLight,
-    marginBottom: 12,
   },
   summaryDateTime: {
     flexDirection: 'row',
-    gap: 16,
+    gap: 8,
   },
   summaryDateTimeItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: Colors.primary + '12',
+  },
+  iosModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  iosModalBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  iosModalContainer: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 24,
+  },
+  iosModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  iosModalTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  iosModalCancelButton: {
+    fontSize: 16,
+    color: Colors.textLight,
+  },
+  iosModalDoneButton: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   summaryDateTimeText: {
     fontSize: 14,
