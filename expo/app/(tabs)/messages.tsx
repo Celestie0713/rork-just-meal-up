@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil } from 'lucide-react-native';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
@@ -233,7 +233,17 @@ export default function MessagesScreen() {
       </View>
       {isInvitationMode && !!invitationData && (
         <View style={styles.invitationSummary}>
-          <Text style={styles.summaryTitle}>Meal Invitation</Text>
+          <View style={styles.summaryTitleRow}>
+            <Text style={styles.summaryTitle}>Meal Invitation</Text>
+            <TouchableOpacity
+              onPress={() => safeGoBack()}
+              style={styles.changeButton}
+              testID="change-restaurant-button"
+            >
+              <Pencil size={14} color={Colors.primary} />
+              <Text style={styles.changeButtonText}>Change</Text>
+            </TouchableOpacity>
+          </View>
           <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
           <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
           <View style={styles.summaryDateTime}>
@@ -419,11 +429,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
+  summaryTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
   summaryTitle: {
     fontSize: 16,
     fontWeight: '600',
     color: Colors.text,
-    marginBottom: 8,
+  },
+  changeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 14,
+    backgroundColor: Colors.primary + '15',
+  },
+  changeButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Colors.primary,
   },
   summaryRestaurant: {
     fontSize: 18,
