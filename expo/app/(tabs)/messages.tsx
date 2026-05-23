@@ -164,25 +164,12 @@ export default function MessagesScreen() {
   };
   
   const formatInvitationDate = (date: Date) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    
-    const compareDate = new Date(date);
-    compareDate.setHours(0, 0, 0, 0);
-    
-    if (compareDate.getTime() === today.getTime()) {
-      return 'Today';
-    } else if (compareDate.getTime() === tomorrow.getTime()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'short', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
   
   const formatInvitationTime = (time: Date) => {
