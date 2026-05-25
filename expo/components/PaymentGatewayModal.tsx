@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { X, Lock, CheckCircle2 } from 'lucide-react-native';
-import { useStripe } from '@stripe/stripe-react-native';
 import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 import { trpc } from '@/lib/trpc';
 
@@ -13,83 +13,71 @@ interface PaymentGatewayModalProps {
   onSuccess: () => void;
 }
 
+/**
+ * Cross-platform Stripe payment modal.
+ * Uses Stripe Checkout via expo-web-browser so it works in Rork's cloud
+ * simulator, Expo Go, real devices, and web — no native SDK required.
+ */
 export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: PaymentGatewayModalProps) {
-  const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const [ready, setReady] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<boolean>(false);
 
-  const createIntent = trpc.payments.createIntent.useMutation();
+  const createSession = trpc.payments.createCheckoutSession.useMutation();
+  const utils = trpc.useUtils();
 
-  const setupPaymentSheet = useCallback(async () => {
-    if (!visible || amount <= 0) return;
-
-    setLoading(true);
-    setReady(false);
-    setError(null);
-    setDone(false);
-
-    try {
-      const { clientSecret } = await createIntent.mutateAsync({ amount });
-
-      const returnURL = Linking.createURL('stripe-redirect');
-
-      const { error: initError } = await initPaymentSheet({
-        paymentIntentClientSecret: clientSecret,
-        merchantDisplayName: 'Just Meal Up',
-        allowsDelayedPaymentMethods: false,
-        returnURL,
-        applePay: Platform.OS === 'ios' ? { merchantCountryCode: 'US' } : undefined,
-        googlePay: Platform.OS === 'android' ? { merchantCountryCode: 'US', testEnv: true } : undefined,
-      });
-
-      if (initError) {
-        setError(initError.message);
-      } else {
-        setReady(true);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to set up payment');
-    } finally {
-      setLoading(false);
-    }
-  }, [visible, amount]);
-
-  useEffect(() => {
-    setupPaymentSheet();
-  }, [setupPaymentSheet]);
-
-  const handlePay = async () => {
-    if (!ready) return;
-
-    setLoading(true);
-    setError(null);
-
-    const { error: presentError } = await presentPaymentSheet();
-
-    if (presentError) {
-      if (presentError.code === 'Canceled') {
-        handleClose();
-        return;
-      }
-      setError(presentError.message);
-      setLoading(false);
-    } else {
-      setLoading(false);
-      setDone(true);
-      await new Promise((r) => setTimeout(r, 1200));
-      reset();
-      onSuccess();
-    }
-  };
-
-  const reset = () => {
-    setReady(false);
+  const reset = useCallback(() => {
     setLoading(false);
     setDone(false);
     setError(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!visible) reset();
+  }, [visible, reset]);
+
+  const handlePay = useCallback(async () => {
+    if (amount <= 0) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const successUrl = Linking.createURL('stripe-success');
+      const cancelUrl = Linking.createURL('stripe-cancel');
+
+      const { url, sessionId } = await createSession.mutateAsync({
+        amount,
+        successUrl,
+        cancelUrl,
+        description: `Tip $${amount.toFixed(2)}`,
+      });
+
+      const result = await WebBrowser.openAuthSessionAsync(url, successUrl);
+
+      if (result.type !== 'success') {
+        setLoading(false);
+        return;
+      }
+
+      // Verify payment server-side
+      const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
+
+      if (status.paymentStatus === 'paid') {
+        setLoading(false);
+        setDone(true);
+        await new Promise((r) => setTimeout(r, 1200));
+        onSuccess();
+        reset();
+      } else {
+        setError('Payment was not completed. Please try again.');
+        setLoading(false);
+      }
+    } catch (e) {
+      console.log('[PaymentGatewayModal] error', e);
+      setError(e instanceof Error ? e.message : 'Failed to open payment');
+      setLoading(false);
+    }
+  }, [amount, createSession, utils, onSuccess, reset]);
 
   const handleClose = () => {
     if (loading) return;
@@ -127,28 +115,21 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
               {error ? (
                 <View style={styles.errorBox}>
                   <Text style={styles.errorText}>{error}</Text>
-                  <TouchableOpacity style={styles.retryBtn} onPress={setupPaymentSheet}>
-                    <Text style={styles.retryText}>Retry</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : loading ? (
-                <View style={styles.loadingBox}>
-                  <ActivityIndicator size="large" color={Colors.primary} />
-                  <Text style={styles.loadingText}>Preparing payment...</Text>
                 </View>
               ) : (
                 <View style={styles.infoBox}>
                   <Text style={styles.infoText}>
-                    Tap below to pay securely with Stripe. Apple Pay and Google Pay are available
-                    on supported devices.
+                    Tap below to open Stripe&apos;s secure checkout page. Pay with card, Apple Pay,
+                    Google Pay, or Link.
                   </Text>
                 </View>
               )}
 
               <TouchableOpacity
-                style={[styles.payBtn, (!ready || loading) && styles.payBtnDisabled]}
+                style={[styles.payBtn, loading && styles.payBtnDisabled]}
                 onPress={handlePay}
-                disabled={!ready || loading}
+                disabled={loading}
+                testID="pay-button"
               >
                 {loading ? (
                   <ActivityIndicator color={Colors.background} />
@@ -240,16 +221,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
-  loadingBox: {
-    paddingVertical: 32,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  loadingText: {
-    color: Colors.textLight,
-    fontSize: 14,
-    marginTop: 12,
-  },
   errorBox: {
     backgroundColor: '#2D1B1B',
     borderRadius: 12,
@@ -261,18 +232,6 @@ const styles = StyleSheet.create({
     color: '#FF6B6B',
     fontSize: 13,
     textAlign: 'center',
-    marginBottom: 10,
-  },
-  retryBtn: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: 'rgba(255,107,107,0.2)',
-  },
-  retryText: {
-    color: '#FF6B6B',
-    fontWeight: '700',
-    fontSize: 13,
   },
   payBtn: {
     backgroundColor: Colors.primary,
