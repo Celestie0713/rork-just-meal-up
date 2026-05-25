@@ -18,7 +18,7 @@ export const createPaymentIntentProcedure = publicProcedure
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amountInCents,
       currency: "usd",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
     });
 
     if (!paymentIntent.client_secret) {
