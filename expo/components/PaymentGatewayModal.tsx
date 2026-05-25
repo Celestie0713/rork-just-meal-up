@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput, ActivityIndicator, Platform } from 'react-native';
-import { X, CreditCard, Lock, CheckCircle2 } from 'lucide-react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { X, Lock, CheckCircle2 } from 'lucide-react-native';
+import { useStripe } from '@stripe/stripe-react-native';
 import { Colors } from '@/constants/colors';
+import { trpc } from '@/lib/trpc';
 
 interface PaymentGatewayModalProps {
   visible: boolean;
@@ -10,60 +12,81 @@ interface PaymentGatewayModalProps {
   onSuccess: () => void;
 }
 
-type PaymentMethod = 'card' | 'apple' | 'google';
-
 export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: PaymentGatewayModalProps) {
-  const [method, setMethod] = useState<PaymentMethod>('card');
-  const [cardNumber, setCardNumber] = useState<string>('');
-  const [expiry, setExpiry] = useState<string>('');
-  const [cvc, setCvc] = useState<string>('');
-  const [name, setName] = useState<string>('');
-  const [processing, setProcessing] = useState<boolean>(false);
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const [ready, setReady] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<boolean>(false);
 
-  const formatCardNumber = (text: string) => {
-    const digits = text.replace(/\D/g, '').slice(0, 16);
-    return digits.replace(/(\d{4})(?=\d)/g, '$1 ');
-  };
+  const createIntent = trpc.payments.createIntent.useMutation();
 
-  const formatExpiry = (text: string) => {
-    const digits = text.replace(/\D/g, '').slice(0, 4);
-    if (digits.length < 3) return digits;
-    return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  };
+  const setupPaymentSheet = useCallback(async () => {
+    if (!visible || amount <= 0) return;
 
-  const cardDigits = cardNumber.replace(/\s/g, '');
-  const isCardValid =
-    method !== 'card' ||
-    (cardDigits.length === 16 && expiry.length === 5 && cvc.length >= 3 && name.trim().length > 1);
+    setLoading(true);
+    setReady(false);
+    setError(null);
+    setDone(false);
+
+    try {
+      const { clientSecret } = await createIntent.mutateAsync({ amount });
+
+      const { error: initError } = await initPaymentSheet({
+        paymentIntentClientSecret: clientSecret,
+        merchantDisplayName: 'Rork App',
+        allowsDelayedPaymentMethods: false,
+      });
+
+      if (initError) {
+        setError(initError.message);
+      } else {
+        setReady(true);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to set up payment');
+    } finally {
+      setLoading(false);
+    }
+  }, [visible, amount]);
+
+  useEffect(() => {
+    setupPaymentSheet();
+  }, [setupPaymentSheet]);
 
   const handlePay = async () => {
-    if (!isCardValid || processing) return;
-    setProcessing(true);
-    try {
-      await new Promise((r) => setTimeout(r, 1600));
+    if (!ready) return;
+
+    setLoading(true);
+    setError(null);
+
+    const { error: presentError } = await presentPaymentSheet();
+
+    if (presentError) {
+      if (presentError.code === 'Canceled') {
+        handleClose();
+        return;
+      }
+      setError(presentError.message);
+      setLoading(false);
+    } else {
+      setLoading(false);
       setDone(true);
-      await new Promise((r) => setTimeout(r, 900));
+      await new Promise((r) => setTimeout(r, 1200));
       reset();
       onSuccess();
-    } catch (e) {
-      console.log('Payment error', e);
-      setProcessing(false);
     }
   };
 
   const reset = () => {
-    setProcessing(false);
+    setReady(false);
+    setLoading(false);
     setDone(false);
-    setCardNumber('');
-    setExpiry('');
-    setCvc('');
-    setName('');
-    setMethod('card');
+    setError(null);
   };
 
   const handleClose = () => {
-    if (processing) return;
+    if (loading) return;
     reset();
     onClose();
   };
@@ -85,7 +108,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
                   <Lock size={18} color={Colors.textLight} />
                   <Text style={styles.headerTitle}>Secure Checkout</Text>
                 </View>
-                <TouchableOpacity onPress={handleClose} disabled={processing} style={styles.closeBtn}>
+                <TouchableOpacity onPress={handleClose} disabled={loading} style={styles.closeBtn}>
                   <X size={22} color={Colors.textLight} />
                 </TouchableOpacity>
               </View>
@@ -95,99 +118,33 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
                 <Text style={styles.amountValue}>${amount.toFixed(2)}</Text>
               </View>
 
-              <View style={styles.methodRow}>
-                <TouchableOpacity
-                  style={[styles.methodBtn, method === 'card' && styles.methodBtnActive]}
-                  onPress={() => setMethod('card')}
-                >
-                  <CreditCard size={18} color={method === 'card' ? Colors.background : Colors.text} />
-                  <Text style={[styles.methodText, method === 'card' && styles.methodTextActive]}>Card</Text>
-                </TouchableOpacity>
-                {Platform.OS === 'ios' && (
-                  <TouchableOpacity
-                    style={[styles.methodBtn, method === 'apple' && styles.methodBtnActive]}
-                    onPress={() => setMethod('apple')}
-                  >
-                    <Text style={[styles.methodText, method === 'apple' && styles.methodTextActive]}>
-                       Pay
-                    </Text>
+              {error ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{error}</Text>
+                  <TouchableOpacity style={styles.retryBtn} onPress={setupPaymentSheet}>
+                    <Text style={styles.retryText}>Retry</Text>
                   </TouchableOpacity>
-                )}
-                {Platform.OS !== 'ios' && (
-                  <TouchableOpacity
-                    style={[styles.methodBtn, method === 'google' && styles.methodBtnActive]}
-                    onPress={() => setMethod('google')}
-                  >
-                    <Text style={[styles.methodText, method === 'google' && styles.methodTextActive]}>
-                      G Pay
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-
-              {method === 'card' ? (
-                <View style={styles.form}>
-                  <Text style={styles.label}>Card number</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={cardNumber}
-                    onChangeText={(t) => setCardNumber(formatCardNumber(t))}
-                    placeholder="1234 5678 9012 3456"
-                    placeholderTextColor={Colors.textLight}
-                    keyboardType="number-pad"
-                    maxLength={19}
-                  />
-                  <View style={styles.row}>
-                    <View style={styles.col}>
-                      <Text style={styles.label}>Expiry</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={expiry}
-                        onChangeText={(t) => setExpiry(formatExpiry(t))}
-                        placeholder="MM/YY"
-                        placeholderTextColor={Colors.textLight}
-                        keyboardType="number-pad"
-                        maxLength={5}
-                      />
-                    </View>
-                    <View style={styles.col}>
-                      <Text style={styles.label}>CVC</Text>
-                      <TextInput
-                        style={styles.input}
-                        value={cvc}
-                        onChangeText={(t) => setCvc(t.replace(/\D/g, '').slice(0, 4))}
-                        placeholder="123"
-                        placeholderTextColor={Colors.textLight}
-                        keyboardType="number-pad"
-                        maxLength={4}
-                        secureTextEntry
-                      />
-                    </View>
-                  </View>
-                  <Text style={styles.label}>Cardholder name</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={name}
-                    onChangeText={setName}
-                    placeholder="Name on card"
-                    placeholderTextColor={Colors.textLight}
-                    autoCapitalize="words"
-                  />
+                </View>
+              ) : loading ? (
+                <View style={styles.loadingBox}>
+                  <ActivityIndicator size="large" color={Colors.primary} />
+                  <Text style={styles.loadingText}>Preparing payment...</Text>
                 </View>
               ) : (
-                <View style={styles.walletBox}>
-                  <Text style={styles.walletText}>
-                    You'll be prompted to confirm with {method === 'apple' ? 'Apple Pay' : 'Google Pay'}.
+                <View style={styles.infoBox}>
+                  <Text style={styles.infoText}>
+                    Tap below to pay securely with Stripe. Apple Pay and Google Pay are available
+                    on supported devices.
                   </Text>
                 </View>
               )}
 
               <TouchableOpacity
-                style={[styles.payBtn, (!isCardValid || processing) && styles.payBtnDisabled]}
+                style={[styles.payBtn, (!ready || loading) && styles.payBtnDisabled]}
                 onPress={handlePay}
-                disabled={!isCardValid || processing}
+                disabled={!ready || loading}
               >
-                {processing ? (
+                {loading ? (
                   <ActivityIndicator color={Colors.background} />
                 ) : (
                   <>
@@ -198,7 +155,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
               </TouchableOpacity>
 
               <Text style={styles.disclaimer}>
-                Payments are encrypted and securely processed.
+                Payments are encrypted and securely processed by Stripe.
               </Text>
             </>
           )}
@@ -263,63 +220,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: Colors.primary,
   },
-  methodRow: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 16,
-  },
-  methodBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  methodBtnActive: {
-    backgroundColor: Colors.primary,
-    borderColor: Colors.primary,
-  },
-  methodText: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: Colors.text,
-  },
-  methodTextActive: {
-    color: Colors.background,
-  },
-  form: {
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 12,
-    color: Colors.textLight,
-    fontWeight: '600',
-    marginBottom: 6,
-    marginTop: 8,
-  },
-  input: {
-    backgroundColor: Colors.surface ?? '#1A1A1A',
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: Colors.text,
-    fontWeight: '600',
-  },
-  row: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  col: {
-    flex: 1,
-  },
-  walletBox: {
+  infoBox: {
     backgroundColor: Colors.surface ?? '#1A1A1A',
     borderRadius: 12,
     padding: 16,
@@ -327,10 +228,45 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  walletText: {
+  infoText: {
     color: Colors.textLight,
     fontSize: 14,
     textAlign: 'center',
+    lineHeight: 20,
+  },
+  loadingBox: {
+    paddingVertical: 32,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  loadingText: {
+    color: Colors.textLight,
+    fontSize: 14,
+    marginTop: 12,
+  },
+  errorBox: {
+    backgroundColor: '#2D1B1B',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  errorText: {
+    color: '#FF6B6B',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 10,
+  },
+  retryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255,107,107,0.2)',
+  },
+  retryText: {
+    color: '#FF6B6B',
+    fontWeight: '700',
+    fontSize: 13,
   },
   payBtn: {
     backgroundColor: Colors.primary,

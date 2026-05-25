@@ -1,6 +1,7 @@
 import { createTRPCRouter } from "./create-context";
 import hiRoute from "./routes/example/hi/route";
 import { searchPlacesProcedure } from "./routes/places/search";
+import { createPaymentIntentProcedure } from "./routes/payments/create-intent";
 
 export const appRouter = createTRPCRouter({
   example: createTRPCRouter({
@@ -8,6 +9,9 @@ export const appRouter = createTRPCRouter({
   }),
   places: createTRPCRouter({
     search: searchPlacesProcedure,
+  }),
+  payments: createTRPCRouter({
+    createIntent: createPaymentIntentProcedure,
   }),
 });
 

@@ -12,8 +12,8 @@
 - No visual changes to the existing custom modal — it's completely replaced by PaymentSheet
 
 ## What needs to happen
-1. **Set up environment variables** — Add the Stripe publishable key (client-safe) and secret key (backend-only) as project environment variables
-2. **Create a backend endpoint** — A new API endpoint that creates a Stripe PaymentIntent for a given amount and returns the client secret needed by PaymentSheet
-3. **Wrap the app with StripeProvider** — The root layout needs Stripe's context so PaymentSheet works from any screen
-4. **Replace the mock payment with PaymentSheet** — When the user taps "Pay $X", instead of the mocked timer, call the backend for a client secret and launch PaymentSheet
-5. **Handle success/cancellation** — On successful payment, proceed exactly as before (create invitation, post system message, navigate to chat). If the user cancels, nothing happens
+1. [x] **Set up environment variables** — Add the Stripe publishable key (client-safe) and secret key (backend-only) as project environment variables
+2. [x] **Create a backend endpoint** — A new API endpoint that creates a Stripe PaymentIntent for a given amount and returns the client secret needed by PaymentSheet
+3. [x] **Wrap the app with StripeProvider** — The root layout needs Stripe's context so PaymentSheet works from any screen
+4. [x] **Replace the mock payment with PaymentSheet** — When the user taps "Pay $X", instead of the mocked timer, call the backend for a client secret and launch PaymentSheet
+5. [x] **Handle success/cancellation** — On successful payment, proceed exactly as before (create invitation, post system message, navigate to chat). If the user cancels, nothing happens

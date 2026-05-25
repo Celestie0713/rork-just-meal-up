@@ -3,6 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StripeProvider } from "@stripe/stripe-react-native";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ChatProvider } from "@/hooks/use-chat";
 import { FavoritesProvider } from "@/hooks/use-favorites";
@@ -38,23 +39,27 @@ export default function RootLayout() {
     SplashScreen.hideAsync();
   }, []);
 
+  const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
+
   return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <NotificationProvider>
-            <InvitationsProvider>
-              <ChatProvider>
-                <FavoritesProvider>
-                  <GestureHandlerRootView style={{ flex: 1 }}>
-                    <RootLayoutNav />
-                  </GestureHandlerRootView>
-                </FavoritesProvider>
-              </ChatProvider>
-            </InvitationsProvider>
-          </NotificationProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </trpc.Provider>
+    <StripeProvider publishableKey={publishableKey} merchantIdentifier="merchant.com.rork.app">
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <NotificationProvider>
+              <InvitationsProvider>
+                <ChatProvider>
+                  <FavoritesProvider>
+                    <GestureHandlerRootView style={{ flex: 1 }}>
+                      <RootLayoutNav />
+                    </GestureHandlerRootView>
+                  </FavoritesProvider>
+                </ChatProvider>
+              </InvitationsProvider>
+            </NotificationProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </trpc.Provider>
+    </StripeProvider>
   );
 }
