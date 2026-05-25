@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator, Platform } from 'react-native';
 import { X, Lock, CheckCircle2 } from 'lucide-react-native';
 import { useStripe } from '@stripe/stripe-react-native';
+import * as Linking from 'expo-linking';
 import { Colors } from '@/constants/colors';
 import { trpc } from '@/lib/trpc';
 
@@ -32,10 +33,15 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
     try {
       const { clientSecret } = await createIntent.mutateAsync({ amount });
 
+      const returnURL = Linking.createURL('stripe-redirect');
+
       const { error: initError } = await initPaymentSheet({
         paymentIntentClientSecret: clientSecret,
-        merchantDisplayName: 'Rork App',
+        merchantDisplayName: 'Just Meal Up',
         allowsDelayedPaymentMethods: false,
+        returnURL,
+        applePay: Platform.OS === 'ios' ? { merchantCountryCode: 'US' } : undefined,
+        googlePay: Platform.OS === 'android' ? { merchantCountryCode: 'US', testEnv: true } : undefined,
       });
 
       if (initError) {
