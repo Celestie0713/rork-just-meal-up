@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StripeProvider } from "@stripe/stripe-react-native";
+import { StripeProviderWrapper } from "@/components/StripeProviderWrapper";
 import { AuthProvider } from "@/hooks/use-auth";
 import { ChatProvider } from "@/hooks/use-chat";
 import { FavoritesProvider } from "@/hooks/use-favorites";
@@ -42,7 +42,7 @@ export default function RootLayout() {
   const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
   return (
-    <StripeProvider publishableKey={publishableKey} merchantIdentifier="merchant.com.rork.app">
+    <StripeProviderWrapper publishableKey={publishableKey} merchantIdentifier="merchant.com.rork.app">
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
@@ -60,6 +60,6 @@ export default function RootLayout() {
           </AuthProvider>
         </QueryClientProvider>
       </trpc.Provider>
-    </StripeProvider>
+    </StripeProviderWrapper>
   );
 }
