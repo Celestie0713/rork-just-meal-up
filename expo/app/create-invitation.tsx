@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { safeGoBack } from '@/utils/navigation';
 import {
   View,
@@ -9,12 +9,14 @@ import {
   SafeAreaView,
   Platform,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Linking } from 'react-native';
 import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, Pencil, Check, ExternalLink } from 'lucide-react-native';
 import { TextInput } from 'react-native';
 import { Colors } from '@/constants/colors';
+import { trpc } from '@/lib/trpc';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateInvitationScreen() {
@@ -54,6 +56,30 @@ export default function CreateInvitationScreen() {
   const [editableCity, setEditableCity] = useState<string>(placeCity || '');
   const [editableCountry, setEditableCountry] = useState<string>(placeCountry || '');
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+  const [addressResolved, setAddressResolved] = useState(false);
+
+  const resolveEnabled = !!(placeLatitude && placeLongitude);
+  const { data: resolvedAddress, isLoading: isResolvingAddress } = trpc.places.resolveAddress.useQuery(
+    { latitude: parseFloat(placeLatitude || '0'), longitude: parseFloat(placeLongitude || '0') },
+    {
+      enabled: resolveEnabled,
+      staleTime: Infinity,
+      retry: 2,
+    }
+  );
+
+  useEffect(() => {
+    if (resolvedAddress && !addressResolved) {
+      const addr = resolvedAddress.address;
+      const city = resolvedAddress.city;
+      const country = resolvedAddress.country;
+
+      if (addr) setEditableAddress(addr);
+      if (city) setEditableCity(city);
+      if (country) setEditableCountry(country);
+      setAddressResolved(true);
+    }
+  }, [resolvedAddress, addressResolved]);
 
   const fallbackMapsUrl = placeGoogleMapsUrl || (placeLatitude && placeLongitude
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
@@ -539,6 +565,13 @@ export default function CreateInvitationScreen() {
                     placeholderTextColor={Colors.textLight}
                   />
                 </View>
+              ) : isResolvingAddress ? (
+                <View style={{ flex: 1 }}>
+                  <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6 }}>
+                    <ActivityIndicator size="small" color={Colors.primary} />
+                    <Text style={styles.resolvingAddressText}>Getting real address from Google...</Text>
+                  </View>
+                </View>
               ) : (
                 <View style={{ flex: 1 }}>
                   <Text style={styles.restaurantAddress} numberOfLines={2}>
@@ -730,6 +763,11 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     marginTop: 4,
     lineHeight: 16,
+  },
+  resolvingAddressText: {
+    fontSize: 13,
+    color: Colors.textLight,
+    fontStyle: 'italic' as const,
   },
   editAddressButton: {
     padding: 6,

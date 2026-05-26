@@ -1,6 +1,7 @@
 import { createTRPCRouter } from "./create-context";
 import hiRoute from "./routes/example/hi/route";
 import { searchPlacesProcedure } from "./routes/places/search";
+import { resolveAddressProcedure } from "./routes/places/resolve-address";
 import {
   createPaymentIntentProcedure,
   createCheckoutSessionProcedure,
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   }),
   places: createTRPCRouter({
     search: searchPlacesProcedure,
+    resolveAddress: resolveAddressProcedure,
   }),
   payments: createTRPCRouter({
     createIntent: createPaymentIntentProcedure,
