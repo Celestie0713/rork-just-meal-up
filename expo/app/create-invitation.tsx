@@ -629,23 +629,6 @@ export default function CreateInvitationScreen() {
             </View>
           </TouchableOpacity>
         </View>
-        <View style={styles.section}>
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Invitation Summary</Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Restaurant:</Text>
-              <Text style={styles.summaryValue} numberOfLines={2}>{editName || placeName}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Date:</Text>
-              <Text style={styles.summaryValue}>{formatDate(selectedDate)}</Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Time:</Text>
-              <Text style={styles.summaryValue}>{formatTime(selectedTime)}</Text>
-            </View>
-          </View>
-        </View>
       </ScrollView>
       <View style={styles.footer}>
         <TouchableOpacity
@@ -848,37 +831,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.text,
-  },
-  summaryCard: {
-    backgroundColor: 'rgba(255, 165, 0, 0.05)',
-    borderRadius: 16,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: 'rgba(255, 165, 0, 0.2)',
-  },
-  summaryTitle: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: Colors.text,
-    marginBottom: 16,
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 10,
-    gap: 12,
-  },
-  summaryLabel: {
-    fontSize: 14,
-    color: Colors.textLight,
-  },
-  summaryValue: {
-    fontSize: 14,
-    fontWeight: '600' as const,
-    color: Colors.text,
-    flex: 1,
-    textAlign: 'right',
   },
   footer: {
     paddingHorizontal: 20,
