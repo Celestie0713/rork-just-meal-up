@@ -20,6 +20,8 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<boolean>(false);
+  const [retryCount, setRetryCount] = useState<number>(0);
+  const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const createSession = trpc.payments.createCheckoutSession.useMutation();
   const utils = trpc.useUtils();
@@ -38,18 +40,24 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
       clearInterval(pollRef.current);
       pollRef.current = null;
     }
+    if (retryRef.current) {
+      clearTimeout(retryRef.current);
+      retryRef.current = null;
+    }
     if (popupRef.current && !popupRef.current.closed) {
       try {
         popupRef.current.close();
       } catch {}
     }
     popupRef.current = null;
+    setRetryCount(0);
   }, []);
 
   useEffect(() => {
     if (!visible) reset();
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      if (retryRef.current) clearTimeout(retryRef.current);
     };
   }, [visible, reset]);
 
@@ -100,10 +108,81 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
     [utils, onSuccess, reset]
   );
 
+  /** Attempt to create a Stripe Checkout session with exponential backoff (max 3 retries). */
+  const attemptCreateSession = useCallback(
+    async (attempt: number, popup: Window | null, origin: string): Promise<void> => {
+      const MAX_RETRIES = 3;
+      const BASE_DELAY = 1000; // 1s → 2s → 4s
+
+      if (attempt > MAX_RETRIES) {
+        setLoading(false);
+        setRetryCount(0);
+        if (popup && !popup.closed) {
+          try { popup.close(); } catch {}
+        }
+        setError("Couldn't reach the payment server. Please check your connection and try again.");
+        return;
+      }
+
+      setRetryCount(attempt);
+
+      try {
+        const successUrl = `${origin}/?stripe=success`;
+        const cancelUrl = `${origin}/?stripe=cancel`;
+
+        const { url, sessionId } = await createSession.mutateAsync({
+          amount,
+          successUrl,
+          cancelUrl,
+          description: `Tip ${amount.toFixed(2)}`,
+        });
+
+        sessionIdRef.current = sessionId;
+        setCheckoutUrl(url);
+        setRetryCount(0);
+
+        if (popup && !popup.closed) {
+          try {
+            popup.location.href = url;
+          } catch {
+            // Cross-origin write may fail in some browsers; show fallback link
+          }
+        }
+
+        startPolling(sessionId, popup);
+      } catch (e) {
+        console.log(`[PaymentGatewayModal.web] attempt ${attempt} failed`, e);
+        const msg = e instanceof Error ? e.message : String(e);
+        const isRetriable = /failed to fetch|networkerror|load failed|timeout|502|503|504/i.test(msg);
+
+        if (isRetriable && attempt < MAX_RETRIES) {
+          const delay = BASE_DELAY * Math.pow(2, attempt - 1);
+          retryRef.current = setTimeout(() => {
+            attemptCreateSession(attempt + 1, popup, origin);
+          }, delay);
+        } else {
+          if (popup && !popup.closed) {
+            try { popup.close(); } catch {}
+          }
+          setLoading(false);
+          setRetryCount(0);
+          const isNetwork = /failed to fetch|networkerror|load failed/i.test(msg);
+          setError(
+            isNetwork
+              ? "Couldn't reach the payment server. Please check your connection and try again."
+              : msg || 'Failed to open payment'
+          );
+        }
+      }
+    },
+    [amount, createSession, startPolling]
+  );
+
   const handlePay = useCallback(async () => {
     if (amount <= 0) return;
     setLoading(true);
     setError(null);
+    setRetryCount(0);
 
     // Open popup SYNCHRONOUSLY in the click handler so browsers don't block it.
     const popup = typeof window !== 'undefined'
@@ -111,47 +190,9 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
       : null;
     if (popup) popupRef.current = popup;
 
-    try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const successUrl = `${origin}/?stripe=success`;
-      const cancelUrl = `${origin}/?stripe=cancel`;
-
-      const { url, sessionId } = await createSession.mutateAsync({
-        amount,
-        successUrl,
-        cancelUrl,
-        description: `Tip ${amount.toFixed(2)}`,
-      });
-
-      sessionIdRef.current = sessionId;
-      setCheckoutUrl(url);
-
-      if (popup && !popup.closed) {
-        try {
-          popup.location.href = url;
-        } catch {
-          // Cross-origin write may fail in some browsers; show fallback link
-        }
-      }
-
-      startPolling(sessionId, popup);
-    } catch (e) {
-      console.log('[PaymentGatewayModal.web] error', e);
-      if (popup && !popup.closed) {
-        try {
-          popup.close();
-        } catch {}
-      }
-      const msg = e instanceof Error ? e.message : String(e);
-      const isNetwork = /failed to fetch|networkerror|load failed/i.test(msg);
-      setError(
-        isNetwork
-          ? "Couldn't reach the payment server. Please check your connection and try again."
-          : msg || 'Failed to open payment'
-      );
-      setLoading(false);
-    }
-  }, [amount, createSession, startPolling]);
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    attemptCreateSession(1, popup, origin);
+  }, [amount, attemptCreateSession]);
 
   const handleOpenInNewTab = useCallback(() => {
     if (!checkoutUrl) return;
@@ -202,9 +243,11 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
               ) : (
                 <View style={styles.infoBox}>
                   <Text style={styles.infoText}>
-                    {loading
-                      ? 'Complete your payment in the Stripe window. This page will update automatically.'
-                      : "Tap below to open Stripe's secure checkout. Pay with card, Apple Pay, Google Pay, or Link."}
+                    {retryCount > 0
+                      ? `Connecting to payment server... (attempt ${retryCount})`
+                      : loading
+                        ? 'Complete your payment in the Stripe window. This page will update automatically.'
+                        : "Tap below to open Stripe's secure checkout. Pay with card, Apple Pay, Google Pay, or Link."}
                   </Text>
                 </View>
               )}
