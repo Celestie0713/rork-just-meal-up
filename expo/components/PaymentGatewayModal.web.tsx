@@ -2,7 +2,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { X, Lock, CheckCircle2 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { trpc } from '@/lib/trpc';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_RORK_FUNCTIONS_URL!;
 
 interface PaymentGatewayModalProps {
   visible: boolean;
@@ -11,10 +12,50 @@ interface PaymentGatewayModalProps {
   onSuccess: () => void;
 }
 
+async function createCheckoutSession(input: {
+  amount: number;
+  successUrl: string;
+  cancelUrl: string;
+  description?: string;
+}): Promise<{ url: string; sessionId: string }> {
+  const res = await fetch(`${BACKEND_URL}/checkout-session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+    throw new Error(typeof body.error === 'string' ? body.error : `Server error ${res.status}`);
+  }
+
+  return res.json() as Promise<{ url: string; sessionId: string }>;
+}
+
+async function getCheckoutSession(sessionId: string): Promise<{
+  paymentStatus: string;
+  status: string;
+  amountTotal: number | null;
+}> {
+  const res = await fetch(
+    `${BACKEND_URL}/checkout-session?sessionId=${encodeURIComponent(sessionId)}`,
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to verify payment (${res.status})`);
+  }
+
+  return res.json() as Promise<{
+    paymentStatus: string;
+    status: string;
+    amountTotal: number | null;
+  }>;
+}
+
 /**
  * Web Stripe Checkout flow.
- * Opens Stripe's hosted checkout in a popup window and polls the backend
- * for the session's payment status until it completes or the popup closes.
+ * Opens Stripe's hosted checkout in a popup window and polls the Cloudflare
+ * Worker backend for the session's payment status until it completes.
  */
 export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: PaymentGatewayModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
@@ -23,8 +64,6 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
   const [retryCount, setRetryCount] = useState<number>(0);
   const retryRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const createSession = trpc.payments.createCheckoutSession.useMutation();
-  const utils = trpc.useUtils();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const popupRef = useRef<Window | null>(null);
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
@@ -66,7 +105,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
       pollRef.current = setInterval(async () => {
         try {
           if (popup && popup.closed) {
-            const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
+            const status = await getCheckoutSession(sessionId);
             if (pollRef.current) {
               clearInterval(pollRef.current);
               pollRef.current = null;
@@ -83,7 +122,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
             return;
           }
 
-          const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
+          const status = await getCheckoutSession(sessionId);
           if (status.paymentStatus === 'paid') {
             if (pollRef.current) {
               clearInterval(pollRef.current);
@@ -105,7 +144,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
         }
       }, 1500);
     },
-    [utils, onSuccess, reset]
+    [onSuccess, reset]
   );
 
   /** Attempt to create a Stripe Checkout session with exponential backoff (max 3 retries). */
@@ -130,11 +169,11 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
         const successUrl = `${origin}/?stripe=success`;
         const cancelUrl = `${origin}/?stripe=cancel`;
 
-        const { url, sessionId } = await createSession.mutateAsync({
+        const { url, sessionId } = await createCheckoutSession({
           amount,
           successUrl,
           cancelUrl,
-          description: `Tip ${amount.toFixed(2)}`,
+          description: `Tip $${amount.toFixed(2)}`,
         });
 
         sessionIdRef.current = sessionId;
@@ -175,7 +214,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
         }
       }
     },
-    [amount, createSession, startPolling]
+    [amount, startPolling]
   );
 
   const handlePay = useCallback(async () => {

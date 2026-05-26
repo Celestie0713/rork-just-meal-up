@@ -4,7 +4,8 @@ import { X, Lock, CheckCircle2 } from 'lucide-react-native';
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
-import { trpc } from '@/lib/trpc';
+
+const BACKEND_URL = process.env.EXPO_PUBLIC_RORK_FUNCTIONS_URL!;
 
 interface PaymentGatewayModalProps {
   visible: boolean;
@@ -13,18 +14,55 @@ interface PaymentGatewayModalProps {
   onSuccess: () => void;
 }
 
+async function createCheckoutSession(input: {
+  amount: number;
+  successUrl: string;
+  cancelUrl: string;
+  description?: string;
+}): Promise<{ url: string; sessionId: string }> {
+  const res = await fetch(`${BACKEND_URL}/checkout-session`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({})) as Record<string, unknown>;
+    throw new Error(typeof body.error === 'string' ? body.error : `Server error ${res.status}`);
+  }
+
+  return res.json() as Promise<{ url: string; sessionId: string }>;
+}
+
+async function getCheckoutSession(sessionId: string): Promise<{
+  paymentStatus: string;
+  status: string;
+  amountTotal: number | null;
+}> {
+  const res = await fetch(
+    `${BACKEND_URL}/checkout-session?sessionId=${encodeURIComponent(sessionId)}`,
+  );
+
+  if (!res.ok) {
+    throw new Error(`Failed to verify payment (${res.status})`);
+  }
+
+  return res.json() as Promise<{
+    paymentStatus: string;
+    status: string;
+    amountTotal: number | null;
+  }>;
+}
+
 /**
  * Cross-platform Stripe payment modal.
- * Uses Stripe Checkout via expo-web-browser so it works in Rork's cloud
- * simulator, Expo Go, real devices, and web — no native SDK required.
+ * Uses Stripe Checkout via the Cloudflare Worker backend and expo-web-browser,
+ * so it works in Rork's cloud simulator, Expo Go, real devices, and web.
  */
 export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: PaymentGatewayModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<boolean>(false);
-
-  const createSession = trpc.payments.createCheckoutSession.useMutation();
-  const utils = trpc.useUtils();
 
   const reset = useCallback(() => {
     setLoading(false);
@@ -45,7 +83,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
       const successUrl = Linking.createURL('stripe-success');
       const cancelUrl = Linking.createURL('stripe-cancel');
 
-      const { url, sessionId } = await createSession.mutateAsync({
+      const { url, sessionId } = await createCheckoutSession({
         amount,
         successUrl,
         cancelUrl,
@@ -60,7 +98,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
       }
 
       // Verify payment server-side
-      const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
+      const status = await getCheckoutSession(sessionId);
 
       if (status.paymentStatus === 'paid') {
         setLoading(false);
@@ -77,7 +115,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
       setError(e instanceof Error ? e.message : 'Failed to open payment');
       setLoading(false);
     }
-  }, [amount, createSession, utils, onSuccess, reset]);
+  }, [amount, onSuccess, reset]);
 
   const handleClose = () => {
     if (loading) return;
