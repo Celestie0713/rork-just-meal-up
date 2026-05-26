@@ -110,8 +110,8 @@ If no location specified, return places from popular cities for that cuisine.`,
           phoneNumber: place.phoneNumber,
           website: place.website,
           googleMapsUrl: place.latitude && place.longitude
-            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.address + ', ' + place.city)}&center=${place.latitude},${place.longitude}&zoom=17`
-            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.address + ', ' + place.city + ', ' + place.country)}`,
+            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.city)}&center=${place.latitude},${place.longitude}&zoom=17`
+            : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.city + ', ' + place.country)}`,
           openingHours: place.openingHours,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

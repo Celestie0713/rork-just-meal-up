@@ -304,7 +304,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.viewOnMapsButton}
                       onPress={() => {
-                        const url = `https://www.google.com/search?q=${encodeURIComponent('"' + result.place.name + '" ' + (result.place.city || ''))}`;
+                        const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(result.place.name + ', ' + result.place.city + ', ' + result.place.country)}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >
@@ -458,7 +458,7 @@ export default function SearchScreen() {
                     <TouchableOpacity
                       style={styles.placeDetailMapButton}
                       onPress={() => {
-                        const url = `https://www.google.com/search?q=${encodeURIComponent('"' + selectedPlace.place.name + '" ' + (selectedPlace.place.city || ''))}`;
+                        const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.place.name + ', ' + selectedPlace.place.city + ', ' + selectedPlace.place.country)}`;
                         void WebBrowser.openBrowserAsync(url);
                       }}
                     >

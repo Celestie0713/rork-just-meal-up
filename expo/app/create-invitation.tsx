@@ -56,7 +56,7 @@ export default function CreateInvitationScreen() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
 
   const fallbackMapsUrl = placeGoogleMapsUrl || (placeLatitude && placeLongitude
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
     : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`);
 
   const handleOpenMaps = () => {
