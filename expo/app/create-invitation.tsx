@@ -3,6 +3,7 @@ import { safeGoBack } from '@/utils/navigation';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
@@ -12,7 +13,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Linking } from 'react-native';
-import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, ExternalLink, Pencil, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -48,6 +49,11 @@ export default function CreateInvitationScreen() {
   const [tempHour, setTempHour] = useState<number>(19);
   const [tempMinute, setTempMinute] = useState<number>(0);
   const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('PM');
+
+  const [isEditingPlace, setIsEditingPlace] = useState(false);
+  const [editName, setEditName] = useState(placeName || '');
+  const [editCity, setEditCity] = useState(placeCity || '');
+  const [editCountry, setEditCountry] = useState(placeCountry || '');
 
   const fallbackMapsUrl = placeGoogleMapsUrl || (placeLatitude && placeLongitude
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
@@ -270,9 +276,9 @@ export default function CreateInvitationScreen() {
 
   const handleSendInvitation = () => {
     const invitationData: Record<string, string> = {
-      placeName: placeName || '',
-      placeCity: placeCity || '',
-      placeCountry: placeCountry || '',
+      placeName: editName || placeName || '',
+      placeCity: editCity || placeCity || '',
+      placeCountry: editCountry || placeCountry || '',
       placeGoogleMapsUrl: fallbackMapsUrl,
       placeId: placeId || '',
       date: selectedDate.toISOString(),
@@ -501,16 +507,75 @@ export default function CreateInvitationScreen() {
       </View>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Restaurant</Text>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionTitle}>Restaurant</Text>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => {
+                if (isEditingPlace) {
+                  setIsEditingPlace(false);
+                } else {
+                  setEditName(placeName || '');
+                  setEditCity(placeCity || '');
+                  setEditCountry(placeCountry || '');
+                  setIsEditingPlace(true);
+                }
+              }}
+              activeOpacity={0.6}
+            >
+              {isEditingPlace ? (
+                <Check size={18} color={Colors.primary} />
+              ) : (
+                <Pencil size={16} color={Colors.primary} />
+              )}
+              <Text style={styles.editButtonText}>
+                {isEditingPlace ? 'Done' : 'Edit'}
+              </Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.restaurantCard}>
-            <Text style={styles.restaurantName}>{placeName || 'Restaurant Name'}</Text>
-            {(placeCity || placeCountry) && (
-              <View style={styles.addressRow}>
-                <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
-                <Text style={styles.restaurantCityCountry}>
-                  {[placeCity, placeCountry].filter(Boolean).join(', ')}
-                </Text>
-              </View>
+            {isEditingPlace ? (
+              <>
+                <TextInput
+                  style={styles.editInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Restaurant name"
+                  placeholderTextColor={Colors.textLight}
+                  autoFocus
+                />
+                <View style={styles.editAddressRow}>
+                  <MapPin size={14} color={Colors.textLight} style={{ marginTop: 14 }} />
+                  <View style={styles.editCityCountryCol}>
+                    <TextInput
+                      style={styles.editInputSmall}
+                      value={editCity}
+                      onChangeText={setEditCity}
+                      placeholder="City"
+                      placeholderTextColor={Colors.textLight}
+                    />
+                    <TextInput
+                      style={styles.editInputSmall}
+                      value={editCountry}
+                      onChangeText={setEditCountry}
+                      placeholder="Country"
+                      placeholderTextColor={Colors.textLight}
+                    />
+                  </View>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.restaurantName}>{editName || placeName || 'Restaurant Name'}</Text>
+                {((editCity || placeCity) || (editCountry || placeCountry)) && (
+                  <View style={styles.addressRow}>
+                    <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
+                    <Text style={styles.restaurantCityCountry}>
+                      {[editCity || placeCity, editCountry || placeCountry].filter(Boolean).join(', ')}
+                    </Text>
+                  </View>
+                )}
+              </>
             )}
             <Text style={styles.addressHint}>
               Tap below to see the exact address on Google Maps.
@@ -569,7 +634,7 @@ export default function CreateInvitationScreen() {
             <Text style={styles.summaryTitle}>Invitation Summary</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Restaurant:</Text>
-              <Text style={styles.summaryValue} numberOfLines={2}>{placeName}</Text>
+              <Text style={styles.summaryValue} numberOfLines={2}>{editName || placeName}</Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Date:</Text>
@@ -630,11 +695,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginTop: 24,
   },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   sectionTitle: {
     fontSize: 16,
     fontWeight: '600' as const,
     color: Colors.text,
-    marginBottom: 12,
   },
   restaurantCard: {
     backgroundColor: Colors.surface,
@@ -682,6 +752,47 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     lineHeight: 20,
     flex: 1,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 165, 0, 0.08)',
+  },
+  editButtonText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  editInput: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderRadius: 10,
+    marginBottom: 10,
+  },
+  editAddressRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  editCityCountryCol: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 8,
+  },
+  editInputSmall: {
+    fontSize: 14,
+    color: Colors.text,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0,0,0,0.04)',
+    borderRadius: 10,
   },
   addressHint: {
     fontSize: 12,
