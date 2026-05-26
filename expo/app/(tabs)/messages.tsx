@@ -440,7 +440,10 @@ export default function MessagesScreen() {
                 <Text style={styles.editButtonText}>Edit</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() => safeGoBack()}
+                onPress={() => {
+                  setIsInvitationMode(false);
+                  setInvitationData(null);
+                }}
                 style={styles.closeButton}
                 testID="close-invitation-button"
                 activeOpacity={0.7}
