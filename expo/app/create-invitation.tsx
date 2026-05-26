@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { safeGoBack } from '@/utils/navigation';
 import {
   View,
@@ -9,20 +9,16 @@ import {
   SafeAreaView,
   Platform,
   Modal,
-  ActivityIndicator,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Linking } from 'react-native';
-import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, Pencil, Check, ExternalLink } from 'lucide-react-native';
-import { TextInput } from 'react-native';
+import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
-import { trpc } from '@/lib/trpc';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateInvitationScreen() {
-  const { placeName, placeAddress, placeCity, placeCountry, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId } = useLocalSearchParams<{
+  const { placeName, placeCity, placeCountry, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId } = useLocalSearchParams<{
     placeName: string;
-    placeAddress: string;
     placeCity: string;
     placeCountry: string;
     placeGoogleMapsUrl: string;
@@ -52,52 +48,6 @@ export default function CreateInvitationScreen() {
   const [tempHour, setTempHour] = useState<number>(19);
   const [tempMinute, setTempMinute] = useState<number>(0);
   const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('PM');
-  const [editableAddress, setEditableAddress] = useState<string>(placeAddress || '');
-  const [editableCity, setEditableCity] = useState<string>(placeCity || '');
-  const [editableCountry, setEditableCountry] = useState<string>(placeCountry || '');
-  const [isEditingAddress, setIsEditingAddress] = useState(false);
-  const [addressResolved, setAddressResolved] = useState(false);
-
-  // Resolve real address from OpenStreetMap — forward search by name is most reliable
-  const hasEnoughInfo = !!(placeName && (placeCity || placeCountry)) || !!(placeLatitude && placeLongitude);
-  const { data: resolvedAddress, isLoading: isResolvingAddress } = trpc.places.resolveAddress.useQuery(
-    {
-      name: placeName || undefined,
-      city: placeCity || undefined,
-      country: placeCountry || undefined,
-      latitude: placeLatitude ? parseFloat(placeLatitude) : undefined,
-      longitude: placeLongitude ? parseFloat(placeLongitude) : undefined,
-    },
-    {
-      enabled: hasEnoughInfo && !addressResolved,
-      staleTime: Infinity,
-      retry: 2,
-    }
-  );
-
-  useEffect(() => {
-    if (resolvedAddress && !addressResolved) {
-      const addr = resolvedAddress.address;
-      const resolvedCity = resolvedAddress.city;
-      const resolvedCountry = resolvedAddress.country;
-
-      // Only override if the resolved value looks better than existing AI data
-      if (addr && resolvedAddress.source === 'forward-search') {
-        // Forward search results are trusted — they come from OSM matching name to location
-        setEditableAddress(addr);
-      } else if (addr && !placeAddress) {
-        // Reverse geocode fallback — only use if we had no address at all
-        setEditableAddress(addr);
-      }
-      if (resolvedCity && (!editableCity || resolvedAddress.source === 'forward-search')) {
-        setEditableCity(resolvedCity);
-      }
-      if (resolvedCountry && (!editableCountry || resolvedAddress.source === 'forward-search')) {
-        setEditableCountry(resolvedCountry);
-      }
-      setAddressResolved(true);
-    }
-  }, [resolvedAddress, addressResolved]);
 
   const fallbackMapsUrl = placeGoogleMapsUrl || (placeLatitude && placeLongitude
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
@@ -321,9 +271,8 @@ export default function CreateInvitationScreen() {
   const handleSendInvitation = () => {
     const invitationData: Record<string, string> = {
       placeName: placeName || '',
-      placeAddress: editableAddress,
-      placeCity: editableCity,
-      placeCountry: editableCountry,
+      placeCity: placeCity || '',
+      placeCountry: placeCountry || '',
       placeGoogleMapsUrl: fallbackMapsUrl,
       placeId: placeId || '',
       date: selectedDate.toISOString(),
@@ -555,65 +504,17 @@ export default function CreateInvitationScreen() {
           <Text style={styles.sectionTitle}>Restaurant</Text>
           <View style={styles.restaurantCard}>
             <Text style={styles.restaurantName}>{placeName || 'Restaurant Name'}</Text>
-            <View style={styles.addressRow}>
-              <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
-              {isEditingAddress ? (
-                <View style={{ flex: 1, gap: 8 }}>
-                  <TextInput
-                    style={styles.addressInput}
-                    value={editableAddress}
-                    onChangeText={setEditableAddress}
-                    multiline
-                    autoFocus
-                    placeholder="Enter address"
-                    placeholderTextColor={Colors.textLight}
-                  />
-                  <TextInput
-                    style={styles.addressInputSmall}
-                    value={editableCity}
-                    onChangeText={setEditableCity}
-                    placeholder="City"
-                    placeholderTextColor={Colors.textLight}
-                  />
-                  <TextInput
-                    style={styles.addressInputSmall}
-                    value={editableCountry}
-                    onChangeText={setEditableCountry}
-                    placeholder="Country"
-                    placeholderTextColor={Colors.textLight}
-                  />
-                </View>
-              ) : isResolvingAddress ? (
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row' as const, alignItems: 'center' as const, gap: 6 }}>
-                    <ActivityIndicator size="small" color={Colors.primary} />
-                    <Text style={styles.resolvingAddressText}>Getting real address from Google...</Text>
-                  </View>
-                </View>
-              ) : (
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.restaurantAddress} numberOfLines={2}>
-                    {editableAddress || 'Restaurant Address'}
-                  </Text>
-                  {(editableCity || editableCountry) && (
-                    <Text style={styles.restaurantCityCountry}>
-                      {[editableCity, editableCountry].filter(Boolean).join(', ')}
-                    </Text>
-                  )}
-                </View>
-              )}
-              <TouchableOpacity
-                style={styles.editAddressButton}
-                onPress={() => setIsEditingAddress(!isEditingAddress)}
-                activeOpacity={0.7}
-              >
-                {isEditingAddress ? (
-                  <Check size={16} color={Colors.primary} />
-                ) : (
-                  <Pencil size={14} color={Colors.textLight} />
-                )}
-              </TouchableOpacity>
-            </View>
+            {(placeCity || placeCountry) && (
+              <View style={styles.addressRow}>
+                <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
+                <Text style={styles.restaurantCityCountry}>
+                  {[placeCity, placeCountry].filter(Boolean).join(', ')}
+                </Text>
+              </View>
+            )}
+            <Text style={styles.addressHint}>
+              Tap below to see the exact address on Google Maps.
+            </Text>
             <TouchableOpacity
               style={styles.viewOnMapButton}
               onPress={handleOpenMaps}
@@ -777,21 +678,16 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   restaurantCityCountry: {
+    fontSize: 14,
+    color: Colors.textLight,
+    lineHeight: 20,
+    flex: 1,
+  },
+  addressHint: {
     fontSize: 12,
     color: Colors.textLight,
-    marginTop: 4,
-    lineHeight: 16,
-  },
-  resolvingAddressText: {
-    fontSize: 13,
-    color: Colors.textLight,
+    marginTop: 10,
     fontStyle: 'italic' as const,
-  },
-  editAddressButton: {
-    padding: 6,
-    borderRadius: 8,
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    marginLeft: 8,
   },
   viewOnMapButton: {
     flexDirection: 'row',
