@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
@@ -429,15 +429,25 @@ export default function MessagesScreen() {
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
             <Text style={styles.summaryTitle}>Meal Invitation</Text>
-            <TouchableOpacity
-              onPress={openEditModal}
-              style={styles.editButton}
-              testID="edit-invitation-button"
-              activeOpacity={0.8}
-            >
-              <Pencil size={14} color={Colors.text} />
-              <Text style={styles.editButtonText}>Edit</Text>
-            </TouchableOpacity>
+            <View style={styles.summaryTitleActions}>
+              <TouchableOpacity
+                onPress={openEditModal}
+                style={styles.editButton}
+                testID="edit-invitation-button"
+                activeOpacity={0.8}
+              >
+                <Pencil size={14} color={Colors.text} />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => safeGoBack()}
+                style={styles.closeButton}
+                testID="close-invitation-button"
+                activeOpacity={0.7}
+              >
+                <X size={18} color={Colors.textLight} />
+              </TouchableOpacity>
+            </View>
           </View>
           <View style={styles.summaryBlock}>
             <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
@@ -646,6 +656,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
+  },
+  summaryTitleActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  closeButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.border,
   },
   summaryTitle: {
     fontSize: 16,
