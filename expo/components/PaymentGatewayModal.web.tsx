@@ -25,11 +25,15 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
   const utils = trpc.useUtils();
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const popupRef = useRef<Window | null>(null);
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
 
   const reset = useCallback(() => {
     setLoading(false);
     setDone(false);
     setError(null);
+    setCheckoutUrl(null);
+    sessionIdRef.current = null;
     if (pollRef.current) {
       clearInterval(pollRef.current);
       pollRef.current = null;
@@ -49,35 +53,11 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
     };
   }, [visible, reset]);
 
-  const handlePay = useCallback(async () => {
-    if (amount <= 0) return;
-    setLoading(true);
-    setError(null);
-
-    try {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const successUrl = `${origin}/?stripe=success`;
-      const cancelUrl = `${origin}/?stripe=cancel`;
-
-      const { url, sessionId } = await createSession.mutateAsync({
-        amount,
-        successUrl,
-        cancelUrl,
-        description: `Tip $${amount.toFixed(2)}`,
-      });
-
-      const popup = window.open(url, 'stripe-checkout', 'width=480,height=720');
-      if (!popup) {
-        setError('Popup blocked. Please allow popups and try again.');
-        setLoading(false);
-        return;
-      }
-      popupRef.current = popup;
-
+  const startPolling = useCallback(
+    (sessionId: string, popup: Window | null) => {
       pollRef.current = setInterval(async () => {
         try {
-          if (popup.closed) {
-            // Verify one last time before giving up
+          if (popup && popup.closed) {
             const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
             if (pollRef.current) {
               clearInterval(pollRef.current);
@@ -101,9 +81,11 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
               clearInterval(pollRef.current);
               pollRef.current = null;
             }
-            try {
-              popup.close();
-            } catch {}
+            if (popup) {
+              try {
+                popup.close();
+              } catch {}
+            }
             setLoading(false);
             setDone(true);
             await new Promise((r) => setTimeout(r, 1200));
@@ -114,12 +96,71 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
           console.log('[PaymentGatewayModal.web] poll error', err);
         }
       }, 1500);
+    },
+    [utils, onSuccess, reset]
+  );
+
+  const handlePay = useCallback(async () => {
+    if (amount <= 0) return;
+    setLoading(true);
+    setError(null);
+
+    // Open popup SYNCHRONOUSLY in the click handler so browsers don't block it.
+    const popup = typeof window !== 'undefined'
+      ? window.open('about:blank', 'stripe-checkout', 'width=480,height=720')
+      : null;
+    if (popup) popupRef.current = popup;
+
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const successUrl = `${origin}/?stripe=success`;
+      const cancelUrl = `${origin}/?stripe=cancel`;
+
+      const { url, sessionId } = await createSession.mutateAsync({
+        amount,
+        successUrl,
+        cancelUrl,
+        description: `Tip ${amount.toFixed(2)}`,
+      });
+
+      sessionIdRef.current = sessionId;
+      setCheckoutUrl(url);
+
+      if (popup && !popup.closed) {
+        try {
+          popup.location.href = url;
+        } catch {
+          // Cross-origin write may fail in some browsers; show fallback link
+        }
+      }
+
+      startPolling(sessionId, popup);
     } catch (e) {
       console.log('[PaymentGatewayModal.web] error', e);
-      setError(e instanceof Error ? e.message : 'Failed to open payment');
+      if (popup && !popup.closed) {
+        try {
+          popup.close();
+        } catch {}
+      }
+      const msg = e instanceof Error ? e.message : String(e);
+      const isNetwork = /failed to fetch|networkerror|load failed/i.test(msg);
+      setError(
+        isNetwork
+          ? "Couldn't reach the payment server. Please check your connection and try again."
+          : msg || 'Failed to open payment'
+      );
       setLoading(false);
     }
-  }, [amount, createSession, utils, onSuccess, reset]);
+  }, [amount, createSession, startPolling]);
+
+  const handleOpenInNewTab = useCallback(() => {
+    if (!checkoutUrl) return;
+    const w = window.open(checkoutUrl, '_blank');
+    if (w) popupRef.current = w;
+    if (sessionIdRef.current && !pollRef.current) {
+      startPolling(sessionIdRef.current, w);
+    }
+  }, [checkoutUrl, startPolling]);
 
   const handleClose = () => {
     if (loading) return;
@@ -167,6 +208,12 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
                   </Text>
                 </View>
               )}
+
+              {checkoutUrl && loading ? (
+                <TouchableOpacity onPress={handleOpenInNewTab} style={styles.linkBtn} testID="reopen-checkout">
+                  <Text style={styles.linkBtnText}>Checkout window didn't open? Open in new tab</Text>
+                </TouchableOpacity>
+              ) : null}
 
               <TouchableOpacity
                 style={[styles.payBtn, loading && styles.payBtnDisabled]}
@@ -264,4 +311,6 @@ const styles = StyleSheet.create({
   successWrap: { alignItems: 'center', paddingVertical: 32 },
   successTitle: { fontSize: 22, fontWeight: '800', color: Colors.text, marginTop: 16 },
   successSub: { fontSize: 15, color: Colors.textLight, marginTop: 6 },
+  linkBtn: { paddingVertical: 10, alignItems: 'center' },
+  linkBtnText: { color: Colors.primary, fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
 });
