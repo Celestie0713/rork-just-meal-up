@@ -58,11 +58,18 @@ export default function CreateInvitationScreen() {
   const [isEditingAddress, setIsEditingAddress] = useState(false);
   const [addressResolved, setAddressResolved] = useState(false);
 
-  const resolveEnabled = !!(placeLatitude && placeLongitude);
+  // Resolve real address from OpenStreetMap — forward search by name is most reliable
+  const hasEnoughInfo = !!(placeName && (placeCity || placeCountry)) || !!(placeLatitude && placeLongitude);
   const { data: resolvedAddress, isLoading: isResolvingAddress } = trpc.places.resolveAddress.useQuery(
-    { latitude: parseFloat(placeLatitude || '0'), longitude: parseFloat(placeLongitude || '0') },
     {
-      enabled: resolveEnabled,
+      name: placeName || undefined,
+      city: placeCity || undefined,
+      country: placeCountry || undefined,
+      latitude: placeLatitude ? parseFloat(placeLatitude) : undefined,
+      longitude: placeLongitude ? parseFloat(placeLongitude) : undefined,
+    },
+    {
+      enabled: hasEnoughInfo && !addressResolved,
       staleTime: Infinity,
       retry: 2,
     }
@@ -71,12 +78,23 @@ export default function CreateInvitationScreen() {
   useEffect(() => {
     if (resolvedAddress && !addressResolved) {
       const addr = resolvedAddress.address;
-      const city = resolvedAddress.city;
-      const country = resolvedAddress.country;
+      const resolvedCity = resolvedAddress.city;
+      const resolvedCountry = resolvedAddress.country;
 
-      if (addr) setEditableAddress(addr);
-      if (city) setEditableCity(city);
-      if (country) setEditableCountry(country);
+      // Only override if the resolved value looks better than existing AI data
+      if (addr && resolvedAddress.source === 'forward-search') {
+        // Forward search results are trusted — they come from OSM matching name to location
+        setEditableAddress(addr);
+      } else if (addr && !placeAddress) {
+        // Reverse geocode fallback — only use if we had no address at all
+        setEditableAddress(addr);
+      }
+      if (resolvedCity && (!editableCity || resolvedAddress.source === 'forward-search')) {
+        setEditableCity(resolvedCity);
+      }
+      if (resolvedCountry && (!editableCountry || resolvedAddress.source === 'forward-search')) {
+        setEditableCountry(resolvedCountry);
+      }
       setAddressResolved(true);
     }
   }, [resolvedAddress, addressResolved]);
