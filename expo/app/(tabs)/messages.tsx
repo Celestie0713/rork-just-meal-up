@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView, Linking } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X, ExternalLink } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
@@ -87,7 +87,7 @@ export default function MessagesScreen() {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [editDraft, setEditDraft] = useState<{ placeName: string; placeAddress: string; date: Date; time: Date } | null>(null);
+  const [editDraft, setEditDraft] = useState<{ placeName: string; placeAddress: string; placeCity: string; placeCountry: string; date: Date; time: Date } | null>(null);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -95,6 +95,9 @@ export default function MessagesScreen() {
       setInvitationData({
         placeName: params.placeName,
         placeAddress: params.placeAddress,
+        placeCity: params.placeCity,
+        placeCountry: params.placeCountry,
+        placeGoogleMapsUrl: params.placeGoogleMapsUrl,
         placeId: params.placeId,
         date: params.date ? new Date(params.date) : null,
         time: params.time ? new Date(params.time) : null,
@@ -111,7 +114,7 @@ export default function MessagesScreen() {
         image: params.mealUpImage,
       });
     }
-  }, [params.fromInvitation, params.fromMealUpShare, params.placeName, params.placeAddress, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.fromMealUpShare, params.placeName, params.placeAddress, params.placeCity, params.placeCountry, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
@@ -209,6 +212,8 @@ export default function MessagesScreen() {
     setEditDraft({
       placeName: invitationData.placeName ?? '',
       placeAddress: invitationData.placeAddress ?? '',
+      placeCity: invitationData.placeCity ?? '',
+      placeCountry: invitationData.placeCountry ?? '',
       date: invitationData.date ?? new Date(),
       time: invitationData.time ?? new Date(),
     });
@@ -221,6 +226,8 @@ export default function MessagesScreen() {
       ...prev,
       placeName: editDraft.placeName.trim() || prev?.placeName,
       placeAddress: editDraft.placeAddress.trim() || prev?.placeAddress,
+      placeCity: editDraft.placeCity.trim() || prev?.placeCity,
+      placeCountry: editDraft.placeCountry.trim() || prev?.placeCountry,
       date: editDraft.date,
       time: editDraft.time,
     }));
@@ -343,12 +350,37 @@ export default function MessagesScreen() {
               <TextInput
                 value={editDraft.placeAddress}
                 onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeAddress: t } : prev))}
-                placeholder="Street, city"
+                placeholder="Street, neighborhood"
                 placeholderTextColor={Colors.textLight}
                 style={[styles.textInput, styles.textInputMultiline]}
                 multiline
                 testID="edit-place-address"
               />
+
+              <View style={styles.editRowTwoCol}>
+                <View style={styles.editCol}>
+                  <Text style={styles.fieldLabel}>City</Text>
+                  <TextInput
+                    value={editDraft.placeCity}
+                    onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeCity: t } : prev))}
+                    placeholder="City"
+                    placeholderTextColor={Colors.textLight}
+                    style={styles.textInput}
+                    testID="edit-place-city"
+                  />
+                </View>
+                <View style={styles.editCol}>
+                  <Text style={styles.fieldLabel}>Country</Text>
+                  <TextInput
+                    value={editDraft.placeCountry}
+                    onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeCountry: t } : prev))}
+                    placeholder="Country"
+                    placeholderTextColor={Colors.textLight}
+                    style={styles.textInput}
+                    testID="edit-place-country"
+                  />
+                </View>
+              </View>
 
               <Text style={styles.fieldLabel}>Date</Text>
               <TouchableOpacity
@@ -455,6 +487,27 @@ export default function MessagesScreen() {
           <View style={styles.summaryBlock}>
             <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
             <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
+            {(invitationData.placeCity || invitationData.placeCountry) && (
+              <Text style={styles.summaryCityCountry}>
+                {[invitationData.placeCity, invitationData.placeCountry].filter(Boolean).join(', ')}
+              </Text>
+            )}
+            {invitationData.placeGoogleMapsUrl ? (
+              <TouchableOpacity
+                style={styles.summaryMapsButton}
+                onPress={() => {
+                  if (Platform.OS === 'web') {
+                    window.open(invitationData.placeGoogleMapsUrl, '_blank');
+                  } else {
+                    Linking.openURL(invitationData.placeGoogleMapsUrl);
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <ExternalLink size={12} color={Colors.primary} />
+                <Text style={styles.summaryMapsText}>View on Google Maps</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
           <View style={styles.summaryDateTime}>
             <View style={styles.summaryDateTimeItem}>
@@ -555,6 +608,9 @@ export default function MessagesScreen() {
               venue: {
                 name: invitationData.placeName,
                 address: invitationData.placeAddress,
+                city: invitationData.placeCity,
+                country: invitationData.placeCountry,
+                googleMapsUrl: invitationData.placeGoogleMapsUrl,
                 cuisine: 'Restaurant',
                 placeId: invitationData.placeId,
               },
@@ -566,7 +622,7 @@ export default function MessagesScreen() {
             const systemMessage: SystemMessage = {
               id: Date.now().toString(),
               type: 'invitation_sent',
-              content: `Payment of ${amount.toFixed(2)} successful. Meal invitation sent. Now pick an outfit you can still breathe in after dessert while you wait🤘`,
+              content: `Payment of ${amount.toFixed(2)} successful. Meal invitation sent.${invitationData.placeGoogleMapsUrl ? '\n\n📍 View on map: ' + invitationData.placeGoogleMapsUrl : ''} Now pick an outfit you can still breathe in after dessert while you wait🤘`,
               timestamp: new Date(),
             };
             addSystemMessage(chatId, systemMessage);
@@ -783,6 +839,33 @@ const styles = StyleSheet.create({
   summaryAddress: {
     fontSize: 14,
     color: Colors.textLight,
+  },
+  summaryCityCountry: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 2,
+  },
+  summaryMapsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 165, 0, 0.08)',
+    gap: 4,
+  },
+  summaryMapsText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+  },
+  editRowTwoCol: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  editCol: {
+    flex: 1,
   },
   summaryDateTime: {
     flexDirection: 'row',

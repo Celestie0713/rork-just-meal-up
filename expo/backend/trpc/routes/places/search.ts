@@ -57,9 +57,16 @@ CRITICAL ACCURACY RULES:
 2. ONLY return restaurants you are CERTAIN currently exist. Do NOT guess or fabricate.
 3. Every field must be for the SAME restaurant.
 
+CRITICAL ADDRESS RULES:
+- You MUST provide an address field, but if you are NOT 100% CERTAIN of the exact street address (street number + street name), do NOT fabricate one. Instead, provide a descriptive location like "Orchard Road area", "Shinjuku district", "Chinatown", "Brick Lane area", "Near Central Station".
+- If the restaurant is in a shopping mall or food court, include the mall name: "Food Republic, Wisma Atria, Orchard Road".
+- If the restaurant is a hawker stall or food court stall, include the hawker center name and stall number if known: "Stall #02-15, Maxwell Food Centre".
+- NEVER make up a street number just to fill the field. A vague-but-honest area description is infinitely better than a wrong street address.
+- The combination of NAME + CITY + COUNTRY + googleMapsUrl is the authoritative location identifier. The address field is supplementary context.
+
 For each place provide:
 - name: The EXACT official name
-- address: The REAL street address of THAT SAME restaurant
+- address: Only include street number+name if 100% certain. Otherwise use area/neighborhood/mall/hawker center description. Include stall numbers for hawker stalls.
 - city, country: Location
 - latitude/longitude: Coordinates
 - rating: 1-5 (use 0 if unknown)
@@ -68,7 +75,7 @@ For each place provide:
 - cuisineEmoji: A single emoji
 - phoneNumber: Only if certain (omit if unsure)
 - website: Only if certain (omit if unsure)
-- googleMapsUrl: Google Maps search URL
+- googleMapsUrl: CRITICAL — this is the primary way users will find the restaurant. ALWAYS provide a working Google Maps search URL. Format: "https://www.google.com/maps/search/?api=1&query=RESTAURANT+NAME+CITY+COUNTRY". Keep it simple — just the restaurant name + city + country is enough for Google Maps to find it.
 - openingHours: Only if certain (omit if unsure)
 - description: 2-3 sentences about the place
 - matchScore: 0-100 how relevant to the EXACT search query (penalize places that serve a different dish)

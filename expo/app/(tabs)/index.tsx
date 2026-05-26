@@ -334,6 +334,11 @@ export default function SearchScreen() {
                           params: {
                             placeName: result.place.name,
                             placeAddress: result.place.address,
+                            placeCity: result.place.city,
+                            placeCountry: result.place.country,
+                            placeGoogleMapsUrl: result.place.googleMapsUrl,
+                            placeLatitude: String(result.place.latitude),
+                            placeLongitude: String(result.place.longitude),
                             placeId: result.place.id,
                           },
                         });
@@ -486,6 +491,11 @@ export default function SearchScreen() {
                           params: {
                             placeName: place.place.name,
                             placeAddress: place.place.address,
+                            placeCity: place.place.city,
+                            placeCountry: place.place.country,
+                            placeGoogleMapsUrl: place.place.googleMapsUrl,
+                            placeLatitude: String(place.place.latitude),
+                            placeLongitude: String(place.place.longitude),
                             placeId: place.place.id,
                           },
                         });

@@ -11,15 +11,21 @@ import {
   Modal,
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
-import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, Pencil, Check } from 'lucide-react-native';
+import { Linking } from 'react-native';
+import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, Pencil, Check, ExternalLink } from 'lucide-react-native';
 import { TextInput } from 'react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateInvitationScreen() {
-  const { placeName, placeAddress, placeId } = useLocalSearchParams<{
+  const { placeName, placeAddress, placeCity, placeCountry, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId } = useLocalSearchParams<{
     placeName: string;
     placeAddress: string;
+    placeCity: string;
+    placeCountry: string;
+    placeGoogleMapsUrl: string;
+    placeLatitude: string;
+    placeLongitude: string;
     placeId: string;
   }>();
 
@@ -45,7 +51,21 @@ export default function CreateInvitationScreen() {
   const [tempMinute, setTempMinute] = useState<number>(0);
   const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('PM');
   const [editableAddress, setEditableAddress] = useState<string>(placeAddress || '');
+  const [editableCity, setEditableCity] = useState<string>(placeCity || '');
+  const [editableCountry, setEditableCountry] = useState<string>(placeCountry || '');
   const [isEditingAddress, setIsEditingAddress] = useState(false);
+
+  const fallbackMapsUrl = placeGoogleMapsUrl || (placeLatitude && placeLongitude
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`);
+
+  const handleOpenMaps = () => {
+    if (Platform.OS === 'web') {
+      window.open(fallbackMapsUrl, '_blank');
+    } else {
+      Linking.openURL(fallbackMapsUrl);
+    }
+  };
 
   const formatDate = (date: Date) => {
     const today = new Date();
@@ -255,13 +275,16 @@ export default function CreateInvitationScreen() {
   };
 
   const handleSendInvitation = () => {
-    const invitationData = {
-      placeName,
+    const invitationData: Record<string, string> = {
+      placeName: placeName || '',
       placeAddress: editableAddress,
-      placeId,
+      placeCity: editableCity,
+      placeCountry: editableCountry,
+      placeGoogleMapsUrl: fallbackMapsUrl,
+      placeId: placeId || '',
       date: selectedDate.toISOString(),
       time: selectedTime.toISOString(),
-      fromInvitation: 'true'
+      fromInvitation: 'true',
     };
     
     const params = new URLSearchParams(invitationData).toString();
@@ -491,19 +514,42 @@ export default function CreateInvitationScreen() {
             <View style={styles.addressRow}>
               <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
               {isEditingAddress ? (
-                <TextInput
-                  style={styles.addressInput}
-                  value={editableAddress}
-                  onChangeText={setEditableAddress}
-                  multiline
-                  autoFocus
-                  placeholder="Enter address"
-                  placeholderTextColor={Colors.textLight}
-                />
+                <View style={{ flex: 1, gap: 8 }}>
+                  <TextInput
+                    style={styles.addressInput}
+                    value={editableAddress}
+                    onChangeText={setEditableAddress}
+                    multiline
+                    autoFocus
+                    placeholder="Enter address"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                  <TextInput
+                    style={styles.addressInputSmall}
+                    value={editableCity}
+                    onChangeText={setEditableCity}
+                    placeholder="City"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                  <TextInput
+                    style={styles.addressInputSmall}
+                    value={editableCountry}
+                    onChangeText={setEditableCountry}
+                    placeholder="Country"
+                    placeholderTextColor={Colors.textLight}
+                  />
+                </View>
               ) : (
-                <Text style={styles.restaurantAddress} numberOfLines={2}>
-                  {editableAddress || 'Restaurant Address'}
-                </Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.restaurantAddress} numberOfLines={2}>
+                    {editableAddress || 'Restaurant Address'}
+                  </Text>
+                  {(editableCity || editableCountry) && (
+                    <Text style={styles.restaurantCityCountry}>
+                      {[editableCity, editableCountry].filter(Boolean).join(', ')}
+                    </Text>
+                  )}
+                </View>
               )}
               <TouchableOpacity
                 style={styles.editAddressButton}
@@ -517,6 +563,14 @@ export default function CreateInvitationScreen() {
                 )}
               </TouchableOpacity>
             </View>
+            <TouchableOpacity
+              style={styles.viewOnMapButton}
+              onPress={handleOpenMaps}
+              activeOpacity={0.7}
+            >
+              <ExternalLink size={14} color={Colors.primary} />
+              <Text style={styles.viewOnMapText}>View on Google Maps</Text>
+            </TouchableOpacity>
           </View>
         </View>
         <View style={styles.section}>
@@ -662,11 +716,41 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 0,
   },
+  addressInputSmall: {
+    fontSize: 13,
+    color: Colors.text,
+    lineHeight: 18,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: 'rgba(0,0,0,0.03)',
+    borderRadius: 8,
+  },
+  restaurantCityCountry: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 4,
+    lineHeight: 16,
+  },
   editAddressButton: {
     padding: 6,
     borderRadius: 8,
     backgroundColor: 'rgba(0,0,0,0.04)',
     marginLeft: 8,
+  },
+  viewOnMapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: 'rgba(255, 165, 0, 0.08)',
+    gap: 6,
+  },
+  viewOnMapText: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.primary,
   },
   dateTimeButton: {
     backgroundColor: Colors.surface,
