@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
-import { X, Lock } from 'lucide-react-native';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { X, Lock, CheckCircle2 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { trpc } from '@/lib/trpc';
 
 interface PaymentGatewayModalProps {
   visible: boolean;
@@ -10,27 +11,184 @@ interface PaymentGatewayModalProps {
   onSuccess: () => void;
 }
 
-export function PaymentGatewayModal({ visible, amount, onClose }: PaymentGatewayModalProps) {
+/**
+ * Web Stripe Checkout flow.
+ * Opens Stripe's hosted checkout in a popup window and polls the backend
+ * for the session's payment status until it completes or the popup closes.
+ */
+export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: PaymentGatewayModalProps) {
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<boolean>(false);
+
+  const createSession = trpc.payments.createCheckoutSession.useMutation();
+  const utils = trpc.useUtils();
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const popupRef = useRef<Window | null>(null);
+
+  const reset = useCallback(() => {
+    setLoading(false);
+    setDone(false);
+    setError(null);
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+    if (popupRef.current && !popupRef.current.closed) {
+      try {
+        popupRef.current.close();
+      } catch {}
+    }
+    popupRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    if (!visible) reset();
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, [visible, reset]);
+
+  const handlePay = useCallback(async () => {
+    if (amount <= 0) return;
+    setLoading(true);
+    setError(null);
+
+    try {
+      const origin = typeof window !== 'undefined' ? window.location.origin : '';
+      const successUrl = `${origin}/?stripe=success`;
+      const cancelUrl = `${origin}/?stripe=cancel`;
+
+      const { url, sessionId } = await createSession.mutateAsync({
+        amount,
+        successUrl,
+        cancelUrl,
+        description: `Tip $${amount.toFixed(2)}`,
+      });
+
+      const popup = window.open(url, 'stripe-checkout', 'width=480,height=720');
+      if (!popup) {
+        setError('Popup blocked. Please allow popups and try again.');
+        setLoading(false);
+        return;
+      }
+      popupRef.current = popup;
+
+      pollRef.current = setInterval(async () => {
+        try {
+          if (popup.closed) {
+            // Verify one last time before giving up
+            const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
+            if (pollRef.current) {
+              clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
+            if (status.paymentStatus === 'paid') {
+              setLoading(false);
+              setDone(true);
+              await new Promise((r) => setTimeout(r, 1200));
+              onSuccess();
+              reset();
+            } else {
+              setLoading(false);
+            }
+            return;
+          }
+
+          const status = await utils.payments.getCheckoutSession.fetch({ sessionId });
+          if (status.paymentStatus === 'paid') {
+            if (pollRef.current) {
+              clearInterval(pollRef.current);
+              pollRef.current = null;
+            }
+            try {
+              popup.close();
+            } catch {}
+            setLoading(false);
+            setDone(true);
+            await new Promise((r) => setTimeout(r, 1200));
+            onSuccess();
+            reset();
+          }
+        } catch (err) {
+          console.log('[PaymentGatewayModal.web] poll error', err);
+        }
+      }, 1500);
+    } catch (e) {
+      console.log('[PaymentGatewayModal.web] error', e);
+      setError(e instanceof Error ? e.message : 'Failed to open payment');
+      setLoading(false);
+    }
+  }, [amount, createSession, utils, onSuccess, reset]);
+
+  const handleClose = () => {
+    if (loading) return;
+    reset();
+    onClose();
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleClose}>
       <View style={styles.overlay}>
         <View style={styles.content}>
-          <View style={styles.header}>
-            <View style={styles.headerLeft}>
-              <Lock size={18} color={Colors.textLight} />
-              <Text style={styles.headerTitle}>Payments unavailable on web</Text>
+          {done ? (
+            <View style={styles.successWrap}>
+              <CheckCircle2 size={72} color={Colors.primary} />
+              <Text style={styles.successTitle}>Payment Successful</Text>
+              <Text style={styles.successSub}>${amount.toFixed(2)} charged</Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <X size={22} color={Colors.textLight} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.body}>
-            Stripe payments are only available in the mobile app. Open this on iOS or Android to
-            pay ${amount.toFixed(2)}.
-          </Text>
-          <TouchableOpacity style={styles.btn} onPress={onClose}>
-            <Text style={styles.btnText}>OK</Text>
-          </TouchableOpacity>
+          ) : (
+            <>
+              <View style={styles.header}>
+                <View style={styles.headerLeft}>
+                  <Lock size={18} color={Colors.textLight} />
+                  <Text style={styles.headerTitle}>Secure Checkout</Text>
+                </View>
+                <TouchableOpacity onPress={handleClose} disabled={loading} style={styles.closeBtn}>
+                  <X size={22} color={Colors.textLight} />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.amountCard}>
+                <Text style={styles.amountLabel}>Total</Text>
+                <Text style={styles.amountValue}>${amount.toFixed(2)}</Text>
+              </View>
+
+              {error ? (
+                <View style={styles.errorBox}>
+                  <Text style={styles.errorText}>{error}</Text>
+                </View>
+              ) : (
+                <View style={styles.infoBox}>
+                  <Text style={styles.infoText}>
+                    {loading
+                      ? 'Complete your payment in the Stripe window. This page will update automatically.'
+                      : "Tap below to open Stripe's secure checkout. Pay with card, Apple Pay, Google Pay, or Link."}
+                  </Text>
+                </View>
+              )}
+
+              <TouchableOpacity
+                style={[styles.payBtn, loading && styles.payBtnDisabled]}
+                onPress={handlePay}
+                disabled={loading}
+                testID="pay-button"
+              >
+                {loading ? (
+                  <ActivityIndicator color={Colors.background} />
+                ) : (
+                  <>
+                    <Lock size={16} color={Colors.background} />
+                    <Text style={styles.payBtnText}>Pay ${amount.toFixed(2)}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+
+              <Text style={styles.disclaimer}>
+                Payments are encrypted and securely processed by Stripe.
+              </Text>
+            </>
+          )}
         </View>
       </View>
     </Modal>
@@ -60,34 +218,50 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  headerLeft: {
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  headerTitle: { fontSize: 16, fontWeight: '700', color: Colors.text },
+  closeBtn: { padding: 4 },
+  amountCard: {
+    backgroundColor: Colors.surface ?? '#1A1A1A',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  amountLabel: { fontSize: 14, color: Colors.textLight, fontWeight: '600' },
+  amountValue: { fontSize: 26, fontWeight: '800', color: Colors.primary },
+  infoBox: {
+    backgroundColor: Colors.surface ?? '#1A1A1A',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  infoText: { color: Colors.textLight, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  errorBox: {
+    backgroundColor: '#2D1B1B',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  errorText: { color: '#FF6B6B', fontSize: 13, textAlign: 'center' },
+  payBtn: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
-    flex: 1,
   },
-  headerTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: Colors.text,
-    flex: 1,
-  },
-  closeBtn: { padding: 4 },
-  body: {
-    color: Colors.textLight,
-    fontSize: 14,
-    lineHeight: 20,
-    marginBottom: 16,
-  },
-  btn: {
-    backgroundColor: Colors.primary,
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  btnText: {
-    color: Colors.background,
-    fontSize: 16,
-    fontWeight: '700',
-  },
+  payBtnDisabled: { opacity: 0.5 },
+  payBtnText: { color: Colors.background, fontSize: 16, fontWeight: '700' },
+  disclaimer: { fontSize: 11, color: Colors.textLight, textAlign: 'center', marginTop: 12 },
+  successWrap: { alignItems: 'center', paddingVertical: 32 },
+  successTitle: { fontSize: 22, fontWeight: '800', color: Colors.text, marginTop: 16 },
+  successSub: { fontSize: 15, color: Colors.textLight, marginTop: 6 },
 });
