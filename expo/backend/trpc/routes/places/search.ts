@@ -38,6 +38,15 @@ export const searchPlacesProcedure = publicProcedure
             role: "user",
             content: `You are a restaurant and venue discovery assistant. A user is searching for: "${input.query}"
 
+CRITICAL QUANTITY REQUIREMENT:
+- You MUST return at least 20 REAL restaurants/venues. Aim for the full ${input.limit}.
+- NEVER return fewer than 15 results unless the query is extremely obscure and you genuinely cannot think of more.
+- For common dishes (like "pork noodle", "ramen", "pizza", "burger", etc.), returning 4-5 results is UNACCEPTABLE. You must return 20+.
+- Think systematically: what are the famous establishments in each major city or region known for this dish? List them ALL.
+- Include places from international chains, local chains, famous independent restaurants, hawker stalls, food courts, coffee shops, and hidden gems.
+- Cast the WIDEST possible net — across ALL cities, regions, and countries where this dish is popular.
+- If you find yourself listing fewer than 15, you are NOT trying hard enough. Keep thinking of more places.
+
 CRITICAL RELEVANCE RULES:
 1. ONLY return restaurants that DIRECTLY match the search query. If the user searches for "wantan mee", return ONLY places known for wantan mee / wonton noodles. Do NOT return places serving different dishes (e.g. hokkien mee, char kuey teow, laksa) even if they are noodle places.
 2. The dish or cuisine in the search query must be the PRIMARY specialty or a well-known menu item of the restaurant.
@@ -47,10 +56,6 @@ CRITICAL ACCURACY RULES:
 1. The NAME and ADDRESS of each restaurant MUST belong to the SAME real place. NEVER mix up names with wrong addresses.
 2. ONLY return restaurants you are CERTAIN currently exist. Do NOT guess or fabricate.
 3. Every field must be for the SAME restaurant.
-
-Return up to ${input.limit} REAL restaurants/venues. Try to return as many relevant results as possible.
-Include well-known places, popular local spots, hawker stalls, coffee shops, and hidden gems.
-Cast a wide net across different areas and neighborhoods.
 
 For each place provide:
 - name: The EXACT official name
@@ -76,6 +81,8 @@ If no location specified, return places from popular cities for that cuisine.`,
         schema: z.object({
           places: z.array(PlaceSchema),
         }),
+        maxOutputTokens: 16000,
+        temperature: 0.7,
       });
 
       console.log("[Places AI Search] Generated", result.places.length, "places");
