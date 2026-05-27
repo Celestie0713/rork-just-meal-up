@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Animated, Platform, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
@@ -11,11 +11,15 @@ interface VoiceRecorderProps {
 }
 
 export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
-  const [isRecording, setIsRecording] = useState(false);
-  const [duration, setDuration] = useState(0);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
+  const [duration, setDuration] = useState<number>(0);
   const [pulseAnim] = useState(new Animated.Value(1));
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [permissionResponse, requestPermission] = Audio.usePermissions();
+  const webMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const webChunksRef = useRef<Blob[]>([]);
+  const webStreamRef = useRef<MediaStream | null>(null);
+  const webUriRef = useRef<string | null>(null);
 
   React.useEffect(() => {
     if (isRecording) {
@@ -56,10 +60,38 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
   const startRecording = async () => {
     try {
       if (Platform.OS === 'web') {
-        // Web fallback - just simulate recording
-        setIsRecording(true);
-        setDuration(0);
-        console.log('Starting voice recording (web simulation)...');
+        if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+          Alert.alert('Not supported', 'Voice recording is not supported in this browser.');
+          return;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          webStreamRef.current = stream;
+          webChunksRef.current = [];
+          const mimeType = (typeof MediaRecorder !== 'undefined' && MediaRecorder.isTypeSupported?.('audio/webm'))
+            ? 'audio/webm'
+            : undefined;
+          const mr = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+          mr.ondataavailable = (e: BlobEvent) => {
+            if (e.data && e.data.size > 0) webChunksRef.current.push(e.data);
+          };
+          mr.onstop = () => {
+            const blob = new Blob(webChunksRef.current, { type: mr.mimeType || 'audio/webm' });
+            const url = URL.createObjectURL(blob);
+            webUriRef.current = url;
+            webStreamRef.current?.getTracks().forEach((t) => t.stop());
+            webStreamRef.current = null;
+            console.log('Web recording stopped, blob url:', url);
+          };
+          mr.start();
+          webMediaRecorderRef.current = mr;
+          setIsRecording(true);
+          setDuration(0);
+          console.log('Web recording started');
+        } catch (err) {
+          console.error('Web mic permission denied or unavailable', err);
+          Alert.alert('Microphone blocked', 'Please allow microphone access in your browser to record voice messages.');
+        }
         return;
       }
 
@@ -78,11 +110,11 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
       });
 
       console.log('Starting recording..');
-      const { recording } = await Audio.Recording.createAsync(
+      const { recording: newRecording } = await Audio.Recording.createAsync(
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
-      
-      setRecording(recording);
+
+      setRecording(newRecording);
       setIsRecording(true);
       setDuration(0);
       console.log('Recording started');
@@ -92,11 +124,28 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
     }
   };
 
-  const stopRecording = async () => {
+  const stopRecording = async (): Promise<string | null> => {
     if (Platform.OS === 'web') {
+      const mr = webMediaRecorderRef.current;
       setIsRecording(false);
-      console.log('Stopping voice recording (web simulation)...');
-      return null;
+      if (!mr) return null;
+      try {
+        const stopped: Promise<string | null> = new Promise((resolve) => {
+          const prev = mr.onstop;
+          mr.onstop = (ev: Event) => {
+            try { prev?.call(mr, ev); } catch (e) { console.error(e); }
+            resolve(webUriRef.current);
+          };
+        });
+        if (mr.state !== 'inactive') mr.stop();
+        const uri = await stopped;
+        webMediaRecorderRef.current = null;
+        console.log('Web recording finalized at', uri);
+        return uri;
+      } catch (error) {
+        console.error('Failed to stop web recording', error);
+        return null;
+      }
     }
 
     if (!recording) {
@@ -121,12 +170,20 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
   };
 
   const handleSend = async () => {
+    const finalDuration = duration;
     const audioUri = await stopRecording();
-    onSend(duration, audioUri || undefined);
+    if (!audioUri || finalDuration < 1) {
+      Alert.alert('Recording too short', 'Hold to record for at least 1 second.');
+      setDuration(0);
+      return;
+    }
+    onSend(finalDuration, audioUri);
+    setDuration(0);
   };
 
   const handleCancel = async () => {
     await stopRecording();
+    webUriRef.current = null;
     setDuration(0);
     onCancel();
   };
