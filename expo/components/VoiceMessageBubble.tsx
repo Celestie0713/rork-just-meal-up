@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Audio } from 'expo-av';
 import { Play, Pause, DollarSign } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import type { VoiceMessage } from '@/types/user';
@@ -13,9 +14,10 @@ interface VoiceMessageBubbleProps {
 }
 
 export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: VoiceMessageBubbleProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  
-  // Generate stable waveform heights based on message ID
+  const [isPlaying, setIsPlaying] = useState<boolean>(false);
+  const soundRef = useRef<Audio.Sound | null>(null);
+  const webAudioRef = useRef<HTMLAudioElement | null>(null);
+
   const waveformHeights = useMemo(() => {
     const seed = message.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
     return Array.from({ length: 12 }, (_, i) => {
@@ -30,13 +32,99 @@ export function VoiceMessageBubble({ message, isOwn, senderName, onTipPress }: V
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = () => {
+  useEffect(() => {
+    return () => {
+      if (soundRef.current) {
+        soundRef.current.unloadAsync().catch((e) => console.error('unload error', e));
+        soundRef.current = null;
+      }
+      if (webAudioRef.current) {
+        try {
+          webAudioRef.current.pause();
+        } catch (e) {
+          console.error('web pause error', e);
+        }
+        webAudioRef.current = null;
+      }
+    };
+  }, []);
+
+  const playAudio = async () => {
+    const url = message.audioUrl;
+    if (!url || url === 'mock-new-url' || url.startsWith('mock-')) {
+      console.log('No real audio URL for message', message.id, url);
+      setIsPlaying(true);
+      setTimeout(() => setIsPlaying(false), Math.max(500, message.duration * 1000));
+      return;
+    }
+
+    try {
+      if (Platform.OS === 'web') {
+        if (!webAudioRef.current) {
+          const audio = new window.Audio(url);
+          audio.onended = () => setIsPlaying(false);
+          audio.onerror = (e) => {
+            console.error('web audio error', e);
+            setIsPlaying(false);
+          };
+          webAudioRef.current = audio;
+        }
+        await webAudioRef.current.play();
+        setIsPlaying(true);
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+      });
+
+      if (!soundRef.current) {
+        const { sound } = await Audio.Sound.createAsync(
+          { uri: url },
+          { shouldPlay: true },
+          (status) => {
+            if (status.isLoaded && status.didJustFinish) {
+              setIsPlaying(false);
+              sound.setPositionAsync(0).catch((e) => console.error('reset position', e));
+            }
+          }
+        );
+        soundRef.current = sound;
+      } else {
+        await soundRef.current.replayAsync();
+      }
+      setIsPlaying(true);
+    } catch (err) {
+      console.error('Failed to play audio', err);
+      setIsPlaying(false);
+    }
+  };
+
+  const pauseAudio = async () => {
+    try {
+      if (Platform.OS === 'web') {
+        webAudioRef.current?.pause();
+      } else {
+        await soundRef.current?.pauseAsync();
+      }
+    } catch (err) {
+      console.error('Failed to pause audio', err);
+    } finally {
+      setIsPlaying(false);
+    }
+  };
+
+  const handlePlayPause = async () => {
     if (message.requiresTip && !message.isPaid && !isOwn) {
       onTipPress?.();
       return;
     }
-    setIsPlaying(!isPlaying);
-    console.log(`${isPlaying ? 'Pausing' : 'Playing'} voice message ${message.id}`);
+    if (isPlaying) {
+      await pauseAudio();
+    } else {
+      await playAudio();
+    }
   };
 
   const bubbleStyle = isOwn ? styles.ownBubble : styles.otherBubble;
