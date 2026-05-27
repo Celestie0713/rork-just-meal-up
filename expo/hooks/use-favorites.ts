@@ -8,6 +8,12 @@ interface Place {
   name: string;
   vicinity?: string;
   formatted_address?: string;
+  city?: string;
+  country?: string;
+  latitude?: number;
+  longitude?: number;
+  googleMapsUrl?: string;
+  cuisineEmoji?: string;
   rating?: number;
   user_ratings_total?: number;
   price_level?: number;

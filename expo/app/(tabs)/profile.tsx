@@ -218,8 +218,14 @@ export default function ProfileScreen() {
 
   const handleViewOnGoogleMaps = async () => {
     if (!selectedPlace) return;
-    const query = encodeURIComponent('"' + selectedPlace.name + '"' + (selectedPlace.formatted_address ? ' ' + selectedPlace.formatted_address.split(',')[0] : ''));
-    const url = `https://www.google.com/search?q=${query}`;
+    let url: string;
+    if (selectedPlace.googleMapsUrl) {
+      url = selectedPlace.googleMapsUrl;
+    } else if (selectedPlace.latitude != null && selectedPlace.longitude != null) {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.name + ', ' + (selectedPlace.city || ''))}&center=${selectedPlace.latitude},${selectedPlace.longitude}&zoom=17`;
+    } else {
+      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.name + ', ' + (selectedPlace.city || '') + ', ' + (selectedPlace.country || ''))}`;
+    }
     try {
       await WebBrowser.openBrowserAsync(url, {
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.POPOVER,
