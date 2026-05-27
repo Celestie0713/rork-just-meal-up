@@ -158,6 +158,7 @@ export default function ChatScreen() {
   const chatId = `${currentUserId}-${params.userId}`;
   const [showMealDetailsModal, setShowMealDetailsModal] = useState(false);
   const [selectedMealIndex, setSelectedMealIndex] = useState<number>(0);
+  const [showInviteOptions, setShowInviteOptions] = useState<boolean>(false);
 
   
   const messages = getChatMessages(chatId);
@@ -363,7 +364,8 @@ export default function ChatScreen() {
           )}
           <TouchableOpacity 
             style={styles.inviteButton}
-            onPress={() => router.push('/(tabs)?tab=places' as any)}
+            onPress={() => setShowInviteOptions(true)}
+            testID="invite-to-eat-button"
           >
             <Text style={styles.inviteButtonText}>Invite to eat</Text>
           </TouchableOpacity>
@@ -465,6 +467,51 @@ export default function ChatScreen() {
             </TouchableOpacity>
           </View>
         </View>
+      </Modal>
+      <Modal
+        visible={showInviteOptions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowInviteOptions(false)}
+      >
+        <TouchableOpacity
+          style={styles.inviteOptionsOverlay}
+          activeOpacity={1}
+          onPress={() => setShowInviteOptions(false)}
+        >
+          <View style={styles.inviteOptionsSheet}>
+            <Text style={styles.inviteOptionsTitle}>Invite {chatUser.name} to eat</Text>
+            <Text style={styles.inviteOptionsSubtitle}>How do you want to pick a spot?</Text>
+            <TouchableOpacity
+              style={styles.inviteOptionButton}
+              onPress={() => {
+                setShowInviteOptions(false);
+                router.push(`/user-profile?userId=${chatUser.id}` as any);
+              }}
+              testID="invite-option-favorites"
+            >
+              <Text style={styles.inviteOptionButtonText}>Choose from Food to bribe me with</Text>
+              <Text style={styles.inviteOptionButtonSubtext}>Pick from {chatUser.name}&apos;s favorites</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.inviteOptionButton}
+              onPress={() => {
+                setShowInviteOptions(false);
+                router.push('/(tabs)?tab=places' as any);
+              }}
+              testID="invite-option-search"
+            >
+              <Text style={styles.inviteOptionButtonText}>Search for Places</Text>
+              <Text style={styles.inviteOptionButtonSubtext}>Find a new spot with AI search</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.inviteOptionCancel}
+              onPress={() => setShowInviteOptions(false)}
+            >
+              <Text style={styles.inviteOptionCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
       </Modal>
     </SafeAreaView>
   );
@@ -668,5 +715,58 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  inviteOptionsOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  inviteOptionsSheet: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 36,
+    gap: 12,
+  },
+  inviteOptionsTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  inviteOptionsSubtitle: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  inviteOptionButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    alignItems: 'center',
+  },
+  inviteOptionButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.background,
+  },
+  inviteOptionButtonSubtext: {
+    fontSize: 12,
+    color: Colors.background,
+    opacity: 0.85,
+    marginTop: 2,
+  },
+  inviteOptionCancel: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  inviteOptionCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textLight,
   },
 });
