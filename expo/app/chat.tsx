@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Modal, ScrollView, Alert, Linking } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, MapPin, Clock, Users, X } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Clock, Users, X, Search, Utensils } from 'lucide-react-native';
 import { VoiceMessageBubble } from '@/components/VoiceMessageBubble';
 import { SystemMessageBubble } from '@/components/SystemMessageBubble';
 import { VoiceRecorder } from '@/components/VoiceRecorder';
@@ -158,6 +158,7 @@ export default function ChatScreen() {
   const chatId = `${currentUserId}-${params.userId}`;
   const [showMealDetailsModal, setShowMealDetailsModal] = useState(false);
   const [selectedMealIndex, setSelectedMealIndex] = useState<number>(0);
+  const [showInvitePopup, setShowInvitePopup] = useState(false);
 
   
   const messages = getChatMessages(chatId);
@@ -363,7 +364,7 @@ export default function ChatScreen() {
           )}
           <TouchableOpacity 
             style={styles.inviteButton}
-            onPress={() => router.push('/(tabs)?tab=places' as any)}
+            onPress={() => setShowInvitePopup(true)}
           >
             <Text style={styles.inviteButtonText}>Invite to eat</Text>
           </TouchableOpacity>
@@ -399,6 +400,57 @@ export default function ChatScreen() {
           onCancel={handleCancelRecording}
         />
       </View>
+      <Modal
+        visible={showInvitePopup}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowInvitePopup(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.invitePopupContent}>
+            <Text style={styles.invitePopupTitle}>Invite to eat</Text>
+            <Text style={styles.invitePopupSubtitle}>How would you like to pick a place?</Text>
+            <TouchableOpacity
+              style={styles.invitePopupOption}
+              activeOpacity={0.7}
+              onPress={() => {
+                setShowInvitePopup(false);
+                router.push(`/user-profile?userId=${chatUser.id}` as any);
+              }}
+            >
+              <View style={styles.invitePopupOptionIcon}>
+                <Utensils size={22} color="#FF6B35" />
+              </View>
+              <View style={styles.invitePopupOptionText}>
+                <Text style={styles.invitePopupOptionTitle}>Choose from Food to bribe me with</Text>
+                <Text style={styles.invitePopupOptionDesc}>Pick from {chatUser.name}&apos;s favorite spots</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.invitePopupOption}
+              activeOpacity={0.7}
+              onPress={() => {
+                setShowInvitePopup(false);
+                router.push('/(tabs)?tab=places' as any);
+              }}
+            >
+              <View style={[styles.invitePopupOptionIcon, { backgroundColor: '#F0F0F0' }]}>
+                <Search size={22} color="#000000" />
+              </View>
+              <View style={styles.invitePopupOptionText}>
+                <Text style={styles.invitePopupOptionTitle}>Search for Places</Text>
+                <Text style={styles.invitePopupOptionDesc}>Discover new restaurants with AI</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.invitePopupCancel}
+              onPress={() => setShowInvitePopup(false)}
+            >
+              <Text style={styles.invitePopupCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
       <Modal
         visible={showMealDetailsModal}
         transparent
@@ -668,5 +720,72 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Colors.background,
+  },
+  invitePopupContent: {
+    backgroundColor: Colors.background,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 380,
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+  },
+  invitePopupTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'center' as const,
+    marginBottom: 6,
+  },
+  invitePopupSubtitle: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center' as const,
+    marginBottom: 24,
+  },
+  invitePopupOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FAFAFA',
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
+  },
+  invitePopupOptionIcon: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    backgroundColor: '#FFF0E6',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginRight: 14,
+  },
+  invitePopupOptionText: {
+    flex: 1,
+  },
+  invitePopupOptionTitle: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  invitePopupOptionDesc: {
+    fontSize: 13,
+    color: Colors.textLight,
+  },
+  invitePopupCancel: {
+    marginTop: 8,
+    paddingVertical: 12,
+    alignItems: 'center' as const,
+  },
+  invitePopupCancelText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: Colors.textLight,
   },
 });
