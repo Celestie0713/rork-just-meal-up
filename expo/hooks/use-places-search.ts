@@ -170,9 +170,7 @@ Otherwise, follow the location context above.`,
       cuisineEmoji: place.cuisineEmoji || '🍽️',
       phoneNumber: place.phoneNumber,
       website: place.website,
-      googleMapsUrl: place.latitude && place.longitude
-        ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.city)}&center=${place.latitude},${place.longitude}&zoom=17`
-        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ', ' + place.city + ', ' + place.country)}`,
+      googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.city + ' ' + place.country)}`,
       openingHours: place.openingHours,
     },
     description: place.description,

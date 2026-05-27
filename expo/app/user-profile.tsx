@@ -81,14 +81,8 @@ export default function UserProfileScreen() {
 
   const handleViewOnGoogleMaps = async () => {
     if (!selectedPlace) return;
-    let url: string;
-    if (selectedPlace.googleMapsUrl) {
-      url = selectedPlace.googleMapsUrl;
-    } else if (selectedPlace.latitude != null && selectedPlace.longitude != null) {
-      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.name + ', ' + (selectedPlace.city || ''))}&center=${selectedPlace.latitude},${selectedPlace.longitude}&zoom=17`;
-    } else {
-      url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.name + ', ' + (selectedPlace.city || '') + ', ' + (selectedPlace.country || ''))}`;
-    }
+    const url = selectedPlace.googleMapsUrl ||
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.name + ' ' + (selectedPlace.city || '') + ' ' + (selectedPlace.country || ''))}`;
     try {
       await WebBrowser.openBrowserAsync(url, {
         presentationStyle: WebBrowser.WebBrowserPresentationStyle.POPOVER,
