@@ -14,6 +14,7 @@ export interface User {
   ethnicity?: string;
   favoritePlaces?: string[];
   relationshipStatus?: 'single' | 'in_relationship';
+  intention?: 'make_new_friends' | 'relationship' | 'casual' | 'marriage' | 'open_marriage' | 'figuring_it_out';
   partnerId?: string;
   preferences: {
     ageRange: [number, number];

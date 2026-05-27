@@ -35,17 +35,23 @@ const LANGUAGE_OPTIONS = [
   'No preference'
 ];
 
-const INCOME_LEVELS = [
-  '≤$50k',
-  '$50k - $100k',
-  '≥$100k'
+const INTENTION_OPTIONS = [
+  { value: 'make_new_friends' as const, label: 'Make new friends' },
+  { value: 'relationship' as const, label: 'Relationship' },
+  { value: 'casual' as const, label: 'Casual' },
+  { value: 'marriage' as const, label: 'Marriage' },
+  { value: 'open_marriage' as const, label: 'Open Marriage' },
+  { value: 'figuring_it_out' as const, label: 'Figuring it out' },
 ];
 
-const PREFERRED_INCOME_LEVELS = [
-  '≤$50k',
-  '$50k - $100k',
-  '≥$100k'
-];
+const INTENTION_LABEL_MAP: Record<string, string> = {
+  make_new_friends: 'Make new friends',
+  relationship: 'Relationship',
+  casual: 'Casual',
+  marriage: 'Marriage',
+  open_marriage: 'Open Marriage',
+  figuring_it_out: 'Figuring it out',
+};
 
 type TabType = 'food' | 'pictures' | 'mealups';
 
@@ -64,9 +70,8 @@ export default function ProfileScreen() {
   }, [user]);
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
-  const [showPersonalIncomeModal, setShowPersonalIncomeModal] = useState(false);
+  const [showIntentionModal, setShowIntentionModal] = useState(false);
   const [showPersonalLanguageModal, setShowPersonalLanguageModal] = useState(false);
-  const [showPreferredIncomeModal, setShowPreferredIncomeModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showRemoveLoveModal, setShowRemoveLoveModal] = useState(false);
 
@@ -189,17 +194,14 @@ export default function ProfileScreen() {
     });
   };
 
-  const setPersonalIncomeLevel = (income: string) => {
+  const setIntention = (intention: User['intention']) => {
     if (!editedUser) return;
     
     setEditedUser({
       ...editedUser,
-      preferences: {
-        ...editedUser.preferences,
-        incomeLevel: income
-      }
+      intention
     });
-    setShowPersonalIncomeModal(false);
+    setShowIntentionModal(false);
   };
 
   const setPersonalLanguage = (language: string) => {
@@ -212,18 +214,7 @@ export default function ProfileScreen() {
     setShowPersonalLanguageModal(false);
   };
 
-  const setPreferredIncomeLevel = (income: string) => {
-    if (!editedUser) return;
-    
-    setEditedUser({
-      ...editedUser,
-      preferences: {
-        ...editedUser.preferences,
-        preferredIncomeLevel: income
-      }
-    });
-    setShowPreferredIncomeModal(false);
-  };
+
 
   const handleViewOnGoogleMaps = async () => {
     if (!selectedPlace) return;
@@ -514,29 +505,29 @@ export default function ProfileScreen() {
     </Modal>
   );
 
-  const renderPersonalIncomeModal = () => (
-    <Modal visible={showPersonalIncomeModal} transparent animationType="slide">
+  const renderIntentionModal = () => (
+    <Modal visible={showIntentionModal} transparent animationType="slide">
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Your Income Level</Text>
-            <TouchableOpacity onPress={() => setShowPersonalIncomeModal(false)}>
+            <Text style={styles.modalTitle}>Intention</Text>
+            <TouchableOpacity onPress={() => setShowIntentionModal(false)}>
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.modalSubtitle}>Select your income range (optional)</Text>
+          <Text style={styles.modalSubtitle}>What are you looking for? (optional)</Text>
           <FlatList
-            data={INCOME_LEVELS}
-            keyExtractor={(item, index) => `income-level-${index}-${item.replace(/\s+/g, '-')}`}
+            data={INTENTION_OPTIONS}
+            keyExtractor={(item) => `intention-${item.value}`}
             renderItem={({ item }) => {
-              const isSelected = editedUser?.preferences.incomeLevel === item;
+              const isSelected = (isEditing ? editedUser?.intention : user?.intention) === item.value;
               return (
                 <TouchableOpacity
                   style={[styles.optionItem, isSelected && styles.selectedOption]}
-                  onPress={() => setPersonalIncomeLevel(item)}
+                  onPress={() => setIntention(item.value)}
                 >
                   <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
-                    {item}
+                    {item.label}
                   </Text>
                   {isSelected && <Check size={20} color={Colors.background} />}
                 </TouchableOpacity>
@@ -582,39 +573,7 @@ export default function ProfileScreen() {
     </Modal>
   );
 
-  const renderPreferredIncomeModal = () => (
-    <Modal visible={showPreferredIncomeModal} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Preferred Income Level</Text>
-            <TouchableOpacity onPress={() => setShowPreferredIncomeModal(false)}>
-              <X size={24} color={Colors.text} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.modalSubtitle}>Select preferred income range for matches (optional)</Text>
-          <FlatList
-            data={PREFERRED_INCOME_LEVELS}
-            keyExtractor={(item, index) => `preferred-income-level-${index}-${item.replace(/\s+/g, '-')}`}
-            renderItem={({ item }) => {
-              const isSelected = editedUser?.preferences.preferredIncomeLevel === item;
-              return (
-                <TouchableOpacity
-                  style={[styles.optionItem, isSelected && styles.selectedOption]}
-                  onPress={() => setPreferredIncomeLevel(item)}
-                >
-                  <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
-                    {item}
-                  </Text>
-                  {isSelected && <Check size={20} color={Colors.background} />}
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
-      </View>
-    </Modal>
-  );
+
 
   const renderSettingsModal = () => (
     <Modal visible={showSettingsModal} transparent animationType="slide">
@@ -726,15 +685,18 @@ export default function ProfileScreen() {
             </TouchableOpacity>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowPersonalIncomeModal(true)}
+              onPress={() => isEditing && setShowIntentionModal(true)}
               disabled={!isEditing}
             >
               <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Income Level</Text>
+                <Text style={styles.preferenceLabel}>Intention</Text>
                 {isEditing && <Edit3 size={16} color={Colors.primary} />}
               </View>
               <Text style={styles.preferenceValue}>
-                {(isEditing ? editedUser?.preferences.incomeLevel : user.preferences.incomeLevel) || 'Not specified'}
+                {(() => {
+                  const intentionValue = isEditing ? editedUser?.intention : user?.intention;
+                  return intentionValue ? INTENTION_LABEL_MAP[intentionValue] : 'Not specified';
+                })()}
               </Text>
             </TouchableOpacity>
           </View>
@@ -765,9 +727,8 @@ export default function ProfileScreen() {
       </ScrollView>
       {renderPlaceDetailModal()}
       {renderLanguageModal()}
-      {renderPersonalIncomeModal()}
+      {renderIntentionModal()}
       {renderPersonalLanguageModal()}
-      {renderPreferredIncomeModal()}
       {renderSettingsModal()}
       <Modal visible={showRemoveLoveModal} transparent animationType="fade">
         <TouchableOpacity

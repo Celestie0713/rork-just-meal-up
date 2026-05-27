@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image } from 'rea
 
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, MapPin, Camera, Users, Utensils, Plus, Mic } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Camera, Users, Utensils, Plus, Mic, Heart } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 
@@ -214,9 +214,16 @@ export default function UserProfileScreen() {
               </Text>
             </View>
             <View style={styles.halfPreferenceItem}>
-              <Text style={styles.preferenceLabel}>Income Level</Text>
+              <Text style={styles.preferenceLabel}>Intention</Text>
               <Text style={styles.preferenceValue}>
-                {user.preferences.incomeLevel || 'Not specified'}
+                {user.intention ? ({
+                  make_new_friends: 'Make new friends',
+                  relationship: 'Relationship',
+                  casual: 'Casual',
+                  marriage: 'Marriage',
+                  open_marriage: 'Open Marriage',
+                  figuring_it_out: 'Figuring it out',
+                } as const)[user.intention] : 'Not specified'}
               </Text>
             </View>
           </View>
