@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Share } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound, MessageCircleShare, Globe } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors, Gradients } from '@/constants/colors';
 import type { MealUp } from '@/types/user';
@@ -13,6 +13,7 @@ interface MealUpCardProps {
 
 export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [showShareOptions, setShowShareOptions] = useState<boolean>(false);
   const images = mealUp.images || [mealUp.imageUrl];
   const maxImages = Math.min(images.length, 10);
   const displayImages = images.slice(0, maxImages);
@@ -25,10 +26,23 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
     });
   };
 
+  const formatFullDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   const spotsLeft = mealUp.maxAttendees - mealUp.currentAttendees.length;
 
-  const handleShare = (event: any) => {
+  const handleSharePress = (event: any) => {
     event.stopPropagation();
+    setShowShareOptions(true);
+  };
+
+  const handleShareViaChat = () => {
+    setShowShareOptions(false);
     router.push({
       pathname: '/messages' as any,
       params: {
@@ -42,6 +56,17 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
         mealUpImage: mealUp.imageUrl
       }
     });
+  };
+
+  const handleShareSocial = async () => {
+    setShowShareOptions(false);
+    try {
+      await Share.share({
+        message: `Check out this amazing meal up: ${mealUp.title} at ${mealUp.venue.name} on ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only $${mealUp.ticketPrice}!`,
+      });
+    } catch (_error) {
+      // User cancelled or share failed silently
+    }
   };
 
   const handlePrevImage = (event: any) => {
@@ -65,7 +90,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
         <View style={styles.topActions}>
           <TouchableOpacity 
             style={styles.shareButton}
-            onPress={handleShare}
+            onPress={handleSharePress}
             testID={`share-${mealUp.id}`}
           >
             <Share2 size={20} color={Colors.background} />
@@ -161,6 +186,55 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
           </View>
         </View>
       </View>
+
+      <Modal
+        visible={showShareOptions}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowShareOptions(false)}
+      >
+        <TouchableOpacity
+          style={styles.shareOverlay}
+          activeOpacity={1}
+          onPress={() => setShowShareOptions(false)}
+        >
+          <View style={styles.shareSheet}>
+            <Text style={styles.shareTitle}>Share Meal Up</Text>
+            <Text style={styles.shareSubtitle}>How do you want to share?</Text>
+
+            <TouchableOpacity
+              style={styles.shareOptionButton}
+              onPress={handleShareViaChat}
+              testID={`share-chat-${mealUp.id}`}
+            >
+              <MessageCircleShare size={22} color={Colors.background} />
+              <View style={styles.shareOptionTextContainer}>
+                <Text style={styles.shareOptionButtonText}>Share via Chat</Text>
+                <Text style={styles.shareOptionButtonSubtext}>Send to a friend in the app</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.shareOptionButton, styles.shareSocialButton]}
+              onPress={handleShareSocial}
+              testID={`share-social-${mealUp.id}`}
+            >
+              <Globe size={22} color={Colors.primary} />
+              <View style={styles.shareOptionTextContainer}>
+                <Text style={[styles.shareOptionButtonText, styles.shareSocialText]}>Share on Social Media</Text>
+                <Text style={[styles.shareOptionButtonSubtext, styles.shareSocialSubtext]}>Post to Instagram, Twitter, WhatsApp & more</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.shareCancel}
+              onPress={() => setShowShareOptions(false)}
+            >
+              <Text style={styles.shareCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </TouchableOpacity>
   );
 }
@@ -405,5 +479,75 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontSize: 14,
     fontWeight: '600',
+  },
+  shareOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  shareSheet: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+    gap: 14,
+  },
+  shareTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  shareSubtitle: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center',
+    marginBottom: 6,
+  },
+  shareOptionButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+  },
+  shareSocialButton: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+  },
+  shareOptionTextContainer: {
+    flex: 1,
+  },
+  shareOptionButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.background,
+  },
+  shareSocialText: {
+    color: Colors.primary,
+  },
+  shareOptionButtonSubtext: {
+    fontSize: 12,
+    color: Colors.background,
+    opacity: 0.85,
+    marginTop: 2,
+  },
+  shareSocialSubtext: {
+    color: Colors.textLight,
+    opacity: 1,
+  },
+  shareCancel: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  shareCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.textLight,
   },
 });
