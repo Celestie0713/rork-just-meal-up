@@ -59,13 +59,18 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
   };
 
   const handleShareSocial = async () => {
-    setShowShareOptions(false);
     try {
-      await Share.share({
-        message: `Check out this amazing meal up: ${mealUp.title} at ${mealUp.venue.name} on ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only $${mealUp.ticketPrice}!`,
-      });
-    } catch (_error) {
-      // User cancelled or share failed silently
+      const shareContent: Share.ShareContent = {
+        title: mealUp.title,
+        message: `${mealUp.title} at ${mealUp.venue.name} — ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only ${mealUp.ticketPrice}!`,
+      };
+      await Share.share(shareContent);
+    } catch (error: any) {
+      if (error?.message !== 'User did not share') {
+        console.error('Share failed:', error);
+      }
+    } finally {
+      setShowShareOptions(false);
     }
   };
 
