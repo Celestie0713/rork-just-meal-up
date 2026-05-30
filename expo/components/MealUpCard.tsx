@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Share } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound, MessageCircleShare, Globe } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound, MessageSquareShare, Globe } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors, Gradients } from '@/constants/colors';
 import type { MealUp } from '@/types/user';
@@ -207,7 +207,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
               onPress={handleShareViaChat}
               testID={`share-chat-${mealUp.id}`}
             >
-              <MessageCircleShare size={22} color={Colors.background} />
+              <MessageSquareShare size={22} color={Colors.background} />
               <View style={styles.shareOptionTextContainer}>
                 <Text style={styles.shareOptionButtonText}>Share via Chat</Text>
                 <Text style={styles.shareOptionButtonSubtext}>Send to a friend in the app</Text>
