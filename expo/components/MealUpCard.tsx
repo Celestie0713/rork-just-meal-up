@@ -104,10 +104,15 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
 
   const handleShareFacebook = async () => {
     setShowShareOptions(false);
-    // Copy the message first, then open Facebook so user can paste it
     if (Platform.OS === 'web') {
-      copyToClipboardWeb(shareMessage);
-      window.open('https://www.facebook.com', '_blank');
+      // Facebook doesn't support pre-filling post text via URL (unlike X).
+      // Copy to clipboard so user can Ctrl+V / Cmd+V into the share dialog.
+      const copied = copyToClipboardWeb(shareMessage);
+      // Open Facebook's share dialog — user pastes and clicks Post
+      window.open('https://www.facebook.com/sharer/sharer.php', '_blank');
+      if (copied) {
+        Alert.alert('Text copied!', 'Paste (Ctrl+V) into the Facebook post and share.');
+      }
     } else {
       await Share.share({ message: shareMessage });
     }
