@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Share } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Share, Platform, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound, MessageSquareShare, Globe } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -59,12 +59,22 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
   };
 
   const handleShareSocial = async () => {
+    const message = `${mealUp.title} at ${mealUp.venue.name} — ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only ${mealUp.ticketPrice}!`;
+
+    if (Platform.OS === 'web') {
+      try {
+        await navigator.clipboard.writeText(message);
+        setShowShareOptions(false);
+        Alert.alert('Copied!', 'Meal details copied to clipboard — paste anywhere to share.');
+      } catch {
+        setShowShareOptions(false);
+        Alert.alert('Could not copy', 'Please try again or share manually.');
+      }
+      return;
+    }
+
     try {
-      const shareContent: Share.ShareContent = {
-        title: mealUp.title,
-        message: `${mealUp.title} at ${mealUp.venue.name} — ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only ${mealUp.ticketPrice}!`,
-      };
-      await Share.share(shareContent);
+      await Share.share({ title: mealUp.title, message });
     } catch (error: any) {
       if (error?.message !== 'User did not share') {
         console.error('Share failed:', error);
