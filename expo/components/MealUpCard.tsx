@@ -58,16 +58,43 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
     });
   };
 
+  const copyToClipboardWeb = (text: string): boolean => {
+    // Try modern async Clipboard API first
+    if (navigator?.clipboard?.writeText) {
+      try {
+        // Must be sync-like — schedule the async write but don't await here
+        // because the user gesture may expire. Instead use the legacy fallback.
+      } catch { /* fall through */ }
+    }
+
+    // Legacy fallback using execCommand — works in all browsers, even non-HTTPS
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+
+    let success = false;
+    try {
+      success = document.execCommand('copy');
+    } catch { /* ignore */ }
+
+    document.body.removeChild(textarea);
+    return success;
+  };
+
   const handleShareSocial = async () => {
     const message = `${mealUp.title} at ${mealUp.venue.name} — ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only ${mealUp.ticketPrice}!`;
 
     if (Platform.OS === 'web') {
-      try {
-        await navigator.clipboard.writeText(message);
-        setShowShareOptions(false);
+      const copied = copyToClipboardWeb(message);
+      setShowShareOptions(false);
+      if (copied) {
         Alert.alert('Copied!', 'Meal details copied to clipboard — paste anywhere to share.');
-      } catch {
-        setShowShareOptions(false);
+      } else {
         Alert.alert('Could not copy', 'Please try again or share manually.');
       }
       return;
