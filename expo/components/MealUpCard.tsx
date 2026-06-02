@@ -104,15 +104,12 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
 
   const handleShareFacebook = async () => {
     setShowShareOptions(false);
-    const url = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareMessage)}`;
+    // Copy the message first, then open Facebook so user can paste it
     if (Platform.OS === 'web') {
-      window.open(url, '_blank');
+      copyToClipboardWeb(shareMessage);
+      window.open('https://www.facebook.com', '_blank');
     } else {
-      try {
-        await Linking.openURL(url);
-      } catch {
-        await Share.share({ message: shareMessage });
-      }
+      await Share.share({ message: shareMessage });
     }
   };
 
