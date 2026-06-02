@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Share, Platform, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Modal, Share, Platform, Alert, Linking } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound, MessageSquareShare, Globe } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ChevronRight, ChevronLeft, UsersRound, MessageSquareShare, Copy } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { Colors, Gradients } from '@/constants/colors';
 import type { MealUp } from '@/types/user';
@@ -86,28 +86,75 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
     return success;
   };
 
-  const handleShareSocial = async () => {
-    const message = `${mealUp.title} at ${mealUp.venue.name} — ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only ${mealUp.ticketPrice}!`;
+  const shareMessage = `${mealUp.title} at ${mealUp.venue.name} — ${formatFullDate(mealUp.date)} at ${mealUp.time}. Only ${mealUp.ticketPrice}!`;
 
+  const handleCopyLink = () => {
+    setShowShareOptions(false);
     if (Platform.OS === 'web') {
-      const copied = copyToClipboardWeb(message);
-      setShowShareOptions(false);
+      const copied = copyToClipboardWeb(shareMessage);
       if (copied) {
-        Alert.alert('Copied!', 'Meal details copied to clipboard — paste anywhere to share.');
+        Alert.alert('Copied!', 'Meal details copied to clipboard.');
       } else {
-        Alert.alert('Could not copy', 'Please try again or share manually.');
+        Alert.alert('Could not copy', 'Please try again.');
       }
-      return;
+    } else {
+      Share.share({ message: shareMessage });
     }
+  };
 
-    try {
-      await Share.share({ title: mealUp.title, message });
-    } catch (error: any) {
-      if (error?.message !== 'User did not share') {
-        console.error('Share failed:', error);
+  const handleShareFacebook = async () => {
+    setShowShareOptions(false);
+    const url = `https://www.facebook.com/sharer/sharer.php?quote=${encodeURIComponent(shareMessage)}`;
+    if (Platform.OS === 'web') {
+      window.open(url, '_blank');
+    } else {
+      try {
+        await Linking.openURL(url);
+      } catch {
+        await Share.share({ message: shareMessage });
       }
-    } finally {
-      setShowShareOptions(false);
+    }
+  };
+
+  const handleShareInstagram = async () => {
+    setShowShareOptions(false);
+    if (Platform.OS === 'web') {
+      const copied = copyToClipboardWeb(shareMessage);
+      if (copied) {
+        Alert.alert('Copied!', 'Meal details copied — paste into Instagram.');
+      } else {
+        Alert.alert('Could not copy', 'Please try again.');
+      }
+    } else {
+      await Share.share({ message: shareMessage });
+    }
+  };
+
+  const handleShareX = async () => {
+    setShowShareOptions(false);
+    const url = `https://x.com/intent/tweet?text=${encodeURIComponent(shareMessage)}`;
+    if (Platform.OS === 'web') {
+      window.open(url, '_blank');
+    } else {
+      try {
+        await Linking.openURL(url);
+      } catch {
+        await Share.share({ message: shareMessage });
+      }
+    }
+  };
+
+  const handleShareThreads = async () => {
+    setShowShareOptions(false);
+    if (Platform.OS === 'web') {
+      const copied = copyToClipboardWeb(shareMessage);
+      if (copied) {
+        Alert.alert('Copied!', 'Meal details copied — paste into Threads.');
+      } else {
+        Alert.alert('Could not copy', 'Please try again.');
+      }
+    } else {
+      await Share.share({ message: shareMessage });
     }
   };
 
@@ -256,17 +303,62 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity
-              style={[styles.shareOptionButton, styles.shareSocialButton]}
-              onPress={handleShareSocial}
-              testID={`share-social-${mealUp.id}`}
-            >
-              <Globe size={22} color={Colors.primary} />
-              <View style={styles.shareOptionTextContainer}>
-                <Text style={[styles.shareOptionButtonText, styles.shareSocialText]}>Share on Social Media</Text>
-                <Text style={[styles.shareOptionButtonSubtext, styles.shareSocialSubtext]}>Post to Instagram, Twitter, WhatsApp & more</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={styles.socialRow}>
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleCopyLink}
+                testID={`share-copy-${mealUp.id}`}
+              >
+                <View style={[styles.socialIcon, { backgroundColor: '#444' }]}>
+                  <Copy size={20} color="#FFF" />
+                </View>
+                <Text style={styles.socialLabel}>Copy link</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleShareFacebook}
+                testID={`share-fb-${mealUp.id}`}
+              >
+                <View style={[styles.socialIcon, { backgroundColor: '#1877F2' }]}>
+                  <Text style={styles.socialIconText}>f</Text>
+                </View>
+                <Text style={styles.socialLabel}>Facebook</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleShareInstagram}
+                testID={`share-ig-${mealUp.id}`}
+              >
+                <View style={[styles.socialIcon, styles.instagramIcon]}>
+                  <Text style={styles.socialIconText}>📷</Text>
+                </View>
+                <Text style={styles.socialLabel}>Instagram</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleShareX}
+                testID={`share-x-${mealUp.id}`}
+              >
+                <View style={[styles.socialIcon, { backgroundColor: '#FFF' }]}>
+                  <Text style={[styles.socialIconText, { color: '#000' }]}>𝕏</Text>
+                </View>
+                <Text style={styles.socialLabel}>X</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.socialButton}
+                onPress={handleShareThreads}
+                testID={`share-threads-${mealUp.id}`}
+              >
+                <View style={[styles.socialIcon, { backgroundColor: '#FFF' }]}>
+                  <Text style={[styles.socialIconText, { color: '#000' }]}>@</Text>
+                </View>
+                <Text style={styles.socialLabel}>Threads</Text>
+              </TouchableOpacity>
+            </View>
 
             <TouchableOpacity
               style={styles.shareCancel}
@@ -556,11 +648,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
   },
-  shareSocialButton: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.primary,
-  },
+
   shareOptionTextContainer: {
     flex: 1,
   },
@@ -569,18 +657,43 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Colors.background,
   },
-  shareSocialText: {
-    color: Colors.primary,
-  },
+
   shareOptionButtonSubtext: {
     fontSize: 12,
     color: Colors.background,
     opacity: 0.85,
     marginTop: 2,
   },
-  shareSocialSubtext: {
+
+  socialRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    paddingVertical: 8,
+  },
+  socialButton: {
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 60,
+  },
+  socialIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  instagramIcon: {
+    backgroundColor: '#E4405F',
+  },
+  socialIconText: {
+    color: '#FFF',
+    fontSize: 20,
+    fontWeight: '700' as const,
+  },
+  socialLabel: {
+    fontSize: 11,
     color: Colors.textLight,
-    opacity: 1,
+    textAlign: 'center',
   },
   shareCancel: {
     paddingVertical: 14,
