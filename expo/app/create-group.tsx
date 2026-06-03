@@ -11,11 +11,26 @@ import {
   KeyboardAvoidingView,
   Platform,
   Switch,
+  Modal,
+  FlatList,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { ArrowLeft, MapPin, Users, DollarSign, Image as ImageIcon } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Users, DollarSign, Image as ImageIcon, ChevronDown, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { COUNTRY_CURRENCIES } from '@/constants/currencies';
 import { useAuth } from '@/hooks/use-auth';
+
+const CURRENCY_OPTIONS = (() => {
+  const seen = new Set<string>();
+  return Object.entries(COUNTRY_CURRENCIES)
+    .filter(([, symbol]) => {
+      if (seen.has(symbol)) return false;
+      seen.add(symbol);
+      return true;
+    })
+    .map(([country, symbol]) => ({ country, symbol }))
+    .sort((a, b) => a.symbol.localeCompare(b.symbol));
+})();
 
 export default function CreateGroupScreen() {
   const _auth = useAuth();
@@ -26,7 +41,9 @@ export default function CreateGroupScreen() {
     imageUrl: '',
     isPaid: false,
     monthlyFee: '',
+    currency: '$',
   });
+  const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -157,9 +174,15 @@ export default function CreateGroupScreen() {
             </View>
             {formData.isPaid && (
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Monthly Fee ($)</Text>
+                <Text style={styles.label}>Monthly Fee</Text>
                 <View style={styles.inputWithIcon}>
-                  <Text style={styles.currencySign}>$</Text>
+                  <TouchableOpacity
+                    style={styles.currencySelector}
+                    onPress={() => setShowCurrencyPicker(true)}
+                  >
+                    <Text style={styles.currencySign}>{formData.currency}</Text>
+                    <ChevronDown size={14} color={Colors.textLight} />
+                  </TouchableOpacity>
                   <TextInput
                     style={styles.inputWithIconText}
                     placeholder="0.00"
@@ -185,6 +208,47 @@ export default function CreateGroupScreen() {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Currency Picker Modal */}
+      <Modal
+        visible={showCurrencyPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCurrencyPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowCurrencyPicker(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Currency</Text>
+            <FlatList
+              data={CURRENCY_OPTIONS}
+              keyExtractor={(item) => `${item.symbol}-${item.country}`}
+              style={styles.currencyList}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.currencyOption,
+                    formData.currency === item.symbol && styles.currencyOptionSelected,
+                  ]}
+                  onPress={() => {
+                    setFormData(prev => ({ ...prev, currency: item.symbol }));
+                    setShowCurrencyPicker(false);
+                  }}
+                >
+                  <Text style={styles.currencyOptionSymbol}>{item.symbol}</Text>
+                  <Text style={styles.currencyOptionCountry}>{item.country}</Text>
+                  {formData.currency === item.symbol && (
+                    <Check size={18} color={Colors.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -251,6 +315,14 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     color: Colors.text,
+  },
+  currencySelector: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: 4,
+    paddingRight: 12,
+    borderRightWidth: 1,
+    borderRightColor: Colors.border,
   },
   currencySign: {
     fontSize: 16,
@@ -320,5 +392,52 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700' as const,
     color: '#FFFFFF',
+  },
+  // Currency picker modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: 16,
+    padding: 20,
+    width: '100%',
+    maxHeight: 400,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  currencyList: {
+    flexGrow: 0,
+  },
+  currencyOption: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    gap: 12,
+  },
+  currencyOptionSelected: {
+    backgroundColor: `${Colors.primary}10`,
+  },
+  currencyOptionSymbol: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    width: 40,
+  },
+  currencyOptionCountry: {
+    flex: 1,
+    fontSize: 15,
+    color: Colors.text,
   },
 });
