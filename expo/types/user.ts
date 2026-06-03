@@ -102,6 +102,8 @@ export interface MealUp {
   group?: {
     id: string;
     name: string;
+    isPaid?: boolean;
+    memberDiscount?: string;
   };
   priceDetails: {
     includesFood: boolean;

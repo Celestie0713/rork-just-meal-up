@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Sha
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check, Percent } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -15,6 +15,10 @@ export default function MealUpDetailsScreen() {
   
   const mealUp = mockMealUps.find(m => m.id === mealUpId);
   const organizer = mockUsers.find(u => u.id === mealUp?.organizerId);
+  
+  const isPaidGroup = mealUp?.group?.isPaid && mealUp?.group?.memberDiscount;
+  const discountPercent = isPaidGroup ? parseInt((mealUp?.group?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
+  const discountedPrice = isPaidGroup ? Math.round(mealUp!.ticketPrice * (1 - discountPercent)) : 0;
   
   const images = mealUp?.images || [mealUp?.imageUrl].filter(Boolean);
   const maxImages = Math.min(images.length, 10);
@@ -132,8 +136,23 @@ export default function MealUpDetailsScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.priceTag}>
-            <DollarSign size={16} color={Colors.background} />
-            <Text style={styles.priceText}>{mealUp.ticketPrice}</Text>
+            {isPaidGroup ? (
+              <View style={styles.discountPriceTag}>
+                <View style={styles.originalPriceRow}>
+                  <DollarSign size={12} color="rgba(255,255,255,0.6)" />
+                  <Text style={styles.originalPriceText}>{mealUp.ticketPrice}</Text>
+                </View>
+                <View style={styles.discountedPriceRow}>
+                  <DollarSign size={16} color={Colors.background} />
+                  <Text style={styles.discountedPriceText}>{discountedPrice}</Text>
+                </View>
+              </View>
+            ) : (
+              <>
+                <DollarSign size={16} color={Colors.background} />
+                <Text style={styles.priceText}>{mealUp.ticketPrice}</Text>
+              </>
+            )}
           </View>
           {displayImages.length > 1 && (
             <>
@@ -209,6 +228,14 @@ export default function MealUpDetailsScreen() {
           </View>
           <View style={styles.includedSection}>
             <Text style={styles.sectionTitle}>What's included with this price?</Text>
+            {isPaidGroup && (
+              <View style={styles.memberDiscountBanner}>
+                <Percent size={18} color={Colors.primary} />
+                <Text style={styles.memberDiscountBannerText}>
+                  {mealUp.group!.memberDiscount} off for group members — you pay ${discountedPrice}
+                </Text>
+              </View>
+            )}
             <View style={styles.includedList}>
               <View style={styles.includedItem}>
                 <Check size={16} color={Colors.success} />
@@ -252,7 +279,19 @@ export default function MealUpDetailsScreen() {
       <View style={styles.bottomBar}>
         <View style={styles.priceInfo}>
           <Text style={styles.bottomPriceLabel}>Price per person</Text>
-          <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
+          {isPaidGroup ? (
+            <View style={styles.bottomDiscountRow}>
+              <View>
+                <Text style={styles.bottomOriginalPrice}>${mealUp.ticketPrice}</Text>
+                <Text style={styles.bottomPriceValue}>${discountedPrice}</Text>
+              </View>
+              <View style={styles.bottomDiscountBadge}>
+                <Text style={styles.bottomDiscountBadgeText}>{mealUp.group!.memberDiscount} off</Text>
+              </View>
+            </View>
+          ) : (
+            <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
+          )}
         </View>
         <LinearGradient
           colors={spotsLeft > 0 ? Gradients.primary : ['#ccc', '#999']}
@@ -609,5 +648,70 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
+  },
+  // Discount styles
+  discountPriceTag: {
+    alignItems: 'flex-end',
+  },
+  originalPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  originalPriceText: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 13,
+    fontWeight: '600',
+    textDecorationLine: 'line-through',
+  },
+  discountedPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+  },
+  discountedPriceText: {
+    color: Colors.background,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  memberDiscountBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `${Colors.primary}15`,
+    borderRadius: 12,
+    padding: 12,
+    gap: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: `${Colors.primary}30`,
+  },
+  memberDiscountBannerText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    lineHeight: 20,
+  },
+  bottomDiscountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  bottomOriginalPrice: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: '500',
+    textDecorationLine: 'line-through',
+  },
+  bottomDiscountBadge: {
+    backgroundColor: `${Colors.primary}20`,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  bottomDiscountBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primary,
   },
 });

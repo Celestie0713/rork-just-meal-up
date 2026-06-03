@@ -27,6 +27,8 @@ export const mockMealUps: MealUp[] = [
     group: {
       id: '1',
       name: '35+ singles in NY with cats',
+      isPaid: true,
+      memberDiscount: '20%',
     },
     priceDetails: {
       includesFood: true,
@@ -60,6 +62,8 @@ export const mockMealUps: MealUp[] = [
     group: {
       id: '4',
       name: 'Manhattan Wine Lovers',
+      isPaid: true,
+      memberDiscount: '20%',
     },
     priceDetails: {
       includesFood: true,
@@ -124,6 +128,8 @@ export const mockMealUps: MealUp[] = [
     group: {
       id: '3',
       name: 'Brooklyn Foodies',
+      isPaid: true,
+      memberDiscount: '35%',
     },
     priceDetails: {
       includesFood: true,
