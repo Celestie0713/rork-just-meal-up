@@ -122,10 +122,9 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
     setShowShareOptions(false);
     if (Platform.OS === 'web') {
       const copied = copyToClipboardWeb(shareMessage);
+      window.open('https://www.instagram.com/', '_blank');
       if (copied) {
-        Alert.alert('Copied!', 'Meal details copied — paste into Instagram.');
-      } else {
-        Alert.alert('Could not copy', 'Please try again.');
+        Alert.alert('Text copied!', 'Paste (Ctrl+V) into Instagram and share.');
       }
     } else {
       await Share.share({ message: shareMessage });
@@ -148,15 +147,15 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
 
   const handleShareThreads = async () => {
     setShowShareOptions(false);
+    const url = `https://www.threads.net/intent/post?text=${encodeURIComponent(shareMessage)}`;
     if (Platform.OS === 'web') {
-      const copied = copyToClipboardWeb(shareMessage);
-      if (copied) {
-        Alert.alert('Copied!', 'Meal details copied — paste into Threads.');
-      } else {
-        Alert.alert('Could not copy', 'Please try again.');
-      }
+      window.open(url, '_blank');
     } else {
-      await Share.share({ message: shareMessage });
+      try {
+        await Linking.openURL(url);
+      } catch {
+        await Share.share({ message: shareMessage });
+      }
     }
   };
 
