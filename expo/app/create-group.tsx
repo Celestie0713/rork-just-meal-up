@@ -15,7 +15,7 @@ import {
   FlatList,
 } from 'react-native';
 import { Stack, router } from 'expo-router';
-import { ArrowLeft, MapPin, Users, DollarSign, Image as ImageIcon, ChevronDown, Check } from 'lucide-react-native';
+import { ArrowLeft, MapPin, Users, DollarSign, Image as ImageIcon, ChevronDown, Check, Percent } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { COUNTRY_CURRENCIES } from '@/constants/currencies';
 import { useAuth } from '@/hooks/use-auth';
@@ -32,6 +32,8 @@ const CURRENCY_OPTIONS = (() => {
     .sort((a, b) => a.symbol.localeCompare(b.symbol));
 })();
 
+const DISCOUNT_OPTIONS = ['10%', '20%', '35%', '50%', '70%'] as const;
+
 export default function CreateGroupScreen() {
   const _auth = useAuth();
   const [formData, setFormData] = useState({
@@ -42,8 +44,10 @@ export default function CreateGroupScreen() {
     isPaid: false,
     monthlyFee: '',
     currency: '$',
+    memberDiscount: '10%',
   });
   const [showCurrencyPicker, setShowCurrencyPicker] = useState(false);
+  const [showDiscountPicker, setShowDiscountPicker] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -194,6 +198,20 @@ export default function CreateGroupScreen() {
                 </View>
               </View>
             )}
+            {formData.isPaid && (
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Member discount for meal-up session:</Text>
+                <TouchableOpacity
+                  style={styles.discountSelector}
+                  onPress={() => setShowDiscountPicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Percent size={20} color={Colors.primary} />
+                  <Text style={styles.discountValue}>{formData.memberDiscount}</Text>
+                  <ChevronDown size={16} color={Colors.textLight} />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
 
           <View style={styles.infoCard}>
@@ -241,6 +259,47 @@ export default function CreateGroupScreen() {
                   <Text style={styles.currencyOptionSymbol}>{item.symbol}</Text>
                   <Text style={styles.currencyOptionCountry}>{item.country}</Text>
                   {formData.currency === item.symbol && (
+                    <Check size={18} color={Colors.primary} />
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Discount Picker Modal */}
+      <Modal
+        visible={showDiscountPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDiscountPicker(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowDiscountPicker(false)}
+        >
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Discount</Text>
+            <FlatList
+              data={DISCOUNT_OPTIONS}
+              keyExtractor={(item) => item}
+              style={styles.currencyList}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.currencyOption,
+                    formData.memberDiscount === item && styles.currencyOptionSelected,
+                  ]}
+                  onPress={() => {
+                    setFormData(prev => ({ ...prev, memberDiscount: item }));
+                    setShowDiscountPicker(false);
+                  }}
+                >
+                  <Text style={styles.currencyOptionSymbol}>{item}</Text>
+                  <Text style={styles.currencyOptionCountry}>off each session</Text>
+                  {formData.memberDiscount === item && (
                     <Check size={18} color={Colors.primary} />
                   )}
                 </TouchableOpacity>
@@ -438,6 +497,23 @@ const styles = StyleSheet.create({
   currencyOptionCountry: {
     flex: 1,
     fontSize: 15,
+    color: Colors.text,
+  },
+  discountSelector: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    gap: 10,
+  },
+  discountValue: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600' as const,
     color: Colors.text,
   },
 });
