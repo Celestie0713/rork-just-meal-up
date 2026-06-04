@@ -255,10 +255,7 @@ export default function MealUpDetailsScreen() {
                   <BadgePercent size={20} color={Colors.primary} />
                 </View>
                 <View style={styles.memberBenefitHeaderText}>
-                  <Text style={styles.memberBenefitTitle}>Member benefit</Text>
-                  <Text style={styles.memberBenefitSubtitle}>
-                    As a member of {groupInfo.name}, you get exclusive discounts
-                  </Text>
+                  <Text style={styles.memberBenefitTitle}>Group member benefit</Text>
                 </View>
               </View>
               <View style={styles.memberBenefitCard}>
