@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Sha
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check, Percent } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check, BadgePercent } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
@@ -251,7 +251,7 @@ export default function MealUpDetailsScreen() {
             <View style={styles.memberBenefitSection}>
               <View style={styles.memberBenefitHeader}>
                 <View style={styles.memberBenefitIconContainer}>
-                  <Percent size={20} color={Colors.primary} />
+                  <BadgePercent size={20} color={Colors.primary} />
                 </View>
                 <View style={styles.memberBenefitHeaderText}>
                   <Text style={styles.memberBenefitTitle}>Member benefit</Text>
