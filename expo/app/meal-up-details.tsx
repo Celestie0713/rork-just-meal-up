@@ -16,9 +16,10 @@ export default function MealUpDetailsScreen() {
   const mealUp = mockMealUps.find(m => m.id === mealUpId);
   const organizer = mockUsers.find(u => u.id === mealUp?.organizerId);
   
-  const isPaidGroup = mealUp?.group?.isPaid && mealUp?.group?.memberDiscount;
-  const discountPercent = isPaidGroup ? parseInt((mealUp?.group?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
-  const discountedPrice = isPaidGroup ? Math.round(mealUp!.ticketPrice * (1 - discountPercent)) : 0;
+  const groupInfo = mealUp?.group;
+  const isPaidGroup = !!(groupInfo?.isPaid && groupInfo?.memberDiscount);
+  const discountPercent = isPaidGroup ? parseInt((groupInfo?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
+  const discountedPrice = isPaidGroup && mealUp ? Math.round(mealUp.ticketPrice * (1 - discountPercent)) : 0;
   
   const images = mealUp?.images || [mealUp?.imageUrl].filter(Boolean);
   const maxImages = Math.min(images.length, 10);
@@ -136,7 +137,7 @@ export default function MealUpDetailsScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.priceTag}>
-            {isPaidGroup ? (
+            {isPaidGroup && mealUp ? (
               <View style={styles.discountPriceTag}>
                 <View style={styles.originalPriceRow}>
                   <DollarSign size={12} color="rgba(255,255,255,0.6)" />
@@ -247,7 +248,7 @@ export default function MealUpDetailsScreen() {
               </View>
             </View>
           </View>
-          {isPaidGroup && (
+          {isPaidGroup && groupInfo && mealUp && (
             <View style={styles.memberBenefitSection}>
               <View style={styles.memberBenefitHeader}>
                 <View style={styles.memberBenefitIconContainer}>
@@ -256,7 +257,7 @@ export default function MealUpDetailsScreen() {
                 <View style={styles.memberBenefitHeaderText}>
                   <Text style={styles.memberBenefitTitle}>Member benefit</Text>
                   <Text style={styles.memberBenefitSubtitle}>
-                    As a member of {mealUp.group!.name}, you get exclusive discounts
+                    As a member of {groupInfo.name}, you get exclusive discounts
                   </Text>
                 </View>
               </View>
@@ -264,7 +265,7 @@ export default function MealUpDetailsScreen() {
                 <View style={styles.memberBenefitRow}>
                   <Text style={styles.memberBenefitLabel}>Group discount</Text>
                   <View style={styles.memberBenefitBadge}>
-                    <Text style={styles.memberBenefitBadgeText}>{mealUp.group!.memberDiscount} off</Text>
+                    <Text style={styles.memberBenefitBadgeText}>{groupInfo.memberDiscount ?? '0%'} off</Text>
                   </View>
                 </View>
                 <View style={styles.memberBenefitDivider} />
@@ -304,14 +305,14 @@ export default function MealUpDetailsScreen() {
       <View style={styles.bottomBar}>
         <View style={styles.priceInfo}>
           <Text style={styles.bottomPriceLabel}>Price per person</Text>
-          {isPaidGroup ? (
+          {isPaidGroup && groupInfo && mealUp ? (
             <View style={styles.bottomDiscountRow}>
               <View>
                 <Text style={styles.bottomOriginalPrice}>${mealUp.ticketPrice}</Text>
                 <Text style={styles.bottomPriceValue}>${discountedPrice}</Text>
               </View>
               <View style={styles.bottomDiscountBadge}>
-                <Text style={styles.bottomDiscountBadgeText}>{mealUp.group!.memberDiscount} off</Text>
+                <Text style={styles.bottomDiscountBadgeText}>{groupInfo.memberDiscount ?? '0%'} off</Text>
               </View>
             </View>
           ) : (
