@@ -228,14 +228,6 @@ export default function MealUpDetailsScreen() {
           </View>
           <View style={styles.includedSection}>
             <Text style={styles.sectionTitle}>What's included with this price?</Text>
-            {isPaidGroup && (
-              <View style={styles.memberDiscountBanner}>
-                <Percent size={18} color={Colors.primary} />
-                <Text style={styles.memberDiscountBannerText}>
-                  {mealUp.group!.memberDiscount} off for group members — you pay ${discountedPrice}
-                </Text>
-              </View>
-            )}
             <View style={styles.includedList}>
               <View style={styles.includedItem}>
                 <Check size={16} color={Colors.success} />
@@ -255,6 +247,39 @@ export default function MealUpDetailsScreen() {
               </View>
             </View>
           </View>
+          {isPaidGroup && (
+            <View style={styles.memberBenefitSection}>
+              <View style={styles.memberBenefitHeader}>
+                <View style={styles.memberBenefitIconContainer}>
+                  <Percent size={20} color={Colors.primary} />
+                </View>
+                <View style={styles.memberBenefitHeaderText}>
+                  <Text style={styles.memberBenefitTitle}>Member benefit</Text>
+                  <Text style={styles.memberBenefitSubtitle}>
+                    As a member of {mealUp.group!.name}, you get exclusive discounts
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.memberBenefitCard}>
+                <View style={styles.memberBenefitRow}>
+                  <Text style={styles.memberBenefitLabel}>Group discount</Text>
+                  <View style={styles.memberBenefitBadge}>
+                    <Text style={styles.memberBenefitBadgeText}>{mealUp.group!.memberDiscount} off</Text>
+                  </View>
+                </View>
+                <View style={styles.memberBenefitDivider} />
+                <View style={styles.memberBenefitRow}>
+                  <Text style={styles.memberBenefitLabel}>You pay</Text>
+                  <Text style={styles.memberBenefitPrice}>${discountedPrice}</Text>
+                </View>
+                <View style={styles.memberBenefitDivider} />
+                <View style={styles.memberBenefitRow}>
+                  <Text style={styles.memberBenefitLabel}>You save</Text>
+                  <Text style={styles.memberBenefitSave}>${mealUp.ticketPrice - discountedPrice}</Text>
+                </View>
+              </View>
+            </View>
+          )}
           <TouchableOpacity 
             style={styles.attendeesSection}
             onPress={handleViewAttendees}
@@ -674,23 +699,76 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
   },
-  memberDiscountBanner: {
+  memberBenefitSection: {
+    marginBottom: 24,
+  },
+  memberBenefitHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: `${Colors.primary}15`,
-    borderRadius: 12,
-    padding: 12,
-    gap: 10,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: `${Colors.primary}30`,
+    marginBottom: 12,
+    gap: 12,
   },
-  memberDiscountBannerText: {
+  memberBenefitIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: `${Colors.primary}15`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  memberBenefitHeaderText: {
     flex: 1,
-    fontSize: 14,
-    fontWeight: '600',
+  },
+  memberBenefitTitle: {
+    fontSize: 18,
+    fontWeight: '700',
     color: Colors.text,
-    lineHeight: 20,
+  },
+  memberBenefitSubtitle: {
+    fontSize: 13,
+    color: Colors.textLight,
+    marginTop: 2,
+  },
+  memberBenefitCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+  },
+  memberBenefitRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  memberBenefitLabel: {
+    fontSize: 15,
+    color: Colors.text,
+    fontWeight: '500',
+  },
+  memberBenefitBadge: {
+    backgroundColor: `${Colors.primary}15`,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+  },
+  memberBenefitBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  memberBenefitDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  memberBenefitPrice: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  memberBenefitSave: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: Colors.success,
   },
   bottomDiscountRow: {
     flexDirection: 'row',
