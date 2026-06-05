@@ -1,12 +1,21 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Share, Platform } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Image, Alert, Share, Platform, Modal, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check, BadgePercent } from 'lucide-react-native';
+import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check, BadgePercent, X } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
+import { useAuth } from '@/hooks/use-auth';
+
+const paidGroupMemberships: Record<string, string[]> = {
+  '1': ['1', '3'],
+};
+
+function isUserMemberOfGroup(userId: string, groupId: string): boolean {
+  return paidGroupMemberships[userId]?.includes(groupId) ?? false;
+}
 
 
 export default function MealUpDetailsScreen() {
@@ -16,10 +25,15 @@ export default function MealUpDetailsScreen() {
   const mealUp = mockMealUps.find(m => m.id === mealUpId);
   const organizer = mockUsers.find(u => u.id === mealUp?.organizerId);
   
+  const { user: currentUser } = useAuth();
+  const [showJoinModal, setShowJoinModal] = useState<boolean>(false);
+  
   const groupInfo = mealUp?.group;
   const isPaidGroup = !!(groupInfo?.isPaid && groupInfo?.memberDiscount);
+  const isMember = !!(groupInfo?.id && currentUser?.id && isUserMemberOfGroup(currentUser.id, groupInfo.id));
   const discountPercent = isPaidGroup ? parseInt((groupInfo?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
   const discountedPrice = isPaidGroup && mealUp ? Math.round(mealUp.ticketPrice * (1 - discountPercent)) : 0;
+  const finalPrice = isPaidGroup && isMember ? discountedPrice : (mealUp?.ticketPrice ?? 0);
   
   const images = mealUp?.images || [mealUp?.imageUrl].filter(Boolean);
   const maxImages = Math.min(images.length, 10);
@@ -71,20 +85,13 @@ export default function MealUpDetailsScreen() {
 
   const handleJoinMeal = () => {
     if (spotsLeft > 0) {
-      Alert.alert(
-        'Join Meal Up',
-        `Would you like to join "${mealUp.title}" for $${mealUp.ticketPrice}?`,
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { 
-            text: 'Join', 
-            onPress: () => {
-              Alert.alert('Success!', 'You have successfully joined this meal up!');
-            }
-          }
-        ]
-      );
+      setShowJoinModal(true);
     }
+  };
+
+  const handleConfirmJoin = () => {
+    setShowJoinModal(false);
+    Alert.alert('Success!', 'You have successfully joined this meal up!');
   };
 
   const handleViewAttendees = () => {
@@ -334,6 +341,133 @@ export default function MealUpDetailsScreen() {
           </TouchableOpacity>
         </LinearGradient>
       </View>
+
+      <Modal
+        visible={showJoinModal}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setShowJoinModal(false)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setShowJoinModal(false)}>
+          <Pressable style={styles.modalCard} onPress={() => {}}>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setShowJoinModal(false)}
+            >
+              <X size={20} color={Colors.textLight} />
+            </TouchableOpacity>
+
+            <Text style={styles.modalTitle}>Join Meal Up</Text>
+            <Text style={styles.modalSubtitle} numberOfLines={2}>{mealUp.title}</Text>
+
+            {isPaidGroup && groupInfo && (
+              <View style={styles.modalGroupBadge}>
+                <View style={[
+                  styles.modalMembershipDot,
+                  isMember && styles.modalMembershipDotActive
+                ]} />
+                <Text style={styles.modalGroupBadgeText}>
+                  {groupInfo.name}
+                </Text>
+                <View style={styles.modalGroupBadgeDivider} />
+                <Text style={[
+                  styles.modalMembershipLabel,
+                  isMember && styles.modalMembershipLabelActive
+                ]}>
+                  {isMember ? 'Member' : 'Non-member'}
+                </Text>
+              </View>
+            )}
+
+            <View style={styles.modalDivider} />
+
+            <View style={styles.modalPriceSection}>
+              {isPaidGroup && isMember ? (
+                <>
+                  <View style={styles.modalPriceRow}>
+                    <Text style={styles.modalPriceLabel}>Original price</Text>
+                    <Text style={styles.modalPriceOriginal}>${mealUp.ticketPrice}</Text>
+                  </View>
+                  <View style={styles.modalPriceRow}>
+                    <View style={styles.modalMemberPriceTag}>
+                      <BadgePercent size={14} color={Colors.primary} />
+                      <Text style={styles.modalMemberPriceTagText}>{groupInfo.memberDiscount ?? '0%'} off</Text>
+                    </View>
+                    <Text style={styles.modalMemberDiscountLabel}>(member discount)</Text>
+                  </View>
+                  <View style={styles.modalPriceHighlight}>
+                    <Text style={styles.modalPriceHighlightLabel}>You pay</Text>
+                    <View style={styles.modalPriceHighlightRow}>
+                      <Text style={styles.modalPriceHighlightValue}>${discountedPrice}</Text>
+                      <View style={styles.modalSaveBadge}>
+                        <Text style={styles.modalSaveBadgeText}>Save ${mealUp.ticketPrice - discountedPrice}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              ) : isPaidGroup && !isMember ? (
+                <>
+                  <View style={styles.modalPriceRow}>
+                    <Text style={styles.modalPriceLabel}>Price per person</Text>
+                    <Text style={styles.modalPriceFull}>${mealUp.ticketPrice}</Text>
+                  </View>
+                  <View style={styles.modalNonMemberNotice}>
+                    <BadgePercent size={16} color={Colors.primary} />
+                    <Text style={styles.modalNonMemberNoticeText}>
+                      Members of {groupInfo.name} get {groupInfo.memberDiscount ?? '0%'} off — you'd pay ${discountedPrice}
+                    </Text>
+                  </View>
+                </>
+              ) : (
+                <View style={styles.modalPriceRow}>
+                  <Text style={styles.modalPriceLabel}>Price per person</Text>
+                  <Text style={styles.modalPriceFull}>${mealUp.ticketPrice}</Text>
+                </View>
+              )}
+            </View>
+
+            <View style={styles.modalDivider} />
+
+            <View style={styles.modalInfoRow}>
+              <MapPin size={14} color={Colors.textLight} />
+              <Text style={styles.modalInfoText}>{mealUp.venue.name}</Text>
+            </View>
+            <View style={styles.modalInfoRow}>
+              <Calendar size={14} color={Colors.textLight} />
+              <Text style={styles.modalInfoText}>{formatDate(mealUp.date)} at {mealUp.time}</Text>
+            </View>
+            <View style={styles.modalInfoRow}>
+              <Users size={14} color={Colors.textLight} />
+              <Text style={styles.modalInfoText}>
+                {spotsLeft} spot{spotsLeft !== 1 ? 's' : ''} remaining
+              </Text>
+            </View>
+
+            <View style={styles.modalButtonRow}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowJoinModal(false)}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <LinearGradient
+                colors={Gradients.primary}
+                style={styles.modalConfirmButton}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 0 }}
+              >
+                <TouchableOpacity
+                  onPress={handleConfirmJoin}
+                  style={styles.modalConfirmButtonInner}
+                >
+                  <Text style={styles.modalConfirmButtonText}>Confirm Join</Text>
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </>
   );
 }
@@ -789,5 +923,224 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.primary,
+  },
+  // Join Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    padding: 24,
+    width: '100%',
+    maxWidth: 380,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  modalCloseButton: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.text,
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 15,
+    color: Colors.textLight,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  modalGroupBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#252525',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  modalMembershipDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Colors.textLight,
+  },
+  modalMembershipDotActive: {
+    backgroundColor: Colors.success,
+  },
+  modalGroupBadgeText: {
+    fontSize: 13,
+    color: Colors.text,
+    fontWeight: '600',
+    flex: 1,
+  },
+  modalGroupBadgeDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: Colors.border,
+  },
+  modalMembershipLabel: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: '600',
+  },
+  modalMembershipLabelActive: {
+    color: Colors.success,
+  },
+  modalDivider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginVertical: 16,
+  },
+  modalPriceSection: {
+    gap: 8,
+  },
+  modalPriceRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  modalPriceLabel: {
+    fontSize: 14,
+    color: Colors.textLight,
+    fontWeight: '500',
+  },
+  modalPriceOriginal: {
+    fontSize: 16,
+    color: Colors.textLight,
+    fontWeight: '600',
+    textDecorationLine: 'line-through',
+  },
+  modalPriceFull: {
+    fontSize: 20,
+    color: Colors.text,
+    fontWeight: '700',
+  },
+  modalMemberPriceTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: `${Colors.primary}20`,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    gap: 4,
+  },
+  modalMemberPriceTagText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  modalMemberDiscountLabel: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: '500',
+  },
+  modalPriceHighlight: {
+    backgroundColor: '#252525',
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 4,
+  },
+  modalPriceHighlightLabel: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: '500',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 6,
+  },
+  modalPriceHighlightRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  modalPriceHighlightValue: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  modalSaveBadge: {
+    backgroundColor: `${Colors.success}20`,
+    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  modalSaveBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Colors.success,
+  },
+  modalNonMemberNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: `${Colors.primary}10`,
+    borderRadius: 10,
+    padding: 12,
+    gap: 8,
+    marginTop: 4,
+  },
+  modalNonMemberNoticeText: {
+    fontSize: 13,
+    color: Colors.textLight,
+    flex: 1,
+    lineHeight: 19,
+  },
+  modalInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  modalInfoText: {
+    fontSize: 13,
+    color: Colors.textLight,
+    fontWeight: '500',
+  },
+  modalButtonRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 20,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalCancelButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.textLight,
+  },
+  modalConfirmButton: {
+    flex: 1.5,
+    borderRadius: 14,
+  },
+  modalConfirmButtonInner: {
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalConfirmButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: Colors.background,
   },
 });
