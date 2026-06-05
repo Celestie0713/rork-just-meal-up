@@ -343,7 +343,7 @@ export default function MealUpDetailsScreen() {
             testID="join-meal-button"
           >
             <Text style={styles.joinButtonText}>
-              {spotsLeft > 0 ? 'Join This Meal' : 'Event Full'}
+              {spotsLeft > 0 ? 'Join Now' : 'Event Full'}
             </Text>
           </TouchableOpacity>
         </LinearGradient>
