@@ -8,6 +8,7 @@ import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
 import { useAuth } from '@/hooks/use-auth';
+import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 
 const paidGroupMemberships: Record<string, string[]> = {
   '1': ['1', '3'],
@@ -27,6 +28,7 @@ export default function MealUpDetailsScreen() {
   
   const { user: currentUser } = useAuth();
   const [showJoinModal, setShowJoinModal] = useState<boolean>(false);
+  const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   
   const groupInfo = mealUp?.group;
   const isPaidGroup = !!(groupInfo?.isPaid && groupInfo?.memberDiscount);
@@ -89,8 +91,13 @@ export default function MealUpDetailsScreen() {
     }
   };
 
-  const handleConfirmJoin = () => {
+  const handleJoin = () => {
     setShowJoinModal(false);
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
     Alert.alert('Success!', 'You have successfully joined this meal up!');
   };
 
@@ -458,16 +465,24 @@ export default function MealUpDetailsScreen() {
                 end={{ x: 1, y: 0 }}
               >
                 <TouchableOpacity
-                  onPress={handleConfirmJoin}
+                  onPress={handleJoin}
                   style={styles.modalConfirmButtonInner}
                 >
-                  <Text style={styles.modalConfirmButtonText}>Confirm Join</Text>
+                  <Text style={styles.modalConfirmButtonText}>Join</Text>
                 </TouchableOpacity>
               </LinearGradient>
             </View>
           </Pressable>
         </Pressable>
       </Modal>
+
+      <PaymentGatewayModal
+        visible={showPaymentModal}
+        amount={finalPrice}
+        description={`Meal Up: ${mealUp.title}`}
+        onClose={() => setShowPaymentModal(false)}
+        onSuccess={handlePaymentSuccess}
+      />
     </>
   );
 }

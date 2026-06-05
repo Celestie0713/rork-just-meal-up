@@ -8,6 +8,7 @@ const BACKEND_URL = process.env.EXPO_PUBLIC_RORK_FUNCTIONS_URL!;
 interface PaymentGatewayModalProps {
   visible: boolean;
   amount: number;
+  description?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -57,7 +58,7 @@ async function getCheckoutSession(sessionId: string): Promise<{
  * Opens Stripe's hosted checkout in a popup window and polls the Cloudflare
  * Worker backend for the session's payment status until it completes.
  */
-export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: PaymentGatewayModalProps) {
+export function PaymentGatewayModal({ visible, amount, description, onClose, onSuccess }: PaymentGatewayModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<boolean>(false);
@@ -173,7 +174,7 @@ export function PaymentGatewayModal({ visible, amount, onClose, onSuccess }: Pay
           amount,
           successUrl,
           cancelUrl,
-          description: `Tip $${amount.toFixed(2)}`,
+          description: description ?? `Tip ${amount.toFixed(2)}`,
         });
 
         sessionIdRef.current = sessionId;
