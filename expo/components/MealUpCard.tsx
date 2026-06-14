@@ -60,7 +60,7 @@ export function MealUpCard({ mealUp, onPress }: MealUpCardProps) {
 
   const copyToClipboardWeb = (text: string): boolean => {
     // Try modern async Clipboard API first
-    if (navigator?.clipboard?.writeText) {
+    if (typeof navigator?.clipboard?.writeText === 'function') {
       try {
         // Must be sync-like — schedule the async write but don't await here
         // because the user gesture may expire. Instead use the legacy fallback.

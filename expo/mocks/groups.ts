@@ -16,6 +16,7 @@ export interface Group {
   imageUrl: string;
   isPaid: boolean;
   monthlyFee?: number;
+  memberDiscount?: string;
   location: string;
   description: string;
   posts: GroupPost[];

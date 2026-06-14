@@ -59,6 +59,9 @@ export default function MessagesScreen() {
   const params = useLocalSearchParams<{
     placeName?: string;
     placeAddress?: string;
+    placeCity?: string;
+    placeCountry?: string;
+    placeGoogleMapsUrl?: string;
     placeId?: string;
     date?: string;
     time?: string;

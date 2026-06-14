@@ -149,8 +149,6 @@ Otherwise, follow the location context above.`,
       },
     ],
     schema: PlacesResponseSchema,
-    maxOutputTokens: 16000,
-    temperature: 0.7,
   });
 
   console.log("[Places AI Search] Generated", result.places.length, "places");

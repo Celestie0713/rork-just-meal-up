@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 interface Props {
   publishableKey: string;
   merchantIdentifier?: string;
-  children: React.ReactNode;
+  children: React.ReactElement | React.ReactElement[];
 }
 
 export function StripeProviderWrapper({ publishableKey, merchantIdentifier, children }: Props) {

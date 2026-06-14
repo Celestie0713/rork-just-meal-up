@@ -67,8 +67,11 @@ export interface MealInvitation {
   venue: {
     name: string;
     address: string;
+    city?: string;
+    country?: string;
     cuisine: string;
     placeId?: string;
+    googleMapsUrl?: string;
   };
   status: 'pending' | 'accepted' | 'declined' | 'completed';
   createdAt: Date;

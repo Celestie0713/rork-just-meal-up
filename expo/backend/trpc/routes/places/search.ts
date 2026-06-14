@@ -88,8 +88,6 @@ If no location specified, return places from popular cities for that cuisine.`,
         schema: z.object({
           places: z.array(PlaceSchema),
         }),
-        maxOutputTokens: 16000,
-        temperature: 0.7,
       });
 
       console.log("[Places AI Search] Generated", result.places.length, "places");
