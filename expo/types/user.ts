@@ -8,6 +8,7 @@ export interface User {
   membershipTier: 'free' | 'premium' | 'organizer';
   isOnline: boolean;
   sex?: string;
+  country?: string;
   income?: number;
   languages?: string[];
   lastSeen?: Date;

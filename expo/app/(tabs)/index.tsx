@@ -40,9 +40,10 @@ export default function SearchScreen() {
 
   
   const [filters, setFilters] = useState({
+    country: '' as string,
     sex: [] as string[],
-    incomeLevel: '' as string,
     languages: [] as string[],
+    intention: [] as string[],
     minAge: '',
     maxAge: '',
     distance: '',
@@ -100,14 +101,12 @@ export default function SearchScreen() {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.location.toLowerCase().includes(searchQuery.toLowerCase());
     
+    const matchesCountry = !filters.country || (user.country !== undefined && user.country.toLowerCase() === filters.country.toLowerCase());
+    
     const matchesSex = filters.sex.length === 0 || (user.sex !== undefined && filters.sex.includes(user.sex));
     
-    const matchesIncome = !filters.incomeLevel || (user.income !== undefined && (() => {
-      if (filters.incomeLevel === '≤$50k') return user.income <= 50000;
-      if (filters.incomeLevel === '≥$50k') return user.income >= 50000 && user.income < 100000;
-      if (filters.incomeLevel === '≥$100k') return user.income >= 100000;
-      return false;
-    })());
+    const matchesIntention = filters.intention.length === 0 || 
+      (user.intention !== undefined && filters.intention.includes(user.intention));
     
     const matchesLanguages = filters.languages.length === 0 || 
       filters.languages.some(lang => user.languages?.includes(lang));
@@ -116,7 +115,7 @@ export default function SearchScreen() {
     const maxAge = filters.maxAge ? parseInt(filters.maxAge) : null;
     const matchesAge = (!minAge || user.age >= minAge) && (!maxAge || user.age <= maxAge);
     
-    return matchesSearch && matchesSex && matchesIncome && matchesLanguages && matchesAge;
+    return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge;
   });
 
 
@@ -540,6 +539,37 @@ export default function SearchScreen() {
             </View>
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Country</Text>
+                <View style={styles.checkboxGroup}>
+                  {['USA', 'UK', 'Canada', 'Japan', 'Australia', 'Germany', 'France'].map((country) => (
+                    <TouchableOpacity
+                      key={country}
+                      style={styles.checkbox}
+                      onPress={() => {
+                        const newCountry = filters.country === country ? '' : country;
+                        setFilters({...filters, country: newCountry});
+                      }}
+                    >
+                      <View style={[styles.checkboxBox, filters.country === country && styles.checkboxBoxActive]}>
+                        {filters.country === country && <View style={styles.checkboxCheck} />}
+                      </View>
+                      <Text style={styles.checkboxLabel}>{country}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Distance</Text>
+                <TextInput
+                  style={styles.distanceInput}
+                  placeholder="Distance in miles"
+                  value={filters.distance}
+                  onChangeText={(text) => setFilters({...filters, distance: text})}
+                  keyboardType="numeric"
+                  placeholderTextColor="#999999"
+                />
+              </View>
+              <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Age Range</Text>
                 <View style={styles.ageInputs}>
                   <View style={styles.ageInput}>
@@ -568,17 +598,6 @@ export default function SearchScreen() {
                 </View>
               </View>
               <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Distance</Text>
-                <TextInput
-                  style={styles.distanceInput}
-                  placeholder="Distance in miles"
-                  value={filters.distance}
-                  onChangeText={(text) => setFilters({...filters, distance: text})}
-                  keyboardType="numeric"
-                  placeholderTextColor="#999999"
-                />
-              </View>
-              <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Sex</Text>
                 <View style={styles.checkboxGroup}>
                   {['Male', 'Female', 'Other'].map((sex) => (
@@ -601,27 +620,7 @@ export default function SearchScreen() {
                 </View>
               </View>
               <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Income Level</Text>
-                <View style={styles.checkboxGroup}>
-                  {['≤$50k', '≥$50k', '≥$100k'].map((income) => (
-                    <TouchableOpacity
-                      key={income}
-                      style={styles.checkbox}
-                      onPress={() => {
-                        const newIncome = filters.incomeLevel === income ? '' : income;
-                        setFilters({...filters, incomeLevel: newIncome});
-                      }}
-                    >
-                      <View style={[styles.checkboxBox, filters.incomeLevel === income && styles.checkboxBoxActive]}>
-                        {filters.incomeLevel === income && <View style={styles.checkboxCheck} />}
-                      </View>
-                      <Text style={styles.checkboxLabel}>{income}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-              <View style={styles.filterSection}>
-                <Text style={styles.filterLabel}>Languages</Text>
+                <Text style={styles.filterLabel}>Language</Text>
                 <View style={styles.checkboxGroup}>
                   {['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Korean'].map((lang) => (
                     <TouchableOpacity
@@ -642,14 +641,47 @@ export default function SearchScreen() {
                   ))}
                 </View>
               </View>
+              <View style={styles.filterSection}>
+                <Text style={styles.filterLabel}>Intention</Text>
+                <View style={styles.checkboxGroup}>
+                  {(['make_new_friends', 'relationship', 'casual', 'marriage', 'open_marriage', 'figuring_it_out'] as const).map((intention) => {
+                    const labels: Record<string, string> = {
+                      make_new_friends: 'Make New Friends',
+                      relationship: 'Relationship',
+                      casual: 'Casual',
+                      marriage: 'Marriage',
+                      open_marriage: 'Open Marriage',
+                      figuring_it_out: 'Figuring It Out',
+                    };
+                    return (
+                      <TouchableOpacity
+                        key={intention}
+                        style={styles.checkbox}
+                        onPress={() => {
+                          const newIntention = filters.intention.includes(intention)
+                            ? filters.intention.filter(i => i !== intention)
+                            : [...filters.intention, intention];
+                          setFilters({...filters, intention: newIntention});
+                        }}
+                      >
+                        <View style={[styles.checkboxBox, filters.intention.includes(intention) && styles.checkboxBoxActive]}>
+                          {filters.intention.includes(intention) && <View style={styles.checkboxCheck} />}
+                        </View>
+                        <Text style={styles.checkboxLabel}>{labels[intention]}</Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
             </ScrollView>
             <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={styles.clearButton}
                 onPress={() => setFilters({
+                  country: '',
                   sex: [],
-                  incomeLevel: '',
                   languages: [],
+                  intention: [],
                   minAge: '',
                   maxAge: '',
                   distance: '',
