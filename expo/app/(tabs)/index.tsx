@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard, Alert, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation } from 'lucide-react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation, ChevronDown } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 
@@ -27,6 +27,120 @@ export default function SearchScreen() {
       setActiveTab('places');
     }
   }, [params.tab]);
+
+  const COUNTRIES = [
+    { name: 'Afghanistan', code: 'AF' },
+    { name: 'Albania', code: 'AL' },
+    { name: 'Algeria', code: 'DZ' },
+    { name: 'Andorra', code: 'AD' },
+    { name: 'Angola', code: 'AO' },
+    { name: 'Argentina', code: 'AR' },
+    { name: 'Armenia', code: 'AM' },
+    { name: 'Australia', code: 'AU' },
+    { name: 'Austria', code: 'AT' },
+    { name: 'Azerbaijan', code: 'AZ' },
+    { name: 'Bahrain', code: 'BH' },
+    { name: 'Bangladesh', code: 'BD' },
+    { name: 'Belarus', code: 'BY' },
+    { name: 'Belgium', code: 'BE' },
+    { name: 'Bolivia', code: 'BO' },
+    { name: 'Bosnia and Herzegovina', code: 'BA' },
+    { name: 'Brazil', code: 'BR' },
+    { name: 'Bulgaria', code: 'BG' },
+    { name: 'Cambodia', code: 'KH' },
+    { name: 'Canada', code: 'CA' },
+    { name: 'Chile', code: 'CL' },
+    { name: 'China', code: 'CN' },
+    { name: 'Colombia', code: 'CO' },
+    { name: 'Costa Rica', code: 'CR' },
+    { name: 'Croatia', code: 'HR' },
+    { name: 'Cuba', code: 'CU' },
+    { name: 'Cyprus', code: 'CY' },
+    { name: 'Czech Republic', code: 'CZ' },
+    { name: 'Denmark', code: 'DK' },
+    { name: 'Dominican Republic', code: 'DO' },
+    { name: 'Ecuador', code: 'EC' },
+    { name: 'Egypt', code: 'EG' },
+    { name: 'Estonia', code: 'EE' },
+    { name: 'Ethiopia', code: 'ET' },
+    { name: 'Finland', code: 'FI' },
+    { name: 'France', code: 'FR' },
+    { name: 'Georgia', code: 'GE' },
+    { name: 'Germany', code: 'DE' },
+    { name: 'Ghana', code: 'GH' },
+    { name: 'Greece', code: 'GR' },
+    { name: 'Guatemala', code: 'GT' },
+    { name: 'Hong Kong', code: 'HK' },
+    { name: 'Hungary', code: 'HU' },
+    { name: 'Iceland', code: 'IS' },
+    { name: 'India', code: 'IN' },
+    { name: 'Indonesia', code: 'ID' },
+    { name: 'Iran', code: 'IR' },
+    { name: 'Iraq', code: 'IQ' },
+    { name: 'Ireland', code: 'IE' },
+    { name: 'Israel', code: 'IL' },
+    { name: 'Italy', code: 'IT' },
+    { name: 'Jamaica', code: 'JM' },
+    { name: 'Japan', code: 'JP' },
+    { name: 'Jordan', code: 'JO' },
+    { name: 'Kazakhstan', code: 'KZ' },
+    { name: 'Kenya', code: 'KE' },
+    { name: 'Kuwait', code: 'KW' },
+    { name: 'Latvia', code: 'LV' },
+    { name: 'Lebanon', code: 'LB' },
+    { name: 'Lithuania', code: 'LT' },
+    { name: 'Luxembourg', code: 'LU' },
+    { name: 'Malaysia', code: 'MY' },
+    { name: 'Maldives', code: 'MV' },
+    { name: 'Malta', code: 'MT' },
+    { name: 'Mexico', code: 'MX' },
+    { name: 'Moldova', code: 'MD' },
+    { name: 'Monaco', code: 'MC' },
+    { name: 'Mongolia', code: 'MN' },
+    { name: 'Morocco', code: 'MA' },
+    { name: 'Nepal', code: 'NP' },
+    { name: 'Netherlands', code: 'NL' },
+    { name: 'New Zealand', code: 'NZ' },
+    { name: 'Nigeria', code: 'NG' },
+    { name: 'North Korea', code: 'KP' },
+    { name: 'Norway', code: 'NO' },
+    { name: 'Oman', code: 'OM' },
+    { name: 'Pakistan', code: 'PK' },
+    { name: 'Panama', code: 'PA' },
+    { name: 'Paraguay', code: 'PY' },
+    { name: 'Peru', code: 'PE' },
+    { name: 'Philippines', code: 'PH' },
+    { name: 'Poland', code: 'PL' },
+    { name: 'Portugal', code: 'PT' },
+    { name: 'Qatar', code: 'QA' },
+    { name: 'Romania', code: 'RO' },
+    { name: 'Russia', code: 'RU' },
+    { name: 'Saudi Arabia', code: 'SA' },
+    { name: 'Serbia', code: 'RS' },
+    { name: 'Singapore', code: 'SG' },
+    { name: 'Slovakia', code: 'SK' },
+    { name: 'Slovenia', code: 'SI' },
+    { name: 'South Africa', code: 'ZA' },
+    { name: 'South Korea', code: 'KR' },
+    { name: 'Spain', code: 'ES' },
+    { name: 'Sri Lanka', code: 'LK' },
+    { name: 'Sweden', code: 'SE' },
+    { name: 'Switzerland', code: 'CH' },
+    { name: 'Taiwan', code: 'TW' },
+    { name: 'Thailand', code: 'TH' },
+    { name: 'Tunisia', code: 'TN' },
+    { name: 'Turkey', code: 'TR' },
+    { name: 'Uganda', code: 'UG' },
+    { name: 'Ukraine', code: 'UA' },
+    { name: 'United Arab Emirates', code: 'AE' },
+    { name: 'United Kingdom', code: 'GB' },
+    { name: 'United States', code: 'US' },
+    { name: 'Uruguay', code: 'UY' },
+    { name: 'Uzbekistan', code: 'UZ' },
+    { name: 'Venezuela', code: 'VE' },
+    { name: 'Vietnam', code: 'VN' },
+    { name: 'Zimbabwe', code: 'ZW' },
+  ];
   const [searchQuery, setSearchQuery] = useState('');
   const [placesInputValue, setPlacesInputValue] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -37,6 +151,7 @@ export default function SearchScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [pendingLocationQuery, setPendingLocationQuery] = useState('');
+  const [showCountryPicker, setShowCountryPicker] = useState(false);
 
   
   const [filters, setFilters] = useState({
@@ -369,6 +484,51 @@ export default function SearchScreen() {
         visible={showNotificationPopup}
         onClose={() => setShowNotificationPopup(false)}
       />
+
+      {/* Country Picker Modal */}
+      <Modal
+        visible={showCountryPicker}
+        animationType="fade"
+        transparent={true}
+        onRequestClose={() => setShowCountryPicker(false)}
+      >
+        <View style={styles.countryModalOverlay}>
+          <View style={styles.countryModalContent}>
+            <View style={styles.countryModalHeader}>
+              <Text style={styles.countryModalTitle}>Select Country</Text>
+              <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.closeButton}>
+                <X size={24} color="#000000" />
+              </TouchableOpacity>
+            </View>
+            <FlatList
+              data={COUNTRIES}
+              keyExtractor={(item) => item.code}
+              style={styles.countryList}
+              showsVerticalScrollIndicator={false}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={[
+                    styles.countryOption,
+                    filters.country === item.code && styles.countryOptionSelected,
+                  ]}
+                  onPress={() => {
+                    setFilters({...filters, country: item.code});
+                    setShowCountryPicker(false);
+                  }}
+                >
+                  <Text style={[styles.countryOptionName, filters.country === item.code && styles.countryOptionNameSelected]}>{item.name}</Text>
+                  {filters.country === item.code && (
+                    <View style={styles.countryCheckmark}>
+                      <View style={styles.countryCheckmarkDot} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         visible={showLocationModal}
         animationType="fade"
@@ -540,23 +700,16 @@ export default function SearchScreen() {
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Country</Text>
-                <View style={styles.checkboxGroup}>
-                  {['USA', 'UK', 'Canada', 'Japan', 'Australia', 'Germany', 'France'].map((country) => (
-                    <TouchableOpacity
-                      key={country}
-                      style={styles.checkbox}
-                      onPress={() => {
-                        const newCountry = filters.country === country ? '' : country;
-                        setFilters({...filters, country: newCountry});
-                      }}
-                    >
-                      <View style={[styles.checkboxBox, filters.country === country && styles.checkboxBoxActive]}>
-                        {filters.country === country && <View style={styles.checkboxCheck} />}
-                      </View>
-                      <Text style={styles.checkboxLabel}>{country}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowCountryPicker(true)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.dropdownButtonText, !filters.country && styles.dropdownPlaceholder]}>
+                    {filters.country ? COUNTRIES.find(c => c.code === filters.country)?.name : 'All Countries'}
+                  </Text>
+                  <ChevronDown size={18} color="#FF6B35" />
+                </TouchableOpacity>
               </View>
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Distance</Text>
@@ -1411,6 +1564,90 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     fontSize: 16,
     color: '#000000',
+  },
+  dropdownButton: {
+    borderWidth: 1,
+    borderColor: '#888888',
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#FFFFFF',
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500' as const,
+  },
+  dropdownPlaceholder: {
+    color: '#999999',
+  },
+  countryModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+  },
+  countryModalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    maxHeight: '70%',
+    overflow: 'hidden',
+  },
+  countryModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  countryModalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  countryList: {
+    paddingHorizontal: 8,
+  },
+  countryOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    marginVertical: 2,
+    marginHorizontal: 4,
+  },
+  countryOptionSelected: {
+    backgroundColor: '#000000',
+  },
+  countryOptionName: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500' as const,
+  },
+  countryOptionNameSelected: {
+    color: '#FFFFFF',
+  },
+  countryCheckmark: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: '#FF6B35',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  countryCheckmarkDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: '#FFFFFF',
   },
   checkboxGroup: {
     gap: 12,
