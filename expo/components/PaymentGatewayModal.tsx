@@ -5,7 +5,8 @@ import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_RORK_FUNCTIONS_URL!;
+const BACKEND_URL: string =
+  (typeof process !== 'undefined' && (process.env as Record<string, string | undefined>).EXPO_PUBLIC_RORK_FUNCTIONS_URL) || '';
 
 interface PaymentGatewayModalProps {
   visible: boolean;

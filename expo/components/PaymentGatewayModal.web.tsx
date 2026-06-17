@@ -3,7 +3,8 @@ import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } fr
 import { X, Lock, CircleCheck } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
-const BACKEND_URL = process.env.EXPO_PUBLIC_RORK_FUNCTIONS_URL!;
+const BACKEND_URL: string =
+  (typeof process !== 'undefined' && (process.env as Record<string, string | undefined>).EXPO_PUBLIC_RORK_FUNCTIONS_URL) || '';
 
 interface PaymentGatewayModalProps {
   visible: boolean;
