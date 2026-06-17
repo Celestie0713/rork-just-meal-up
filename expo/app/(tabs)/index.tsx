@@ -4,132 +4,54 @@ import * as WebBrowser from 'expo-web-browser';
 import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation, ChevronDown } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
-
 import { SuccessPopup } from '@/components/SuccessPopup';
 import { NotificationPopup } from '@/components/NotificationPopup';
-
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
 import { usePlacesSearch } from '@/hooks/use-places-search';
 import { useFavorites } from '@/hooks/use-favorites';
-
 import { Colors } from '@/constants/colors';
-
 import type { User } from '@/types/user';
 
 const COUNTRIES = [
-    { name: 'Afghanistan', code: 'AF' },
-    { name: 'Albania', code: 'AL' },
-    { name: 'Algeria', code: 'DZ' },
-    { name: 'Andorra', code: 'AD' },
-    { name: 'Angola', code: 'AO' },
-    { name: 'Argentina', code: 'AR' },
-    { name: 'Armenia', code: 'AM' },
-    { name: 'Australia', code: 'AU' },
-    { name: 'Austria', code: 'AT' },
-    { name: 'Azerbaijan', code: 'AZ' },
-    { name: 'Bahrain', code: 'BH' },
-    { name: 'Bangladesh', code: 'BD' },
-    { name: 'Belarus', code: 'BY' },
-    { name: 'Belgium', code: 'BE' },
-    { name: 'Bolivia', code: 'BO' },
-    { name: 'Bosnia and Herzegovina', code: 'BA' },
-    { name: 'Brazil', code: 'BR' },
-    { name: 'Bulgaria', code: 'BG' },
-    { name: 'Cambodia', code: 'KH' },
-    { name: 'Canada', code: 'CA' },
-    { name: 'Chile', code: 'CL' },
-    { name: 'China', code: 'CN' },
-    { name: 'Colombia', code: 'CO' },
-    { name: 'Costa Rica', code: 'CR' },
-    { name: 'Croatia', code: 'HR' },
-    { name: 'Cuba', code: 'CU' },
-    { name: 'Cyprus', code: 'CY' },
-    { name: 'Czech Republic', code: 'CZ' },
-    { name: 'Denmark', code: 'DK' },
-    { name: 'Dominican Republic', code: 'DO' },
-    { name: 'Ecuador', code: 'EC' },
-    { name: 'Egypt', code: 'EG' },
-    { name: 'Estonia', code: 'EE' },
-    { name: 'Ethiopia', code: 'ET' },
-    { name: 'Finland', code: 'FI' },
-    { name: 'France', code: 'FR' },
-    { name: 'Georgia', code: 'GE' },
-    { name: 'Germany', code: 'DE' },
-    { name: 'Ghana', code: 'GH' },
-    { name: 'Greece', code: 'GR' },
-    { name: 'Guatemala', code: 'GT' },
-    { name: 'Hong Kong', code: 'HK' },
-    { name: 'Hungary', code: 'HU' },
-    { name: 'Iceland', code: 'IS' },
-    { name: 'India', code: 'IN' },
-    { name: 'Indonesia', code: 'ID' },
-    { name: 'Iran', code: 'IR' },
-    { name: 'Iraq', code: 'IQ' },
-    { name: 'Ireland', code: 'IE' },
-    { name: 'Israel', code: 'IL' },
-    { name: 'Italy', code: 'IT' },
-    { name: 'Jamaica', code: 'JM' },
-    { name: 'Japan', code: 'JP' },
-    { name: 'Jordan', code: 'JO' },
-    { name: 'Kazakhstan', code: 'KZ' },
-    { name: 'Kenya', code: 'KE' },
-    { name: 'Kuwait', code: 'KW' },
-    { name: 'Latvia', code: 'LV' },
-    { name: 'Lebanon', code: 'LB' },
-    { name: 'Lithuania', code: 'LT' },
-    { name: 'Luxembourg', code: 'LU' },
-    { name: 'Malaysia', code: 'MY' },
-    { name: 'Maldives', code: 'MV' },
-    { name: 'Malta', code: 'MT' },
-    { name: 'Mexico', code: 'MX' },
-    { name: 'Moldova', code: 'MD' },
-    { name: 'Monaco', code: 'MC' },
-    { name: 'Mongolia', code: 'MN' },
-    { name: 'Morocco', code: 'MA' },
-    { name: 'Nepal', code: 'NP' },
-    { name: 'Netherlands', code: 'NL' },
-    { name: 'New Zealand', code: 'NZ' },
-    { name: 'Nigeria', code: 'NG' },
-    { name: 'North Korea', code: 'KP' },
-    { name: 'Norway', code: 'NO' },
-    { name: 'Oman', code: 'OM' },
-    { name: 'Pakistan', code: 'PK' },
-    { name: 'Panama', code: 'PA' },
-    { name: 'Paraguay', code: 'PY' },
-    { name: 'Peru', code: 'PE' },
-    { name: 'Philippines', code: 'PH' },
-    { name: 'Poland', code: 'PL' },
-    { name: 'Portugal', code: 'PT' },
-    { name: 'Qatar', code: 'QA' },
-    { name: 'Romania', code: 'RO' },
-    { name: 'Russia', code: 'RU' },
-    { name: 'Saudi Arabia', code: 'SA' },
-    { name: 'Serbia', code: 'RS' },
-    { name: 'Singapore', code: 'SG' },
-    { name: 'Slovakia', code: 'SK' },
-    { name: 'Slovenia', code: 'SI' },
-    { name: 'South Africa', code: 'ZA' },
-    { name: 'South Korea', code: 'KR' },
-    { name: 'Spain', code: 'ES' },
-    { name: 'Sri Lanka', code: 'LK' },
-    { name: 'Sweden', code: 'SE' },
-    { name: 'Switzerland', code: 'CH' },
-    { name: 'Taiwan', code: 'TW' },
-    { name: 'Thailand', code: 'TH' },
-    { name: 'Tunisia', code: 'TN' },
-    { name: 'Turkey', code: 'TR' },
-    { name: 'Uganda', code: 'UG' },
-    { name: 'Ukraine', code: 'UA' },
-    { name: 'United Arab Emirates', code: 'AE' },
-    { name: 'United Kingdom', code: 'GB' },
-    { name: 'United States', code: 'US' },
-    { name: 'Uruguay', code: 'UY' },
-    { name: 'Uzbekistan', code: 'UZ' },
-    { name: 'Venezuela', code: 'VE' },
-    { name: 'Vietnam', code: 'VN' },
-    { name: 'Zimbabwe', code: 'ZW' },
+    { name: 'Afghanistan', code: 'AF' }, { name: 'Albania', code: 'AL' }, { name: 'Algeria', code: 'DZ' },
+    { name: 'Andorra', code: 'AD' }, { name: 'Angola', code: 'AO' }, { name: 'Argentina', code: 'AR' },
+    { name: 'Armenia', code: 'AM' }, { name: 'Australia', code: 'AU' }, { name: 'Austria', code: 'AT' },
+    { name: 'Azerbaijan', code: 'AZ' }, { name: 'Bahrain', code: 'BH' }, { name: 'Bangladesh', code: 'BD' },
+    { name: 'Belarus', code: 'BY' }, { name: 'Belgium', code: 'BE' }, { name: 'Bolivia', code: 'BO' },
+    { name: 'Bosnia and Herzegovina', code: 'BA' }, { name: 'Brazil', code: 'BR' }, { name: 'Bulgaria', code: 'BG' },
+    { name: 'Cambodia', code: 'KH' }, { name: 'Canada', code: 'CA' }, { name: 'Chile', code: 'CL' },
+    { name: 'China', code: 'CN' }, { name: 'Colombia', code: 'CO' }, { name: 'Costa Rica', code: 'CR' },
+    { name: 'Croatia', code: 'HR' }, { name: 'Cuba', code: 'CU' }, { name: 'Cyprus', code: 'CY' },
+    { name: 'Czech Republic', code: 'CZ' }, { name: 'Denmark', code: 'DK' }, { name: 'Dominican Republic', code: 'DO' },
+    { name: 'Ecuador', code: 'EC' }, { name: 'Egypt', code: 'EG' }, { name: 'Estonia', code: 'EE' },
+    { name: 'Ethiopia', code: 'ET' }, { name: 'Finland', code: 'FI' }, { name: 'France', code: 'FR' },
+    { name: 'Georgia', code: 'GE' }, { name: 'Germany', code: 'DE' }, { name: 'Ghana', code: 'GH' },
+    { name: 'Greece', code: 'GR' }, { name: 'Guatemala', code: 'GT' }, { name: 'Hong Kong', code: 'HK' },
+    { name: 'Hungary', code: 'HU' }, { name: 'Iceland', code: 'IS' }, { name: 'India', code: 'IN' },
+    { name: 'Indonesia', code: 'ID' }, { name: 'Iran', code: 'IR' }, { name: 'Iraq', code: 'IQ' },
+    { name: 'Ireland', code: 'IE' }, { name: 'Israel', code: 'IL' }, { name: 'Italy', code: 'IT' },
+    { name: 'Jamaica', code: 'JM' }, { name: 'Japan', code: 'JP' }, { name: 'Jordan', code: 'JO' },
+    { name: 'Kazakhstan', code: 'KZ' }, { name: 'Kenya', code: 'KE' }, { name: 'Kuwait', code: 'KW' },
+    { name: 'Latvia', code: 'LV' }, { name: 'Lebanon', code: 'LB' }, { name: 'Lithuania', code: 'LT' },
+    { name: 'Luxembourg', code: 'LU' }, { name: 'Malaysia', code: 'MY' }, { name: 'Maldives', code: 'MV' },
+    { name: 'Malta', code: 'MT' }, { name: 'Mexico', code: 'MX' }, { name: 'Moldova', code: 'MD' },
+    { name: 'Monaco', code: 'MC' }, { name: 'Mongolia', code: 'MN' }, { name: 'Morocco', code: 'MA' },
+    { name: 'Nepal', code: 'NP' }, { name: 'Netherlands', code: 'NL' }, { name: 'New Zealand', code: 'NZ' },
+    { name: 'Nigeria', code: 'NG' }, { name: 'North Korea', code: 'KP' }, { name: 'Norway', code: 'NO' },
+    { name: 'Oman', code: 'OM' }, { name: 'Pakistan', code: 'PK' }, { name: 'Panama', code: 'PA' },
+    { name: 'Paraguay', code: 'PY' }, { name: 'Peru', code: 'PE' }, { name: 'Philippines', code: 'PH' },
+    { name: 'Poland', code: 'PL' }, { name: 'Portugal', code: 'PT' }, { name: 'Qatar', code: 'QA' },
+    { name: 'Romania', code: 'RO' }, { name: 'Russia', code: 'RU' }, { name: 'Saudi Arabia', code: 'SA' },
+    { name: 'Serbia', code: 'RS' }, { name: 'Singapore', code: 'SG' }, { name: 'Slovakia', code: 'SK' },
+    { name: 'Slovenia', code: 'SI' }, { name: 'South Africa', code: 'ZA' }, { name: 'South Korea', code: 'KR' },
+    { name: 'Spain', code: 'ES' }, { name: 'Sri Lanka', code: 'LK' }, { name: 'Sweden', code: 'SE' },
+    { name: 'Switzerland', code: 'CH' }, { name: 'Taiwan', code: 'TW' }, { name: 'Thailand', code: 'TH' },
+    { name: 'Tunisia', code: 'TN' }, { name: 'Turkey', code: 'TR' }, { name: 'Uganda', code: 'UG' },
+    { name: 'Ukraine', code: 'UA' }, { name: 'United Arab Emirates', code: 'AE' }, { name: 'United Kingdom', code: 'GB' },
+    { name: 'United States', code: 'US' }, { name: 'Uruguay', code: 'UY' }, { name: 'Uzbekistan', code: 'UZ' },
+    { name: 'Venezuela', code: 'VE' }, { name: 'Vietnam', code: 'VN' }, { name: 'Zimbabwe', code: 'ZW' },
 ];
 
 export default function SearchScreen() {
@@ -137,24 +59,13 @@ export default function SearchScreen() {
   const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
 
   useEffect(() => {
-    if (params.tab === 'places') {
-      setActiveTab('places');
-    }
+    if (params.tab === 'places') setActiveTab('places');
   }, [params.tab]);
 
   const [searchQuery, setSearchQuery] = useState('');
-  const [placesInputValue, setPlacesInputValue] = useState('');
-  const [hasSearched, setHasSearched] = useState(false);
-  const [selectedPlace, setSelectedPlace] = useState<any>(null);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
-  const [showSuccessPopup, setShowSuccessPopup] = useState(false);
-  const [showNotificationPopup, setShowNotificationPopup] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showLocationModal, setShowLocationModal] = useState(false);
-  const [pendingLocationQuery, setPendingLocationQuery] = useState('');
   const [showCountryPicker, setShowCountryPicker] = useState(false);
 
-  
   const [filters, setFilters] = useState({
     country: '' as string,
     sex: [] as string[],
@@ -166,49 +77,10 @@ export default function SearchScreen() {
   });
   const { getUnreadCount } = useNotifications();
   const { matchedProfiles } = useChat();
-
   const placesSearch = usePlacesSearch();
-  const { addToFavorites } = useFavorites();
-
-  useEffect(() => {
-    if (placesSearch.isLoading) {
-      const pulse = Animated.loop(
-        Animated.sequence([
-          Animated.timing(pulseAnim, { toValue: 0.4, duration: 800, useNativeDriver: true }),
-          Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
-        ])
-      );
-      pulse.start();
-      return () => pulse.stop();
-    } else {
-      pulseAnim.setValue(1);
-    }
-  }, [placesSearch.isLoading, pulseAnim]);
-
-  const handlePlacesSearch = useCallback(async () => {
-    const trimmed = placesInputValue.trim();
-    if (trimmed.length > 0) {
-      if (placesSearch.needsLocationForQuery(trimmed)) {
-        console.log('[Search] Near-me query detected, requesting location...');
-        setPendingLocationQuery(trimmed);
-        setShowLocationModal(true);
-        return;
-      }
-      placesSearch.search(trimmed);
-      setHasSearched(true);
-      Keyboard.dismiss();
-    }
-  }, [placesInputValue, placesSearch]);
 
   const handleUserPress = (user: User) => {
-    router.push({
-      pathname: '/user-profile' as any,
-      params: { userId: user.id }
-    });
-  };
-
-  const handleNotificationPress = () => {
-    setShowNotificationPopup(true);
+    router.push({ pathname: '/user-profile' as any, params: { userId: user.id } });
   };
 
   const unreadCount = getUnreadCount();
@@ -216,40 +88,26 @@ export default function SearchScreen() {
   const filteredUsers = mockUsers.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.location.toLowerCase().includes(searchQuery.toLowerCase());
-    
     const matchesCountry = !filters.country || (user.country !== undefined && user.country.toLowerCase() === filters.country.toLowerCase());
-    
     const matchesSex = filters.sex.length === 0 || (user.sex !== undefined && filters.sex.includes(user.sex));
-    
-    const matchesIntention = filters.intention.length === 0 || 
-      (user.intention !== undefined && filters.intention.includes(user.intention));
-    
-    const matchesLanguages = filters.languages.length === 0 || 
-      filters.languages.some(lang => user.languages?.includes(lang));
-    
+    const matchesIntention = filters.intention.length === 0 || (user.intention !== undefined && filters.intention.includes(user.intention));
+    const matchesLanguages = filters.languages.length === 0 || filters.languages.some(lang => user.languages?.includes(lang));
     const minAge = filters.minAge ? parseInt(filters.minAge) : null;
     const maxAge = filters.maxAge ? parseInt(filters.maxAge) : null;
     const matchesAge = (!minAge || user.age >= minAge) && (!maxAge || user.age <= maxAge);
-    
     return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge;
   });
 
-
-
   const renderUser = useCallback(({ item }: { item: User }) => {
-    console.log('Rendering user card for:', item.name, 'ID:', item.id);
-    console.log('Current matchedProfiles in search:', matchedProfiles);
-    return (
-      <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />
-    );
-  }, [matchedProfiles]);
+    return <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />;
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
-          <TouchableOpacity style={styles.notificationButton} onPress={handleNotificationPress}>
+          <TouchableOpacity style={styles.notificationButton}>
             <Heart size={24} color="#FF6B35" fill={unreadCount > 0 ? "#FF6B35" : "none"} />
             {unreadCount > 0 && (
               <View style={styles.notificationBadge}>
@@ -289,7 +147,7 @@ export default function SearchScreen() {
         </View>
       </View>
       {activeTab === 'user' && (
-          <FlatList
+        <FlatList
           key="users-list"
           data={filteredUsers}
           renderItem={renderUser}
@@ -302,332 +160,9 @@ export default function SearchScreen() {
       )}
       {activeTab === 'places' && (
         <View style={styles.placesContainer}>
-          <View style={styles.placesSearchContainer}>
-            <View style={styles.placesSearchInputContainer}>
-              <Sparkles size={20} color="#FF6B35" />
-              <TextInput
-                style={styles.placesSearchInput}
-                placeholder='Try "romantic dinner in Paris" or "cozy cafe"'
-                value={placesInputValue}
-                onChangeText={setPlacesInputValue}
-                placeholderTextColor="#999999"
-                onSubmitEditing={handlePlacesSearch}
-                returnKeyType="search"
-              />
-              <TouchableOpacity
-                onPress={handlePlacesSearch}
-                style={styles.searchSendButton}
-                disabled={placesInputValue.trim().length === 0}
-              >
-                <Send size={18} color={placesInputValue.trim().length > 0 ? '#FF6B35' : '#CCCCCC'} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          {placesSearch.isLoading && (
-            <View style={styles.loadingContainer}>
-              <Animated.View style={[styles.loadingIconWrap, { opacity: pulseAnim }]}>
-                <Sparkles size={40} color="#FF6B35" />
-              </Animated.View>
-              <Text style={styles.loadingTitle}>AI is finding the best spots...</Text>
-              <Text style={styles.loadingSubtext}>Curating personalized recommendations</Text>
-            </View>
-          )}
-          {placesSearch.isError && (
-            <View style={styles.placesEmptyState}>
-              <Text style={styles.placesEmptyText}>Something went wrong</Text>
-              <Text style={styles.placesEmptySubtext}>Please try searching again</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={() => placesSearch.refetch()}>
-                <Text style={styles.retryButtonText}>Retry</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-          {!placesSearch.isLoading && !placesSearch.isError && !hasSearched && (
-            <View style={styles.placesEmptyState}>
-              <View style={styles.emptyIconWrap}>
-                <Sparkles size={48} color="#FF6B35" />
-              </View>
-              <Text style={styles.placesEmptyText}>AI-Powered Place Search</Text>
-              <Text style={styles.placesEmptySubtext}>Describe your ideal dining experience and our AI will find the perfect spots for you</Text>
-              <View style={styles.suggestionChips}>
-                {['Romantic dinner in NYC', 'Cozy ramen spot in Tokyo', 'Rooftop bar in London'].map((suggestion) => (
-                  <TouchableOpacity
-                    key={suggestion}
-                    style={styles.suggestionChip}
-                    onPress={() => {
-                      setPlacesInputValue(suggestion);
-                      placesSearch.search(suggestion);
-                      setHasSearched(true);
-                    }}
-                  >
-                    <Text style={styles.suggestionChipText}>{suggestion}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          )}
-          {!placesSearch.isLoading && !placesSearch.isError && hasSearched && !!placesSearch.data && placesSearch.data.results.length === 0 && (
-            <View style={styles.placesEmptyState}>
-              <Text style={styles.placesEmptyText}>No places found</Text>
-              <Text style={styles.placesEmptySubtext}>Try describing a different type of place</Text>
-            </View>
-          )}
-          {!placesSearch.isLoading && !placesSearch.isError && !!placesSearch.data && placesSearch.data.results.length > 0 && (
-            <ScrollView style={styles.placesResults} showsVerticalScrollIndicator={false}>
-              <View style={styles.resultsHeader}>
-                <Text style={styles.resultsCount}>
-                  {placesSearch.data.totalResults} {placesSearch.data.totalResults === 1 ? 'place' : 'places'} found
-                </Text>
-                <View style={styles.aiBadge}>
-                  <Sparkles size={12} color="#FF6B35" />
-                  <Text style={styles.aiBadgeText}>AI Picks</Text>
-                </View>
-              </View>
-              {placesSearch.data.results.map((result, index) => (
-                <TouchableOpacity
-                  key={`${result.place.id}-${index}`}
-                  style={styles.placeCard}
-                  onPress={() => setSelectedPlace(result)}
-                  activeOpacity={0.8}
-                >
-                  <View style={styles.placeImageContainer}>
-                    <View style={styles.placeEmojiContainer}>
-                      <Text style={styles.placeEmoji}>{result.place.cuisineEmoji || '🍽️'}</Text>
-                      <Text style={styles.placeInitials} numberOfLines={1}>{result.place.name}</Text>
-                      <Text style={styles.placeInitialsSub}>{result.place.city}, {result.place.country}</Text>
-                    </View>
-                    <View style={styles.placeMatchBadge}>
-                      <Sparkles size={10} color="#FFFFFF" />
-                      <Text style={styles.placeMatchText}>{result.matchScore}%</Text>
-                    </View>
-                  </View>
-                  <View style={styles.placeContent}>
-                    <Text style={styles.placeName}>{result.place.name}</Text>
-                    <View style={styles.placeRatingRow}>
-                      {result.place.rating != null && result.place.rating > 0 && (
-                        <View style={styles.placeRating}>
-                          <Star size={14} color="#FFB800" fill="#FFB800" />
-                          <Text style={styles.placeRatingText}>{result.place.rating.toFixed(1)}</Text>
-                        </View>
-                      )}
-                      {result.place.priceLevel != null && result.place.priceLevel > 0 && (
-                        <Text style={styles.placePriceLevel}>
-                          {'$'.repeat(result.place.priceLevel)}
-                        </Text>
-                      )}
-                    </View>
-                    <Text style={styles.placeDescription} numberOfLines={3}>{result.description}</Text>
-                    <TouchableOpacity
-                      style={styles.viewOnMapsButton}
-                      onPress={() => {
-                        const url = result.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(result.place.name + ', ' + result.place.city + ', ' + result.place.country)}`;
-                        void WebBrowser.openBrowserAsync(url);
-                      }}
-                    >
-                      <MapPin size={16} color="#FF6B35" />
-                      <Text style={styles.viewOnMapsText}>View on Google</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.bribeFoodButton}
-                      onPress={() => {
-                        void addToFavorites({
-                          place_id: result.place.id,
-                          name: result.place.name,
-                          formatted_address: result.place.address,
-                          city: result.place.city,
-                          country: result.place.country,
-                          latitude: result.place.latitude,
-                          longitude: result.place.longitude,
-                          googleMapsUrl: result.place.googleMapsUrl,
-                          cuisineEmoji: result.place.cuisineEmoji,
-                          rating: result.place.rating ?? undefined,
-                          price_level: result.place.priceLevel ?? undefined,
-                        }).then(() => setShowSuccessPopup(true));
-                      }}
-                    >
-                      <Utensils size={18} color="#FF6B35" />
-                      <Text style={styles.bribeFoodButtonText}>Add to Food to bribe me with</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.inviteButton}
-                      onPress={() => {
-                        router.push({
-                          pathname: '/create-invitation' as any,
-                          params: {
-                            placeName: result.place.name,
-                            placeAddress: result.place.address,
-                            placeCity: result.place.city,
-                            placeCountry: result.place.country,
-                            placeGoogleMapsUrl: result.place.googleMapsUrl,
-                            placeLatitude: String(result.place.latitude),
-                            placeLongitude: String(result.place.longitude),
-                            placeId: result.place.id,
-                          },
-                        });
-                      }}
-                    >
-                      <Gift size={18} color="#FFFFFF" />
-                      <Text style={styles.inviteButtonText}>Send Invitation</Text>
-                    </TouchableOpacity>
-                  </View>
-                </TouchableOpacity>
-              ))}
-              <View style={{ height: 24 }} />
-            </ScrollView>
-          )}
-        </View>
-      )}
-      <SuccessPopup
-        visible={showSuccessPopup}
-        message="Poof! Added successfully👌🤘"
-        onHide={() => setShowSuccessPopup(false)}
-      />
-      <NotificationPopup
-        visible={showNotificationPopup}
-        onClose={() => setShowNotificationPopup(false)}
-      />
-
-
-
-      {showLocationModal && (
-        <View style={styles.locationModalOverlay}>
-          <View style={styles.locationModalContent}>
-            <View style={styles.locationModalIconWrap}>
-              <Navigation size={28} color="#FF6B35" />
-            </View>
-            <Text style={styles.locationModalTitle}>Enable Location</Text>
-            <Text style={styles.locationModalMessage}>To find places near you, we need access to your location. Would you like to enable it?</Text>
-            <TouchableOpacity
-              style={styles.locationModalPrimaryButton}
-              onPress={async () => {
-                setShowLocationModal(false);
-                const granted = await placesSearch.requestLocationPermission();
-                if (granted) {
-                  setTimeout(() => {
-                    placesSearch.search(pendingLocationQuery);
-                    setHasSearched(true);
-                    Keyboard.dismiss();
-                  }, 500);
-                } else {
-                  placesSearch.search(pendingLocationQuery);
-                  setHasSearched(true);
-                  Keyboard.dismiss();
-                }
-              }}
-              activeOpacity={0.8}
-            >
-              <Navigation size={18} color="#FFFFFF" />
-              <Text style={styles.locationModalPrimaryText}>Enable Location</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.locationModalSecondaryButton}
-              onPress={() => {
-                setShowLocationModal(false);
-                placesSearch.search(pendingLocationQuery);
-                setHasSearched(true);
-                Keyboard.dismiss();
-              }}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.locationModalSecondaryText}>Search Without Location</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
-      {selectedPlace !== null && (
-        <View style={styles.placeDetailOverlay}>
-          <View style={styles.placeDetailContent}>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {!!selectedPlace && (
-                <>
-                  <TouchableOpacity
-                    style={styles.closeDetailButton}
-                    onPress={() => setSelectedPlace(null)}
-                  >
-                    <X size={24} color="#000000" />
-                  </TouchableOpacity>
-                  <View style={styles.placeDetailEmojiContainer}>
-                    <Text style={styles.placeDetailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
-                    <Text style={styles.placeDetailEmojiName} numberOfLines={2}>{selectedPlace.place.name}</Text>
-                  </View>
-                  <View style={styles.placeDetailBody}>
-                    <Text style={styles.placeDetailName}>{selectedPlace.place.name}</Text>
-                    <View style={styles.placeDetailRatingRow}>
-                      {selectedPlace.place.rating != null && selectedPlace.place.rating > 0 && (
-                        <View style={styles.placeDetailRating}>
-                          <Star size={16} color="#FFB800" fill="#FFB800" />
-                          <Text style={styles.placeDetailRatingText}>{selectedPlace.place.rating.toFixed(1)}</Text>
-                        </View>
-                      )}
-                      {selectedPlace.place.priceLevel != null && selectedPlace.place.priceLevel > 0 && (
-                        <Text style={styles.placeDetailPriceLevel}>
-                          {'$'.repeat(selectedPlace.place.priceLevel)}
-                        </Text>
-                      )}
-                      <View style={styles.placeDetailMatchBadge}>
-                        <Text style={styles.placeDetailMatchText}>{selectedPlace.matchScore}% Match</Text>
-                      </View>
-                    </View>
-                    <Text style={styles.placeDescription}>{selectedPlace.description}</Text>
-                    <TouchableOpacity
-                      style={styles.placeDetailMapButton}
-                      onPress={() => {
-                        const url = selectedPlace.place.googleMapsUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPlace.place.name + ', ' + selectedPlace.place.city + ', ' + selectedPlace.place.country)}`;
-                        void WebBrowser.openBrowserAsync(url);
-                      }}
-                    >
-                      <MapPin size={20} color="#FFFFFF" />
-                      <Text style={styles.placeDetailMapButtonText}>View on Google</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.placeDetailBribeFoodButton}
-                      onPress={() => {
-                        void addToFavorites({
-                          place_id: selectedPlace.place.id,
-                          name: selectedPlace.place.name,
-                          formatted_address: selectedPlace.place.address,
-                          city: selectedPlace.place.city,
-                          country: selectedPlace.place.country,
-                          latitude: selectedPlace.place.latitude,
-                          longitude: selectedPlace.place.longitude,
-                          googleMapsUrl: selectedPlace.place.googleMapsUrl,
-                          cuisineEmoji: selectedPlace.place.cuisineEmoji,
-                          rating: selectedPlace.place.rating ?? undefined,
-                          price_level: selectedPlace.place.priceLevel ?? undefined,
-                        }).then(() => setShowSuccessPopup(true));
-                        setSelectedPlace(null);
-                      }}
-                    >
-                      <Utensils size={20} color="#FF6B35" />
-                      <Text style={styles.placeDetailBribeFoodButtonText}>Add to Food to bribe me with</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.placeDetailInviteButton}
-                      onPress={() => {
-                        const place = selectedPlace;
-                        setSelectedPlace(null);
-                        router.push({
-                          pathname: '/create-invitation' as any,
-                          params: {
-                            placeName: place.place.name,
-                            placeAddress: place.place.address,
-                            placeCity: place.place.city,
-                            placeCountry: place.place.country,
-                            placeGoogleMapsUrl: place.place.googleMapsUrl,
-                            placeLatitude: String(place.place.latitude),
-                            placeLongitude: String(place.place.longitude),
-                            placeId: place.place.id,
-                          },
-                        });
-                      }}
-                    >
-                      <Gift size={20} color="#FFFFFF" />
-                      <Text style={styles.placeDetailInviteButtonText}>Send Invitation</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
-            </ScrollView>
+          <View style={styles.placesEmptyState}>
+            <Text style={styles.placesEmptyText}>Places Search</Text>
+            <Text style={styles.placesEmptySubtext}>Coming soon</Text>
           </View>
         </View>
       )}
@@ -642,7 +177,6 @@ export default function SearchScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
-              {/* Country filter with inline dropdown */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Country</Text>
                 <TouchableOpacity
@@ -658,40 +192,19 @@ export default function SearchScreen() {
               </View>
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Distance</Text>
-                <TextInput
-                  style={styles.distanceInput}
-                  placeholder="Distance in miles"
-                  value={filters.distance}
-                  onChangeText={(text) => setFilters({...filters, distance: text})}
-                  keyboardType="numeric"
-                  placeholderTextColor="#999999"
-                />
+                <TextInput style={styles.distanceInput} placeholder="Distance in miles" value={filters.distance} onChangeText={(text) => setFilters({...filters, distance: text})} keyboardType="numeric" placeholderTextColor="#999999" />
               </View>
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Age Range</Text>
                 <View style={styles.ageInputs}>
                   <View style={styles.ageInput}>
                     <Text style={styles.ageInputLabel}>Min</Text>
-                    <TextInput
-                      style={styles.ageInputField}
-                      placeholder="18"
-                      value={filters.minAge}
-                      onChangeText={(text) => setFilters({...filters, minAge: text})}
-                      keyboardType="numeric"
-                      placeholderTextColor="#999999"
-                    />
+                    <TextInput style={styles.ageInputField} placeholder="18" value={filters.minAge} onChangeText={(text) => setFilters({...filters, minAge: text})} keyboardType="numeric" placeholderTextColor="#999999" />
                   </View>
                   <Text style={styles.ageRangeSeparator}>-</Text>
                   <View style={styles.ageInput}>
                     <Text style={styles.ageInputLabel}>Max</Text>
-                    <TextInput
-                      style={styles.ageInputField}
-                      placeholder="99"
-                      value={filters.maxAge}
-                      onChangeText={(text) => setFilters({...filters, maxAge: text})}
-                      keyboardType="numeric"
-                      placeholderTextColor="#999999"
-                    />
+                    <TextInput style={styles.ageInputField} placeholder="99" value={filters.maxAge} onChangeText={(text) => setFilters({...filters, maxAge: text})} keyboardType="numeric" placeholderTextColor="#999999" />
                   </View>
                 </View>
               </View>
@@ -699,16 +212,10 @@ export default function SearchScreen() {
                 <Text style={styles.filterLabel}>Sex</Text>
                 <View style={styles.checkboxGroup}>
                   {['Male', 'Female', 'Other'].map((sex) => (
-                    <TouchableOpacity
-                      key={sex}
-                      style={styles.checkbox}
-                      onPress={() => {
-                        const newSex = filters.sex.includes(sex)
-                          ? filters.sex.filter(s => s !== sex)
-                          : [...filters.sex, sex];
-                        setFilters({...filters, sex: newSex});
-                      }}
-                    >
+                    <TouchableOpacity key={sex} style={styles.checkbox} onPress={() => {
+                      const newSex = filters.sex.includes(sex) ? filters.sex.filter(s => s !== sex) : [...filters.sex, sex];
+                      setFilters({...filters, sex: newSex});
+                    }}>
                       <View style={[styles.checkboxBox, filters.sex.includes(sex) && styles.checkboxBoxActive]}>
                         {filters.sex.includes(sex) && <View style={styles.checkboxCheck} />}
                       </View>
@@ -721,16 +228,10 @@ export default function SearchScreen() {
                 <Text style={styles.filterLabel}>Language</Text>
                 <View style={styles.checkboxGroup}>
                   {['English', 'Spanish', 'French', 'German', 'Chinese', 'Japanese', 'Korean'].map((lang) => (
-                    <TouchableOpacity
-                      key={lang}
-                      style={styles.checkbox}
-                      onPress={() => {
-                        const newLang = filters.languages.includes(lang)
-                          ? filters.languages.filter(l => l !== lang)
-                          : [...filters.languages, lang];
-                        setFilters({...filters, languages: newLang});
-                      }}
-                    >
+                    <TouchableOpacity key={lang} style={styles.checkbox} onPress={() => {
+                      const newLang = filters.languages.includes(lang) ? filters.languages.filter(l => l !== lang) : [...filters.languages, lang];
+                      setFilters({...filters, languages: newLang});
+                    }}>
                       <View style={[styles.checkboxBox, filters.languages.includes(lang) && styles.checkboxBoxActive]}>
                         {filters.languages.includes(lang) && <View style={styles.checkboxCheck} />}
                       </View>
@@ -743,25 +244,12 @@ export default function SearchScreen() {
                 <Text style={styles.filterLabel}>Intention</Text>
                 <View style={styles.checkboxGroup}>
                   {(['make_new_friends', 'relationship', 'casual', 'marriage', 'open_marriage', 'figuring_it_out'] as const).map((intention) => {
-                    const labels: Record<string, string> = {
-                      make_new_friends: 'Make New Friends',
-                      relationship: 'Relationship',
-                      casual: 'Casual',
-                      marriage: 'Marriage',
-                      open_marriage: 'Open Marriage',
-                      figuring_it_out: 'Figuring It Out',
-                    };
+                    const labels: Record<string, string> = { make_new_friends: 'Make New Friends', relationship: 'Relationship', casual: 'Casual', marriage: 'Marriage', open_marriage: 'Open Marriage', figuring_it_out: 'Figuring It Out' };
                     return (
-                      <TouchableOpacity
-                        key={intention}
-                        style={styles.checkbox}
-                        onPress={() => {
-                          const newIntention = filters.intention.includes(intention)
-                            ? filters.intention.filter(i => i !== intention)
-                            : [...filters.intention, intention];
-                          setFilters({...filters, intention: newIntention});
-                        }}
-                      >
+                      <TouchableOpacity key={intention} style={styles.checkbox} onPress={() => {
+                        const newIntention = filters.intention.includes(intention) ? filters.intention.filter(i => i !== intention) : [...filters.intention, intention];
+                        setFilters({...filters, intention: newIntention});
+                      }}>
                         <View style={[styles.checkboxBox, filters.intention.includes(intention) && styles.checkboxBoxActive]}>
                           {filters.intention.includes(intention) && <View style={styles.checkboxCheck} />}
                         </View>
@@ -772,61 +260,32 @@ export default function SearchScreen() {
                 </View>
               </View>
             </ScrollView>
-            {/* Country picker — outside ScrollView to avoid FlatList-inside-ScrollView crash */}
             {showCountryPicker && (
               <View style={styles.countryPickerOverlay}>
-                <View style={styles.inlineCountryHeader}>
-                  <Text style={styles.countryModalTitle}>Select Country</Text>
-                  <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.closeButton}>
-                    <X size={24} color="#000000" />
+                <View style={styles.countryPickerHeader}>
+                  <Text style={styles.countryPickerTitle}>Select Country</Text>
+                  <TouchableOpacity onPress={() => setShowCountryPicker(false)}>
+                    <X size={22} color="#000" />
                   </TouchableOpacity>
                 </View>
-                <FlatList
-                  data={COUNTRIES}
-                  keyExtractor={(item) => item.code}
-                  style={styles.countryList}
-                  showsVerticalScrollIndicator={false}
-                  renderItem={({ item }) => (
+                <ScrollView style={styles.countryScrollList} showsVerticalScrollIndicator={false}>
+                  {COUNTRIES.map((c) => (
                     <TouchableOpacity
-                      style={[
-                        styles.countryOption,
-                        filters.country === item.code && styles.countryOptionSelected,
-                      ]}
-                      onPress={() => {
-                        setFilters({...filters, country: item.code});
-                        setShowCountryPicker(false);
-                      }}
+                      key={c.code}
+                      style={[styles.countryOption, filters.country === c.code && styles.countryOptionActive]}
+                      onPress={() => { setFilters({...filters, country: c.code}); setShowCountryPicker(false); }}
                     >
-                      <Text style={[styles.countryOptionName, filters.country === item.code && styles.countryOptionNameSelected]}>{item.name}</Text>
-                      {filters.country === item.code && (
-                        <View style={styles.countryCheckmark}>
-                          <View style={styles.countryCheckmarkDot} />
-                        </View>
-                      )}
+                      <Text style={[styles.countryOptionText, filters.country === c.code && styles.countryOptionTextActive]}>{c.name}</Text>
                     </TouchableOpacity>
-                  )}
-                />
+                  ))}
+                </ScrollView>
               </View>
             )}
             <View style={styles.modalFooter}>
-              <TouchableOpacity
-                style={styles.clearButton}
-                onPress={() => setFilters({
-                  country: '',
-                  sex: [],
-                  languages: [],
-                  intention: [],
-                  minAge: '',
-                  maxAge: '',
-                  distance: '',
-                })}
-              >
+              <TouchableOpacity style={styles.clearButton} onPress={() => setFilters({ country: '', sex: [], languages: [], intention: [], minAge: '', maxAge: '', distance: '' })}>
                 <Text style={styles.clearButtonText}>Clear All</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.applyButton}
-                onPress={() => setShowFilterModal(false)}
-              >
+              <TouchableOpacity style={styles.applyButton} onPress={() => setShowFilterModal(false)}>
                 <Text style={styles.applyButtonText}>Apply Filters</Text>
               </TouchableOpacity>
             </View>
@@ -837,958 +296,65 @@ export default function SearchScreen() {
   );
 }
 
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: 16,
-    paddingVertical: 24,
-    paddingBottom: 16,
-    backgroundColor: '#FFF8E7',
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#000000',
-  },
-  notificationButton: {
-    padding: 8,
-    borderRadius: 20,
-    backgroundColor: '#FFF8E7',
-    borderWidth: 1,
-    borderColor: '#888888',
-    position: 'relative',
-  },
-  notificationBadge: {
-    position: 'absolute',
-    bottom: -2,
-    left: -2,
-    backgroundColor: '#FF4444',
-    borderRadius: 10,
-    minWidth: 20,
-    height: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#FFF8E7',
-  },
-  notificationBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-
-  subtitle: {
-    fontSize: 16,
-    color: '#FFFFFF',
-    fontWeight: '500',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  searchInputContainer: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF8E7',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    marginRight: 8,
-    borderWidth: 1,
-    borderColor: '#888888',
-  },
-  searchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#000000',
-  },
-  filterButton: {
-    backgroundColor: '#FFF8E7',
-    borderRadius: 12,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: '#888888',
-  },
-  listContent: {
-    paddingBottom: 20,
-    paddingHorizontal: 4,
-  },
-  row: {
-    justifyContent: 'space-between',
-    paddingHorizontal: 4,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    borderWidth: 1,
-    borderColor: '#888888',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    backgroundColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabLeft: {
-    borderRightWidth: 0.5,
-    borderRightColor: '#888888',
-  },
-  tabRight: {
-    borderLeftWidth: 0.5,
-    borderLeftColor: '#888888',
-  },
-  activeTab: {
-    backgroundColor: '#000000',
-  },
-  tabText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-  },
-  placesContainer: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  placesSearchContainer: {
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    backgroundColor: '#FFF8E7',
-  },
-  placesSearchInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF8E7',
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 12,
-    borderWidth: 1,
-    borderColor: '#888888',
-  },
-  placesSearchInput: {
-    flex: 1,
-    marginLeft: 8,
-    fontSize: 16,
-    color: '#000000',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
-  },
-  loadingText: {
-    fontSize: 16,
-    color: '#666666',
-    fontWeight: '500',
-  },
-  placesEmptyState: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  placesEmptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginTop: 16,
-  },
-  placesEmptySubtext: {
-    fontSize: 14,
-    color: '#666666',
-    marginTop: 8,
-    textAlign: 'center',
-  },
-  placesResults: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
-  resultsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 16,
-  },
-  resultsCount: {
-    fontSize: 16,
-    fontWeight: '600' as const,
-    color: '#000000',
-  },
-  aiBadge: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    backgroundColor: '#FFF0E6',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-    gap: 4,
-  },
-  aiBadgeText: {
-    fontSize: 12,
-    fontWeight: '700' as const,
-    color: '#FF6B35',
-  },
-  searchSendButton: {
-    padding: 4,
-  },
-  loadingIconWrap: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: '#FFF0E6',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    marginBottom: 16,
-  },
-  loadingTitle: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: '#000000',
-    marginBottom: 4,
-  },
-  loadingSubtext: {
-    fontSize: 14,
-    color: '#888888',
-  },
-  emptyIconWrap: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FFF0E6',
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
-    marginBottom: 16,
-  },
-  suggestionChips: {
-    flexDirection: 'row' as const,
-    flexWrap: 'wrap' as const,
-    justifyContent: 'center' as const,
-    gap: 8,
-    marginTop: 20,
-    paddingHorizontal: 16,
-  },
-  suggestionChip: {
-    backgroundColor: '#FFF0E6',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFD5B8',
-  },
-  suggestionChipText: {
-    fontSize: 13,
-    fontWeight: '500' as const,
-    color: '#FF6B35',
-  },
-  retryButton: {
-    marginTop: 16,
-    backgroundColor: '#000000',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600' as const,
-  },
-  placeCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  placeImageContainer: {
-    position: 'relative' as const,
-    width: '100%',
-    height: 200,
-  },
-  placeEmojiContainer: {
-    width: '100%',
-    height: '100%',
-    backgroundColor: '#FFF8E7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  placeEmoji: {
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  placeInitials: {
-    fontSize: 16,
-    fontWeight: '700' as const,
-    color: '#333333',
-    textAlign: 'center' as const,
-  },
-  placeInitialsSub: {
-    fontSize: 13,
-    color: '#888888',
-    marginTop: 4,
-  },
-  placeMatchBadge: {
-    position: 'absolute' as const,
-    top: 12,
-    right: 12,
-    backgroundColor: '#FF6B35',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 4,
-  },
-  placeMatchText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700' as const,
-  },
-  placeContent: {
-    padding: 16,
-  },
-  placeName: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 8,
-  },
-  placeRatingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
-  placeRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  placeRatingText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  placePriceLevel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#4CAF50',
-  },
-  placeLocationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    marginBottom: 12,
-  },
-  placeAddress: {
-    fontSize: 14,
-    color: '#666666',
-    flex: 1,
-  },
-  placeDescription: {
-    fontSize: 14,
-    color: '#333333',
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  giftSuggestion: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF8E7',
-    padding: 12,
-    borderRadius: 12,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  giftEmoji: {
-    fontSize: 32,
-    marginRight: 12,
-  },
-  giftContent: {
-    flex: 1,
-  },
-  giftName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 2,
-  },
-  giftDescription: {
-    fontSize: 12,
-    color: '#666666',
-  },
-  bribeFoodButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF0E6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: '#FFD5B8',
-  },
-  bribeFoodButtonText: {
-    color: '#FF6B35',
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-  inviteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000000',
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-  },
-  inviteButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  placeDetailOverlay: {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-    zIndex: 100,
-  },
-  placeDetailContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
-  },
-  closeDetailButton: {
-    position: 'absolute' as const,
-    top: 16,
-    right: 16,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    padding: 8,
-    zIndex: 10,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  placeDetailEmojiContainer: {
-    width: '100%',
-    height: 200,
-    backgroundColor: '#FFF8E7',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  placeDetailEmoji: {
-    fontSize: 64,
-    marginBottom: 12,
-  },
-  placeDetailEmojiName: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: '#333333',
-    textAlign: 'center' as const,
-  },
-  placeDetailBody: {
-    padding: 20,
-  },
-  placeDetailName: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#000000',
-    marginBottom: 12,
-  },
-  placeDetailRatingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-  },
-  placeDetailRating: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  placeDetailRatingText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  placeDetailPriceLevel: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#4CAF50',
-  },
-  placeDetailMatchBadge: {
-    backgroundColor: '#000000',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  placeDetailMatchText: {
-    color: '#FFFFFF',
-    fontSize: 14,
-    fontWeight: '700',
-  },
-
-  placeDetailGift: {
-    marginTop: 20,
-  },
-  giftDetailCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF8E7',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-  },
-  giftDetailEmoji: {
-    fontSize: 48,
-    marginRight: 16,
-  },
-  giftDetailContent: {
-    flex: 1,
-  },
-  giftDetailName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 4,
-  },
-  giftDetailDescription: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  placeDetailMapButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#4CAF50',
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 20,
-  },
-  placeDetailMapButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  placeDetailWebsiteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF0E6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: '#FFD5B8',
-  },
-  placeDetailWebsiteButtonText: {
-    color: '#FF6B35',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  viewOnMapsButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
-    marginBottom: 10,
-    backgroundColor: '#FFF0E6',
-    borderWidth: 1,
-    borderColor: '#FFD5B8',
-  },
-  viewOnMapsText: {
-    color: '#FF6B35',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  placeDetailBribeFoodButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFF0E6',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: '#FFD5B8',
-  },
-  placeDetailBribeFoodButtonText: {
-    color: '#FF6B35',
-    fontSize: 16,
-    fontWeight: '600' as const,
-  },
-  placeDetailInviteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#000000',
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-    marginTop: 12,
-  },
-  placeDetailInviteButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'flex-end',
-    zIndex: 100,
-  },
-  modalContent: {
-    backgroundColor: '#FFFFFF',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '85%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 24,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  modalTitle: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  closeButton: {
-    padding: 4,
-  },
-  modalBody: {
-    paddingHorizontal: 20,
-    paddingVertical: 20,
-  },
-  filterSection: {
-    marginBottom: 28,
-  },
-  filterLabel: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000',
-    marginBottom: 12,
-  },
-  ageInputs: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  ageInput: {
-    flex: 1,
-  },
-  ageInputLabel: {
-    fontSize: 14,
-    color: '#666666',
-    marginBottom: 8,
-  },
-  ageInputField: {
-    borderWidth: 1,
-    borderColor: '#888888',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#000000',
-  },
-  ageRangeSeparator: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#000000',
-    marginHorizontal: 16,
-    marginTop: 20,
-  },
-  distanceInput: {
-    borderWidth: 1,
-    borderColor: '#888888',
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: '#000000',
-  },
-  dropdownButton: {
-    borderWidth: 1,
-    borderColor: '#888888',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-  },
-  dropdownButtonText: {
-    fontSize: 16,
-    color: '#000000',
-    fontWeight: '500' as const,
-  },
-  dropdownPlaceholder: {
-    color: '#999999',
-  },
-  countryPickerOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: '#FFFFFF',
-    zIndex: 100,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-  },
-  inlineCountryHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
-  },
-  countryModalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#000000',
-  },
-  countryList: {
-    paddingHorizontal: 8,
-  },
-  countryOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 10,
-    marginVertical: 2,
-    marginHorizontal: 4,
-  },
-  countryOptionSelected: {
-    backgroundColor: '#000000',
-  },
-  countryOptionName: {
-    fontSize: 16,
-    color: '#000000',
-    fontWeight: '500' as const,
-  },
-  countryOptionNameSelected: {
-    color: '#FFFFFF',
-  },
-  countryCheckmark: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: '#FF6B35',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  countryCheckmarkDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#FFFFFF',
-  },
-  checkboxGroup: {
-    gap: 12,
-  },
-  checkbox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  checkboxBox: {
-    width: 24,
-    height: 24,
-    borderWidth: 2,
-    borderColor: '#888888',
-    borderRadius: 6,
-    marginRight: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxBoxActive: {
-    backgroundColor: '#000000',
-    borderColor: '#000000',
-  },
-  checkboxCheck: {
-    width: 12,
-    height: 12,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 2,
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: '#000000',
-  },
-  modalFooter: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    gap: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-  },
-  clearButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-  },
-  clearButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#000000',
-  },
-  applyButton: {
-    flex: 1,
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-  },
-  applyButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  locationStatusRow: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    gap: 6,
-    marginTop: 10,
-    paddingHorizontal: 4,
-  },
-  locationStatusText: {
-    fontSize: 12,
-    fontWeight: '500' as const,
-  },
-  locationDetected: {
-    color: '#4CAF50',
-  },
-  locationNotDetected: {
-    color: '#999999',
-  },
-  locationModalOverlay: {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    zIndex: 100,
-  },
-  locationModalContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 24,
-    paddingTop: 28,
-    paddingBottom: 24,
-    width: '100%',
-    maxWidth: 340,
-    alignItems: 'center',
-  },
-  locationModalIconWrap: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#FFF0E6',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  locationModalTitle: {
-    fontSize: 18,
-    fontWeight: '700' as const,
-    color: '#000000',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  locationModalMessage: {
-    fontSize: 14,
-    color: '#666666',
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 24,
-  },
-  locationModalPrimaryButton: {
-    flexDirection: 'row' as const,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
-    backgroundColor: '#000000',
-    paddingVertical: 14,
-    borderRadius: 12,
-    gap: 8,
-    width: '100%',
-    marginBottom: 10,
-  },
-  locationModalPrimaryText: {
-    color: '#FFFFFF',
-    fontSize: 15,
-    fontWeight: '600' as const,
-  },
-  locationModalSecondaryButton: {
-    paddingVertical: 12,
-    width: '100%',
-    alignItems: 'center' as const,
-  },
-  locationModalSecondaryText: {
-    color: '#888888',
-    fontSize: 14,
-    fontWeight: '500' as const,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
+  header: { paddingHorizontal: 16, paddingVertical: 24, paddingBottom: 16, backgroundColor: '#FFF8E7' },
+  titleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  title: { fontSize: 28, fontWeight: '800', color: '#000000' },
+  notificationButton: { padding: 8, borderRadius: 20, backgroundColor: '#FFF8E7', borderWidth: 1, borderColor: '#888888', position: 'relative' },
+  notificationBadge: { position: 'absolute', bottom: -2, left: -2, backgroundColor: '#FF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF8E7' },
+  notificationBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
+  searchContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  searchInputContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF8E7', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12, marginRight: 8, borderWidth: 1, borderColor: '#888888' },
+  searchInput: { flex: 1, marginLeft: 8, fontSize: 16, color: '#000000' },
+  filterButton: { backgroundColor: '#FFF8E7', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#888888' },
+  listContent: { paddingBottom: 20, paddingHorizontal: 4 },
+  row: { justifyContent: 'space-between', paddingHorizontal: 4 },
+  tabContainer: { flexDirection: 'row', borderWidth: 1, borderColor: '#888888', borderRadius: 12, overflow: 'hidden' },
+  tab: { flex: 1, paddingVertical: 12, paddingHorizontal: 24, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
+  tabLeft: { borderRightWidth: 0.5, borderRightColor: '#888888' },
+  tabRight: { borderLeftWidth: 0.5, borderLeftColor: '#888888' },
+  activeTab: { backgroundColor: '#000000' },
+  tabText: { fontSize: 15, fontWeight: '700', color: '#000000' },
+  activeTabText: { color: '#FFFFFF' },
+  placesContainer: { flex: 1, backgroundColor: Colors.background },
+  placesEmptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
+  placesEmptyText: { fontSize: 18, fontWeight: '600', color: '#000000', marginTop: 16 },
+  placesEmptySubtext: { fontSize: 14, color: '#666666', marginTop: 8, textAlign: 'center' },
+  modalOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end', zIndex: 100 },
+  modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
+  modalTitle: { fontSize: 24, fontWeight: '700', color: '#000000' },
+  closeButton: { padding: 4 },
+  modalBody: { paddingHorizontal: 20, paddingVertical: 20 },
+  filterSection: { marginBottom: 28 },
+  filterLabel: { fontSize: 18, fontWeight: '600', color: '#000000', marginBottom: 12 },
+  ageInputs: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  ageInput: { flex: 1 },
+  ageInputLabel: { fontSize: 14, color: '#666666', marginBottom: 8 },
+  ageInputField: { borderWidth: 1, borderColor: '#888888', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, fontSize: 16, color: '#000000' },
+  ageRangeSeparator: { fontSize: 20, fontWeight: '600', color: '#000000', marginHorizontal: 16, marginTop: 20 },
+  distanceInput: { borderWidth: 1, borderColor: '#888888', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 16, fontSize: 16, color: '#000000' },
+  dropdownButton: { borderWidth: 1, borderColor: '#888888', borderRadius: 12, paddingVertical: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF' },
+  dropdownButtonText: { fontSize: 16, color: '#000000', fontWeight: '500' },
+  dropdownPlaceholder: { color: '#999999' },
+  checkboxGroup: { gap: 12 },
+  checkbox: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8 },
+  checkboxBox: { width: 24, height: 24, borderWidth: 2, borderColor: '#888888', borderRadius: 6, marginRight: 12, justifyContent: 'center', alignItems: 'center' },
+  checkboxBoxActive: { backgroundColor: '#000000', borderColor: '#000000' },
+  checkboxCheck: { width: 12, height: 12, backgroundColor: '#FFFFFF', borderRadius: 2 },
+  checkboxLabel: { fontSize: 16, color: '#000000' },
+  modalFooter: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 16, gap: 12, borderTopWidth: 1, borderTopColor: '#E0E0E0' },
+  clearButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#F5F5F5', alignItems: 'center' },
+  clearButtonText: { fontSize: 16, fontWeight: '600', color: '#000000' },
+  applyButton: { flex: 1, paddingVertical: 14, borderRadius: 12, backgroundColor: '#000000', alignItems: 'center' },
+  applyButtonText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
+  countryPickerOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#FFFFFF', zIndex: 200, borderTopLeftRadius: 24, borderTopRightRadius: 24 },
+  countryPickerHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
+  countryPickerTitle: { fontSize: 20, fontWeight: '700', color: '#000000' },
+  countryScrollList: { flex: 1, paddingHorizontal: 12 },
+  countryOption: { paddingVertical: 14, paddingHorizontal: 12, borderRadius: 10, marginVertical: 2 },
+  countryOptionActive: { backgroundColor: '#000000' },
+  countryOptionText: { fontSize: 16, color: '#000000' },
+  countryOptionTextActive: { color: '#FFFFFF' },
 });
