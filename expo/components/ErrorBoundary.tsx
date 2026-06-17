@@ -20,12 +20,17 @@ export class ErrorBoundary extends React.Component<Props, State> {
     this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+  static getDerivedStateFromError(error: unknown): State {
+    // Handle non-Error throws (e.g. empty objects, strings, undefined)
+    const normalized: Error = error instanceof Error
+      ? error
+      : new Error(typeof error === 'string' ? error : 'Unexpected error');
+    return { hasError: true, error: normalized };
   }
 
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('[ErrorBoundary] Caught:', error.message);
+  componentDidCatch(error: unknown, info: React.ErrorInfo) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[ErrorBoundary] Caught:', msg);
     // Auto-retry once after a short delay — many crashes are transient
     // race conditions in the cloud simulator that resolve on re-render
     this.retryTimer = setTimeout(() => {
