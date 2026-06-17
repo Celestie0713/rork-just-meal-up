@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
 import { generateObject } from '@rork-ai/toolkit-sdk';
 import { z } from 'zod';
-import * as Location from 'expo-location';
 
 const PlaceSchema = z.object({
   name: z.string(),
@@ -65,6 +64,7 @@ interface UserLocation {
 async function reverseGeocode(latitude: number, longitude: number): Promise<{ city?: string; country?: string }> {
   try {
     if (Platform.OS !== 'web') {
+      const Location = await import('expo-location');
       const results = await Location.reverseGeocodeAsync({ latitude, longitude });
       if (results.length > 0) {
         return {
@@ -317,6 +317,7 @@ export function usePlacesSearch() {
           }
         });
       } else {
+        const Location = await import('expo-location');
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status === 'granted') {
           const position = await Location.getCurrentPositionAsync({
