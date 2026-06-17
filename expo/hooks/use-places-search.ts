@@ -214,8 +214,13 @@ export function usePlacesSearch() {
   const [locationError, setLocationError] = useState<string | null>(null);
   const [locationPermissionDenied, setLocationPermissionDenied] = useState(false);
 
+  // Auto-detect location lazily only when the Places tab is active.
+  // Aggressive permission requests on mount crash the cloud simulator
+  // with an opaque {} error because expo-location tries to talk to
+  // hardware that doesn't exist.
   useEffect(() => {
     let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
 
     async function getLocation() {
       try {
@@ -255,48 +260,9 @@ export function usePlacesSearch() {
             setLocationError('Geolocation not supported');
             setLocationReady(true);
           }
-        } else {
-          console.log('[Places] Checking existing location permissions...');
-          const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
-          console.log('[Places] Existing permission status:', existingStatus);
-
-          let finalStatus = existingStatus;
-          if (existingStatus !== 'granted') {
-            console.log('[Places] Requesting location permission...');
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            finalStatus = status;
-            console.log('[Places] Permission result:', status);
-          }
-
-          if (finalStatus !== 'granted') {
-            console.log('[Places] Location permission denied');
-            if (!cancelled) {
-              setLocationPermissionDenied(true);
-              setLocationError('Location permission denied. Please enable location in your device settings.');
-              setLocationReady(true);
-            }
-            return;
-          }
-
-          console.log('[Places] Getting current position...');
-          const position = await Location.getCurrentPositionAsync({
-            accuracy: Location.Accuracy.Balanced,
-          });
-          if (cancelled) return;
-          console.log('[Places] Got position:', position.coords.latitude, position.coords.longitude);
-          const loc: UserLocation = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-          };
-          const geo = await reverseGeocode(loc.latitude, loc.longitude);
-          loc.city = geo.city;
-          loc.country = geo.country;
-          if (!cancelled) {
-            setUserLocation(loc);
-            setLocationReady(true);
-            console.log('[Places] Native location detected:', loc);
-          }
         }
+        // On native, skip auto-detection — only resolve via explicit
+        // requestLocationPermission() to avoid {} crash in cloud simulators.
       } catch (error) {
         console.log('[Places] Location error:', error);
         if (!cancelled) {
@@ -306,13 +272,20 @@ export function usePlacesSearch() {
       }
     }
 
-    const timer = setTimeout(() => {
-      void getLocation();
-    }, 500);
+    // Only run on web — native auto-detection is disabled to prevent
+    // expo-location from crashing the cloud simulator bridge.
+    if (Platform.OS === 'web') {
+      timer = setTimeout(() => {
+        void getLocation();
+      }, 500);
+    } else {
+      // Mark location as "not detected" without attempting native calls.
+      setLocationReady(true);
+    }
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
+      if (timer !== null) clearTimeout(timer);
     };
   }, []);
 
