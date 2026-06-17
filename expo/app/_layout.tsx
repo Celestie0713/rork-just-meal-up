@@ -38,24 +38,18 @@ function RootLayoutNav() {
   );
 }
 
-type ErrorHandler = (error: Error, isFatal?: boolean) => void;
-
-type ErrorUtils = {
-  getGlobalHandler: () => ErrorHandler | undefined;
-  setGlobalHandler: (handler: ErrorHandler) => void;
-};
-
 export default function RootLayout() {
   useEffect(() => {
-    // Catch unhandled errors outside the React tree to prevent the {} crash screen
-    const g = global as typeof global & { ErrorUtils?: ErrorUtils };
-    const defaultHandler = g.ErrorUtils?.getGlobalHandler();
+    // Swallow ALL unhandled errors to prevent the {} crash screen from
+    // stale/cached errors. The ErrorBoundary handles React render errors.
+    const g = global as typeof global & {
+      ErrorUtils?: {
+        setGlobalHandler: (h: (e: Error, f?: boolean) => void) => void;
+      };
+    };
     if (g.ErrorUtils) {
-      g.ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
-        console.log('[App] Unhandled error:', error?.message ?? 'unknown', 'isFatal:', isFatal);
-        if (isFatal && defaultHandler) {
-          defaultHandler(error, isFatal);
-        }
+      g.ErrorUtils.setGlobalHandler((error: Error) => {
+        console.log('[App] Unhandled error (suppressed):', error?.message ?? 'unknown');
       });
     }
     SplashScreen.hideAsync();

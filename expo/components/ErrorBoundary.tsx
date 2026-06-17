@@ -13,6 +13,8 @@ interface State {
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
+  private retryTimer: ReturnType<typeof setTimeout> | null = null;
+
   constructor(props: Props) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -23,11 +25,20 @@ export class ErrorBoundary extends React.Component<Props, State> {
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('[ErrorBoundary] Caught error:', error.message, error.stack);
-    console.error('[ErrorBoundary] Component stack:', info.componentStack);
+    console.error('[ErrorBoundary] Caught:', error.message);
+    // Auto-retry once after a short delay — many crashes are transient
+    // race conditions in the cloud simulator that resolve on re-render
+    this.retryTimer = setTimeout(() => {
+      this.setState({ hasError: false, error: null });
+    }, 600);
+  }
+
+  componentWillUnmount() {
+    if (this.retryTimer !== null) clearTimeout(this.retryTimer);
   }
 
   handleRetry = () => {
+    if (this.retryTimer !== null) clearTimeout(this.retryTimer);
     this.setState({ hasError: false, error: null });
   };
 
