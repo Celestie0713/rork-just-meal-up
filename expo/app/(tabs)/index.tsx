@@ -670,42 +670,6 @@ export default function SearchScreen() {
                   <ChevronDown size={18} color="#FF6B35" />
                 </TouchableOpacity>
               </View>
-              {/* Country picker appears inline, absolutely positioned on top */}
-              {showCountryPicker && (
-                <View style={styles.inlineCountryOverlay}>
-                  <View style={styles.inlineCountryHeader}>
-                    <Text style={styles.countryModalTitle}>Select Country</Text>
-                    <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.closeButton}>
-                      <X size={24} color="#000000" />
-                    </TouchableOpacity>
-                  </View>
-                  <FlatList
-                    data={COUNTRIES}
-                    keyExtractor={(item) => item.code}
-                    style={styles.countryList}
-                    showsVerticalScrollIndicator={false}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        style={[
-                          styles.countryOption,
-                          filters.country === item.code && styles.countryOptionSelected,
-                        ]}
-                        onPress={() => {
-                          setFilters({...filters, country: item.code});
-                          setShowCountryPicker(false);
-                        }}
-                      >
-                        <Text style={[styles.countryOptionName, filters.country === item.code && styles.countryOptionNameSelected]}>{item.name}</Text>
-                        {filters.country === item.code && (
-                          <View style={styles.countryCheckmark}>
-                            <View style={styles.countryCheckmarkDot} />
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    )}
-                  />
-                </View>
-              )}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Distance</Text>
                 <TextInput
@@ -822,6 +786,42 @@ export default function SearchScreen() {
                 </View>
               </View>
             </ScrollView>
+            {/* Country picker — outside ScrollView to avoid FlatList-inside-ScrollView crash */}
+            {showCountryPicker && (
+              <View style={styles.countryPickerOverlay}>
+                <View style={styles.inlineCountryHeader}>
+                  <Text style={styles.countryModalTitle}>Select Country</Text>
+                  <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.closeButton}>
+                    <X size={24} color="#000000" />
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={COUNTRIES}
+                  keyExtractor={(item) => item.code}
+                  style={styles.countryList}
+                  showsVerticalScrollIndicator={false}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.countryOption,
+                        filters.country === item.code && styles.countryOptionSelected,
+                      ]}
+                      onPress={() => {
+                        setFilters({...filters, country: item.code});
+                        setShowCountryPicker(false);
+                      }}
+                    >
+                      <Text style={[styles.countryOptionName, filters.country === item.code && styles.countryOptionNameSelected]}>{item.name}</Text>
+                      {filters.country === item.code && (
+                        <View style={styles.countryCheckmark}>
+                          <View style={styles.countryCheckmarkDot} />
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
             <View style={styles.modalFooter}>
               <TouchableOpacity
                 style={styles.clearButton}
@@ -1579,7 +1579,7 @@ const styles = StyleSheet.create({
   dropdownPlaceholder: {
     color: '#999999',
   },
-  inlineCountryOverlay: {
+  countryPickerOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
@@ -1587,6 +1587,8 @@ const styles = StyleSheet.create({
     bottom: 0,
     backgroundColor: '#FFFFFF',
     zIndex: 100,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
   },
   inlineCountryHeader: {
     flexDirection: 'row',
