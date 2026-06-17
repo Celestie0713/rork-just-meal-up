@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Edit3, Navigation, Map } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
@@ -130,7 +130,7 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             style={styles.editButton}
             onPress={() => onEdit(invitation.id)}
           >
-            <Edit3 size={16} color={colors.primary} />
+            <Pencil size={16} color={colors.primary} />
             <Text style={styles.editButtonText}>Edit</Text>
           </TouchableOpacity>
         )}

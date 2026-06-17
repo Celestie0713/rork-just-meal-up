@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Modal, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { X, Lock, CheckCircle2 } from 'lucide-react-native';
+import { X, Lock, CircleCheck } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_RORK_FUNCTIONS_URL!;
@@ -255,7 +255,7 @@ export function PaymentGatewayModal({ visible, amount, description, onClose, onS
         <View style={styles.content}>
           {done ? (
             <View style={styles.successWrap}>
-              <CheckCircle2 size={72} color={Colors.primary} />
+              <CircleCheck size={72} color={Colors.primary} />
               <Text style={styles.successTitle}>Payment Successful</Text>
               <Text style={styles.successSub}>${amount.toFixed(2)} charged</Text>
             </View>

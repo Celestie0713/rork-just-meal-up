@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Star, Settings, MapPin, Plus, X, Edit3, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart } from 'lucide-react-native';
+import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -658,7 +658,7 @@ export default function ProfileScreen() {
           </View>
           {!isEditing && (
             <TouchableOpacity style={styles.editButton} onPress={() => setIsEditing(true)}>
-              <Edit3 size={20} color={Colors.primary} />
+              <Pencil size={20} color={Colors.primary} />
               <Text style={styles.editButtonText}>Edit</Text>
             </TouchableOpacity>
           )}
@@ -682,7 +682,7 @@ export default function ProfileScreen() {
             >
               <View style={styles.preferenceHeader}>
                 <Text style={styles.preferenceLabel}>Language</Text>
-                {isEditing && <Edit3 size={16} color={Colors.primary} />}
+                {isEditing && <Pencil size={16} color={Colors.primary} />}
               </View>
               <Text style={styles.preferenceValue}>
                 {(isEditing ? editedUser?.ethnicity : user.ethnicity) || 'Not specified'}
@@ -695,7 +695,7 @@ export default function ProfileScreen() {
             >
               <View style={styles.preferenceHeader}>
                 <Text style={styles.preferenceLabel}>Intention</Text>
-                {isEditing && <Edit3 size={16} color={Colors.primary} />}
+                {isEditing && <Pencil size={16} color={Colors.primary} />}
               </View>
               <Text style={styles.preferenceValue}>
                 {(() => {
