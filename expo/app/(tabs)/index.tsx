@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Modal, ScrollView, Animated, Keyboard, Alert, Platform } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Animated, Keyboard, Alert, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation, ChevronDown } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -18,17 +18,7 @@ import { Colors } from '@/constants/colors';
 
 import type { User } from '@/types/user';
 
-export default function SearchScreen() {
-  const params = useLocalSearchParams<{ tab?: string }>();
-  const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
-
-  useEffect(() => {
-    if (params.tab === 'places') {
-      setActiveTab('places');
-    }
-  }, [params.tab]);
-
-  const COUNTRIES = [
+const COUNTRIES = [
     { name: 'Afghanistan', code: 'AF' },
     { name: 'Albania', code: 'AL' },
     { name: 'Algeria', code: 'DZ' },
@@ -140,7 +130,18 @@ export default function SearchScreen() {
     { name: 'Venezuela', code: 'VE' },
     { name: 'Vietnam', code: 'VN' },
     { name: 'Zimbabwe', code: 'ZW' },
-  ];
+];
+
+export default function SearchScreen() {
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
+
+  useEffect(() => {
+    if (params.tab === 'places') {
+      setActiveTab('places');
+    }
+  }, [params.tab]);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [placesInputValue, setPlacesInputValue] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -487,12 +488,7 @@ export default function SearchScreen() {
 
 
 
-      <Modal
-        visible={showLocationModal}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowLocationModal(false)}
-      >
+      {showLocationModal && (
         <View style={styles.locationModalOverlay}>
           <View style={styles.locationModalContent}>
             <View style={styles.locationModalIconWrap}>
@@ -536,14 +532,9 @@ export default function SearchScreen() {
             </TouchableOpacity>
           </View>
         </View>
-      </Modal>
+      )}
 
-      <Modal
-        visible={selectedPlace !== null}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setSelectedPlace(null)}
-      >
+      {selectedPlace !== null && (
         <View style={styles.placeDetailOverlay}>
           <View style={styles.placeDetailContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -639,14 +630,9 @@ export default function SearchScreen() {
             </ScrollView>
           </View>
         </View>
-      </Modal>
+      )}
 
-      <Modal
-        visible={showFilterModal}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowFilterModal(false)}
-      >
+      {showFilterModal && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
@@ -846,7 +832,7 @@ export default function SearchScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      )}
     </SafeAreaView>
   );
 }
@@ -1286,9 +1272,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   placeDetailOverlay: {
-    flex: 1,
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    zIndex: 100,
   },
   placeDetailContent: {
     backgroundColor: '#FFFFFF',
@@ -1481,9 +1472,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   modalOverlay: {
-    flex: 1,
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
+    zIndex: 100,
   },
   modalContent: {
     backgroundColor: '#FFFFFF',
@@ -1725,11 +1721,16 @@ const styles = StyleSheet.create({
     color: '#999999',
   },
   locationModalOverlay: {
-    flex: 1,
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 32,
+    zIndex: 100,
   },
   locationModalContent: {
     backgroundColor: '#FFFFFF',
