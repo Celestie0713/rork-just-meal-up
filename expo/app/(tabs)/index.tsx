@@ -485,49 +485,7 @@ export default function SearchScreen() {
         onClose={() => setShowNotificationPopup(false)}
       />
 
-      {/* Country Picker Modal */}
-      <Modal
-        visible={showCountryPicker}
-        animationType="fade"
-        transparent={true}
-        onRequestClose={() => setShowCountryPicker(false)}
-      >
-        <View style={styles.countryModalOverlay}>
-          <View style={styles.countryModalContent}>
-            <View style={styles.countryModalHeader}>
-              <Text style={styles.countryModalTitle}>Select Country</Text>
-              <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.closeButton}>
-                <X size={24} color="#000000" />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={COUNTRIES}
-              keyExtractor={(item) => item.code}
-              style={styles.countryList}
-              showsVerticalScrollIndicator={false}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.countryOption,
-                    filters.country === item.code && styles.countryOptionSelected,
-                  ]}
-                  onPress={() => {
-                    setFilters({...filters, country: item.code});
-                    setShowCountryPicker(false);
-                  }}
-                >
-                  <Text style={[styles.countryOptionName, filters.country === item.code && styles.countryOptionNameSelected]}>{item.name}</Text>
-                  {filters.country === item.code && (
-                    <View style={styles.countryCheckmark}>
-                      <View style={styles.countryCheckmarkDot} />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </View>
-      </Modal>
+
 
       <Modal
         visible={showLocationModal}
@@ -698,11 +656,12 @@ export default function SearchScreen() {
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Country filter with inline dropdown */}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Country</Text>
                 <TouchableOpacity
                   style={styles.dropdownButton}
-                  onPress={() => setShowCountryPicker(true)}
+                  onPress={() => setShowCountryPicker(!showCountryPicker)}
                   activeOpacity={0.7}
                 >
                   <Text style={[styles.dropdownButtonText, !filters.country && styles.dropdownPlaceholder]}>
@@ -711,6 +670,42 @@ export default function SearchScreen() {
                   <ChevronDown size={18} color="#FF6B35" />
                 </TouchableOpacity>
               </View>
+              {/* Country picker appears inline, absolutely positioned on top */}
+              {showCountryPicker && (
+                <View style={styles.inlineCountryOverlay}>
+                  <View style={styles.inlineCountryHeader}>
+                    <Text style={styles.countryModalTitle}>Select Country</Text>
+                    <TouchableOpacity onPress={() => setShowCountryPicker(false)} style={styles.closeButton}>
+                      <X size={24} color="#000000" />
+                    </TouchableOpacity>
+                  </View>
+                  <FlatList
+                    data={COUNTRIES}
+                    keyExtractor={(item) => item.code}
+                    style={styles.countryList}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={({ item }) => (
+                      <TouchableOpacity
+                        style={[
+                          styles.countryOption,
+                          filters.country === item.code && styles.countryOptionSelected,
+                        ]}
+                        onPress={() => {
+                          setFilters({...filters, country: item.code});
+                          setShowCountryPicker(false);
+                        }}
+                      >
+                        <Text style={[styles.countryOptionName, filters.country === item.code && styles.countryOptionNameSelected]}>{item.name}</Text>
+                        {filters.country === item.code && (
+                          <View style={styles.countryCheckmark}>
+                            <View style={styles.countryCheckmarkDot} />
+                          </View>
+                        )}
+                      </TouchableOpacity>
+                    )}
+                  />
+                </View>
+              )}
               <View style={styles.filterSection}>
                 <Text style={styles.filterLabel}>Distance</Text>
                 <TextInput
@@ -1584,19 +1579,16 @@ const styles = StyleSheet.create({
   dropdownPlaceholder: {
     color: '#999999',
   },
-  countryModalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-  },
-  countryModalContent: {
+  inlineCountryOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    maxHeight: '70%',
-    overflow: 'hidden',
+    zIndex: 100,
   },
-  countryModalHeader: {
+  inlineCountryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
