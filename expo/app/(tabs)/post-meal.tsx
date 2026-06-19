@@ -1297,7 +1297,7 @@ export default function PostMealScreen() {
                     <View>
                       <View style={[styles.choiceButton, styles.selectedChoice, !hasPaid && styles.blurredChoiceContainer]}>
                         <Text style={[styles.choiceButtonText, styles.selectedChoiceText, !hasPaid && styles.blurredChoiceText]}>
-                          {displayChoice ? displayChoice.text : 'No decision yet — currently marinating 🍖 #patience'}
+                          {displayChoice ? displayChoice.text : 'Decision needs a little more flavor. #Patience'}
                         </Text>
                         {!!displayChoice && (
                           <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, !hasPaid && styles.blurredChoiceText]}>
@@ -1305,7 +1305,7 @@ export default function PostMealScreen() {
                           </Text>
                         )}
                       </View>
-                      {!hasPaid && (
+                      {!hasPaid && !!displayChoice && (
                         <View style={styles.blurOverlay}>
                           <TouchableOpacity 
                             style={styles.payToViewButton}

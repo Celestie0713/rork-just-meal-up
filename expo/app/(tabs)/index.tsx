@@ -238,8 +238,7 @@ export default function SearchScreen() {
                     <View style={styles.placeCardInfo}>
                       <Text style={styles.placeCardName} numberOfLines={1}>{item.place.name}</Text>
                       <View style={styles.placeCardLocationRow}>
-                        <MapPin size={12} color={Colors.textLight} />
-                        <Text style={styles.placeCardLocationText} numberOfLines={1}>{item.place.city}, {item.place.country}</Text>
+                        <MapPin size={12} color={Colors.textLight} /><Text style={styles.placeCardLocationText} numberOfLines={1}>{item.place.city}, {item.place.country}</Text>
                       </View>
                     </View>
                     {item.place.rating > 0 && (
@@ -331,8 +330,7 @@ export default function SearchScreen() {
               <Text style={styles.detailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
               <Text style={styles.detailName}>{selectedPlace.place.name}</Text>
               <View style={styles.detailCityCountryRow}>
-                <MapPin size={12} color={Colors.textLight} />
-                <Text style={styles.detailCityCountryText}>{selectedPlace.place.city}, {selectedPlace.place.country}</Text>
+                <MapPin size={12} color={Colors.textLight} /><Text style={styles.detailCityCountryText}>{selectedPlace.place.city}, {selectedPlace.place.country}</Text>
               </View>
               {selectedPlace.place.address ? (
                 <Text style={styles.detailAddress}>
