@@ -66,7 +66,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
           </View>
           <View style={styles.body}>
             <Text style={styles.subtitle}>
-              Tip your cupid. They're working hard so you don't eat alone 🥩🍛
+              Your Cupid deserves a snack 🍕 Matchmaking burns calories too.
             </Text>
             <View style={styles.amountGrid}>
               {TIP_AMOUNTS.map((amount) => (

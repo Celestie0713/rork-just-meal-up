@@ -237,9 +237,10 @@ export default function SearchScreen() {
                     <Text style={styles.placeCardEmoji}>{item.place.cuisineEmoji || '🍽️'}</Text>
                     <View style={styles.placeCardInfo}>
                       <Text style={styles.placeCardName} numberOfLines={1}>{item.place.name}</Text>
-                      <Text style={styles.placeCardLocation} numberOfLines={1}>
-                        <MapPin size={12} color={Colors.textLight} /> {item.place.city}, {item.place.country}
-                      </Text>
+                      <View style={styles.placeCardLocationRow}>
+                        <MapPin size={12} color={Colors.textLight} />
+                        <Text style={styles.placeCardLocationText} numberOfLines={1}>{item.place.city}, {item.place.country}</Text>
+                      </View>
                     </View>
                     {item.place.rating > 0 && (
                       <View style={styles.placeCardRating}>
@@ -329,9 +330,10 @@ export default function SearchScreen() {
             <ScrollView style={styles.detailBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.detailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
               <Text style={styles.detailName}>{selectedPlace.place.name}</Text>
-              <Text style={styles.detailCityCountry}>
-                <MapPin size={12} color={Colors.textLight} /> {selectedPlace.place.city}, {selectedPlace.place.country}
-              </Text>
+              <View style={styles.detailCityCountryRow}>
+                <MapPin size={12} color={Colors.textLight} />
+                <Text style={styles.detailCityCountryText}>{selectedPlace.place.city}, {selectedPlace.place.country}</Text>
+              </View>
               {selectedPlace.place.address ? (
                 <Text style={styles.detailAddress}>
                   ~ {selectedPlace.place.address}
@@ -599,7 +601,8 @@ const styles = StyleSheet.create({
   placeCardEmoji: { fontSize: 28, marginRight: 12 },
   placeCardInfo: { flex: 1 },
   placeCardName: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: 2 },
-  placeCardLocation: { fontSize: 12, color: Colors.textLight },
+  placeCardLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  placeCardLocationText: { fontSize: 12, color: Colors.textLight, flex: 1 },
   placeCardRating: { backgroundColor: Colors.primary, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 8 },
   placeCardRatingText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
   placeCardDescription: { fontSize: 13, color: Colors.textLight, marginTop: 10, lineHeight: 18 },
@@ -617,7 +620,8 @@ const styles = StyleSheet.create({
   detailBody: { paddingHorizontal: 24, paddingTop: 24 },
   detailEmoji: { fontSize: 44, textAlign: 'center', marginBottom: 10 },
   detailName: { fontSize: 22, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 4 },
-  detailCityCountry: { fontSize: 14, fontWeight: '600', color: Colors.text, textAlign: 'center', marginBottom: 2 },
+  detailCityCountryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 2 },
+  detailCityCountryText: { fontSize: 14, fontWeight: '600', color: Colors.text },
   detailAddress: { fontSize: 12, color: Colors.textLight, textAlign: 'center', lineHeight: 17, fontStyle: 'italic' as const, marginBottom: 4 },
   detailAddressHint: { fontSize: 11, color: '#888888', textAlign: 'center', marginBottom: 8 },
   detailMeta: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 10, marginBottom: 16 },
