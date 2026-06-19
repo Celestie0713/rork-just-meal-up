@@ -91,6 +91,7 @@ export default function PostMealScreen() {
   const [showTipModal, setShowTipModal] = useState(false);
   const [selectedEventForTip, setSelectedEventForTip] = useState<string | null>(null);
   const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
+  const [infoExpanded, setInfoExpanded] = useState(false);
 
 
   // Initialize choices from existing matched profiles (e.g. fight_for_fries match)
@@ -1608,15 +1609,31 @@ export default function PostMealScreen() {
           </View>
         )}
         <View style={styles.infoSection}>
-          <Text style={styles.infoText}>• Shows up 10 hours after your meal.</Text>
-          <Text style={styles.infoText}>• You&apos;ve got 7 days to decide — no rush, this isn&apos;t instant noodles. If one decides early, the clock keeps ticking (except if one chose buddy pass).</Text>
-          <Text style={styles.infoText}>{"\n"}✅ Both agree:</Text>
-          <Text style={styles.infoText}>   • Next round → Profile disappears on Post Meal page, chat stays to arrange next meal.</Text>
-          <Text style={styles.infoText}>   • Fight for fries for life 🍟 → All other dates vanish (exclusive mode).</Text>
-          <Text style={styles.infoText}>{"\n"}🔀 Mixed signals?</Text>
-          <Text style={styles.infoText}>   • One chose next round while the other chose exclusive? You both get 24 more hours to rethink your life choices.</Text>
-          <Text style={styles.infoText}>{"\n"}❌ No spark?</Text>
-          <Text style={styles.infoText}>   • One hits buddy pass → Poof. Profile + chat = gone.</Text>
+          <TouchableOpacity
+            style={styles.detailsToggle}
+            onPress={() => setInfoExpanded(prev => !prev)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.detailsToggleText}>How it works</Text>
+            {infoExpanded ? (
+              <ChevronUp size={18} color={colors.textLight} />
+            ) : (
+              <ChevronDown size={18} color={colors.textLight} />
+            )}
+          </TouchableOpacity>
+          {infoExpanded && (
+            <>
+              <Text style={styles.infoText}>• Shows up 10 hours after your meal.</Text>
+              <Text style={styles.infoText}>• You&apos;ve got 7 days to decide — no rush, this isn&apos;t instant noodles. If one decides early, the clock keeps ticking (except if one chose buddy pass).</Text>
+              <Text style={styles.infoText}>{"\n"}✅ Both agree:</Text>
+              <Text style={styles.infoText}>   • Next round → Profile disappears on Post Meal page, chat stays to arrange next meal.</Text>
+              <Text style={styles.infoText}>   • Fight for fries for life 🍟 → All other dates vanish (exclusive mode).</Text>
+              <Text style={styles.infoText}>{"\n"}🔀 Mixed signals?</Text>
+              <Text style={styles.infoText}>   • One chose next round while the other chose exclusive? You both get 24 more hours to rethink your life choices.</Text>
+              <Text style={styles.infoText}>{"\n"}❌ No spark?</Text>
+              <Text style={styles.infoText}>   • One hits buddy pass → Poof. Profile + chat = gone.</Text>
+            </>
+          )}
         </View>
       </ScrollView>
       {/* Success Modal */}
