@@ -18,10 +18,9 @@ import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateInvitationScreen() {
-  const { placeName, placeCity, placeCountry, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId } = useLocalSearchParams<{
+  const { placeName, placeAddress, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId } = useLocalSearchParams<{
     placeName: string;
-    placeCity: string;
-    placeCountry: string;
+    placeAddress: string;
     placeGoogleMapsUrl: string;
     placeLatitude: string;
     placeLongitude: string;
@@ -52,12 +51,13 @@ export default function CreateInvitationScreen() {
 
   const [isEditingPlace, setIsEditingPlace] = useState(!placeName);
   const [editName, setEditName] = useState(placeName || '');
-  const [editCity, setEditCity] = useState(placeCity || '');
-  const [editCountry, setEditCountry] = useState(placeCountry || '');
+  const [editAddress, setEditAddress] = useState(placeAddress || '');
 
-  const fallbackMapsUrl = placeGoogleMapsUrl || (placeLatitude && placeLongitude
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeCity || '') + ' ' + (placeCountry || ''))}`);
+  const fallbackMapsUrl = (isEditingPlace
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(((editName || placeName || '') + ' ' + (editAddress || placeAddress || '')).trim())}`
+    : placeGoogleMapsUrl || (placeLatitude && placeLongitude
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || ''))}`
+      : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || ''))}`));
 
   const handleOpenMaps = () => {
     if (Platform.OS === 'web') {
@@ -277,8 +277,7 @@ export default function CreateInvitationScreen() {
   const handleSendInvitation = () => {
     const invitationData: Record<string, string> = {
       placeName: editName || placeName || '',
-      placeCity: editCity || placeCity || '',
-      placeCountry: editCountry || placeCountry || '',
+      placeAddress: editAddress || placeAddress || '',
       placeGoogleMapsUrl: fallbackMapsUrl,
       placeId: placeId || '',
       date: selectedDate.toISOString(),
@@ -516,8 +515,7 @@ export default function CreateInvitationScreen() {
                   setIsEditingPlace(false);
                 } else {
                   setEditName(placeName || '');
-                  setEditCity(placeCity || '');
-                  setEditCountry(placeCountry || '');
+                  setEditAddress(placeAddress || '');
                   setIsEditingPlace(true);
                 }
               }}
@@ -545,33 +543,24 @@ export default function CreateInvitationScreen() {
                   autoFocus
                 />
                 <View style={styles.editAddressRow}>
-                  <MapPin size={14} color={Colors.textLight} style={{ marginTop: 14 }} />
-                  <View style={styles.editCityCountryCol}>
-                    <TextInput
-                      style={styles.editInputSmall}
-                      value={editCity}
-                      onChangeText={setEditCity}
-                      placeholder="City"
-                      placeholderTextColor={Colors.textLight}
-                    />
-                    <TextInput
-                      style={styles.editInputSmall}
-                      value={editCountry}
-                      onChangeText={setEditCountry}
-                      placeholder="Country"
-                      placeholderTextColor={Colors.textLight}
-                    />
-                  </View>
+                  <MapPin size={14} color={Colors.textLight} style={{ marginTop: 8 }} />
+                  <TextInput
+                    style={[styles.editInputSmall, { flex: 1 }]}
+                    value={editAddress}
+                    onChangeText={setEditAddress}
+                    placeholder="Address"
+                    placeholderTextColor={Colors.textLight}
+                  />
                 </View>
               </>
             ) : (
               <>
                 <Text style={styles.restaurantName}>{editName || placeName || 'Restaurant Name'}</Text>
-                {((editCity || placeCity) || (editCountry || placeCountry)) && (
+                {(editAddress || placeAddress) && (
                   <View style={styles.addressRow}>
                     <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
                     <Text style={styles.restaurantCityCountry}>
-                      {[editCity || placeCity, editCountry || placeCountry].filter(Boolean).join(', ')}
+                      {editAddress || placeAddress}
                     </Text>
                   </View>
                 )}

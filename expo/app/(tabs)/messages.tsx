@@ -59,8 +59,6 @@ export default function MessagesScreen() {
   const params = useLocalSearchParams<{
     placeName?: string;
     placeAddress?: string;
-    placeCity?: string;
-    placeCountry?: string;
     placeGoogleMapsUrl?: string;
     placeId?: string;
     date?: string;
@@ -90,7 +88,7 @@ export default function MessagesScreen() {
   const [showDatePicker, setShowDatePicker] = useState<boolean>(false);
   const [showTimePicker, setShowTimePicker] = useState<boolean>(false);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [editDraft, setEditDraft] = useState<{ placeName: string; placeAddress: string; placeCity: string; placeCountry: string; date: Date; time: Date } | null>(null);
+  const [editDraft, setEditDraft] = useState<{ placeName: string; placeAddress: string; date: Date; time: Date } | null>(null);
   
   useEffect(() => {
     if (params.fromInvitation === 'true') {
@@ -98,8 +96,6 @@ export default function MessagesScreen() {
       setInvitationData({
         placeName: params.placeName,
         placeAddress: params.placeAddress,
-        placeCity: params.placeCity,
-        placeCountry: params.placeCountry,
         placeGoogleMapsUrl: params.placeGoogleMapsUrl,
         placeId: params.placeId,
         date: params.date ? new Date(params.date) : null,
@@ -117,7 +113,7 @@ export default function MessagesScreen() {
         image: params.mealUpImage,
       });
     }
-  }, [params.fromInvitation, params.fromMealUpShare, params.placeName, params.placeAddress, params.placeCity, params.placeCountry, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.fromMealUpShare, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
@@ -215,8 +211,6 @@ export default function MessagesScreen() {
     setEditDraft({
       placeName: invitationData.placeName ?? '',
       placeAddress: invitationData.placeAddress ?? '',
-      placeCity: invitationData.placeCity ?? '',
-      placeCountry: invitationData.placeCountry ?? '',
       date: invitationData.date ?? new Date(),
       time: invitationData.time ?? new Date(),
     });
@@ -229,8 +223,6 @@ export default function MessagesScreen() {
       ...prev,
       placeName: editDraft.placeName.trim() || prev?.placeName,
       placeAddress: editDraft.placeAddress.trim() || prev?.placeAddress,
-      placeCity: editDraft.placeCity.trim() || prev?.placeCity,
-      placeCountry: editDraft.placeCountry.trim() || prev?.placeCountry,
       date: editDraft.date,
       time: editDraft.time,
     }));
@@ -360,30 +352,7 @@ export default function MessagesScreen() {
                 testID="edit-place-address"
               />
 
-              <View style={styles.editRowTwoCol}>
-                <View style={styles.editCol}>
-                  <Text style={styles.fieldLabel}>City</Text>
-                  <TextInput
-                    value={editDraft.placeCity}
-                    onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeCity: t } : prev))}
-                    placeholder="City"
-                    placeholderTextColor={Colors.textLight}
-                    style={styles.textInput}
-                    testID="edit-place-city"
-                  />
-                </View>
-                <View style={styles.editCol}>
-                  <Text style={styles.fieldLabel}>Country</Text>
-                  <TextInput
-                    value={editDraft.placeCountry}
-                    onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeCountry: t } : prev))}
-                    placeholder="Country"
-                    placeholderTextColor={Colors.textLight}
-                    style={styles.textInput}
-                    testID="edit-place-country"
-                  />
-                </View>
-              </View>
+              
 
               <Text style={styles.fieldLabel}>Date</Text>
               <TouchableOpacity
