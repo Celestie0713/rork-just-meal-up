@@ -1293,19 +1293,21 @@ export default function PostMealScreen() {
                   
                   const hasPaid = paidToViewChoices[event.id];
                   
+                  const shouldBlur = !hasPaid && !!displayChoice;
+
                   return (
                     <View>
-                      <View style={[styles.choiceButton, styles.selectedChoice, !hasPaid && styles.blurredChoiceContainer]}>
-                        <Text style={[styles.choiceButtonText, styles.selectedChoiceText, !hasPaid && styles.blurredChoiceText]}>
+                      <View style={[styles.choiceButton, styles.selectedChoice, shouldBlur && styles.blurredChoiceContainer]}>
+                        <Text style={[styles.choiceButtonText, styles.selectedChoiceText, shouldBlur && styles.blurredChoiceText]}>
                           {displayChoice ? displayChoice.text : 'Decision needs a little more flavor. #Patience'}
                         </Text>
                         {!!displayChoice && (
-                          <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, !hasPaid && styles.blurredChoiceText]}>
+                          <Text style={[styles.choiceSubtext, styles.selectedChoiceSubtext, shouldBlur && styles.blurredChoiceText]}>
                             {displayChoice.subtext}
                           </Text>
                         )}
                       </View>
-                      {!hasPaid && !!displayChoice && (
+                      {shouldBlur && (
                         <View style={styles.blurOverlay}>
                           <TouchableOpacity 
                             style={styles.payToViewButton}
@@ -1513,12 +1515,6 @@ export default function PostMealScreen() {
                         (extendedChoices[event.id] || userSelectedChoice) === 'buddy_pass' && styles.finalizedBuddyPassLabel
                       ]}>{extendedChoices[event.id] ? 'New Choice' : 'Your Choice'}</Text>
                     </View>
-                    {(extendedChoices[event.id] || userSelectedChoice) === 'fight_for_fries' && pendingFightForFries?.eventId === event.id && !getExclusiveMatchPartner() && (
-                      <View style={pendingBadgeStyles.pendingContainer}>
-                        <Text style={pendingBadgeStyles.pendingIcon}>⏳</Text>
-                        <Text style={pendingBadgeStyles.pendingText}>Pending — waiting for your date&apos;s decision</Text>
-                      </View>
-                    )}
                   </View>
                 );
                 })()}
