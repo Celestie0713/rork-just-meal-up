@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useRef, useEffect, useCallback, MutableRefObject } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, Image, Modal, Animated, Linking, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { MapPin, Users, Clock, ChevronRight, Star, X, Heart, Timer } from 'lucide-react-native';
+import { MapPin, Users, Clock, ChevronRight, ChevronDown, ChevronUp, Star, X, Heart, Timer } from 'lucide-react-native';
 import { router } from 'expo-router';
 
 import { mockInvitations } from '@/mocks/invitations';
@@ -90,6 +90,7 @@ export default function PostMealScreen() {
   const [profilesToRemove, setProfilesToRemove] = useState<{ userId: string; invitationId: string }[]>([]);
   const [showTipModal, setShowTipModal] = useState(false);
   const [selectedEventForTip, setSelectedEventForTip] = useState<string | null>(null);
+  const [expandedDetails, setExpandedDetails] = useState<Record<string, boolean>>({});
 
 
   // Initialize choices from existing matched profiles (e.g. fight_for_fries match)
@@ -1237,26 +1238,57 @@ export default function PostMealScreen() {
               )}
             </View>
           </View>
-          <View style={styles.eventDetails}>
-            <View style={styles.eventDetailRow}>
-              <MapPin size={16} color={colors.textLight} />
-              <Text style={styles.eventDetailText}>{event.venue}</Text>
-            </View>
-            <View style={styles.eventDetailRow}>
-              <Clock size={16} color={colors.textLight} />
-              <Text style={styles.eventDetailText}>
-                {formatDate(event.date)} at {event.time}
-              </Text>
-            </View>
-            {!!event.attendees && event.attendees.length > 1 && (
+          <TouchableOpacity
+            style={styles.detailsToggle}
+            onPress={() => {
+              setExpandedDetails(prev => ({
+                ...prev,
+                [event.id]: !prev[event.id]
+              }));
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.detailsToggleText}>Details</Text>
+            {expandedDetails[event.id] ? (
+              <ChevronUp size={18} color={colors.textLight} />
+            ) : (
+              <ChevronDown size={18} color={colors.textLight} />
+            )}
+          </TouchableOpacity>
+          {expandedDetails[event.id] && (
+            <View style={styles.eventDetails}>
               <View style={styles.eventDetailRow}>
-                <Users size={16} color={colors.textLight} />
+                <MapPin size={16} color={colors.textLight} />
+                <Text style={styles.eventDetailText}>{event.venue}</Text>
+              </View>
+              {!!event.address && (
+                <View style={styles.eventDetailRow}>
+                  <MapPin size={16} color={colors.textLight} style={{ opacity: 0 }} />
+                  <Text style={styles.eventDetailText}>{event.address}</Text>
+                </View>
+              )}
+              <View style={styles.eventDetailRow}>
+                <Clock size={16} color={colors.textLight} />
                 <Text style={styles.eventDetailText}>
-                  {event.attendees.length} attendees
+                  {formatDate(event.date)} at {event.time}
                 </Text>
               </View>
-            )}
-          </View>
+              {!!event.cuisine && (
+                <View style={styles.eventDetailRow}>
+                  <Star size={16} color={colors.textLight} />
+                  <Text style={styles.eventDetailText}>{event.cuisine}</Text>
+                </View>
+              )}
+              {!!event.attendees && event.attendees.length > 1 && (
+                <View style={styles.eventDetailRow}>
+                  <Users size={16} color={colors.textLight} />
+                  <Text style={styles.eventDetailText}>
+                    {event.attendees.length} attendees
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
           {isGroup ? (
             <View style={styles.groupActionContainer}>
               <View style={styles.groupActionContent}>

@@ -171,9 +171,28 @@ export const postMealStyles = StyleSheet.create({
   choiceMadeTimerText: {
     color: '#FFA726',
   },
+  detailsToggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: postMealColors.background,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    gap: 6,
+    marginBottom: 4,
+  },
+  detailsToggleText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: postMealColors.textLight,
+  },
   eventDetails: {
     gap: 8,
     marginBottom: 16,
+    paddingTop: 4,
   },
   eventDetailRow: {
     flexDirection: 'row',
