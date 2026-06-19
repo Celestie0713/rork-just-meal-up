@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart, X, ChevronDown, MapPin, ExternalLink, UtensilsCrossed, Map, Send } from 'lucide-react-native';
+import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
@@ -374,6 +374,38 @@ export default function SearchScreen() {
                 <Text style={styles.detailMapsButtonText}>Maps</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                style={[
+                  styles.detailFavButton,
+                  isPlaceInFavorites(selectedPlace.place.id) && styles.detailFavButtonActive,
+                ]}
+                onPress={() => {
+                  const placeId = selectedPlace.place.id;
+                  if (isPlaceInFavorites(placeId)) {
+                    removeFromFavorites(placeId);
+                  } else {
+                    addToFavorites({
+                      place_id: placeId,
+                      name: selectedPlace.place.name,
+                      city: selectedPlace.place.city,
+                      country: selectedPlace.place.country,
+                      latitude: selectedPlace.place.latitude,
+                      longitude: selectedPlace.place.longitude,
+                      googleMapsUrl: selectedPlace.place.googleMapsUrl,
+                      cuisineEmoji: selectedPlace.place.cuisineEmoji,
+                      rating: selectedPlace.place.rating,
+                      price_level: selectedPlace.place.priceLevel,
+                    });
+                  }
+                }}
+                activeOpacity={0.7}
+              >
+                <Heart
+                  size={18}
+                  color="#FF2D55"
+                  fill={isPlaceInFavorites(selectedPlace.place.id) ? '#FF2D55' : 'none'}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity
                 style={styles.detailInviteButton}
                 onPress={() => {
                   setSelectedPlace(null);
@@ -598,6 +630,8 @@ const styles = StyleSheet.create({
   detailActions: { flexDirection: 'row', paddingHorizontal: 24, paddingTop: 16, gap: 10 },
   detailMapsButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#2A2A2A', borderRadius: 14, paddingVertical: 14, gap: 8, borderWidth: 1, borderColor: Colors.primary },
   detailMapsButtonText: { fontSize: 15, fontWeight: '700', color: Colors.primary },
+  detailFavButton: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: '#2A2A2A', borderRadius: 14, borderWidth: 1, borderColor: '#FF2D55' },
+  detailFavButtonActive: { backgroundColor: '#3D1A22' },
   detailInviteButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 14, gap: 8 },
   detailInviteButtonText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   modalOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end', zIndex: 100 },
