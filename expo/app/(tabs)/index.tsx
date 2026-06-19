@@ -199,8 +199,13 @@ export default function SearchScreen() {
       {activeTab === 'places' && (
         <View style={styles.placesContainer}>
           <View style={styles.placesSearchRow}>
-            <View style={styles.placesSearchInputWrap}>
-              <Search size={18} color={Colors.textLight} />
+            <TouchableOpacity
+              style={styles.placesSearchInputWrap}
+              activeOpacity={1}
+              onPress={() => {
+                // Focus is handled by TextInput being inside; this just gives a fallback touch target
+              }}
+            >
               <TextInput
                 style={styles.placesSearchInput}
                 placeholder="Search restaurants, cuisines..."
@@ -215,7 +220,10 @@ export default function SearchScreen() {
                   <X size={16} color={Colors.textLight} />
                 </TouchableOpacity>
               )}
-            </View>
+              <TouchableOpacity onPress={handlePlaceSearch} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Search size={18} color={Colors.textLight} />
+              </TouchableOpacity>
+            </TouchableOpacity>
           </View>
 
           {placesSearch.isLoading ? (
@@ -582,7 +590,7 @@ const styles = StyleSheet.create({
 
   placesSearchRow: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   placesSearchInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Colors.border },
-  placesSearchInput: { flex: 1, marginLeft: 8, fontSize: 15, color: Colors.text },
+  placesSearchInput: { flex: 1, marginRight: 8, fontSize: 15, color: Colors.text },
 
   placesLoading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 },
   placesLoadingText: { fontSize: 14, color: Colors.textLight, marginTop: 12 },
