@@ -119,16 +119,21 @@ CRITICAL ACCURACY RULES:
 2. ONLY return restaurants you are CERTAIN currently exist. Do NOT guess or fabricate.
 3. Every field must be for the SAME restaurant.
 
-CRITICAL ADDRESS RULES:
-- You MUST provide an address field, but if you are NOT 100% CERTAIN of the exact street address (street number + street name), do NOT fabricate one. Instead, provide a descriptive location like "Orchard Road area", "Shinjuku district", "Chinatown", "Brick Lane area", "Near Central Station".
-- If the restaurant is in a shopping mall or food court, include the mall name: "Food Republic, Wisma Atria, Orchard Road".
-- If the restaurant is a hawker stall or food court stall, include the hawker center name and stall number if known: "Stall #02-15, Maxwell Food Centre".
-- NEVER make up a street number just to fill the field. A vague-but-honest area description is infinitely better than a wrong street address.
-- The combination of NAME + CITY + COUNTRY + googleMapsUrl is the authoritative location identifier. The address field is supplementary context.
+CRITICAL ADDRESS RULES (READ CAREFULLY — VIOLATING THESE IS UNACCEPTABLE):
+- DO NOT INVENT ADDRESSES. The address field should be left as an empty string "" unless you are 100% SURE of the exact location.
+- If you are even 10% unsure, leave address as an empty string. The city and country fields are sufficient.
+- The googleMapsUrl is the PRIMARY way users find the restaurant. The address is purely decorative.
+- Here is the ONLY format you may use for addresses you are CERTAIN of:
+  * "123 Orchard Road, #04-56" (shopping mall with unit number)
+  * "Stall #02-15, Maxwell Food Centre" (hawker stall with stall number)
+  * "15 Rue de la Paix" (street address you know is correct)
+- ACCEPTABLE approximate addresses (only if you are quite confident): "Orchard Road area", "Shinjuku district", "Chinatown"
+- UNACCEPTABLE: made-up street numbers, fake street names, combining a real restaurant name with a random address you guessed
+- WHEN IN DOUBT: leave address as "". City and country are enough.
 
 For each place provide:
 - name: The EXACT official name of the restaurant
-- address: Only include street number+name if 100% certain. Otherwise use area/neighborhood/mall/hawker center description. Include stall numbers for hawker stalls.
+- address: ONLY if 100% certain (see ADDRESS RULES above). Otherwise leave as empty string "".
 - city: The city where THIS restaurant is located
 - country: The country
 - latitude/longitude: Coordinates for THIS specific restaurant location (approximate is OK)
@@ -362,6 +367,10 @@ export function usePlacesSearch() {
     }
   }, [mutation]);
 
+  const clearResults = useCallback(() => {
+    setData(null);
+  }, []);
+
   const needsLocationForQuery = useCallback((query: string): boolean => {
     return isNearMeQuery(query) && !userLocation;
   }, [userLocation]);
@@ -379,6 +388,7 @@ export function usePlacesSearch() {
     locationPermissionDenied,
     needsLocationForQuery,
     requestLocationPermission,
+    clearResults,
     refetch: () => {
       if (mutation.variables) {
         mutation.mutate(mutation.variables);

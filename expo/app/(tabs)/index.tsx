@@ -209,7 +209,7 @@ export default function SearchScreen() {
                 returnKeyType="search"
               />
               {placeSearchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => { setPlaceSearchQuery(''); placesSearch.search(''); }}>
+                <TouchableOpacity onPress={() => { setPlaceSearchQuery(''); placesSearch.clearResults(); }}>
                   <X size={16} color={Colors.textLight} />
                 </TouchableOpacity>
               )}
@@ -296,9 +296,15 @@ export default function SearchScreen() {
             <ScrollView style={styles.detailBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.detailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
               <Text style={styles.detailName}>{selectedPlace.place.name}</Text>
-              <Text style={styles.detailLocation}>
-                {selectedPlace.place.address ? `${selectedPlace.place.address}, ` : ''}{selectedPlace.place.city}, {selectedPlace.place.country}
+              <Text style={styles.detailCityCountry}>
+                <MapPin size={12} color={Colors.textLight} /> {selectedPlace.place.city}, {selectedPlace.place.country}
               </Text>
+              {selectedPlace.place.address ? (
+                <Text style={styles.detailAddress}>
+                  ~ {selectedPlace.place.address}
+                </Text>
+              ) : null}
+              <Text style={styles.detailAddressHint}>Tap Maps for exact location</Text>
 
               {selectedPlace.place.rating > 0 && (
                 <View style={styles.detailMeta}>
@@ -545,7 +551,9 @@ const styles = StyleSheet.create({
   detailBody: { paddingHorizontal: 24, paddingTop: 24 },
   detailEmoji: { fontSize: 44, textAlign: 'center', marginBottom: 10 },
   detailName: { fontSize: 22, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 4 },
-  detailLocation: { fontSize: 13, color: Colors.textLight, textAlign: 'center', lineHeight: 18 },
+  detailCityCountry: { fontSize: 14, fontWeight: '600', color: Colors.text, textAlign: 'center', marginBottom: 2 },
+  detailAddress: { fontSize: 12, color: Colors.textLight, textAlign: 'center', lineHeight: 17, fontStyle: 'italic' as const, marginBottom: 4 },
+  detailAddressHint: { fontSize: 11, color: '#888888', textAlign: 'center', marginBottom: 8 },
   detailMeta: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 10, marginBottom: 16 },
   detailRating: { fontSize: 16, fontWeight: '700', color: Colors.primary },
   detailPrice: { fontSize: 16, fontWeight: '700', color: Colors.textLight },
