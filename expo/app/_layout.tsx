@@ -10,7 +10,6 @@ import { FavoritesProvider } from "@/hooks/use-favorites";
 import { NotificationProvider } from "@/hooks/use-notifications";
 import { InvitationsProvider } from "@/hooks/use-invitations";
 import { trpc, trpcClient } from "@/lib/trpc";
-import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -49,9 +48,7 @@ export default function RootLayout() {
                 <ChatProvider>
                   <FavoritesProvider>
                     <GestureHandlerRootView style={{ flex: 1 }}>
-                      <ErrorBoundary>
-                        <RootLayoutNav />
-                      </ErrorBoundary>
+                      <RootLayoutNav />
                     </GestureHandlerRootView>
                   </FavoritesProvider>
                 </ChatProvider>
