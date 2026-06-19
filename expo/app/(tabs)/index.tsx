@@ -1,18 +1,16 @@
-import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Dimensions, Image, ActivityIndicator } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { Search, Filter, Heart, X, MapPin, ChevronDown, Star, Clock, Phone, Globe, Navigation, Users, UtensilsCrossed } from 'lucide-react-native';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
+import { Search, Filter, Heart, X, ChevronDown, MapPin, ExternalLink, UtensilsCrossed, Map, Send } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
-import { NotificationPopup } from '@/components/NotificationPopup';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
 import { usePlacesSearch } from '@/hooks/use-places-search';
+import type { PlaceResult } from '@/hooks/use-places-search';
 
 import { Colors } from '@/constants/colors';
 import type { User } from '@/types/user';
-import type { PlaceResult } from '@/hooks/use-places-search';
 
 const COUNTRIES = [
     { name: 'Afghanistan', code: 'AF' }, { name: 'Albania', code: 'AL' }, { name: 'Algeria', code: 'DZ' },
@@ -54,27 +52,31 @@ const COUNTRIES = [
     { name: 'Venezuela', code: 'VE' }, { name: 'Vietnam', code: 'VN' }, { name: 'Zimbabwe', code: 'ZW' },
 ];
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-const MAP_HEIGHT = SCREEN_HEIGHT * 0.38;
+function openGoogleMaps(query: string) {
+  const encoded = encodeURIComponent(query);
+  const url = Platform.select({
+    ios: `comgooglemaps://?q=${encoded}`,
+    android: `geo:0,0?q=${encoded}`,
+    default: `https://www.google.com/maps/search/?api=1&query=${encoded}`,
+  });
+  const webFallback = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
 
-const PLACE_PHOTOS = [
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600',
-  'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=600',
-  'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=600',
-  'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600',
-];
-
-function getRatingStars(rating: number): string {
-  if (rating >= 4.7) return '★★★★★';
-  if (rating >= 4.3) return '★★★★☆';
-  if (rating >= 3.7) return '★★★☆☆';
-  if (rating >= 2.7) return '★★☆☆☆';
-  return '★☆☆☆☆';
+  if (url) {
+    Linking.canOpenURL(url).then((supported) => {
+      if (supported) {
+        Linking.openURL(url);
+      } else {
+        Linking.openURL(webFallback);
+      }
+    }).catch(() => {
+      Linking.openURL(webFallback);
+    });
+  } else {
+    Linking.openURL(webFallback);
+  }
 }
 
-function getPriceString(level: number): string {
-  return '$'.repeat(Math.min(level, 4)) || '?';
-}
+const PRICE_LABELS: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' };
 
 export default function SearchScreen() {
   const params = useLocalSearchParams<{ tab?: string }>();
@@ -100,65 +102,16 @@ export default function SearchScreen() {
   const { getUnreadCount } = useNotifications();
   useChat();
 
+  const placesSearch = usePlacesSearch();
   const [placeSearchQuery, setPlaceSearchQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
-  const [showPlaceDetail, setShowPlaceDetail] = useState(false);
-  const mapRef = useRef<MapView>(null);
-
-  const {
-    data: placesData,
-    isLoading: placesLoading,
-    isError: placesError,
-    search: searchPlaces,
-  } = usePlacesSearch();
-
-  const mapRegion = useMemo(() => {
-    const places = placesData?.results ?? [];
-    if (places.length === 0) {
-      return { latitude: 21.0278, longitude: 105.8342, latitudeDelta: 0.05, longitudeDelta: 0.05 };
-    }
-    if (places.length === 1) {
-      const p = places[0].place;
-      return { latitude: p.latitude, longitude: p.longitude, latitudeDelta: 0.01, longitudeDelta: 0.01 };
-    }
-    const lats = places.map((p) => p.place.latitude);
-    const lngs = places.map((p) => p.place.longitude);
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-    const pad = 0.02;
-    return {
-      latitude: (minLat + maxLat) / 2,
-      longitude: (minLng + maxLng) / 2,
-      latitudeDelta: Math.max(maxLat - minLat + pad * 2, 0.01),
-      longitudeDelta: Math.max(maxLng - minLng + pad * 2, 0.01),
-    };
-  }, [placesData]);
 
   const handlePlaceSearch = useCallback(() => {
-    if (placeSearchQuery.trim().length > 0) {
-      searchPlaces(placeSearchQuery.trim());
+    const query = placeSearchQuery.trim();
+    if (query.length > 0) {
+      placesSearch.search(query);
     }
-  }, [placeSearchQuery, searchPlaces]);
-
-  const handlePlaceSelect = useCallback((place: PlaceResult) => {
-    setSelectedPlace(place);
-    setShowPlaceDetail(true);
-  }, []);
-
-  const handleInviteToEat = useCallback((place: PlaceResult) => {
-    setShowPlaceDetail(false);
-    router.push({
-      pathname: '/create-invitation' as any,
-      params: {
-        restaurantName: place.place.name,
-        restaurantAddress: place.place.address,
-        restaurantCity: place.place.city,
-        restaurantCountry: place.place.country,
-      },
-    });
-  }, []);
+  }, [placeSearchQuery, placesSearch]);
 
   const handleUserPress = (user: User) => {
     router.push({ pathname: '/user-profile' as any, params: { userId: user.id } });
@@ -245,248 +198,160 @@ export default function SearchScreen() {
         <View style={styles.placesContainer}>
           <View style={styles.placesSearchRow}>
             <View style={styles.placesSearchInputWrap}>
-              <Search size={18} color="#999999" />
+              <Search size={18} color={Colors.textLight} />
               <TextInput
                 style={styles.placesSearchInput}
                 placeholder="Search restaurants, cuisines..."
-                placeholderTextColor="#666666"
+                placeholderTextColor={Colors.textLight}
                 value={placeSearchQuery}
                 onChangeText={setPlaceSearchQuery}
                 onSubmitEditing={handlePlaceSearch}
                 returnKeyType="search"
               />
               {placeSearchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => { setPlaceSearchQuery(''); }}>
-                  <X size={16} color="#999999" />
+                <TouchableOpacity onPress={() => { setPlaceSearchQuery(''); placesSearch.search(''); }}>
+                  <X size={16} color={Colors.textLight} />
                 </TouchableOpacity>
               )}
             </View>
-            <TouchableOpacity style={styles.placesSearchButton} onPress={handlePlaceSearch}>
-              <Text style={styles.placesSearchButtonText}>Search</Text>
-            </TouchableOpacity>
           </View>
 
-          {!placesData && !placesLoading && (
-            <View style={styles.placesEmptyState}>
-              <UtensilsCrossed size={48} color={Colors.textLight} />
-              <Text style={styles.placesEmptyText}>Discover Places</Text>
-              <Text style={styles.placesEmptySubtext}>Search for restaurants, cafes, and eateries to find your next meal</Text>
-            </View>
-          )}
-
-          {placesLoading && (
-            <View style={styles.placesLoadingState}>
+          {placesSearch.isLoading ? (
+            <View style={styles.placesLoading}>
               <ActivityIndicator size="large" color={Colors.primary} />
-              <Text style={styles.placesLoadingText}>Finding the best spots...</Text>
+              <Text style={styles.placesLoadingText}>Finding the best places...</Text>
             </View>
-          )}
-
-          {placesError && (
-            <View style={styles.placesEmptyState}>
-              <X size={48} color={Colors.error} />
-              <Text style={styles.placesEmptyText}>Something went wrong</Text>
-              <Text style={styles.placesEmptySubtext}>Try searching again</Text>
-            </View>
-          )}
-
-          {placesData && placesData.results.length > 0 && (
-            <>
-              <View style={styles.mapContainer}>
-                <MapView
-                  ref={mapRef}
-                  style={styles.map}
-                  region={mapRegion}
-                  showsUserLocation={false}
-                  showsMyLocationButton={false}
+          ) : placesSearch.data && placesSearch.data.results.length > 0 ? (
+            <FlatList
+              data={placesSearch.data.results}
+              keyExtractor={(item) => item.place.id}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.placeCard}
+                  onPress={() => setSelectedPlace(item)}
+                  activeOpacity={0.7}
                 >
-                  {placesData.results.map((item, idx) => (
-                    <Marker
-                      key={item.place.id}
-                      coordinate={{ latitude: item.place.latitude, longitude: item.place.longitude }}
-                      title={item.place.name}
-                      description={`${item.place.city}, ${item.place.country}`}
-                      onPress={() => handlePlaceSelect(item)}
-                    >
-                      <View style={styles.customMarker}>
-                        <View style={styles.markerPulse} />
-                        <View style={[styles.markerDot, idx === 0 && styles.markerDotFirst]}>
-                          <Text style={styles.markerEmoji}>{item.place.cuisineEmoji || '🍽️'}</Text>
-                        </View>
-                      </View>
-                    </Marker>
-                  ))}
-                </MapView>
-                <View style={styles.mapGradient} pointerEvents="none">
-                  <View style={styles.mapGradientTop} />
-                </View>
-              </View>
-
-              <Text style={styles.resultsCount}>
-                {placesData.totalResults} places found
-              </Text>
-
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                style={styles.placesCardList}
-                contentContainerStyle={styles.placesCardListContent}
-              >
-                {placesData.results.map((item, idx) => (
-                  <TouchableOpacity
-                    key={item.place.id}
-                    style={styles.placeCard}
-                    onPress={() => handlePlaceSelect(item)}
-                    activeOpacity={0.85}
-                  >
-                    <View style={styles.placeCardImageWrap}>
-                      <Image
-                        source={{ uri: PLACE_PHOTOS[idx % PLACE_PHOTOS.length] }}
-                        style={styles.placeCardImage}
-                      />
-                      <View style={styles.placeCardOverlay} />
-                      <View style={styles.placeCardBadge}>
-                        <Text style={styles.placeCardBadgeText}>{item.place.cuisineEmoji || '🍽️'}</Text>
-                      </View>
-                      {item.place.priceLevel > 0 && (
-                        <View style={styles.placeCardPrice}>
-                          <Text style={styles.placeCardPriceText}>{getPriceString(item.place.priceLevel)}</Text>
-                        </View>
-                      )}
-                    </View>
+                  <View style={styles.placeCardHeader}>
+                    <Text style={styles.placeCardEmoji}>{item.place.cuisineEmoji || '🍽️'}</Text>
                     <View style={styles.placeCardInfo}>
                       <Text style={styles.placeCardName} numberOfLines={1}>{item.place.name}</Text>
-                      <View style={styles.placeCardMeta}>
-                        <MapPin size={12} color={Colors.textLight} />
-                        <Text style={styles.placeCardLocation} numberOfLines={1}>{item.place.city}, {item.place.country}</Text>
-                      </View>
-                      <View style={styles.placeCardRating}>
-                        <Text style={styles.placeCardStars}>{getRatingStars(item.place.rating)}</Text>
-                        {item.place.rating > 0 && (
-                          <Text style={styles.placeCardRatingNum}>{item.place.rating.toFixed(1)}</Text>
-                        )}
-                      </View>
-                      <TouchableOpacity
-                        style={styles.inviteButton}
-                        onPress={() => handleInviteToEat(item)}
-                        activeOpacity={0.8}
-                      >
-                        <Users size={14} color="#FFFFFF" />
-                        <Text style={styles.inviteButtonText}>Invite to Eat</Text>
-                      </TouchableOpacity>
+                      <Text style={styles.placeCardLocation} numberOfLines={1}>
+                        <MapPin size={12} color={Colors.textLight} /> {item.place.city}, {item.place.country}
+                      </Text>
                     </View>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView>
-            </>
+                    {item.place.rating > 0 && (
+                      <View style={styles.placeCardRating}>
+                        <Text style={styles.placeCardRatingText}>{item.place.rating.toFixed(1)}</Text>
+                      </View>
+                    )}
+                  </View>
+                  {item.description ? (
+                    <Text style={styles.placeCardDescription} numberOfLines={2}>{item.description}</Text>
+                  ) : null}
+                  <View style={styles.placeCardBottom}>
+                    <View style={styles.placeCardTags}>
+                      {item.place.priceLevel > 0 && (
+                        <Text style={styles.placeCardPrice}>{PRICE_LABELS[item.place.priceLevel] || ''}</Text>
+                      )}
+                      {item.place.placeType.slice(0, 2).map((t: string) => (
+                        <View key={t} style={styles.placeCardTag}>
+                          <Text style={styles.placeCardTagText}>{t}</Text>
+                        </View>
+                      ))}
+                    </View>
+                    <Map size={14} color={Colors.textLight} />
+                  </View>
+                </TouchableOpacity>
+              )}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.placesList}
+            />
+          ) : placesSearch.data && placesSearch.data.results.length === 0 ? (
+            <View style={styles.placesEmpty}>
+              <UtensilsCrossed size={40} color={Colors.textLight} />
+              <Text style={styles.placesEmptyText}>No places found</Text>
+              <Text style={styles.placesEmptySubtext}>Try a different search</Text>
+            </View>
+          ) : (
+            <View style={styles.placesEmpty}>
+              <UtensilsCrossed size={40} color={Colors.primary} />
+              <Text style={styles.placesEmptyTitle}>Discover Places to Eat</Text>
+              <Text style={styles.placesEmptySubtext}>Search for any cuisine or dish to find great restaurants</Text>
+            </View>
           )}
         </View>
       )}
 
-      {showPlaceDetail && selectedPlace && (
+      {selectedPlace && (
         <View style={styles.detailOverlay}>
-          <TouchableOpacity
-            style={styles.detailBackdrop}
-            activeOpacity={1}
-            onPress={() => setShowPlaceDetail(false)}
-          />
+          <View style={styles.detailBackdrop} />
           <View style={styles.detailSheet}>
-            <View style={styles.detailHandle} />
-            <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-              <View style={styles.detailImageWrap}>
-                <Image
-                  source={{ uri: PLACE_PHOTOS[0] }}
-                  style={styles.detailImage}
-                />
-                <View style={styles.detailImageOverlay} />
-                <TouchableOpacity
-                  style={styles.detailClose}
-                  onPress={() => setShowPlaceDetail(false)}
-                >
-                  <X size={20} color="#FFFFFF" />
-                </TouchableOpacity>
-                <View style={styles.detailImageContent}>
-                  <Text style={styles.detailName}>{selectedPlace.place.name}</Text>
-                  <View style={styles.detailRatingInline}>
-                    <Text style={styles.detailStars}>{getRatingStars(selectedPlace.place.rating)}</Text>
-                    {selectedPlace.place.rating > 0 && (
-                      <Text style={styles.detailRatingNum}>{selectedPlace.place.rating.toFixed(1)}</Text>
-                    )}
-                    {selectedPlace.place.priceLevel > 0 && (
-                      <Text style={styles.detailPrice}>{getPriceString(selectedPlace.place.priceLevel)}</Text>
-                    )}
-                  </View>
-                </View>
-              </View>
+            <TouchableOpacity
+              style={styles.detailClose}
+              onPress={() => setSelectedPlace(null)}
+            >
+              <X size={22} color={Colors.text} />
+            </TouchableOpacity>
 
-              <View style={styles.detailBody}>
-                <Text style={styles.detailDescription}>{selectedPlace.description}</Text>
+            <ScrollView style={styles.detailBody} showsVerticalScrollIndicator={false}>
+              <Text style={styles.detailEmoji}>{selectedPlace.place.cuisineEmoji || '🍽️'}</Text>
+              <Text style={styles.detailName}>{selectedPlace.place.name}</Text>
+              <Text style={styles.detailLocation}>
+                {selectedPlace.place.address ? `${selectedPlace.place.address}, ` : ''}{selectedPlace.place.city}, {selectedPlace.place.country}
+              </Text>
 
-                <View style={styles.detailInfoGrid}>
-                  <View style={styles.detailInfoItem}>
-                    <MapPin size={16} color={Colors.primary} />
-                    <View style={styles.detailInfoTextWrap}>
-                      <Text style={styles.detailInfoLabel}>Location</Text>
-                      <Text style={styles.detailInfoValue}>{selectedPlace.place.address}</Text>
-                      <Text style={styles.detailInfoSub}>{selectedPlace.place.city}, {selectedPlace.place.country}</Text>
-                    </View>
-                  </View>
-
-                  {selectedPlace.place.phoneNumber && (
-                    <View style={styles.detailInfoItem}>
-                      <Phone size={16} color={Colors.primary} />
-                      <View style={styles.detailInfoTextWrap}>
-                        <Text style={styles.detailInfoLabel}>Phone</Text>
-                        <Text style={styles.detailInfoValue}>{selectedPlace.place.phoneNumber}</Text>
-                      </View>
-                    </View>
-                  )}
-
-                  {selectedPlace.place.openingHours && selectedPlace.place.openingHours.length > 0 && (
-                    <View style={styles.detailInfoItem}>
-                      <Clock size={16} color={Colors.primary} />
-                      <View style={styles.detailInfoTextWrap}>
-                        <Text style={styles.detailInfoLabel}>Hours</Text>
-                        {selectedPlace.place.openingHours.map((h: string, i: number) => (
-                          <Text key={i} style={styles.detailInfoValue}>{h}</Text>
-                        ))}
-                      </View>
-                    </View>
-                  )}
-
-                  {selectedPlace.place.website && (
-                    <View style={styles.detailInfoItem}>
-                      <Globe size={16} color={Colors.primary} />
-                      <View style={styles.detailInfoTextWrap}>
-                        <Text style={styles.detailInfoLabel}>Website</Text>
-                        <Text style={styles.detailInfoValue}>{selectedPlace.place.website}</Text>
-                      </View>
-                    </View>
+              {selectedPlace.place.rating > 0 && (
+                <View style={styles.detailMeta}>
+                  <Text style={styles.detailRating}>★ {selectedPlace.place.rating.toFixed(1)}</Text>
+                  {selectedPlace.place.priceLevel > 0 && (
+                    <Text style={styles.detailPrice}>{PRICE_LABELS[selectedPlace.place.priceLevel]}</Text>
                   )}
                 </View>
+              )}
 
-                <TouchableOpacity
-                  style={styles.detailInviteButton}
-                  onPress={() => handleInviteToEat(selectedPlace)}
-                  activeOpacity={0.85}
-                >
-                  <Users size={20} color="#FFFFFF" />
-                  <Text style={styles.detailInviteText}>Invite Someone to Eat Here</Text>
-                </TouchableOpacity>
+              <Text style={styles.detailDescription}>{selectedPlace.description}</Text>
 
-                {selectedPlace.place.googleMapsUrl && (
-                  <TouchableOpacity
-                    style={styles.detailDirectionsButton}
-                    onPress={() => {
-                      router.push(selectedPlace.place.googleMapsUrl as any);
-                    }}
-                    activeOpacity={0.85}
-                  >
-                    <Navigation size={16} color={Colors.primary} />
-                    <Text style={styles.detailDirectionsText}>Get Directions</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
+              {selectedPlace.place.placeType.length > 0 && (
+                <View style={styles.detailTags}>
+                  {selectedPlace.place.placeType.map((t: string) => (
+                    <View key={t} style={styles.detailTag}>
+                      <Text style={styles.detailTagText}>{t}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </ScrollView>
+
+            <View style={styles.detailActions}>
+              <TouchableOpacity
+                style={styles.detailMapsButton}
+                onPress={() => {
+                  const label = `${selectedPlace.place.name} ${selectedPlace.place.city}`;
+                  openGoogleMaps(label);
+                }}
+                activeOpacity={0.7}
+              >
+                <Map size={18} color={Colors.primary} />
+                <Text style={styles.detailMapsButtonText}>Maps</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.detailInviteButton}
+                onPress={() => {
+                  setSelectedPlace(null);
+                  router.push({
+                    pathname: '/create-invitation' as any,
+                    params: {
+                      placeName: selectedPlace.place.name,
+                      placeAddress: selectedPlace.place.address || `${selectedPlace.place.city}, ${selectedPlace.place.country}`,
+                    },
+                  });
+                }}
+                activeOpacity={0.7}
+              >
+                <Send size={18} color="#FFFFFF" />
+                <Text style={styles.detailInviteButtonText}>Invite to Eat</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       )}
@@ -643,78 +508,56 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#FFFFFF' },
 
   placesContainer: { flex: 1, backgroundColor: Colors.background },
-  placesSearchRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 10, backgroundColor: Colors.surface, gap: 8 },
-  placesSearchInputWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#262626', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: Colors.border },
-  placesSearchInput: { flex: 1, marginLeft: 8, fontSize: 15, color: '#FFFFFF' },
-  placesSearchButton: { backgroundColor: Colors.primary, borderRadius: 12, paddingVertical: 10, paddingHorizontal: 18, alignItems: 'center', justifyContent: 'center' },
-  placesSearchButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
 
-  placesEmptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 48, paddingBottom: 60 },
-  placesEmptyText: { fontSize: 18, fontWeight: '600', color: Colors.text, marginTop: 16 },
-  placesEmptySubtext: { fontSize: 14, color: Colors.textLight, marginTop: 8, textAlign: 'center', lineHeight: 20 },
+  placesSearchRow: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  placesSearchInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Colors.border },
+  placesSearchInput: { flex: 1, marginLeft: 8, fontSize: 15, color: Colors.text },
 
-  placesLoadingState: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16, paddingBottom: 60 },
-  placesLoadingText: { fontSize: 15, color: Colors.textLight, marginTop: 8 },
+  placesLoading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 },
+  placesLoadingText: { fontSize: 14, color: Colors.textLight, marginTop: 12 },
 
-  mapContainer: { height: MAP_HEIGHT, position: 'relative' },
-  map: { ...StyleSheet.absoluteFillObject },
-  mapGradient: { position: 'absolute', top: 0, left: 0, right: 0, height: 60, pointerEvents: 'none' as const },
-  mapGradientTop: { flex: 1, backgroundColor: 'transparent' },
-  customMarker: { alignItems: 'center', justifyContent: 'center' },
-  markerPulse: { position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255, 107, 53, 0.2)', top: -4, left: -4 },
-  markerDot: { width: 32, height: 32, borderRadius: 16, backgroundColor: Colors.primary, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFFFF', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 4, elevation: 5 },
-  markerDotFirst: { backgroundColor: '#FF4444', width: 36, height: 36, borderRadius: 18 },
-  markerEmoji: { fontSize: 14 },
+  placesList: { paddingHorizontal: 16, paddingBottom: 24 },
 
-  resultsCount: { fontSize: 13, fontWeight: '600', color: Colors.textLight, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 4 },
+  placesEmpty: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, paddingBottom: 80 },
+  placesEmptyTitle: { fontSize: 20, fontWeight: '800', color: Colors.text, marginTop: 16, textAlign: 'center' },
+  placesEmptyText: { fontSize: 16, fontWeight: '600', color: Colors.textLight, marginTop: 12 },
+  placesEmptySubtext: { fontSize: 14, color: Colors.textLight, marginTop: 6, textAlign: 'center' },
 
-  placesCardList: { maxHeight: 202, flexGrow: 0 },
-  placesCardListContent: { paddingHorizontal: 16, gap: 12, paddingBottom: 12 },
+  placeCard: { backgroundColor: Colors.surface, borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: Colors.border },
+  placeCardHeader: { flexDirection: 'row', alignItems: 'center' },
+  placeCardEmoji: { fontSize: 28, marginRight: 12 },
+  placeCardInfo: { flex: 1 },
+  placeCardName: { fontSize: 16, fontWeight: '700', color: Colors.text, marginBottom: 2 },
+  placeCardLocation: { fontSize: 12, color: Colors.textLight },
+  placeCardRating: { backgroundColor: Colors.primary, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, marginLeft: 8 },
+  placeCardRatingText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
+  placeCardDescription: { fontSize: 13, color: Colors.textLight, marginTop: 10, lineHeight: 18 },
+  placeCardBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 },
+  placeCardTags: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  placeCardPrice: { fontSize: 14, fontWeight: '700', color: Colors.primary },
+  placeCardTag: { backgroundColor: '#2A2A2A', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
+  placeCardTagText: { fontSize: 11, fontWeight: '600', color: Colors.textLight, textTransform: 'capitalize' as const },
 
-  placeCard: { width: 200, backgroundColor: Colors.surface, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: Colors.border },
-  placeCardImageWrap: { height: 110, position: 'relative' },
-  placeCardImage: { width: '100%', height: '100%' },
-  placeCardOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.15)' },
-  placeCardBadge: { position: 'absolute', top: 8, left: 8, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 10, width: 28, height: 28, alignItems: 'center', justifyContent: 'center' },
-  placeCardBadgeText: { fontSize: 14 },
-  placeCardPrice: { position: 'absolute', top: 8, right: 8, backgroundColor: 'rgba(0,0,0,0.6)', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
-  placeCardPriceText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
-  placeCardInfo: { padding: 10, gap: 4 },
-  placeCardName: { fontSize: 14, fontWeight: '700', color: Colors.text },
-  placeCardMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  placeCardLocation: { fontSize: 11, color: Colors.textLight, flex: 1 },
-  placeCardRating: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  placeCardStars: { fontSize: 10, color: Colors.premium, letterSpacing: 1 },
-  placeCardRatingNum: { fontSize: 11, fontWeight: '600', color: Colors.textLight },
-  inviteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, borderRadius: 10, paddingVertical: 8, paddingHorizontal: 12, marginTop: 6, gap: 6 },
-  inviteButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
-
-  detailOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 300 },
-  detailBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.6)' },
-  detailSheet: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: Colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
-  detailHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: Colors.border, alignSelf: 'center', marginTop: 12, marginBottom: 8 },
-  detailImageWrap: { height: 200, position: 'relative' },
-  detailImage: { width: '100%', height: '100%' },
-  detailImageOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.45)', borderTopLeftRadius: 24, borderTopRightRadius: 24 },
-  detailClose: { position: 'absolute', top: 16, right: 16, width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' },
-  detailImageContent: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20 },
-  detailName: { fontSize: 24, fontWeight: '800', color: '#FFFFFF', marginBottom: 6 },
-  detailRatingInline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  detailStars: { fontSize: 14, color: Colors.premium, letterSpacing: 2 },
-  detailRatingNum: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
-  detailPrice: { fontSize: 13, fontWeight: '600', color: 'rgba(255,255,255,0.8)' },
-  detailBody: { padding: 20, gap: 20 },
-  detailDescription: { fontSize: 15, color: Colors.textLight, lineHeight: 22 },
-  detailInfoGrid: { gap: 16 },
-  detailInfoItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  detailInfoTextWrap: { flex: 1, gap: 2 },
-  detailInfoLabel: { fontSize: 11, fontWeight: '600', color: Colors.textLight, textTransform: 'uppercase' as const, letterSpacing: 1 },
-  detailInfoValue: { fontSize: 14, color: Colors.text, lineHeight: 20 },
-  detailInfoSub: { fontSize: 12, color: Colors.textLight },
-  detailInviteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 16, gap: 10 },
-  detailInviteText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
-  detailDirectionsButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, borderWidth: 1, borderColor: Colors.border, gap: 8 },
-  detailDirectionsText: { color: Colors.primary, fontSize: 15, fontWeight: '600' },
+  detailOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'flex-end' },
+  detailBackdrop: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)' },
+  detailSheet: { backgroundColor: Colors.surface, borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', paddingBottom: 24 },
+  detailClose: { position: 'absolute' as const, top: 16, right: 16, zIndex: 10, backgroundColor: '#2A2A2A', borderRadius: 20, padding: 6 },
+  detailBody: { paddingHorizontal: 24, paddingTop: 24 },
+  detailEmoji: { fontSize: 44, textAlign: 'center', marginBottom: 10 },
+  detailName: { fontSize: 22, fontWeight: '800', color: Colors.text, textAlign: 'center', marginBottom: 4 },
+  detailLocation: { fontSize: 13, color: Colors.textLight, textAlign: 'center', lineHeight: 18 },
+  detailMeta: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 10, marginBottom: 16 },
+  detailRating: { fontSize: 16, fontWeight: '700', color: Colors.primary },
+  detailPrice: { fontSize: 16, fontWeight: '700', color: Colors.textLight },
+  detailDescription: { fontSize: 14, color: Colors.textLight, lineHeight: 21, textAlign: 'center', marginBottom: 16 },
+  detailTags: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginBottom: 8 },
+  detailTag: { backgroundColor: '#2A2A2A', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 5 },
+  detailTagText: { fontSize: 12, fontWeight: '600', color: Colors.textLight, textTransform: 'capitalize' as const },
+  detailActions: { flexDirection: 'row', paddingHorizontal: 24, paddingTop: 16, gap: 10 },
+  detailMapsButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#2A2A2A', borderRadius: 14, paddingVertical: 14, gap: 8, borderWidth: 1, borderColor: Colors.primary },
+  detailMapsButtonText: { fontSize: 15, fontWeight: '700', color: Colors.primary },
+  detailInviteButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, borderRadius: 14, paddingVertical: 14, gap: 8 },
+  detailInviteButtonText: { fontSize: 15, fontWeight: '700', color: '#FFFFFF' },
   modalOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end', zIndex: 100 },
   modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
