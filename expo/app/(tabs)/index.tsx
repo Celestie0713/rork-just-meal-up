@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send } from 'lucide-react-native';
+import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
@@ -225,6 +225,15 @@ export default function SearchScreen() {
               </TouchableOpacity>
             </TouchableOpacity>
           </View>
+
+          <TouchableOpacity
+            style={styles.placesAddButton}
+            onPress={() => router.push('/create-invitation' as any)}
+            activeOpacity={0.7}
+          >
+            <Plus size={16} color={Colors.primary} />
+            <Text style={styles.placesAddButtonText}>Add a place</Text>
+          </TouchableOpacity>
 
           {placesSearch.isLoading ? (
             <View style={styles.placesLoading}>
@@ -591,6 +600,9 @@ const styles = StyleSheet.create({
   placesSearchRow: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
   placesSearchInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Colors.border },
   placesSearchInput: { flex: 1, marginRight: 8, fontSize: 15, color: Colors.text },
+
+  placesAddButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginBottom: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(255, 165, 0, 0.08)', borderWidth: 1, borderColor: Colors.primary, borderStyle: 'dashed' as const, gap: 6 },
+  placesAddButtonText: { fontSize: 14, fontWeight: '600' as const, color: Colors.primary },
 
   placesLoading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 },
   placesLoadingText: { fontSize: 14, color: Colors.textLight, marginTop: 12 },

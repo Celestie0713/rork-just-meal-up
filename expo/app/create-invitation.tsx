@@ -50,7 +50,7 @@ export default function CreateInvitationScreen() {
   const [tempMinute, setTempMinute] = useState<number>(0);
   const [tempPeriod, setTempPeriod] = useState<'AM' | 'PM'>('PM');
 
-  const [isEditingPlace, setIsEditingPlace] = useState(false);
+  const [isEditingPlace, setIsEditingPlace] = useState(!placeName);
   const [editName, setEditName] = useState(placeName || '');
   const [editCity, setEditCity] = useState(placeCity || '');
   const [editCountry, setEditCountry] = useState(placeCountry || '');
