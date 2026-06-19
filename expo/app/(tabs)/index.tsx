@@ -6,6 +6,7 @@ import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
+import { useFavorites } from '@/hooks/use-favorites';
 import { usePlacesSearch } from '@/hooks/use-places-search';
 import type { PlaceResult } from '@/hooks/use-places-search';
 
@@ -105,6 +106,7 @@ export default function SearchScreen() {
   const placesSearch = usePlacesSearch();
   const [placeSearchQuery, setPlaceSearchQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
+  const { addToFavorites, removeFromFavorites, isPlaceInFavorites } = useFavorites();
 
   const handlePlaceSearch = useCallback(() => {
     const query = placeSearchQuery.trim();
@@ -259,7 +261,38 @@ export default function SearchScreen() {
                         </View>
                       ))}
                     </View>
-                    <Map size={14} color={Colors.textLight} />
+                    <View style={styles.placeCardActions}>
+                      <TouchableOpacity
+                        onPress={(e) => {
+                          e.stopPropagation?.();
+                          const placeId = item.place.id;
+                          if (isPlaceInFavorites(placeId)) {
+                            removeFromFavorites(placeId);
+                          } else {
+                            addToFavorites({
+                              place_id: placeId,
+                              name: item.place.name,
+                              city: item.place.city,
+                              country: item.place.country,
+                              latitude: item.place.latitude,
+                              longitude: item.place.longitude,
+                              googleMapsUrl: item.place.googleMapsUrl,
+                              cuisineEmoji: item.place.cuisineEmoji,
+                              rating: item.place.rating,
+                              price_level: item.place.priceLevel,
+                            });
+                          }
+                        }}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Heart
+                          size={16}
+                          color="#FF2D55"
+                          fill={isPlaceInFavorites(item.place.id) ? '#FF2D55' : 'none'}
+                        />
+                      </TouchableOpacity>
+                      <Map size={14} color={Colors.textLight} />
+                    </View>
                   </View>
                 </TouchableOpacity>
               )}
@@ -543,6 +576,7 @@ const styles = StyleSheet.create({
   placeCardPrice: { fontSize: 14, fontWeight: '700', color: Colors.primary },
   placeCardTag: { backgroundColor: '#2A2A2A', borderRadius: 6, paddingHorizontal: 8, paddingVertical: 3 },
   placeCardTagText: { fontSize: 11, fontWeight: '600', color: Colors.textLight, textTransform: 'capitalize' as const },
+  placeCardActions: { flexDirection: 'row', alignItems: 'center', gap: 12 },
 
   detailOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 200, justifyContent: 'flex-end' },
   detailBackdrop: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)' },
