@@ -156,7 +156,6 @@ export default function SearchScreen() {
         </View>
         <View style={styles.searchContainer}>
           <View style={styles.searchInputContainer}>
-            <Search size={20} color="#000000" />
             <TextInput
               style={styles.searchInput}
               placeholder="Search"
@@ -164,6 +163,7 @@ export default function SearchScreen() {
               onChangeText={setSearchQuery}
               placeholderTextColor="#666666"
             />
+            <Search size={20} color="#000000" />
           </View>
           <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
             <Filter size={20} color="#000000" />
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
   notificationBadgeText: { color: '#FFFFFF', fontSize: 12, fontWeight: '600' },
   searchContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
   searchInputContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF8E7', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12, marginRight: 8, borderWidth: 1, borderColor: '#888888' },
-  searchInput: { flex: 1, marginLeft: 8, fontSize: 16, color: '#000000' },
+  searchInput: { flex: 1, marginRight: 8, fontSize: 16, color: '#000000' },
   filterButton: { backgroundColor: '#FFF8E7', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#888888' },
   listContent: { paddingBottom: 20, paddingHorizontal: 4 },
   row: { justifyContent: 'space-between', paddingHorizontal: 4 },
