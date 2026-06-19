@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
   detailCityCountryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 2 },
   detailCityCountryText: { fontSize: 14, fontWeight: '600', color: Colors.text },
   detailAddress: { fontSize: 12, color: Colors.textLight, textAlign: 'center', lineHeight: 17, fontStyle: 'italic' as const, marginBottom: 4 },
-  detailAddressHint: { fontSize: 11, color: '#888888', textAlign: 'center', marginBottom: 8 },
+  detailAddressHint: { fontSize: 13, color: '#888888', textAlign: 'center', marginBottom: 8 },
   detailMeta: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 10, marginBottom: 16 },
   detailRating: { fontSize: 16, fontWeight: '700', color: Colors.primary },
   detailPrice: { fontSize: 16, fontWeight: '700', color: Colors.textLight },

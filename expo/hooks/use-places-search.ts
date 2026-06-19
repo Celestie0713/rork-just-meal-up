@@ -4,23 +4,41 @@ import { useMutation } from '@tanstack/react-query';
 import { generateObject } from '@rork-ai/toolkit-sdk';
 import { z } from 'zod';
 
+const nullableString = z.preprocess((v) => (v === null || v === undefined ? '' : String(v)), z.string());
+const nullableNumber = z.preprocess((v) => {
+  if (v === null || v === undefined) return 0;
+  if (typeof v === 'string') {
+    const n = parseFloat(v);
+    return isNaN(n) ? 0 : n;
+  }
+  if (typeof v === 'number') return v;
+  return 0;
+}, z.number());
+const nullableStringArray = z.preprocess((v) => {
+  if (!Array.isArray(v)) return [];
+  return v.map((item) => (item === null || item === undefined ? '' : String(item)));
+}, z.array(z.string()));
+
 const PlaceSchema = z.object({
-  name: z.string(),
-  address: z.string(),
-  city: z.string(),
-  country: z.string(),
-  latitude: z.number(),
-  longitude: z.number(),
-  rating: z.number(),
-  priceLevel: z.number(),
-  placeType: z.array(z.string()),
-  cuisineEmoji: z.string(),
-  phoneNumber: z.string().optional(),
-  website: z.string().optional(),
-  googleMapsUrl: z.string().optional(),
-  openingHours: z.array(z.string()).optional(),
-  description: z.string(),
-  matchScore: z.number(),
+  name: nullableString,
+  address: nullableString,
+  city: nullableString,
+  country: nullableString,
+  latitude: nullableNumber,
+  longitude: nullableNumber,
+  rating: nullableNumber,
+  priceLevel: nullableNumber,
+  placeType: z.preprocess((v) => {
+    if (!Array.isArray(v)) return typeof v === 'string' ? [v] : [];
+    return v.map((item) => (item === null || item === undefined ? '' : String(item)));
+  }, z.array(z.string())),
+  cuisineEmoji: nullableString,
+  phoneNumber: z.string().nullable().optional(),
+  website: z.string().nullable().optional(),
+  googleMapsUrl: z.string().nullable().optional(),
+  openingHours: nullableStringArray.nullable().optional(),
+  description: nullableString,
+  matchScore: nullableNumber,
 });
 
 const PlacesResponseSchema = z.object({
@@ -94,11 +112,13 @@ async function searchPlacesAI(query: string, limit: number = 8, userLocation?: U
     locationContext = '\n\nDo NOT bias results by the user\'s current location. Search globally based on the query. If the query mentions a city or location, return places in THAT location. If no location is mentioned, return the most famous/relevant places worldwide that match the query.';
   }
 
-  const result = await generateObject({
-    messages: [
-      {
-        role: "user",
-        content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"${locationContext}
+  let result: { places: any[] };
+  try {
+    result = await generateObject({
+      messages: [
+        {
+          role: "user",
+          content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"${locationContext}
 
 CRITICAL QUANTITY REQUIREMENT:
 - You MUST return at least 20 REAL restaurants/venues. Aim for the full ${limit}.
@@ -154,7 +174,13 @@ Otherwise, follow the location context above.`,
       },
     ],
     schema: PlacesResponseSchema,
-  });
+    });
+  } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      console.error("[Places AI Search] Schema validation failed:", JSON.stringify(err.issues, null, 2));
+    }
+    throw err;
+  }
 
   console.log("[Places AI Search] Generated", result.places.length, "places");
 
