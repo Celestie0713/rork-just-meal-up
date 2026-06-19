@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Animated, Keyboard, Alert, Platform } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Animated, Keyboard, Alert, Platform, ActivityIndicator, Linking } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation, ChevronDown } from 'lucide-react-native';
+import { Search, Filter, Heart, X, MapPin, Star, Gift, Sparkles, Send, Utensils, Navigation, ChevronDown, ExternalLink, MapPinned, Loader2 } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { SuccessPopup } from '@/components/SuccessPopup';
@@ -9,7 +9,7 @@ import { NotificationPopup } from '@/components/NotificationPopup';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
-import { usePlacesSearch } from '@/hooks/use-places-search';
+import { usePlacesSearch, type PlaceResult } from '@/hooks/use-places-search';
 import { useFavorites } from '@/hooks/use-favorites';
 import { Colors } from '@/constants/colors';
 import type { User } from '@/types/user';
@@ -63,8 +63,10 @@ export default function SearchScreen() {
   }, [params.tab]);
 
   const [searchQuery, setSearchQuery] = useState('');
+  const [placesQuery, setPlacesQuery] = useState('');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const placesDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -82,6 +84,22 @@ export default function SearchScreen() {
   const handleUserPress = (user: User) => {
     router.push({ pathname: '/user-profile' as any, params: { userId: user.id } });
   };
+
+  // Debounced places search
+  useEffect(() => {
+    if (activeTab !== 'places') return;
+    if (placesDebounceRef.current) clearTimeout(placesDebounceRef.current);
+    if (placesQuery.trim().length === 0) return;
+    placesDebounceRef.current = setTimeout(() => {
+      placesSearch.search(placesQuery);
+    }, 500);
+    return () => {
+      if (placesDebounceRef.current) clearTimeout(placesDebounceRef.current);
+    };
+  }, [placesQuery, activeTab]);
+
+  const placeResults = placesSearch.data?.results ?? [];
+  const hasSearchedPlaces = placesSearch.data !== null || placesSearch.isLoading || placesSearch.isError;
 
   const unreadCount = getUnreadCount();
 
@@ -101,6 +119,57 @@ export default function SearchScreen() {
   const renderUser = useCallback(({ item }: { item: User }) => {
     return <UserCard user={item} onPress={() => handleUserPress(item)} isGridView={true} />;
   }, []);
+
+  const openInMaps = useCallback((place: PlaceResult['place']) => {
+    if (place.googleMapsUrl) {
+      Linking.openURL(place.googleMapsUrl).catch(() => {});
+    } else {
+      const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.city + ' ' + place.country)}`;
+      Linking.openURL(url).catch(() => {});
+    }
+  }, []);
+
+  const renderPlace = useCallback(({ item }: { item: PlaceResult }) => {
+    const p = item.place;
+    const stars = p.rating > 0 ? '★'.repeat(Math.round(p.rating)) + '☆'.repeat(5 - Math.round(p.rating)) : '';
+    const priceStr = p.priceLevel > 0 ? '$'.repeat(p.priceLevel) : '';
+    return (
+      <View style={styles.placeCard}>
+        <View style={styles.placeCardTop}>
+          <View style={styles.placeNameRow}>
+            <Text style={styles.placeEmoji}>{p.cuisineEmoji || '🍽️'}</Text>
+            <View style={styles.placeNameInfo}>
+              <Text style={styles.placeName} numberOfLines={2}>{p.name}</Text>
+              <View style={styles.placeMetaRow}>
+                {stars ? <Text style={styles.placeStars}>{stars}</Text> : null}
+                {priceStr ? <Text style={styles.placePrice}>{priceStr}</Text> : null}
+                <View style={styles.matchBadge}>
+                  <Text style={styles.matchBadgeText}>{item.matchScore}%</Text>
+                </View>
+              </View>
+            </View>
+          </View>
+        </View>
+        {item.description ? (
+          <Text style={styles.placeDescription} numberOfLines={2}>{item.description}</Text>
+        ) : null}
+        <View style={styles.placeCardBottom}>
+          <View style={styles.placeLocationRow}>
+            <MapPinned size={14} color={Colors.primary} />
+            <Text style={styles.placeAddress} numberOfLines={1}>
+              {p.city}{p.country ? `, ${p.country}` : ''}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.mapsButton} onPress={() => openInMaps(p)} activeOpacity={0.7}>
+            <ExternalLink size={14} color={Colors.primary} />
+            <Text style={styles.mapsButtonText}>Maps</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }, [openInMaps]);
+
+  const renderPlaceKey = useCallback((item: PlaceResult) => item.place.id, []);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -160,10 +229,71 @@ export default function SearchScreen() {
       )}
       {activeTab === 'places' && (
         <View style={styles.placesContainer}>
-          <View style={styles.placesEmptyState}>
-            <Text style={styles.placesEmptyText}>Places Search</Text>
-            <Text style={styles.placesEmptySubtext}>Coming soon</Text>
+          <View style={styles.placesSearchRow}>
+            <View style={styles.placesSearchInputContainer}>
+              <Search size={18} color={Colors.textLight} />
+              <TextInput
+                style={styles.placesSearchInput}
+                placeholder="Search restaurants, cafes, bars..."
+                placeholderTextColor={Colors.textLight}
+                value={placesQuery}
+                onChangeText={setPlacesQuery}
+                returnKeyType="search"
+              />
+              {placesQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setPlacesQuery('')}>
+                  <X size={16} color={Colors.textLight} />
+                </TouchableOpacity>
+              )}
+            </View>
+            {placesSearch.needsLocationForQuery(placesQuery) && (
+              <TouchableOpacity
+                style={styles.enableLocationButton}
+                onPress={() => placesSearch.requestLocationPermission()}
+                activeOpacity={0.7}
+              >
+                <Navigation size={14} color={Colors.primary} />
+                <Text style={styles.enableLocationText}>Enable Location</Text>
+              </TouchableOpacity>
+            )}
           </View>
+
+          {placesSearch.isLoading ? (
+            <View style={styles.placesCenterState}>
+              <ActivityIndicator size="large" color={Colors.primary} />
+              <Text style={styles.placesLoadingText}>Searching for the best spots...</Text>
+            </View>
+          ) : placesSearch.isError ? (
+            <View style={styles.placesCenterState}>
+              <X size={40} color={Colors.error} />
+              <Text style={styles.placesErrorText}>Something went wrong</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={() => placesSearch.refetch()} activeOpacity={0.7}>
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          ) : hasSearchedPlaces && placeResults.length === 0 ? (
+            <View style={styles.placesCenterState}>
+              <Search size={40} color={Colors.textLight} />
+              <Text style={styles.placesEmptyText}>No places found</Text>
+              <Text style={styles.placesEmptySubtext}>Try a different search term</Text>
+            </View>
+          ) : !hasSearchedPlaces ? (
+            <View style={styles.placesCenterState}>
+              <Utensils size={48} color={Colors.primary} />
+              <Text style={styles.placesPromptTitle}>Discover Places</Text>
+              <Text style={styles.placesPromptSubtext}>{`Search for restaurants, cafes, and bars
+to find your next meal up spot`}</Text>
+            </View>
+          ) : (
+            <FlatList
+              data={placeResults}
+              renderItem={renderPlace}
+              keyExtractor={renderPlaceKey}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.placesListContent}
+              ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+            />
+          )}
         </View>
       )}
 
@@ -319,8 +449,8 @@ const styles = StyleSheet.create({
   activeTabText: { color: '#FFFFFF' },
   placesContainer: { flex: 1, backgroundColor: Colors.background },
   placesEmptyState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32 },
-  placesEmptyText: { fontSize: 18, fontWeight: '600', color: '#000000', marginTop: 16 },
-  placesEmptySubtext: { fontSize: 14, color: '#666666', marginTop: 8, textAlign: 'center' },
+  placesEmptyText: { fontSize: 18, fontWeight: '600', color: Colors.text, marginTop: 16 },
+  placesEmptySubtext: { fontSize: 14, color: Colors.textLight, marginTop: 8, textAlign: 'center' },
   modalOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end', zIndex: 100 },
   modalContent: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
@@ -357,4 +487,35 @@ const styles = StyleSheet.create({
   countryOptionActive: { backgroundColor: '#000000' },
   countryOptionText: { fontSize: 16, color: '#000000' },
   countryOptionTextActive: { color: '#FFFFFF' },
+  // Places tab styles
+  placesSearchRow: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  placesSearchInputContainer: { flex: 1, flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 12, borderWidth: 1, borderColor: Colors.border },
+  placesSearchInput: { flex: 1, marginLeft: 8, fontSize: 16, color: Colors.text },
+  enableLocationButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Colors.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Colors.primary },
+  enableLocationText: { fontSize: 13, fontWeight: '600', color: Colors.primary },
+  placesCenterState: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 32, paddingBottom: 60 },
+  placesLoadingText: { fontSize: 16, color: Colors.textLight, marginTop: 16 },
+  placesErrorText: { fontSize: 16, fontWeight: '600', color: Colors.error, marginTop: 12 },
+  retryButton: { marginTop: 16, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 12, backgroundColor: Colors.primary },
+  retryButtonText: { fontSize: 15, fontWeight: '600', color: '#FFFFFF' },
+  placesPromptTitle: { fontSize: 22, fontWeight: '700', color: Colors.text, marginTop: 20 },
+  placesPromptSubtext: { fontSize: 15, color: Colors.textLight, marginTop: 10, textAlign: 'center', lineHeight: 22 },
+  placesListContent: { paddingHorizontal: 16, paddingBottom: 24 },
+  placeCard: { backgroundColor: Colors.surface, borderRadius: 16, padding: 16, borderWidth: 1, borderColor: Colors.border },
+  placeCardTop: { marginBottom: 10 },
+  placeNameRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  placeEmoji: { fontSize: 32, lineHeight: 40 },
+  placeNameInfo: { flex: 1 },
+  placeName: { fontSize: 17, fontWeight: '700', color: Colors.text, lineHeight: 22 },
+  placeMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
+  placeStars: { fontSize: 13, color: '#FFD700', letterSpacing: 1 },
+  placePrice: { fontSize: 13, fontWeight: '600', color: Colors.primary },
+  matchBadge: { backgroundColor: Colors.primary, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 },
+  matchBadgeText: { fontSize: 11, fontWeight: '700', color: '#FFFFFF' },
+  placeDescription: { fontSize: 14, color: Colors.textLight, lineHeight: 20, marginBottom: 12 },
+  placeCardBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: Colors.border, paddingTop: 12 },
+  placeLocationRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
+  placeAddress: { fontSize: 13, color: Colors.textLight, flex: 1 },
+  mapsButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(255,107,53,0.15)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 8 },
+  mapsButtonText: { fontSize: 13, fontWeight: '600', color: Colors.primary },
 });
