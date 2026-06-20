@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
 
 export function safeGoBack() {
-  try {
+  if (router.canGoBack()) {
     router.back();
-  } catch {
+  } else {
     router.replace('/');
   }
 }
