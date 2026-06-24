@@ -121,8 +121,8 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
           content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"${locationContext}
 
 CRITICAL QUANTITY REQUIREMENT:
-- You MUST return at least 20 REAL restaurants/venues. Aim for the full ${limit}.
-- NEVER return fewer than 15 results unless the query is extremely obscure and you genuinely cannot think of more.
+- You MUST return at least 30 REAL restaurants/venues. Aim for the full ${limit}.
+- NEVER return fewer than 20 results unless the query is extremely obscure and you genuinely cannot think of more.
 - For common dishes (like "pork noodle", "ramen", "pizza", "burger", etc.), returning 4-5 results is UNACCEPTABLE. You must return 20+.
 - Think systematically: what are the famous establishments in each major city or region known for this dish? List them ALL.
 - Include places from international chains, local chains, famous independent restaurants, hawker stalls, food courts, coffee shops, and hidden gems.
@@ -377,7 +377,7 @@ export function usePlacesSearch() {
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 30, userLocation),
+    mutationFn: (query: string) => searchPlacesAI(query, 50, userLocation),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
