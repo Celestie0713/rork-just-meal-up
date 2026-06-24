@@ -601,7 +601,7 @@ const styles = StyleSheet.create({
   placesSearchInputWrap: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.surface, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: Colors.border },
   placesSearchInput: { flex: 1, marginRight: 8, fontSize: 15, color: Colors.text },
 
-  placesAddButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginBottom: 8, paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(255, 165, 0, 0.08)', borderWidth: 1, borderColor: Colors.primary, borderStyle: 'dashed' as const, gap: 6 },
+  placesAddButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginBottom: 12, paddingVertical: 14, borderRadius: 14, backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.primary, gap: 8 },
   placesAddButtonText: { fontSize: 14, fontWeight: '600' as const, color: Colors.primary },
 
   placesLoading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 },
