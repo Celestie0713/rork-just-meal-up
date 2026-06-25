@@ -154,21 +154,23 @@ export default function SearchScreen() {
             )}
           </TouchableOpacity>
         </View>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputContainer}>
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholderTextColor="#666666"
-            />
-            <Search size={20} color="#000000" />
+        {activeTab === 'user' && (
+          <View style={styles.searchContainer}>
+            <View style={styles.searchInputContainer}>
+              <TextInput
+                style={styles.searchInput}
+                placeholder="Search"
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholderTextColor="#666666"
+              />
+              <Search size={20} color="#000000" />
+            </View>
+            <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
+              <Filter size={20} color="#000000" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilterModal(true)}>
-            <Filter size={20} color="#000000" />
-          </TouchableOpacity>
-        </View>
+        )}
         <View style={styles.tabContainer}>
           <TouchableOpacity 
             style={[styles.tab, styles.tabLeft, activeTab === 'user' && styles.activeTab]}
@@ -208,7 +210,7 @@ export default function SearchScreen() {
             >
               <TextInput
                 style={styles.placesSearchInput}
-                placeholder="Search restaurants, cuisines..."
+                placeholder='Search cuisines... or use "exact name"'
                 placeholderTextColor={Colors.textLight}
                 value={placeSearchQuery}
                 onChangeText={setPlaceSearchQuery}

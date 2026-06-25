@@ -113,9 +113,9 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
 
 const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return ONLY restaurants that DIRECTLY match the search query. The dish or cuisine must be the PRIMARY specialty. Only return places you are CERTAIN exist — do not guess or fabricate. Always provide a googleMapsUrl. Sort by matchScore descending.`;
 
-function buildSearchPrompt(query: string, locationContext: string, batchHint: string, maxExpected?: number): string {
-  const quantityLine = maxExpected && maxExpected < 10
-    ? `QUANTITY: Return up to ${maxExpected} results. Quality over quantity — only return places you are CERTAIN exist. Do NOT fabricate to reach a quota.`
+function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
+  const quantityLine = isSpecific
+    ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity.'
     : 'QUANTITY: Return AT LEAST 25 results. Do not stop early.';
 
   return `${BASE_PROMPT}
@@ -245,39 +245,32 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     locationContext = '\n\nSearch globally. If the query mentions a location, use it. Otherwise return the most famous/relevant places worldwide.';
   }
 
-  // Detect if this is a specific restaurant name (not a broad cuisine search).
-  // Key rule: if ANY word in the query is NOT a broad cuisine/category word,
-  // treat it as a specific-name search. This prevents "lv cafe" or "kobu omakase"
-  // from triggering the 3-batch broad search that fabricates irrelevant results.
-  const broadCuisineWords = new Set(['indian', 'chinese', 'japanese', 'italian', 'mexican', 'thai', 'korean', 'vietnamese', 'french', 'pizza', 'sushi', 'burger', 'curry', 'ramen', 'taco', 'bbq', 'steak', 'seafood', 'noodle', 'rice', 'chicken', 'beef', 'pork', 'vegan', 'vegetarian', 'breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'bakery', 'cafe', 'coffee', 'bar', 'pub', 'buffet', 'street', 'food', 'hawker', 'dim', 'sum', 'tapas', 'grill', 'roast', 'fried', 'soup', 'salad', 'sandwich', 'wrap', 'bowl', 'platter', 'near', 'me', 'nearby', 'best', 'top', 'good', 'great', 'popular', 'cheap', 'affordable', 'expensive', 'fancy', 'local', 'authentic', 'traditional']);
-  // Short location abbreviations users commonly append to cuisine searches (e.g. "steak kl", "ramen sg", "pizza ny")
-  const locationAbbreviations = new Set(['kl', 'pj', 'jb', 'ny', 'nyc', 'la', 'sf', 'hk', 'sg', 'bkk', 'klang', 'ipoh', 'penang', 'melaka', 'jb', 'london', 'paris', 'tokyo', 'seoul', 'dubai', 'miami', 'vegas', 'boston', 'chicago', 'austin', 'portland', 'denver', 'seattle']);
-  const allAllowedWords = new Set([...broadCuisineWords, ...locationAbbreviations]);
-  const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 1);
-  // A query is "broad" ONLY if EVERY word is a known cuisine/category word OR a location abbreviation
-  const isBroadCuisine = queryWords.length > 0 && queryWords.every((w) => allAllowedWords.has(w));
-  console.log("[Places AI Search] queryWords:", queryWords, "isBroadCuisine:", isBroadCuisine);
+  // Quote-based search mode: if the user wraps the query in quotes ("like this"),
+  // treat it as a specific restaurant name. Otherwise, always do a broad search
+  // with 3 batches for maximum variety and coverage.
+  const isQuoted = /^["\u201c\u201d].*["\u201c\u201d]$/.test(query.trim());
+  // Strip quotes before passing to the AI
+  const cleanQuery = isQuoted ? query.trim().replace(/^["\u201c\u201d]|["\u201c\u201d]$/g, '') : query;
+  console.log("[Places AI Search] isQuoted:", isQuoted, "cleanQuery:", cleanQuery);
 
-  // For specific-name queries, use a single focused call that prioritizes accuracy.
-  // For broad cuisine queries, use the 3-batch approach to get more variety.
-  const batches: string[] = isBroadCuisine
+  const batches: string[] = isQuoted
     ? [
+        'IMPORTANT: This is a specific restaurant name: "' + cleanQuery + '". Only return places that GENUINELY match this exact name. Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate. If the query includes a brand name (like "LV"), return ONLY places related to that brand.',
+      ]
+    : [
         'BATCH 1/3: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
         'BATCH 2/3: Focus on HIDDEN GEMS, local favorites, hawker stalls, food courts, neighborhood spots, and lesser-known but excellent places.',
         'BATCH 3/3: Focus on well-known chain restaurants, popular casual spots, and any remaining notable places not covered in batches 1-2.',
-      ]
-    : [
-        'IMPORTANT: This appears to be a specific restaurant name: "' + query + '". Only return places that GENUINELY match this name. Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants of the same category. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate similar-sounding places to fill space. Quality over quantity. If the query includes a brand name (like "LV"), return ONLY places related to that brand.'
       ];
 
-    const maxExpected = isBroadCuisine ? 25 : 8;
+    const isSpecific = isQuoted;
   const batchResults = await Promise.all(
     batches.map((batchHint, batchIndex) =>
       generateObject({
         messages: [
           {
             role: "user",
-            content: buildSearchPrompt(query, locationContext, batchHint, maxExpected),
+            content: buildSearchPrompt(cleanQuery, locationContext, batchHint, isSpecific),
           },
         ],
         schema: PlacesResponseSchema,
