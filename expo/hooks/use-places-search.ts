@@ -19,31 +19,45 @@ const nullableStringArray = z.preprocess((v) => {
   return v.map((item) => (item === null || item === undefined ? '' : String(item)));
 }, z.array(z.string()));
 
-const PlaceSchema = z.object({
-  name: nullableString,
-  address: nullableString,
-  city: nullableString,
-  country: nullableString,
-  latitude: nullableNumber,
-  longitude: nullableNumber,
-  rating: nullableNumber,
-  priceLevel: nullableNumber,
-  placeType: z.preprocess((v) => {
-    if (!Array.isArray(v)) return typeof v === 'string' ? [v] : [];
-    return v.map((item) => (item === null || item === undefined ? '' : String(item)));
-  }, z.array(z.string())),
-  cuisineEmoji: nullableString,
-  phoneNumber: z.string().nullable().optional(),
-  website: z.string().nullable().optional(),
-  googleMapsUrl: z.string().nullable().optional(),
-  openingHours: nullableStringArray.nullable().optional(),
-  description: nullableString,
-  matchScore: nullableNumber,
-});
+const PlaceSchema = z.preprocess(
+  (v) => {
+    if (typeof v !== 'object' || v === null) return {};
+    return v;
+  },
+  z.object({
+    name: nullableString,
+    address: nullableString,
+    city: nullableString,
+    country: nullableString,
+    latitude: nullableNumber,
+    longitude: nullableNumber,
+    rating: nullableNumber,
+    priceLevel: nullableNumber,
+    placeType: z.preprocess((v2) => {
+      if (!Array.isArray(v2)) return typeof v2 === 'string' ? [v2] : [];
+      return v2.map((item: any) => (item === null || item === undefined ? '' : String(item)));
+    }, z.array(z.string())),
+    cuisineEmoji: nullableString,
+    phoneNumber: z.string().nullable().default(null),
+    website: z.string().nullable().default(null),
+    googleMapsUrl: z.string().nullable().default(null),
+    openingHours: nullableStringArray.nullable().default(null),
+    description: nullableString,
+    matchScore: nullableNumber,
+  }).passthrough()
+);
 
-const PlacesResponseSchema = z.object({
-  places: z.array(PlaceSchema),
-});
+const PlacesResponseSchema = z.preprocess(
+  (v) => {
+    if (typeof v !== 'object' || v === null) return { places: [] };
+    const obj = v as Record<string, unknown>;
+    if (!Array.isArray(obj.places)) return { places: [] };
+    return { places: obj.places };
+  },
+  z.object({
+    places: z.array(PlaceSchema),
+  })
+);
 
 export interface PlaceResult {
   place: {
@@ -147,40 +161,69 @@ function mapPlaces(places: any[], baseIndex: number): PlaceResult[] {
   }));
 }
 
+const STOP_WORDS = new Set([
+  'restaurant', 'restoran', 'the', 'a', 'an', 'and', 'of', 'in', 'at', 'on',
+  'by', 'cafe', 'bar', 'grill', 'kitchen', 'house', 'place', 'bistro', 'eatery',
+  'original', 'classic', 'famous', 'best', 'top', 'new', 'old',
+]);
+
+function significantWords(name: string): string[] {
+  return name.toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+}
+
+/** Two places are likely the same if 2+ significant words overlap (same city). */
+function hasHighWordOverlap(a: string, b: string): boolean {
+  const wordsA = significantWords(a);
+  const wordsB = significantWords(b);
+  if (wordsA.length === 0 || wordsB.length === 0) return false;
+  const setB = new Set(wordsB);
+  const overlap = wordsA.filter((w) => setB.has(w)).length;
+  const minLen = Math.min(wordsA.length, wordsB.length);
+  return overlap >= Math.min(2, minLen);
+}
+
 function normalizeName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+}
+
+/** True when one normalized name fully contains the other. */
+function oneContainsOther(a: string, b: string): boolean {
+  const normA = normalizeName(a);
+  const normB = normalizeName(b);
+  return normA.length > 3 && normB.length > 3 && (normA.includes(normB) || normB.includes(normA));
 }
 
 function isSameLocation(a: PlaceResult, b: PlaceResult): boolean {
   const latDiff = Math.abs(a.place.latitude - b.place.latitude);
   const lngDiff = Math.abs(a.place.longitude - b.place.longitude);
-  // Both at 0,0 means the AI didn't provide real coords — skip coord dedup
   if (a.place.latitude === 0 && a.place.longitude === 0 && b.place.latitude === 0 && b.place.longitude === 0) {
     return false;
   }
-  // Within ~500m
   return latDiff < 0.005 && lngDiff < 0.005;
 }
 
+function isSimilarName(a: PlaceResult, b: PlaceResult): boolean {
+  // Same city required for name-based dedup (different-city places with
+  // similar names like chain restaurants can be genuinely different).
+  if (a.place.city.toLowerCase().trim() !== b.place.city.toLowerCase().trim()) return false;
+  if (hasHighWordOverlap(a.place.name, b.place.name)) return true;
+  if (oneContainsOther(a.place.name, b.place.name)) return true;
+  return false;
+}
+
 function deduplicatePlaces(results: PlaceResult[]): PlaceResult[] {
-  const seenKeys = new Set<string>();
   const deduped: PlaceResult[] = [];
 
   for (const r of results) {
-    const exactKey = `${r.place.name.toLowerCase().trim()}|${r.place.city.toLowerCase().trim()}`;
-    const fuzzyKey = `${normalizeName(r.place.name)}|${r.place.city.toLowerCase().trim()}`;
-
-    // Skip exact duplicates
-    if (seenKeys.has(exactKey)) continue;
-    // Skip fuzzy name duplicates (e.g. "Kobu Omakase" vs "Kobu Omakase Tokyo")
-    if (seenKeys.has(fuzzyKey)) continue;
-
-    // Skip coordinate-based duplicates: same location, different name variant
-    const isCoordDup = deduped.some((existing) => isSameLocation(existing, r));
-    if (isCoordDup) continue;
-
-    seenKeys.add(exactKey);
-    seenKeys.add(fuzzyKey);
+    // Check all three dedup strategies against already-kept results
+    const isDup = deduped.some(
+      (existing) =>
+        isSameLocation(existing, r) || isSimilarName(existing, r),
+    );
+    if (isDup) continue;
     deduped.push(r);
   }
 
