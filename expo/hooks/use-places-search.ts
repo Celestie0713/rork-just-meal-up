@@ -97,7 +97,7 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
   return {};
 }
 
-const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return ONLY restaurants that DIRECTLY match the search query. The dish or cuisine must be the PRIMARY specialty. Only return places you are CERTAIN exist — do not guess or fabricate. Leave address empty unless 100% sure. Always provide a googleMapsUrl. Sort by matchScore descending.`;
+const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return ONLY restaurants that DIRECTLY match the search query. The dish or cuisine must be the PRIMARY specialty. Only return places you are CERTAIN exist — do not guess or fabricate. Always provide a googleMapsUrl. Sort by matchScore descending.`;
 
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, maxExpected?: number): string {
   const quantityLine = maxExpected && maxExpected < 10
@@ -114,7 +114,7 @@ ${quantityLine}
 
 For each place provide:
 - name: exact official restaurant name
-- address: ONLY if 100% certain, otherwise ""
+- address: area/neighborhood/district (e.g. "Imbi", "Bukit Bintang", "Damansara Heights", "Petaling Jaya") — NOT a street address. Use the well-known local area name.
 - city, country
 - latitude/longitude: approximate OK
 - rating: 1-5 (0 if unknown)

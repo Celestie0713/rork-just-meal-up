@@ -255,7 +255,7 @@ export default function SearchScreen() {
                     <View style={styles.placeCardInfo}>
                       <Text style={styles.placeCardName} numberOfLines={1}>{item.place.name}</Text>
                       <View style={styles.placeCardLocationRow}>
-                        <MapPin size={12} color={Colors.textLight} /><Text style={styles.placeCardLocationText} numberOfLines={1}>{item.place.city}, {item.place.country}</Text>
+                        <MapPin size={12} color={Colors.textLight} /><Text style={styles.placeCardLocationText} numberOfLines={1}>{item.place.city}{item.place.country ? `, ${item.place.country}` : ''}</Text>
                       </View>
                     </View>
                     {item.place.rating > 0 && (
@@ -349,11 +349,6 @@ export default function SearchScreen() {
               <View style={styles.detailCityCountryRow}>
                 <MapPin size={12} color={Colors.textLight} /><Text style={styles.detailCityCountryText}>{selectedPlace.place.city}, {selectedPlace.place.country}</Text>
               </View>
-              {selectedPlace.place.address ? (
-                <Text style={styles.detailAddress}>
-                  ~ {selectedPlace.place.address}
-                </Text>
-              ) : null}
               <Text style={styles.detailAddressHint}>Tap Maps for exact location</Text>
 
               {selectedPlace.place.rating > 0 && (
@@ -641,6 +636,7 @@ const styles = StyleSheet.create({
   detailCityCountryRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 4, marginBottom: 2 },
   detailCityCountryText: { fontSize: 14, fontWeight: '600', color: Colors.text },
   detailAddress: { fontSize: 12, color: Colors.textLight, textAlign: 'center', lineHeight: 17, fontStyle: 'italic' as const, marginBottom: 4 },
+  detailArea: { fontSize: 14, fontWeight: '600', color: Colors.primary, textAlign: 'center', marginBottom: 4 },
   detailAddressHint: { fontSize: 13, color: '#888888', textAlign: 'center', marginBottom: 8 },
   detailMeta: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginTop: 10, marginBottom: 16 },
   detailRating: { fontSize: 16, fontWeight: '700', color: Colors.primary },
