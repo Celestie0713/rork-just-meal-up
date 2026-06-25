@@ -116,7 +116,7 @@ const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return 
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
     ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity.'
-    : 'QUANTITY: Return AT LEAST 25 results. Do not stop early.';
+    : 'QUANTITY: Return AT LEAST 10 diverse results. Do NOT return the same place more than once. Every result must be a REAL, distinct restaurant.';
 
   return `${BASE_PROMPT}
 
@@ -167,6 +167,28 @@ const STOP_WORDS = new Set([
   'original', 'classic', 'famous', 'best', 'top', 'new', 'old',
 ]);
 
+/** Normalize common city abbreviations so 'KL' matches 'Kuala Lumpur' etc. */
+const CITY_ALIASES: Record<string, string> = {
+  kl: 'kuala lumpur',
+  pj: 'petaling jaya',
+  jb: 'johor bahru',
+  sg: 'singapore',
+  hk: 'hong kong',
+  nyc: 'new york',
+  la: 'los angeles',
+  sf: 'san francisco',
+  dc: 'washington',
+  bkk: 'bangkok',
+  klcc: 'kuala lumpur',
+  mtl: 'montreal',
+  chi: 'chicago',
+};
+
+function normalizeCity(city: string): string {
+  const trimmed = city.toLowerCase().trim();
+  return CITY_ALIASES[trimmed] ?? trimmed;
+}
+
 function significantWords(name: string): string[] {
   return name.toLowerCase()
     .replace(/[^a-z0-9\s]/g, '')
@@ -174,7 +196,16 @@ function significantWords(name: string): string[] {
     .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
 }
 
-/** Two places are likely the same if 2+ significant words overlap (same city). */
+/** True if a and b share at least one significant word (length >= 4 chars). */
+function hasAnySignificantWordOverlap(a: string, b: string): boolean {
+  const wordsA = significantWords(a);
+  const wordsB = significantWords(b);
+  if (wordsA.length === 0 || wordsB.length === 0) return false;
+  const setB = new Set(wordsB);
+  return wordsA.some((w) => w.length >= 4 && setB.has(w));
+}
+
+/** Two places are likely the same if 2+ significant words overlap. */
 function hasHighWordOverlap(a: string, b: string): boolean {
   const wordsA = significantWords(a);
   const wordsB = significantWords(b);
@@ -196,32 +227,50 @@ function oneContainsOther(a: string, b: string): boolean {
   return normA.length > 3 && normB.length > 3 && (normA.includes(normB) || normB.includes(normA));
 }
 
-function isSameLocation(a: PlaceResult, b: PlaceResult): boolean {
+/** Rough km distance using equirectangular approx. */
+function approxDistanceKm(a: PlaceResult, b: PlaceResult): number {
   const latDiff = Math.abs(a.place.latitude - b.place.latitude);
   const lngDiff = Math.abs(a.place.longitude - b.place.longitude);
+  const avgLat = (a.place.latitude + b.place.latitude) / 2 * Math.PI / 180;
+  const kmPerDeg = 111.32;
+  const dx = lngDiff * kmPerDeg * Math.cos(avgLat);
+  const dy = latDiff * kmPerDeg;
+  return Math.sqrt(dx * dx + dy * dy);
+}
+
+function isSameLocation(a: PlaceResult, b: PlaceResult): boolean {
+  // Both at (0,0) means the AI didn't provide real coords — skip location check.
   if (a.place.latitude === 0 && a.place.longitude === 0 && b.place.latitude === 0 && b.place.longitude === 0) {
     return false;
   }
-  return latDiff < 0.005 && lngDiff < 0.005;
+  // If either is at (0,0), can't compare distances meaningfully
+  if (a.place.latitude === 0 && a.place.longitude === 0) return false;
+  if (b.place.latitude === 0 && b.place.longitude === 0) return false;
+  return approxDistanceKm(a, b) < 0.8; // ~800m — aggressive to catch AI coordinate variation
 }
 
-function isSimilarName(a: PlaceResult, b: PlaceResult): boolean {
-  // Same city required for name-based dedup (different-city places with
-  // similar names like chain restaurants can be genuinely different).
-  if (a.place.city.toLowerCase().trim() !== b.place.city.toLowerCase().trim()) return false;
+function isSimilarName(a: PlaceResult, b: PlaceResult, strict = false): boolean {
+  // Strict mode: ignore city — used for quoted/specific searches where
+  // the same restaurant name in different cities is still a duplicate.
+  if (!strict) {
+    if (normalizeCity(a.place.city) !== normalizeCity(b.place.city)) return false;
+  }
+  // 2+ word overlap — strong signal
   if (hasHighWordOverlap(a.place.name, b.place.name)) return true;
+  // One name fully contains the other when stripped
   if (oneContainsOther(a.place.name, b.place.name)) return true;
+  // 1 significant word (≥4 chars) overlap + close coordinates
+  if (hasAnySignificantWordOverlap(a.place.name, b.place.name) && approxDistanceKm(a, b) < 2.0) return true;
   return false;
 }
 
-function deduplicatePlaces(results: PlaceResult[]): PlaceResult[] {
+function deduplicatePlaces(results: PlaceResult[], strict = false): PlaceResult[] {
   const deduped: PlaceResult[] = [];
 
   for (const r of results) {
-    // Check all three dedup strategies against already-kept results
     const isDup = deduped.some(
       (existing) =>
-        isSameLocation(existing, r) || isSimilarName(existing, r),
+        isSameLocation(existing, r) || isSimilarName(existing, r, strict),
     );
     if (isDup) continue;
     deduped.push(r);
@@ -289,15 +338,19 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     index += r.places.length;
   }
 
-  const deduped = deduplicatePlaces(allResults);
+  // For quoted searches, use strict dedup (ignore city) and limit results.
+  const strictDedup = isQuoted;
+  const deduped = deduplicatePlaces(allResults, strictDedup);
   // Sort by matchScore descending
   deduped.sort((a, b) => b.matchScore - a.matchScore);
+  // Quoted/specific searches: cap at 3 results to avoid showing the same place repeatedly
+  const final = isQuoted ? deduped.slice(0, 3) : deduped;
 
-  console.log("[Places AI Search] Total:", allResults.length, "raw, after dedup:", deduped.length);
+  console.log("[Places AI Search] Total:", allResults.length, "raw, after dedup:", deduped.length, "final:", final.length);
 
   return {
-    results: deduped,
-    totalResults: deduped.length,
+    results: final,
+    totalResults: final.length,
   };
 }
 
