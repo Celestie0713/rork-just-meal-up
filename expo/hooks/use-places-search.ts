@@ -246,11 +246,17 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   }
 
   // Detect if this is a specific restaurant name (not a broad cuisine search).
-  // Specific names like "kobu omakase" have only 1-2 real places — multi-batch
-  // would force the AI to fabricate near-duplicates.
-  const broadCuisineWords = ['indian', 'chinese', 'japanese', 'italian', 'mexican', 'thai', 'korean', 'vietnamese', 'french', 'pizza', 'sushi', 'burger', 'curry', 'ramen', 'taco', 'bbq', 'steak', 'seafood', 'noodle', 'rice', 'chicken', 'beef', 'pork', 'vegan', 'vegetarian', 'breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'bakery', 'cafe', 'coffee', 'bar', 'pub', 'buffet', 'street food', 'hawker', 'dim sum', 'tapas', 'grill', 'roast', 'fried', 'soup', 'salad', 'sandwich', 'wrap', 'bowl', 'platter'];
-  const queryLower = query.toLowerCase();
-  const isBroadCuisine = broadCuisineWords.some((w) => queryLower.includes(w));
+  // Key rule: if ANY word in the query is NOT a broad cuisine/category word,
+  // treat it as a specific-name search. This prevents "lv cafe" or "kobu omakase"
+  // from triggering the 3-batch broad search that fabricates irrelevant results.
+  const broadCuisineWords = new Set(['indian', 'chinese', 'japanese', 'italian', 'mexican', 'thai', 'korean', 'vietnamese', 'french', 'pizza', 'sushi', 'burger', 'curry', 'ramen', 'taco', 'bbq', 'steak', 'seafood', 'noodle', 'rice', 'chicken', 'beef', 'pork', 'vegan', 'vegetarian', 'breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'bakery', 'cafe', 'coffee', 'bar', 'pub', 'buffet', 'street', 'food', 'hawker', 'dim', 'sum', 'tapas', 'grill', 'roast', 'fried', 'soup', 'salad', 'sandwich', 'wrap', 'bowl', 'platter', 'near', 'me', 'nearby', 'best', 'top', 'good', 'great', 'popular', 'cheap', 'affordable', 'expensive', 'fancy', 'local', 'authentic', 'traditional']);
+  // Short location abbreviations users commonly append to cuisine searches (e.g. "steak kl", "ramen sg", "pizza ny")
+  const locationAbbreviations = new Set(['kl', 'pj', 'jb', 'ny', 'nyc', 'la', 'sf', 'hk', 'sg', 'bkk', 'klang', 'ipoh', 'penang', 'melaka', 'jb', 'london', 'paris', 'tokyo', 'seoul', 'dubai', 'miami', 'vegas', 'boston', 'chicago', 'austin', 'portland', 'denver', 'seattle']);
+  const allAllowedWords = new Set([...broadCuisineWords, ...locationAbbreviations]);
+  const queryWords = query.toLowerCase().split(/\s+/).filter((w) => w.length > 1);
+  // A query is "broad" ONLY if EVERY word is a known cuisine/category word OR a location abbreviation
+  const isBroadCuisine = queryWords.length > 0 && queryWords.every((w) => allAllowedWords.has(w));
+  console.log("[Places AI Search] queryWords:", queryWords, "isBroadCuisine:", isBroadCuisine);
 
   // For specific-name queries, use a single focused call that prioritizes accuracy.
   // For broad cuisine queries, use the 3-batch approach to get more variety.
@@ -261,7 +267,7 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
         'BATCH 3/3: Focus on well-known chain restaurants, popular casual spots, and any remaining notable places not covered in batches 1-2.',
       ]
     : [
-        'IMPORTANT: This appears to be a specific restaurant name. Only return places that are GENUINELY named this or are the actual restaurant. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate similar-sounding places to fill space. Quality over quantity.',
+        'IMPORTANT: This appears to be a specific restaurant name: "' + query + '". Only return places that GENUINELY match this name. Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants of the same category. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate similar-sounding places to fill space. Quality over quantity. If the query includes a brand name (like "LV"), return ONLY places related to that brand.'
       ];
 
     const maxExpected = isBroadCuisine ? 25 : 8;
