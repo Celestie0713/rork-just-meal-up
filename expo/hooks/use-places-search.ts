@@ -97,96 +97,39 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
   return {};
 }
 
-async function searchPlacesAI(query: string, limit: number = 12, userLocation?: UserLocation | null): Promise<PlacesSearchResult> {
-  const nearMe = isNearMeQuery(query);
-  const useNearMe = nearMe && !!userLocation;
-  const useCountryBias = !nearMe && !!userLocation?.country;
-  console.log("[Places AI Search] Query:", query, "nearMe:", useNearMe, "countryBias:", useCountryBias, userLocation?.country);
+const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return ONLY restaurants that DIRECTLY match the search query. The dish or cuisine must be the PRIMARY specialty. Only return places you are CERTAIN exist — do not guess or fabricate. Leave address empty unless 100% sure. Always provide a googleMapsUrl. Sort by matchScore descending.`;
 
-  let locationContext = '';
-  if (useNearMe && userLocation) {
-    locationContext = `\n\nUSER LOCATION CONTEXT:\nThe user said "near me" and is currently located at latitude ${userLocation.latitude}, longitude ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}.\nReturn restaurants close to these coordinates.`;
-  } else if (useCountryBias && userLocation) {
-    locationContext = `\n\nUSER COUNTRY CONTEXT:\nThe user is located in ${userLocation.country}${userLocation.city ? ` (currently near ${userLocation.city})` : ''}.\n- If the query does NOT mention any specific country or city, ONLY return places located in ${userLocation.country}. Do not return results from other countries.\n- If the query explicitly mentions a different country or city (e.g. "don omakase tokyo", "sushi in new york"), return places from THAT location instead and ignore the user's country.\n- Do NOT narrow to the user's exact city unless they said "near me" — search across all of ${userLocation.country}.`;
-  } else {
-    locationContext = '\n\nDo NOT bias results by the user\'s current location. Search globally based on the query. If the query mentions a city or location, return places in THAT location. If no location is mentioned, return the most famous/relevant places worldwide that match the query.';
-  }
+function buildSearchPrompt(query: string, locationContext: string, batchHint: string, maxExpected?: number): string {
+  const quantityLine = maxExpected && maxExpected < 10
+    ? `QUANTITY: Return up to ${maxExpected} results. Quality over quantity — only return places you are CERTAIN exist. Do NOT fabricate to reach a quota.`
+    : 'QUANTITY: Return AT LEAST 25 results. Do not stop early.';
 
-  let result: { places: any[] };
-  try {
-    result = await generateObject({
-      messages: [
-        {
-          role: "user",
-          content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"${locationContext}
+  return `${BASE_PROMPT}
 
-CRITICAL QUANTITY REQUIREMENT:
-- You MUST return at least 50 REAL restaurants/venues. Aim for the full ${limit}.
-- NEVER return fewer than 35 results unless the query is extremely obscure and you genuinely cannot think of more.
-- For common dishes (like "pork noodle", "ramen", "pizza", "burger", etc.), returning 4-5 results is UNACCEPTABLE. You must return 50+.
-- Think systematically: what are the famous establishments in each major city or region known for this dish? List them ALL.
-- Include places from international chains, local chains, famous independent restaurants, hawker stalls, food courts, coffee shops, and hidden gems.
-- Cast the WIDEST possible net — across ALL cities, regions, and countries where this dish is popular.
-- If you find yourself listing fewer than 30, you are NOT trying hard enough. Keep thinking of more places.
+A user is searching for: "${query}"${locationContext}
 
-CRITICAL RELEVANCE RULES:
-1. ONLY return restaurants that DIRECTLY match the search query. If the user searches for "wantan mee", return ONLY places known for wantan mee / wonton noodles. Do NOT return places serving different dishes (e.g. hokkien mee, char kuey teow, laksa) even if they are noodle places.
-2. The dish or cuisine in the search query must be the PRIMARY specialty or a well-known menu item of the restaurant.
-3. If the query is a specific dish name, focus on places FAMOUS for that exact dish.
+${batchHint}
 
-CRITICAL ACCURACY RULES:
-1. The NAME and ADDRESS of each restaurant MUST belong to the SAME real place. NEVER mix up names with wrong addresses.
-2. ONLY return restaurants you are CERTAIN currently exist. Do NOT guess or fabricate.
-3. Every field must be for the SAME restaurant.
-
-CRITICAL ADDRESS RULES (READ CAREFULLY — VIOLATING THESE IS UNACCEPTABLE):
-- DO NOT INVENT ADDRESSES. The address field should be left as an empty string "" unless you are 100% SURE of the exact location.
-- If you are even 10% unsure, leave address as an empty string. The city and country fields are sufficient.
-- The googleMapsUrl is the PRIMARY way users find the restaurant. The address is purely decorative.
-- Here is the ONLY format you may use for addresses you are CERTAIN of:
-  * "123 Orchard Road, #04-56" (shopping mall with unit number)
-  * "Stall #02-15, Maxwell Food Centre" (hawker stall with stall number)
-  * "15 Rue de la Paix" (street address you know is correct)
-- ACCEPTABLE approximate addresses (only if you are quite confident): "Orchard Road area", "Shinjuku district", "Chinatown"
-- UNACCEPTABLE: made-up street numbers, fake street names, combining a real restaurant name with a random address you guessed
-- WHEN IN DOUBT: leave address as "". City and country are enough.
+${quantityLine}
 
 For each place provide:
-- name: The EXACT official name of the restaurant
-- address: ONLY if 100% certain (see ADDRESS RULES above). Otherwise leave as empty string "".
-- city: The city where THIS restaurant is located
-- country: The country
-- latitude/longitude: Coordinates for THIS specific restaurant location (approximate is OK)
-- rating: Approximate rating 1-5 (use 0 if unknown)
-- priceLevel: 1-4 (1=budget, 4=fine dining, use 0 if unknown)
-- placeType: Array like ["restaurant", "noodles", "hawker"]
-- cuisineEmoji: Single emoji for the cuisine type
-- phoneNumber: Only if you are certain (omit otherwise)
-- website: Only if you are certain (omit otherwise)
-- googleMapsUrl: CRITICAL — this is the primary way users will find the restaurant. ALWAYS provide a working Google Maps search URL. Format: "https://www.google.com/maps/search/?api=1&query=RESTAURANT+NAME+CITY+COUNTRY". Keep it simple — just the restaurant name + city + country is enough for Google Maps to find it.
-- openingHours: Only if you are certain (omit otherwise)
-- description: 2-3 sentences about what makes this place special
-- matchScore: 0-100 how relevant to the EXACT search query (penalize places that serve a different dish)
+- name: exact official restaurant name
+- address: ONLY if 100% certain, otherwise ""
+- city, country
+- latitude/longitude: approximate OK
+- rating: 1-5 (0 if unknown)
+- priceLevel: 1-4 budget to fine dining (0 if unknown)
+- placeType: array like ["restaurant", "indian", "curry"]
+- cuisineEmoji: single emoji
+- googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=NAME+CITY+COUNTRY"
+- description: 2-3 sentences
+- matchScore: 0-100 relevance to query`;
+}
 
-Sort by matchScore descending.
-If the query mentions a specific city/location, only return places in that area (overriding any country context above).
-Otherwise, follow the location context above.`,
-      },
-    ],
-    schema: PlacesResponseSchema,
-    });
-  } catch (err: any) {
-    if (err instanceof z.ZodError) {
-      console.error("[Places AI Search] Schema validation failed:", JSON.stringify(err.issues, null, 2));
-    }
-    throw err;
-  }
-
-  console.log("[Places AI Search] Generated", result.places.length, "places");
-
-  const results: PlaceResult[] = result.places.map((place: any, index: number) => ({
+function mapPlaces(places: any[], baseIndex: number): PlaceResult[] {
+  return places.map((place: any, i: number) => ({
     place: {
-      id: `ai-place-${Date.now()}-${index}`,
+      id: `ai-place-${Date.now()}-${baseIndex + i}`,
       name: place.name,
       address: place.address,
       city: place.city,
@@ -197,18 +140,122 @@ Otherwise, follow the location context above.`,
       priceLevel: place.priceLevel,
       placeType: place.placeType,
       cuisineEmoji: place.cuisineEmoji || '🍽️',
-      phoneNumber: place.phoneNumber,
-      website: place.website,
       googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.city + ' ' + place.country)}`,
-      openingHours: place.openingHours,
     },
     description: place.description,
     matchScore: place.matchScore,
   }));
+}
+
+function normalizeName(name: string): string {
+  return name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+}
+
+function isSameLocation(a: PlaceResult, b: PlaceResult): boolean {
+  const latDiff = Math.abs(a.place.latitude - b.place.latitude);
+  const lngDiff = Math.abs(a.place.longitude - b.place.longitude);
+  // Both at 0,0 means the AI didn't provide real coords — skip coord dedup
+  if (a.place.latitude === 0 && a.place.longitude === 0 && b.place.latitude === 0 && b.place.longitude === 0) {
+    return false;
+  }
+  // Within ~500m
+  return latDiff < 0.005 && lngDiff < 0.005;
+}
+
+function deduplicatePlaces(results: PlaceResult[]): PlaceResult[] {
+  const seenKeys = new Set<string>();
+  const deduped: PlaceResult[] = [];
+
+  for (const r of results) {
+    const exactKey = `${r.place.name.toLowerCase().trim()}|${r.place.city.toLowerCase().trim()}`;
+    const fuzzyKey = `${normalizeName(r.place.name)}|${r.place.city.toLowerCase().trim()}`;
+
+    // Skip exact duplicates
+    if (seenKeys.has(exactKey)) continue;
+    // Skip fuzzy name duplicates (e.g. "Kobu Omakase" vs "Kobu Omakase Tokyo")
+    if (seenKeys.has(fuzzyKey)) continue;
+
+    // Skip coordinate-based duplicates: same location, different name variant
+    const isCoordDup = deduped.some((existing) => isSameLocation(existing, r));
+    if (isCoordDup) continue;
+
+    seenKeys.add(exactKey);
+    seenKeys.add(fuzzyKey);
+    deduped.push(r);
+  }
+
+  return deduped;
+}
+
+async function searchPlacesAI(query: string, limit: number = 12, userLocation?: UserLocation | null): Promise<PlacesSearchResult> {
+  const nearMe = isNearMeQuery(query);
+  const useNearMe = nearMe && !!userLocation;
+  const useCountryBias = !nearMe && !!userLocation?.country;
+  console.log("[Places AI Search] Query:", query, "nearMe:", useNearMe, "countryBias:", useCountryBias, userLocation?.country);
+
+  let locationContext = '';
+  if (useNearMe && userLocation) {
+    locationContext = `\n\nThe user said "near me" and is at lat ${userLocation.latitude}, lon ${userLocation.longitude}${userLocation.city ? `, in ${userLocation.city}` : ''}${userLocation.country ? `, ${userLocation.country}` : ''}. Return restaurants close to these coordinates.`;
+  } else if (useCountryBias && userLocation) {
+    locationContext = `\n\nUser is in ${userLocation.country}${userLocation.city ? ` (near ${userLocation.city})` : ''}. If the query does NOT mention a different country/city, ONLY return places in ${userLocation.country}. If it explicitly mentions another location, use that instead. Search across the ENTIRE country, not just the user's city.`;
+  } else {
+    locationContext = '\n\nSearch globally. If the query mentions a location, use it. Otherwise return the most famous/relevant places worldwide.';
+  }
+
+  // Detect if this is a specific restaurant name (not a broad cuisine search).
+  // Specific names like "kobu omakase" have only 1-2 real places — multi-batch
+  // would force the AI to fabricate near-duplicates.
+  const broadCuisineWords = ['indian', 'chinese', 'japanese', 'italian', 'mexican', 'thai', 'korean', 'vietnamese', 'french', 'pizza', 'sushi', 'burger', 'curry', 'ramen', 'taco', 'bbq', 'steak', 'seafood', 'noodle', 'rice', 'chicken', 'beef', 'pork', 'vegan', 'vegetarian', 'breakfast', 'brunch', 'lunch', 'dinner', 'dessert', 'bakery', 'cafe', 'coffee', 'bar', 'pub', 'buffet', 'street food', 'hawker', 'dim sum', 'tapas', 'grill', 'roast', 'fried', 'soup', 'salad', 'sandwich', 'wrap', 'bowl', 'platter'];
+  const queryLower = query.toLowerCase();
+  const isBroadCuisine = broadCuisineWords.some((w) => queryLower.includes(w));
+
+  // For specific-name queries, use a single focused call that prioritizes accuracy.
+  // For broad cuisine queries, use the 3-batch approach to get more variety.
+  const batches: string[] = isBroadCuisine
+    ? [
+        'BATCH 1/3: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
+        'BATCH 2/3: Focus on HIDDEN GEMS, local favorites, hawker stalls, food courts, neighborhood spots, and lesser-known but excellent places.',
+        'BATCH 3/3: Focus on well-known chain restaurants, popular casual spots, and any remaining notable places not covered in batches 1-2.',
+      ]
+    : [
+        'IMPORTANT: This appears to be a specific restaurant name. Only return places that are GENUINELY named this or are the actual restaurant. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate similar-sounding places to fill space. Quality over quantity.',
+      ];
+
+    const maxExpected = isBroadCuisine ? 25 : 8;
+  const batchResults = await Promise.all(
+    batches.map((batchHint, batchIndex) =>
+      generateObject({
+        messages: [
+          {
+            role: "user",
+            content: buildSearchPrompt(query, locationContext, batchHint, maxExpected),
+          },
+        ],
+        schema: PlacesResponseSchema,
+      }).catch((err) => {
+        console.error(`[Places AI Search] Batch ${batchIndex + 1} failed:`, err);
+        return { places: [] };
+      })
+    )
+  );
+
+  let index = 0;
+  const allResults: PlaceResult[] = [];
+  for (const r of batchResults) {
+    console.log(`[Places AI Search] Batch returned`, r.places.length, "places");
+    allResults.push(...mapPlaces(r.places, index));
+    index += r.places.length;
+  }
+
+  const deduped = deduplicatePlaces(allResults);
+  // Sort by matchScore descending
+  deduped.sort((a, b) => b.matchScore - a.matchScore);
+
+  console.log("[Places AI Search] Total:", allResults.length, "raw, after dedup:", deduped.length);
 
   return {
-    results,
-    totalResults: results.length,
+    results: deduped,
+    totalResults: deduped.length,
   };
 }
 
