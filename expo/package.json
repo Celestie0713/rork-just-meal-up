@@ -3,9 +3,9 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "bunx rork start -p 6h3v2pcxgqjcg0vvrwpkj --tunnel",
-    "start-web": "bunx rork start -p 6h3v2pcxgqjcg0vvrwpkj --web --tunnel",
-    "start-web-dev": "DEBUG=expo* bunx rork start -p 6h3v2pcxgqjcg0vvrwpkj --web --tunnel"
+    "start": "bunx rork start -p 6h3v2pcxgqjcg0vvrwpkj",
+    "start-web": "bunx rork start -p 6h3v2pcxgqjcg0vvrwpkj --web",
+    "start-web-dev": "DEBUG=expo* bunx rork start -p 6h3v2pcxgqjcg0vvrwpkj --web"
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.86",
@@ -59,7 +59,6 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
-    "@expo/ngrok": "^4.1.0",
     "@types/react": "~19.1.10",
     "typescript": "~5.9.2"
   },

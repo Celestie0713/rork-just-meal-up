@@ -121,13 +121,13 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
           content: `You are a restaurant and venue discovery assistant. A user is searching for: "${query}"${locationContext}
 
 CRITICAL QUANTITY REQUIREMENT:
-- You MUST return at least 30 REAL restaurants/venues. Aim for the full ${limit}.
-- NEVER return fewer than 20 results unless the query is extremely obscure and you genuinely cannot think of more.
-- For common dishes (like "pork noodle", "ramen", "pizza", "burger", etc.), returning 4-5 results is UNACCEPTABLE. You must return 20+.
+- You MUST return at least 50 REAL restaurants/venues. Aim for the full ${limit}.
+- NEVER return fewer than 35 results unless the query is extremely obscure and you genuinely cannot think of more.
+- For common dishes (like "pork noodle", "ramen", "pizza", "burger", etc.), returning 4-5 results is UNACCEPTABLE. You must return 50+.
 - Think systematically: what are the famous establishments in each major city or region known for this dish? List them ALL.
 - Include places from international chains, local chains, famous independent restaurants, hawker stalls, food courts, coffee shops, and hidden gems.
 - Cast the WIDEST possible net — across ALL cities, regions, and countries where this dish is popular.
-- If you find yourself listing fewer than 15, you are NOT trying hard enough. Keep thinking of more places.
+- If you find yourself listing fewer than 30, you are NOT trying hard enough. Keep thinking of more places.
 
 CRITICAL RELEVANCE RULES:
 1. ONLY return restaurants that DIRECTLY match the search query. If the user searches for "wantan mee", return ONLY places known for wantan mee / wonton noodles. Do NOT return places serving different dishes (e.g. hokkien mee, char kuey teow, laksa) even if they are noodle places.
@@ -377,7 +377,7 @@ export function usePlacesSearch() {
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 50, userLocation),
+    mutationFn: (query: string) => searchPlacesAI(query, 75, userLocation),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
