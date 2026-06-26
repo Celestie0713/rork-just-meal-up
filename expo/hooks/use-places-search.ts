@@ -111,12 +111,12 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
   return {};
 }
 
-const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return ONLY restaurants that DIRECTLY match the search query. The dish or cuisine must be the PRIMARY specialty. Only return places you are CERTAIN exist — do not guess or fabricate. Always provide a googleMapsUrl. Sort by matchScore descending.`;
+const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return restaurants that DIRECTLY match the search query, where the dish or cuisine is the PRIMARY specialty. Prioritize real, well-known places. For broad cuisine searches, include as many quality results as you know — cover famous spots, local favorites, chains, hawker stalls, and hidden gems. Always provide a googleMapsUrl. Sort by matchScore descending.`;
 
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
     ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity.'
-    : 'QUANTITY: Return AT LEAST 10 diverse results. Do NOT return the same place more than once. Every result must be a REAL, distinct restaurant.';
+    : 'QUANTITY: You MUST return 20-25 diverse, real restaurants per batch. Cover the full range: legendary destinations, neighborhood joints, hawker stalls, chains, and hidden gems. Do NOT return the same place more than once. Every result must be a distinct, real restaurant. More is better — fill the list.';
 
   return `${BASE_PROMPT}
 
