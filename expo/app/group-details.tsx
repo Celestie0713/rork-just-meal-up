@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Modal, Animated, Dimensions, Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
-import { MapPin, Users, DollarSign, Heart, Calendar, Crown, Plus, X, Shield, Star, CheckCircle } from 'lucide-react-native';
+import { MapPin, Users, DollarSign, Heart, Calendar, Crown, Plus, X, Shield, Star, CheckCircle, TicketPercent } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients } from '@/constants/colors';
 import { mockGroups } from '@/mocks/groups';
@@ -159,6 +159,14 @@ export default function GroupDetailsScreen() {
                 {group.isPaid ? `$${group.monthlyFee}/month` : 'Free'}
               </Text>
             </View>
+            {group.isPaid && group.memberDiscount && (
+              <View style={[styles.infoItem, styles.discountPill]}>
+                <View style={styles.infoIcon}>
+                  <TicketPercent size={18} color="#FFFFFF" />
+                </View>
+                <Text style={styles.discountLabel}>{group.memberDiscount} off meal-ups</Text>
+              </View>
+            )}
             <View style={styles.infoItem}>
               <View style={styles.infoIcon}>
                 <Users size={18} color={Colors.primary} />
@@ -286,7 +294,16 @@ export default function GroupDetailsScreen() {
                         <Text style={styles.modalPricePeriod}>per month</Text>
                       </View>
                     </View>
-                    <View style={styles.modalPriceDivider} />
+                    {group.memberDiscount && (
+                      <>
+                        <View style={styles.modalPriceDivider} />
+                        <View style={styles.modalDiscountBadge}>
+                          <TicketPercent size={16} color={Colors.primary} />
+                          <Text style={styles.modalDiscountText}>{group.memberDiscount} off</Text>
+                          <Text style={styles.modalDiscountSubtext}>meal-ups</Text>
+                        </View>
+                      </>
+                    )}
                   </View>
                 )}
 
@@ -396,6 +413,14 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#000000',
   },
+  discountPill: {
+    backgroundColor: Colors.success,
+  },
+  discountLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
   hostRow: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
@@ -451,7 +476,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
-    backgroundColor: Colors.primary,
+    backgroundColor: '#FF6B35',
     paddingVertical: 14,
     borderRadius: 12,
     marginTop: 12,
@@ -609,6 +634,21 @@ const styles = StyleSheet.create({
     width: 1,
     height: 36,
     backgroundColor: '#444',
+  },
+  modalDiscountBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  modalDiscountText: {
+    fontSize: 15,
+    fontWeight: '800' as const,
+    color: Colors.primary,
+  },
+  modalDiscountSubtext: {
+    fontSize: 12,
+    color: '#888',
+    fontWeight: '500' as const,
   },
   modalPricePerks: {
     flex: 1,
