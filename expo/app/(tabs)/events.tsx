@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter, Plus, Users, X, TicketPercent, CheckCircle } from 'lucide-react-native';
+import { Search, Filter, Plus, Users, X, TicketPercent, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
@@ -16,6 +16,8 @@ export default function EventsScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedDistance, setSelectedDistance] = useState<number | null>(null);
   const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
+  const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
+  const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const { isGroupMember } = useAuth();
 
   const handleMealUpPress = (mealUp: MealUp) => {
@@ -29,6 +31,8 @@ export default function EventsScreen() {
   };
 
   const now = new Date();
+
+  const countries = [...new Set(mockMealUps.map(m => m.venue.country).filter(Boolean))].sort() as string[];
 
   const upcomingMealUps = mockMealUps.filter(mealUp => mealUp.date >= now);
   const pastMealUps = mockMealUps.filter(mealUp => mealUp.date < now);
@@ -44,8 +48,9 @@ export default function EventsScreen() {
     
     const matchesDistance = !selectedDistance || true;
     const matchesPrice = !priceRange || (mealUp.ticketPrice >= priceRange.min && mealUp.ticketPrice <= priceRange.max);
+    const matchesCountry = !selectedCountry || (mealUp.venue.country ?? '') === selectedCountry;
     
-    return matchesSearch && matchesDistance && matchesPrice;
+    return matchesSearch && matchesDistance && matchesPrice && matchesCountry;
   });
 
   const renderMealUp = ({ item }: { item: MealUp }) => (
@@ -175,6 +180,62 @@ export default function EventsScreen() {
                   </TouchableOpacity>
                 ))}
               </View>
+              <Text style={styles.filterSectionTitle}>Country</Text>
+              <TouchableOpacity
+                style={styles.countryDropdown}
+                onPress={() => setCountryDropdownOpen(prev => !prev)}
+              >
+                <Text style={[
+                  styles.countryDropdownText,
+                  !selectedCountry && styles.countryDropdownPlaceholder
+                ]}>
+                  {selectedCountry ?? 'All countries'}
+                </Text>
+                {countryDropdownOpen ? (
+                  <ChevronUp size={18} color="#666666" />
+                ) : (
+                  <ChevronDown size={18} color="#666666" />
+                )}
+              </TouchableOpacity>
+              {countryDropdownOpen && (
+                <View style={styles.countryDropdownList}>
+                  <ScrollView style={styles.countryDropdownScroll} nestedScrollEnabled>
+                    <TouchableOpacity
+                      style={[
+                        styles.countryDropdownItem,
+                        !selectedCountry && styles.countryDropdownItemActive
+                      ]}
+                      onPress={() => {
+                        setSelectedCountry(null);
+                        setCountryDropdownOpen(false);
+                      }}
+                    >
+                      <Text style={[
+                        styles.countryDropdownItemText,
+                        !selectedCountry && styles.countryDropdownItemTextActive
+                      ]}>All countries</Text>
+                    </TouchableOpacity>
+                    {countries.map(country => (
+                      <TouchableOpacity
+                        key={country}
+                        style={[
+                          styles.countryDropdownItem,
+                          selectedCountry === country && styles.countryDropdownItemActive
+                        ]}
+                        onPress={() => {
+                          setSelectedCountry(country);
+                          setCountryDropdownOpen(false);
+                        }}
+                      >
+                        <Text style={[
+                          styles.countryDropdownItemText,
+                          selectedCountry === country && styles.countryDropdownItemTextActive
+                        ]}>{country}</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
               <Text style={styles.filterSectionTitle}>Price Range</Text>
               <View style={styles.priceGrid}>
                 {[
@@ -211,6 +272,7 @@ export default function EventsScreen() {
                 onPress={() => {
                   setSelectedDistance(null);
                   setPriceRange(null);
+                  setSelectedCountry(null);
                 }}
               >
                 <Text style={styles.clearButtonText}>Clear All</Text>
@@ -560,5 +622,54 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
+  },
+  countryDropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    marginBottom: 4,
+  },
+  countryDropdownText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  countryDropdownPlaceholder: {
+    color: '#999999',
+  },
+  countryDropdownList: {
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 20,
+    overflow: 'hidden',
+  },
+  countryDropdownScroll: {
+    maxHeight: 200,
+  },
+  countryDropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  countryDropdownItemActive: {
+    backgroundColor: '#FFF0E8',
+  },
+  countryDropdownItemText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#000000',
+  },
+  countryDropdownItemTextActive: {
+    color: Colors.primary,
+    fontWeight: '600',
   },
 });

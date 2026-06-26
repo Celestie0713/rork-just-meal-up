@@ -97,6 +97,7 @@ export interface MealUp {
   venue: {
     name: string;
     address: string;
+    country?: string;
     cuisine: string;
   };
   maxAttendees: number;

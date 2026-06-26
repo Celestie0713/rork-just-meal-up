@@ -2,6 +2,74 @@ import type { MealUp } from '@/types/user';
 
 export const mockMealUps: MealUp[] = [
   {
+    id: '6',
+    organizerId: '3',
+    organizerName: 'Sophie Laurent',
+    title: 'Parisian Bistro Night',
+    description: 'Authentic French bistro experience with classic dishes and great conversation in the heart of Paris.',
+    date: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
+    time: '8:00 PM',
+    venue: {
+      name: 'Le Procope',
+      address: '13 Rue de l\'Ancienne Comédie, Paris',
+      country: 'France',
+      cuisine: 'French'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['3', '7'],
+    ticketPrice: 90,
+    imageUrl: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '5',
+      name: 'NYC Book Club Dinners',
+      isPaid: true,
+      memberDiscount: '25%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: '3-course prix fixe with wine. Each person pays for their own meal.'
+    }
+  },
+  {
+    id: '7',
+    organizerId: '6',
+    organizerName: 'David Kim',
+    title: 'Tokyo Ramen Crawl',
+    description: 'Explore Tokyo\'s best hidden ramen spots with fellow food lovers. 3 shops in one night!',
+    date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+    time: '6:00 PM',
+    venue: {
+      name: 'Ichiran Shibuya',
+      address: '1-22-7 Jinnan, Shibuya, Tokyo',
+      country: 'Japan',
+      cuisine: 'Japanese'
+    },
+    maxAttendees: 6,
+    currentAttendees: ['6', '9'],
+    ticketPrice: 55,
+    imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '6',
+      name: 'Jazz Night Enthusiasts',
+      isPaid: true,
+      memberDiscount: '30%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Covers 3 bowls of ramen across 3 shops. We\'ll split transportation costs evenly.'
+    }
+  },
+  {
     id: '1',
     organizerId: '4',
     organizerName: 'Marcus Johnson',
@@ -12,6 +80,7 @@ export const mockMealUps: MealUp[] = [
     venue: {
       name: 'Green Table',
       address: '1234 Mission St, San Francisco, CA',
+      country: 'United States',
       cuisine: 'Farm-to-table'
     },
     maxAttendees: 8,
@@ -47,6 +116,7 @@ export const mockMealUps: MealUp[] = [
     venue: {
       name: 'Barcelona Tapas',
       address: '567 Valencia St, San Francisco, CA',
+      country: 'United States',
       cuisine: 'Spanish'
     },
     maxAttendees: 12,
@@ -82,6 +152,7 @@ export const mockMealUps: MealUp[] = [
     venue: {
       name: 'Sakura Kitchen',
       address: '890 Fillmore St, San Francisco, CA',
+      country: 'United States',
       cuisine: 'Japanese'
     },
     maxAttendees: 10,
@@ -115,6 +186,7 @@ export const mockMealUps: MealUp[] = [
     venue: {
       name: 'Nonna\'s Kitchen',
       address: '234 Little Italy St, San Francisco, CA',
+      country: 'United States',
       cuisine: 'Italian'
     },
     maxAttendees: 12,
@@ -148,6 +220,7 @@ export const mockMealUps: MealUp[] = [
     venue: {
       name: 'Sky Deck Lounge',
       address: '567 High Rise Ave, San Francisco, CA',
+      country: 'United States',
       cuisine: 'BBQ'
     },
     maxAttendees: 20,
@@ -166,6 +239,240 @@ export const mockMealUps: MealUp[] = [
       includesFood: true,
       paymentType: 'go_dutch',
       description: 'BBQ feast with drinks included. We\'ll split the total bill evenly among all attendees.'
+    }
+  },
+  {
+    id: '8',
+    organizerId: '5',
+    organizerName: 'Isabella Rossi',
+    title: 'Rome Pasta & Wine Night',
+    description: 'A Roman evening of handmade pasta, local wines, and passionate food talk in Trastevere.',
+    date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000),
+    time: '8:00 PM',
+    venue: {
+      name: 'Da Enzo al 29',
+      address: 'Via dei Vascellari 29, Rome',
+      country: 'Italy',
+      cuisine: 'Italian'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['5', '8'],
+    ticketPrice: 65,
+    imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1621996346565-e3dbc353d2e5?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '5',
+      name: 'NYC Book Club Dinners',
+      isPaid: true,
+      memberDiscount: '25%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: '3-course pasta tasting menu with paired wines. Each person pays for their own meal.'
+    }
+  },
+  {
+    id: '9',
+    organizerId: '7',
+    organizerName: 'Yuki Tanaka',
+    title: 'Kyoto Tea Ceremony & Kaiseki',
+    description: 'Traditional tea ceremony followed by an exquisite kaiseki dinner in a historic machiya.',
+    date: new Date(Date.now() + 18 * 24 * 60 * 60 * 1000),
+    time: '4:00 PM',
+    venue: {
+      name: 'Gion Karyo',
+      address: '570-235 Gionmachi, Kyoto',
+      country: 'Japan',
+      cuisine: 'Japanese'
+    },
+    maxAttendees: 6,
+    currentAttendees: [],
+    ticketPrice: 120,
+    imageUrl: 'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '6',
+      name: 'Jazz Night Enthusiasts',
+      isPaid: true,
+      memberDiscount: '30%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'organizer_pays',
+      description: 'Full kaiseki experience with tea ceremony. Organizer covers the cost.'
+    }
+  },
+  {
+    id: '10',
+    organizerId: '8',
+    organizerName: 'Carlos Mendez',
+    title: 'Barcelona Tapas Crawl',
+    description: 'Hop through Barcelona\'s best tapas bars in El Born — one drink, one bite at each stop.',
+    date: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
+    time: '7:00 PM',
+    venue: {
+      name: 'El Xampanyet',
+      address: 'Carrer de Montcada 22, Barcelona',
+      country: 'Spain',
+      cuisine: 'Spanish'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['8', '10'],
+    ticketPrice: 50,
+    imageUrl: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1544148103-0773bf10d330?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '4',
+      name: 'Manhattan Wine Lovers',
+      isPaid: true,
+      memberDiscount: '20%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Covers one drink and one tapa at each stop (4 stops total). We\'ll split transport costs evenly.'
+    }
+  },
+  {
+    id: '11',
+    organizerId: '9',
+    organizerName: 'Liam O\'Brien',
+    title: 'Dublin Whiskey & Steak Night',
+    description: 'Premium Irish whiskey tasting paired with dry-aged steaks in a cosy Victorian pub.',
+    date: new Date(Date.now() + 16 * 24 * 60 * 60 * 1000),
+    time: '7:30 PM',
+    venue: {
+      name: 'The Palace Bar',
+      address: '21 Fleet Street, Dublin',
+      country: 'Ireland',
+      cuisine: 'Irish'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['9'],
+    ticketPrice: 85,
+    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '1',
+      name: '35+ singles in NY with cats',
+      isPaid: true,
+      memberDiscount: '20%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: '4 whiskey flights + dry-aged ribeye. Each person pays for their own meal.'
+    }
+  },
+  {
+    id: '12',
+    organizerId: '10',
+    organizerName: 'Amara Okafor',
+    title: 'Lagos Suya Street Feast',
+    description: 'Vibrant Nigerian street food feast featuring spicy suya, jollof rice, and ice-cold palm wine.',
+    date: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+    time: '6:00 PM',
+    venue: {
+      name: 'Nok by Alara',
+      address: '12A Akin Olugbade St, Lagos',
+      country: 'Nigeria',
+      cuisine: 'Nigerian'
+    },
+    maxAttendees: 12,
+    currentAttendees: ['10'],
+    ticketPrice: 40,
+    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '7',
+      name: 'Craft Beer Tasting Group',
+      isPaid: true,
+      memberDiscount: '25%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'All-you-can-eat Nigerian street food with palm wine. We\'ll split evenly.'
+    }
+  },
+  {
+    id: '13',
+    organizerId: '11',
+    organizerName: 'Priya Sharma',
+    title: 'Mumbai Street Food Safari',
+    description: 'Navigate Mumbai\'s legendary street food scene — from vada pav to kulfi — with a local guide.',
+    date: new Date(Date.now() + 22 * 24 * 60 * 60 * 1000),
+    time: '5:30 PM',
+    venue: {
+      name: 'Swati Snacks',
+      address: '248 Karai Estate, Tardeo, Mumbai',
+      country: 'India',
+      cuisine: 'Indian'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['11', '12'],
+    ticketPrice: 30,
+    imageUrl: 'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1553621042-f6e147245754?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '8',
+      name: 'NYC Brunch Club',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Covers tasting portions at 6 street food stalls. Each person pays for their own experience.'
+    }
+  },
+  {
+    id: '14',
+    organizerId: '12',
+    organizerName: 'Hana Park',
+    title: 'Seoul K-BBQ & Soju Night',
+    description: 'Endless Korean BBQ, flowing soju, and late-night noraebang (karaoke) in Hongdae.',
+    date: new Date(Date.now() + 9 * 24 * 60 * 60 * 1000),
+    time: '7:00 PM',
+    venue: {
+      name: 'Maple Tree House',
+      address: '26 Itaewon-ro 27ga-gil, Seoul',
+      country: 'South Korea',
+      cuisine: 'Korean'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['10', '5', '12'],
+    ticketPrice: 55,
+    imageUrl: 'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1579584425555-c3ce17fd4351?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '9',
+      name: 'International Foodies NYC',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'All-you-can-eat K-BBQ with unlimited soju. We\'ll split the bill evenly.'
     }
   }
 ];
