@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus } from 'lucide-react-native';
+import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus, Menu } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
@@ -11,6 +11,7 @@ import { usePlacesSearch } from '@/hooks/use-places-search';
 import type { PlaceResult } from '@/hooks/use-places-search';
 
 import { Colors } from '@/constants/colors';
+import { BalanceModal } from '@/components/BalanceModal';
 import type { User } from '@/types/user';
 
 const COUNTRIES = [
@@ -90,6 +91,7 @@ export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
+  const [showBalance, setShowBalance] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -145,14 +147,19 @@ export default function SearchScreen() {
       <View style={styles.header}>
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Heart size={24} color="#FF6B35" fill={unreadCount > 0 ? "#FF6B35" : "none"} />
-            {unreadCount > 0 && (
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+          <View style={styles.headerActions}>
+            <TouchableOpacity style={styles.balanceButton} onPress={() => setShowBalance(true)}>
+              <Menu size={22} color="#000000" />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.notificationButton}>
+              <Heart size={24} color="#FF6B35" fill={unreadCount > 0 ? "#FF6B35" : "none"} />
+              {unreadCount > 0 && (
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>{unreadCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
         {activeTab === 'user' && (
           <View style={styles.searchContainer}>
@@ -441,6 +448,10 @@ export default function SearchScreen() {
         </View>
       )}
 
+      {showBalance && (
+        <BalanceModal onClose={() => setShowBalance(false)} />
+      )}
+
       {showFilterModal && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -574,6 +585,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: 16, paddingVertical: 24, paddingBottom: 16, backgroundColor: '#FFF8E7' },
   titleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
+  headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  balanceButton: { padding: 8, borderRadius: 20, backgroundColor: '#FFF8E7', borderWidth: 1, borderColor: '#888888' },
   title: { fontSize: 28, fontWeight: '800', color: '#000000' },
   notificationButton: { padding: 8, borderRadius: 20, backgroundColor: '#FFF8E7', borderWidth: 1, borderColor: '#888888', position: 'relative' },
   notificationBadge: { position: 'absolute', bottom: -2, left: -2, backgroundColor: '#FF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF8E7' },
@@ -690,5 +703,34 @@ const styles = StyleSheet.create({
   countryOptionActive: { backgroundColor: '#000000' },
   countryOptionText: { fontSize: 16, color: '#000000' },
   countryOptionTextActive: { color: '#FFFFFF' },
+
+  balanceOverlay: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 300, justifyContent: 'flex-end' },
+  balanceSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '90%', paddingBottom: 36 },
+  balanceHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingTop: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: '#E8E8E8' },
+  balanceTitle: { fontSize: 22, fontWeight: '800', color: '#000000' },
+  balanceClose: { padding: 4 },
+  balanceBody: { paddingHorizontal: 20, paddingTop: 16 },
+  balanceSubtitle: { fontSize: 13, color: '#666666', marginBottom: 16, lineHeight: 20 },
+  balanceSectionLabel: { fontSize: 17, fontWeight: '700', color: '#000000', marginBottom: 12, marginTop: 8 },
+  balanceGroupCard: { backgroundColor: '#F9F9F9', borderRadius: 14, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E8E8E8' },
+  balanceGroupName: { fontSize: 16, fontWeight: '700', color: '#000000', marginBottom: 4 },
+  balanceGroupMeta: { fontSize: 13, color: '#888888', marginBottom: 12 },
+  balanceEventRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#E8E8E8' },
+  balanceEventLeft: { flex: 1, marginRight: 12 },
+  balanceEventName: { fontSize: 14, fontWeight: '600', color: '#000000', marginBottom: 2 },
+  balanceEventAttendees: { fontSize: 12, color: '#888888' },
+  balanceEventRight: { alignItems: 'flex-end' },
+  balanceEventTotal: { fontSize: 14, fontWeight: '700', color: '#000000', marginBottom: 2 },
+  balanceEventSplit: { fontSize: 11, color: '#888888', textAlign: 'right', lineHeight: 16 },
+  balanceEventEarnings: { fontSize: 14, fontWeight: '700', color: '#22C55E', marginTop: 2 },
+  balanceSummaryRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 16, marginTop: 8, backgroundColor: '#000000', borderRadius: 12 },
+  balanceSummaryLabel: { fontSize: 16, fontWeight: '700', color: '#FFFFFF' },
+  balanceSummaryAmount: { fontSize: 20, fontWeight: '800', color: '#22C55E' },
+  balanceEmpty: { paddingVertical: 24, alignItems: 'center' },
+  balanceEmptyText: { fontSize: 14, color: '#999999', textAlign: 'center', lineHeight: 20 },
+  balanceLegend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: '#F5F5F5', borderRadius: 10 },
+  balanceLegendItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  balanceLegendDot: { width: 8, height: 8, borderRadius: 4 },
+  balanceLegendText: { fontSize: 12, color: '#666666', fontWeight: '500' },
 
 });
