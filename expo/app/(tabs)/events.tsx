@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter, Plus, Users, X, TicketPercent } from 'lucide-react-native';
+import { Search, Filter, Plus, Users, X, TicketPercent, CheckCircle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
@@ -16,7 +16,7 @@ export default function EventsScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedDistance, setSelectedDistance] = useState<number | null>(null);
   const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
-  const _auth = useAuth();
+  const { isGroupMember } = useAuth();
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
@@ -57,29 +57,36 @@ export default function EventsScreen() {
     router.push(`/group-details?groupId=${group.id}` as any);
   };
 
-  const renderGroup = ({ item }: { item: Group }) => (
-    <TouchableOpacity style={styles.groupCard} onPress={() => handleGroupPress(item)}>
-      <Image source={{ uri: item.imageUrl }} style={styles.groupImage} />
-      {item.isPaid && item.memberDiscount && (
-        <View style={styles.groupDiscountBadge}>
-          <TicketPercent size={10} color="#FFFFFF" />
-          <Text style={styles.groupDiscountText}>{item.memberDiscount} off</Text>
+  const renderGroup = ({ item }: { item: Group }) => {
+    const joined = isGroupMember(item.id);
+    return (
+      <TouchableOpacity style={styles.groupCard} onPress={() => handleGroupPress(item)}>
+        <Image source={{ uri: item.imageUrl }} style={styles.groupImage} />
+        {joined ? (
+          <View style={styles.groupJoinedBadge}>
+            <CheckCircle size={10} color="#FFFFFF" />
+            <Text style={styles.groupJoinedText}>Joined</Text>
+          </View>
+        ) : item.isPaid && item.memberDiscount ? (
+          <View style={styles.groupDiscountBadge}>
+            <TicketPercent size={10} color="#FFFFFF" />
+            <Text style={styles.groupDiscountText}>{item.memberDiscount} off</Text>
+          </View>
+        ) : (
+          <View style={styles.freeGroupBadge}>
+            <Text style={styles.freeGroupBadgeText}>Free</Text>
+          </View>
+        )}
+        <View style={styles.groupOverlay}>
+          <Text style={styles.groupName} numberOfLines={2}>{item.name}</Text>
+          <View style={styles.memberCountContainer}>
+            <Users size={12} color="#FFFFFF" />
+            <Text style={styles.memberCount}>{item.memberCount}</Text>
+          </View>
         </View>
-      )}
-      {!item.isPaid && (
-        <View style={styles.freeGroupBadge}>
-          <Text style={styles.freeGroupBadgeText}>Free</Text>
-        </View>
-      )}
-      <View style={styles.groupOverlay}>
-        <Text style={styles.groupName} numberOfLines={2}>{item.name}</Text>
-        <View style={styles.memberCountContainer}>
-          <Users size={12} color="#FFFFFF" />
-          <Text style={styles.memberCount}>{item.memberCount}</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -396,6 +403,23 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   groupDiscountText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  groupJoinedBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.success,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 3,
+  },
+  groupJoinedText: {
     fontSize: 9,
     fontWeight: '800',
     color: '#FFFFFF',

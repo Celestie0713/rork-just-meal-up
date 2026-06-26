@@ -2,13 +2,9 @@ import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
 export function safeGoBack() {
-  if (Platform.OS === 'web') {
-    router.replace('/');
+  if (router.canGoBack()) {
+    router.back();
     return;
   }
-  try {
-    router.back();
-  } catch {
-    router.replace('/');
-  }
+  router.replace('/');
 }

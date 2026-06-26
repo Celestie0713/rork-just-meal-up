@@ -11,14 +11,6 @@ import { mockGroups } from '@/mocks/groups';
 import { useAuth } from '@/hooks/use-auth';
 import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 
-const paidGroupMemberships: Record<string, string[]> = {
-  '1': ['1', '3'],
-};
-
-function isUserMemberOfGroup(userId: string, groupId: string): boolean {
-  return paidGroupMemberships[userId]?.includes(groupId) ?? false;
-}
-
 
 export default function MealUpDetailsScreen() {
   const { mealUpId } = useLocalSearchParams<{ mealUpId: string }>();
@@ -27,7 +19,7 @@ export default function MealUpDetailsScreen() {
   const mealUp = mockMealUps.find(m => m.id === mealUpId);
   const organizer = mockUsers.find(u => u.id === mealUp?.organizerId);
   
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, isGroupMember } = useAuth();
   const [showJoinModal, setShowJoinModal] = useState<boolean>(false);
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   
@@ -35,7 +27,7 @@ export default function MealUpDetailsScreen() {
   const actualGroup = mealUp?.group?.id ? mockGroups.find(g => g.id === mealUp.group!.id) : undefined;
   const groupInfo = actualGroup ?? mealUp?.group;
   const isPaidGroup = !!(groupInfo?.isPaid && groupInfo?.memberDiscount);
-  const isMember = !!(groupInfo?.id && currentUser?.id && isUserMemberOfGroup(currentUser.id, groupInfo.id));
+  const isMember = !!(groupInfo?.id && isGroupMember(groupInfo.id));
   const discountPercent = isPaidGroup ? parseInt((groupInfo?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
   const discountedPrice = isPaidGroup && mealUp ? Math.round(mealUp.ticketPrice * (1 - discountPercent)) : 0;
   const finalPrice = isPaidGroup && isMember ? discountedPrice : (mealUp?.ticketPrice ?? 0);
