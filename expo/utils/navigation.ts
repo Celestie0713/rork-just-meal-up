@@ -1,10 +1,6 @@
-import { Platform } from 'react-native';
 import { router } from 'expo-router';
 
+/** Navigate back safely — router.back() falls back to root when history is empty. */
 export function safeGoBack() {
-  if (router.canGoBack()) {
-    router.back();
-    return;
-  }
-  router.replace('/');
+  router.back();
 }

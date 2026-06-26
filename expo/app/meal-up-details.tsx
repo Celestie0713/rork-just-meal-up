@@ -349,9 +349,13 @@ export default function MealUpDetailsScreen() {
           ) : isPaidGroup && !isMember && groupInfo && mealUp ? (
             <View>
               <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
-              <Text style={styles.bottomNonMemberHint}>
-                Join {groupInfo.name} to save {groupInfo.memberDiscount ?? '0%'}
-              </Text>
+              <TouchableOpacity
+                onPress={() => router.push(`/group-details?groupId=${groupInfo.id}` as any)}
+              >
+                <Text style={styles.bottomMemberPriceHint}>
+                  Member price: ${discountedPrice}
+                </Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
@@ -971,6 +975,13 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     fontWeight: '500',
     marginTop: 2,
+  },
+  bottomMemberPriceHint: {
+    fontSize: 12,
+    color: Colors.primary,
+    fontWeight: '600',
+    marginTop: 2,
+    textDecorationLine: 'underline',
   },
   // Join Modal styles
   modalOverlay: {
