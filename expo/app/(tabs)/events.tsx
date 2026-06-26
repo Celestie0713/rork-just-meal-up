@@ -5,6 +5,7 @@ import { Search, Filter, Plus, Users, X, TicketPercent, CheckCircle, ChevronDown
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
+import { ALL_COUNTRIES } from '@/constants/countries';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockGroups, type Group } from '@/mocks/groups';
 import { useAuth } from '@/hooks/use-auth';
@@ -32,7 +33,7 @@ export default function EventsScreen() {
 
   const now = new Date();
 
-  const countries = [...new Set(mockMealUps.map(m => m.venue.country).filter(Boolean))].sort() as string[];
+  const countries = ALL_COUNTRIES as unknown as string[];
 
   const upcomingMealUps = mockMealUps.filter(mealUp => mealUp.date >= now);
   const pastMealUps = mockMealUps.filter(mealUp => mealUp.date < now);

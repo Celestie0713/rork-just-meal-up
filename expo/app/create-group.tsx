@@ -32,7 +32,7 @@ const CURRENCY_OPTIONS = (() => {
     .sort((a, b) => a.symbol.localeCompare(b.symbol));
 })();
 
-const DISCOUNT_OPTIONS = ['10%', '20%', '35%', '50%', '70%'] as const;
+const DISCOUNT_OPTIONS = ['10%', '20%', '35%', '50%', '70%', '100%'] as const;
 
 export default function CreateGroupScreen() {
   const _auth = useAuth();
