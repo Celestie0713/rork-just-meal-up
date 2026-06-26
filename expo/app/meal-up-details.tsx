@@ -7,6 +7,7 @@ import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, C
 import { Colors, Gradients } from '@/constants/colors';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { mockUsers } from '@/mocks/users';
+import { mockGroups } from '@/mocks/groups';
 import { useAuth } from '@/hooks/use-auth';
 import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 
@@ -30,7 +31,9 @@ export default function MealUpDetailsScreen() {
   const [showJoinModal, setShowJoinModal] = useState<boolean>(false);
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
   
-  const groupInfo = mealUp?.group;
+  // Look up the authoritative group to get the real discount (not the cached copy on the meal-up)
+  const actualGroup = mealUp?.group?.id ? mockGroups.find(g => g.id === mealUp.group!.id) : undefined;
+  const groupInfo = actualGroup ?? mealUp?.group;
   const isPaidGroup = !!(groupInfo?.isPaid && groupInfo?.memberDiscount);
   const isMember = !!(groupInfo?.id && currentUser?.id && isUserMemberOfGroup(currentUser.id, groupInfo.id));
   const discountPercent = isPaidGroup ? parseInt((groupInfo?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
@@ -151,7 +154,7 @@ export default function MealUpDetailsScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.priceTag}>
-            {isPaidGroup && mealUp ? (
+            {isPaidGroup && isMember && mealUp ? (
               <View style={styles.discountPriceTag}>
                 <View style={styles.originalPriceRow}>
                   <DollarSign size={12} color="rgba(255,255,255,0.6)" />
@@ -269,7 +272,14 @@ export default function MealUpDetailsScreen() {
                   <BadgePercent size={20} color={Colors.primary} />
                 </View>
                 <View style={styles.memberBenefitHeaderText}>
-                  <Text style={styles.memberBenefitTitle}>Group member benefit</Text>
+                  <Text style={styles.memberBenefitTitle}>
+                    {isMember ? 'Your member benefit' : 'Member-only benefit'}
+                  </Text>
+                  {!isMember && (
+                    <Text style={styles.memberBenefitSubtitle}>
+                      Join {groupInfo.name} to unlock this discount
+                    </Text>
+                  )}
                 </View>
               </View>
               <View style={styles.memberBenefitCard}>
@@ -279,16 +289,34 @@ export default function MealUpDetailsScreen() {
                     <Text style={styles.memberBenefitBadgeText}>{groupInfo.memberDiscount ?? '0%'} off</Text>
                   </View>
                 </View>
-                <View style={styles.memberBenefitDivider} />
-                <View style={styles.memberBenefitRow}>
-                  <Text style={styles.memberBenefitLabel}>You pay</Text>
-                  <Text style={styles.memberBenefitPrice}>${discountedPrice}</Text>
-                </View>
-                <View style={styles.memberBenefitDivider} />
-                <View style={styles.memberBenefitRow}>
-                  <Text style={styles.memberBenefitLabel}>You save</Text>
-                  <Text style={styles.memberBenefitSave}>${mealUp.ticketPrice - discountedPrice}</Text>
-                </View>
+                {isMember && (
+                  <>
+                    <View style={styles.memberBenefitDivider} />
+                    <View style={styles.memberBenefitRow}>
+                      <Text style={styles.memberBenefitLabel}>You pay</Text>
+                      <Text style={styles.memberBenefitPrice}>${discountedPrice}</Text>
+                    </View>
+                    <View style={styles.memberBenefitDivider} />
+                    <View style={styles.memberBenefitRow}>
+                      <Text style={styles.memberBenefitLabel}>You save</Text>
+                      <Text style={styles.memberBenefitSave}>${mealUp.ticketPrice - discountedPrice}</Text>
+                    </View>
+                  </>
+                )}
+                {!isMember && (
+                  <>
+                    <View style={styles.memberBenefitDivider} />
+                    <View style={styles.memberBenefitRow}>
+                      <Text style={styles.memberBenefitLabel}>Non-member price</Text>
+                      <Text style={styles.memberBenefitPrice}>${mealUp.ticketPrice}</Text>
+                    </View>
+                    <View style={styles.memberBenefitDivider} />
+                    <View style={styles.memberBenefitRow}>
+                      <Text style={styles.memberBenefitLabel}>Member price</Text>
+                      <Text style={styles.memberBenefitSave}>${discountedPrice}</Text>
+                    </View>
+                  </>
+                )}
               </View>
             </View>
           )}
@@ -316,7 +344,7 @@ export default function MealUpDetailsScreen() {
       <View style={styles.bottomBar}>
         <View style={styles.priceInfo}>
           <Text style={styles.bottomPriceLabel}>Price per person</Text>
-          {isPaidGroup && groupInfo && mealUp ? (
+          {isPaidGroup && isMember && groupInfo && mealUp ? (
             <View style={styles.bottomDiscountRow}>
               <View>
                 <Text style={styles.bottomOriginalPrice}>${mealUp.ticketPrice}</Text>
@@ -325,6 +353,13 @@ export default function MealUpDetailsScreen() {
               <View style={styles.bottomDiscountBadge}>
                 <Text style={styles.bottomDiscountBadgeText}>{groupInfo.memberDiscount ?? '0%'} off</Text>
               </View>
+            </View>
+          ) : isPaidGroup && !isMember && groupInfo && mealUp ? (
+            <View>
+              <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
+              <Text style={styles.bottomNonMemberHint}>
+                Join {groupInfo.name} to save {groupInfo.memberDiscount ?? '0%'}
+              </Text>
             </View>
           ) : (
             <Text style={styles.bottomPriceValue}>${mealUp.ticketPrice}</Text>
@@ -938,6 +973,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: Colors.primary,
+  },
+  bottomNonMemberHint: {
+    fontSize: 11,
+    color: Colors.textLight,
+    fontWeight: '500',
+    marginTop: 2,
   },
   // Join Modal styles
   modalOverlay: {

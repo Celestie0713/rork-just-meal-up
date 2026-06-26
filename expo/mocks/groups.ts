@@ -60,7 +60,7 @@ export const mockGroups: Group[] = [
         likes: 18,
       },
     ],
-    upcomingMealUps: ['1', '2'],
+    upcomingMealUps: ['1'],
     hostedBy: { userId: '2', name: 'Sarah Chen', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
   },
   {
@@ -97,7 +97,7 @@ export const mockGroups: Group[] = [
     location: 'Brooklyn, NY',
     description: 'Exploring Brooklyn\'s incredible food scene, one meal at a time. From hidden gems to Michelin stars, we eat it all!',
     posts: [],
-    upcomingMealUps: ['1'],
+    upcomingMealUps: ['4'],
     hostedBy: { userId: '1', name: 'Alex Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
   },
   {
