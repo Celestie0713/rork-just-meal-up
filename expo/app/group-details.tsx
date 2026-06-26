@@ -8,11 +8,13 @@ import { Colors, Gradients } from '@/constants/colors';
 import { mockGroups } from '@/mocks/groups';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { MealUpCard } from '@/components/MealUpCard';
+import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
 
 export default function GroupDetailsScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  const [isMember, setIsMember] = useState(false);
+  const { joinGroup, leaveGroup, isGroupMember } = useAuth();
+  const isMember = isGroupMember(groupId);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const modalScaleAnim = useRef(new Animated.Value(0)).current;
@@ -58,7 +60,7 @@ export default function GroupDetailsScreen() {
   const confirmJoin = () => {
     closeJoinModal();
     setTimeout(() => {
-      setIsMember(true);
+      joinGroup(groupId);
       setShowSuccessModal(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       successScaleAnim.setValue(0);
@@ -118,7 +120,7 @@ export default function GroupDetailsScreen() {
           text: 'Leave', 
           style: 'destructive',
           onPress: () => {
-            setIsMember(false);
+            leaveGroup(groupId);
             Alert.alert('Left Group', 'You have left the group.');
           }
         }
@@ -192,14 +194,27 @@ export default function GroupDetailsScreen() {
             </View>
             <Crown size={18} color={Colors.primary} />
           </TouchableOpacity>
-          <TouchableOpacity 
-            style={[styles.joinButton, isMember && styles.leaveButton]}
-            onPress={isMember ? handleLeaveGroup : handleJoinGroup}
-          >
-            <Text style={styles.joinButtonText}>
-              {isMember ? 'Leave Group' : 'Join Group'}
-            </Text>
-          </TouchableOpacity>
+          {isMember ? (
+            <View>
+              <View style={styles.joinedBadge}>
+                <CheckCircle size={18} color="#FFFFFF" />
+                <Text style={styles.joinedBadgeText}>Joined</Text>
+              </View>
+              <TouchableOpacity 
+                style={styles.leaveLink}
+                onPress={handleLeaveGroup}
+              >
+                <Text style={styles.leaveLinkText}>Leave Group</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.joinButton}
+              onPress={handleJoinGroup}
+            >
+              <Text style={styles.joinButtonText}>Join Group</Text>
+            </TouchableOpacity>
+          )}
           {isMember && (
             <TouchableOpacity 
               style={styles.createMealUpButton}
@@ -464,13 +479,34 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  leaveButton: {
-    backgroundColor: '#666666',
-  },
   joinButtonText: {
     fontSize: 18,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  joinedBadge: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: Colors.success,
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  joinedBadgeText: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
+  },
+  leaveLink: {
+    alignItems: 'center' as const,
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  leaveLinkText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#999999',
   },
   createMealUpButton: {
     flexDirection: 'row' as const,

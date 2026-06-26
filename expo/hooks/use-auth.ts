@@ -19,6 +19,7 @@ const mockCurrentUser: User = {
   isOnline: true,
   ethnicity: 'english, mandarin, cantonese',
   favoritePlaces: ['mock_place_1', 'mock_place_2', 'mock_place_3'],
+  joinedGroupIds: ['3'],
   relationshipStatus: 'single',
   intention: 'relationship' as const,
   preferences: {
@@ -69,10 +70,43 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     });
   }, []);
 
+  const joinGroup = useCallback(async (groupId: string) => {
+    setUser(prevUser => {
+      if (!prevUser) return prevUser;
+      const currentIds = prevUser.joinedGroupIds ?? [];
+      if (currentIds.includes(groupId)) return prevUser;
+      const updatedUser = { ...prevUser, joinedGroupIds: [...currentIds, groupId] };
+      AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser)).catch(error => {
+        console.error('Failed to save user to storage:', error);
+      });
+      return updatedUser;
+    });
+  }, []);
+
+  const leaveGroup = useCallback(async (groupId: string) => {
+    setUser(prevUser => {
+      if (!prevUser) return prevUser;
+      const currentIds = prevUser.joinedGroupIds ?? [];
+      if (!currentIds.includes(groupId)) return prevUser;
+      const updatedUser = { ...prevUser, joinedGroupIds: currentIds.filter(id => id !== groupId) };
+      AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(updatedUser)).catch(error => {
+        console.error('Failed to save user to storage:', error);
+      });
+      return updatedUser;
+    });
+  }, []);
+
+  const isGroupMember = useCallback((groupId: string) => {
+    return (user?.joinedGroupIds ?? []).includes(groupId);
+  }, [user]);
+
   return {
     user,
     isLoading,
     updateUser,
+    joinGroup,
+    leaveGroup,
+    isGroupMember,
     isAuthenticated: !!user,
   };
 });

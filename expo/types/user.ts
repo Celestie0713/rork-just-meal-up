@@ -14,6 +14,7 @@ export interface User {
   lastSeen?: Date;
   ethnicity?: string;
   favoritePlaces?: string[];
+  joinedGroupIds?: string[];
   relationshipStatus?: 'single' | 'in_relationship';
   intention?: 'make_new_friends' | 'relationship' | 'casual' | 'marriage' | 'open_marriage' | 'figuring_it_out';
   partnerId?: string;
