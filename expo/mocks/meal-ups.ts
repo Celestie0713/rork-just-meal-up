@@ -474,5 +474,405 @@ export const mockMealUps: MealUp[] = [
       paymentType: 'go_dutch',
       description: 'All-you-can-eat K-BBQ with unlimited soju. We\'ll split the bill evenly.'
     }
+  },
+  {
+    id: '15',
+    organizerId: '5',
+    organizerName: 'Michael Rodriguez',
+    title: 'Mexico City Street Taco Tour',
+    description: 'Taste your way through Mexico City\'s best street taco spots — al pastor, carnitas, suadero, and more.',
+    date: new Date(Date.now() + 11 * 24 * 60 * 60 * 1000),
+    time: '5:00 PM',
+    venue: {
+      name: 'Taquería Los Cocuyos',
+      address: 'Simón Bolívar 59, Centro, Mexico City',
+      country: 'Mexico',
+      cuisine: 'Mexican'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['5', '7'],
+    ticketPrice: 35,
+    imageUrl: 'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1551504734-5ee1c4a1479b?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1613514785940-daed0779c9fc?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '12',
+      name: 'Craft Beer Tasting Group',
+      isPaid: true,
+      memberDiscount: '25%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Covers tasting portions at 6 legendary taco stands. Each person pays for their own experience.'
+    }
+  },
+  {
+    id: '16',
+    organizerId: '8',
+    organizerName: 'Carlos Mendez',
+    title: 'São Paulo Churrascaria Feast',
+    description: 'All-you-can-eat Brazilian barbecue at a top rodízio — endless cuts of picanha, sausages, and grilled pineapple.',
+    date: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+    time: '8:00 PM',
+    venue: {
+      name: 'Fogo de Chão Jardins',
+      address: 'Rua Augusta 2077, São Paulo',
+      country: 'Brazil',
+      cuisine: 'Brazilian'
+    },
+    maxAttendees: 14,
+    currentAttendees: ['8', '10'],
+    ticketPrice: 70,
+    imageUrl: 'https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '3',
+      name: 'Brooklyn Foodies',
+      isPaid: true,
+      memberDiscount: '35%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Rodízio-style all-you-can-eat experience with drinks. We\'ll split the bill evenly.'
+    }
+  },
+  {
+    id: '17',
+    organizerId: '9',
+    organizerName: 'Liam O\'Brien',
+    title: 'Bangkok Floating Market Feast',
+    description: 'Cruise the canals of Bangkok sampling boat noodles, mango sticky rice, and fresh coconut ice cream.',
+    date: new Date(Date.now() + 19 * 24 * 60 * 60 * 1000),
+    time: '9:00 AM',
+    venue: {
+      name: 'Khlong Lat Mayom Floating Market',
+      address: 'Bang Lamad Road, Taling Chan, Bangkok',
+      country: 'Thailand',
+      cuisine: 'Thai'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['9', '2'],
+    ticketPrice: 25,
+    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1559314809-0d155014e29e?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '9',
+      name: 'International Foodies NYC',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Covers boat rental and guide. Food at each stall is pay-as-you-go.'
+    }
+  },
+  {
+    id: '18',
+    organizerId: '4',
+    organizerName: 'Marcus Johnson',
+    title: 'Melbourne Brunch & Coffee Crawl',
+    description: 'Melbourne takes brunch seriously. Flat whites, smashed avo, and the best eggs benny you\'ll ever have.',
+    date: new Date(Date.now() + 13 * 24 * 60 * 60 * 1000),
+    time: '10:00 AM',
+    venue: {
+      name: 'Higher Ground',
+      address: '650 Little Bourke St, Melbourne',
+      country: 'Australia',
+      cuisine: 'Australian'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['4', '6'],
+    ticketPrice: 55,
+    imageUrl: 'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '7',
+      name: 'Coffee & Conversation',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Covers brunch and coffee at 3 venues. Each person pays for their own meal.'
+    }
+  },
+  {
+    id: '19',
+    organizerId: '6',
+    organizerName: 'David Kim',
+    title: 'Marrakech Riad Dinner Experience',
+    description: 'A magical evening in a traditional riad with tagine, couscous, live music, and mint tea under the stars.',
+    date: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000),
+    time: '7:30 PM',
+    venue: {
+      name: 'Riad Kniza',
+      address: '34 Derb l\'Hotel, Bab Doukala, Marrakech',
+      country: 'Morocco',
+      cuisine: 'Moroccan'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['6', '1'],
+    ticketPrice: 80,
+    imageUrl: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '1',
+      name: '35+ singles in NY with cats',
+      isPaid: true,
+      memberDiscount: '20%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'organizer_pays',
+      description: 'Full Moroccan feast with live entertainment. Organizer covers the cost.'
+    }
+  },
+  {
+    id: '20',
+    organizerId: '11',
+    organizerName: 'Priya Sharma',
+    title: 'Lima Ceviche & Pisco Sour Night',
+    description: 'Fresh ceviche, tiraditos, and perfectly shaken pisco sours at Lima\'s most celebrated seafood spot.',
+    date: new Date(Date.now() + 17 * 24 * 60 * 60 * 1000),
+    time: '8:00 PM',
+    venue: {
+      name: 'La Mar Cebichería',
+      address: 'Av. La Mar 770, Miraflores, Lima',
+      country: 'Peru',
+      cuisine: 'Peruvian'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['11', '6'],
+    ticketPrice: 60,
+    imageUrl: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '4',
+      name: 'Manhattan Wine Lovers',
+      isPaid: true,
+      memberDiscount: '20%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Covers ceviche tasting menu and 2 pisco sours. Each person pays for their own meal.'
+    }
+  },
+  {
+    id: '21',
+    organizerId: '12',
+    organizerName: 'Hana Park',
+    title: 'Hanoi Pho & Bia Hoi Night',
+    description: 'Slurp legendary pho, then join locals on plastic stools for fresh bia hoi at Hanoi\'s buzzing beer corner.',
+    date: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000),
+    time: '6:00 PM',
+    venue: {
+      name: 'Pho Gia Truyen',
+      address: '49 Bat Dan, Hoan Kiem, Hanoi',
+      country: 'Vietnam',
+      cuisine: 'Vietnamese'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['12', '3'],
+    ticketPrice: 20,
+    imageUrl: 'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '2',
+      name: 'Golden retriever owner in NY',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Covers pho dinner and first round of bia hoi. We\'ll split the rest evenly.'
+    }
+  },
+  {
+    id: '22',
+    organizerId: '10',
+    organizerName: 'Amara Okafor',
+    title: 'Cairo Street Food & Nile View',
+    description: 'Koshari, ful medames, and grilled kofta followed by shisha with a stunning Nile view at sunset.',
+    date: new Date(Date.now() + 24 * 24 * 60 * 60 * 1000),
+    time: '5:30 PM',
+    venue: {
+      name: 'Abou Tarek',
+      address: '16 Maarouf St, Downtown Cairo',
+      country: 'Egypt',
+      cuisine: 'Egyptian'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['10', '5'],
+    ticketPrice: 30,
+    imageUrl: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '8',
+      name: 'NYC Book Club Dinners',
+      isPaid: true,
+      memberDiscount: '25%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Full street food tour covering 5 stops. Each person pays for their own experience.'
+    }
+  },
+  {
+    id: '23',
+    organizerId: '7',
+    organizerName: 'Yuki Tanaka',
+    title: 'Istanbul Spice Market & Bosphorus Dinner',
+    description: 'Explore the Grand Bazaar, sample Turkish delight and baklava, then cruise the Bosphorus for a meze dinner.',
+    date: new Date(Date.now() + 25 * 24 * 60 * 60 * 1000),
+    time: '4:00 PM',
+    venue: {
+      name: 'Hamdi Restaurant',
+      address: 'Tahmis Kalçin Sokak 17, Eminönü, Istanbul',
+      country: 'Turkey',
+      cuisine: 'Turkish'
+    },
+    maxAttendees: 12,
+    currentAttendees: ['7', '1', '3'],
+    ticketPrice: 55,
+    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '3',
+      name: 'Brooklyn Foodies',
+      isPaid: true,
+      memberDiscount: '35%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Covers market tour, Bosphorus cruise, and meze dinner. We\'ll split drinks evenly.'
+    }
+  },
+  {
+    id: '24',
+    organizerId: '3',
+    organizerName: 'Emma Wilson',
+    title: 'Berlin Beer Garden & Currywurst Tour',
+    description: 'Hop between Berlin\'s best beer gardens, sampling currywurst, pretzels, and craft brews along the way.',
+    date: new Date(Date.now() + 26 * 24 * 60 * 60 * 1000),
+    time: '6:00 PM',
+    venue: {
+      name: 'Prater Garten',
+      address: 'Kastanienallee 7-9, Berlin',
+      country: 'Germany',
+      cuisine: 'German'
+    },
+    maxAttendees: 12,
+    currentAttendees: ['3', '8'],
+    ticketPrice: 45,
+    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '5',
+      name: 'Vegan Singles NYC',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Covers beer garden entry and first drink. Food and additional drinks split evenly.'
+    }
+  },
+  {
+    id: '25',
+    organizerId: '5',
+    organizerName: 'Michael Rodriguez',
+    title: 'Lisbon Pastel de Nata & Port Wine Walk',
+    description: 'Wander through Lisbon\'s Alfama district tasting custard tarts, port wine, and petiscos at hidden tabernas.',
+    date: new Date(Date.now() + 27 * 24 * 60 * 60 * 1000),
+    time: '3:00 PM',
+    venue: {
+      name: 'Manteigaria',
+      address: 'Rua do Loreto 2, Lisbon',
+      country: 'Portugal',
+      cuisine: 'Portuguese'
+    },
+    maxAttendees: 8,
+    currentAttendees: ['5', '2'],
+    ticketPrice: 40,
+    imageUrl: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1551218808-94e220e084d2?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '4',
+      name: 'Manhattan Wine Lovers',
+      isPaid: true,
+      memberDiscount: '20%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'individual_pays',
+      description: 'Covers pasteis de nata, 3 port wine tastings, and petiscos. Each person pays for their own experience.'
+    }
+  },
+  {
+    id: '26',
+    organizerId: '8',
+    organizerName: 'Carlos Mendez',
+    title: 'Buenos Aires Asado & Malbec Night',
+    description: 'A proper Argentine asado in a Palermo courtyard — fire-grilled beef, chimichurri, and bottomless Malbec.',
+    date: new Date(Date.now() + 28 * 24 * 60 * 60 * 1000),
+    time: '9:00 PM',
+    venue: {
+      name: 'Don Julio',
+      address: 'Guatemala 4699, Palermo, Buenos Aires',
+      country: 'Argentina',
+      cuisine: 'Argentine'
+    },
+    maxAttendees: 10,
+    currentAttendees: ['8', '10', '1'],
+    ticketPrice: 90,
+    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+    images: [
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&h=400&fit=crop',
+      'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&h=400&fit=crop'
+    ],
+    group: {
+      id: '12',
+      name: 'Craft Beer Tasting Group',
+      isPaid: true,
+      memberDiscount: '25%',
+    },
+    priceDetails: {
+      includesFood: true,
+      paymentType: 'go_dutch',
+      description: 'Full asado experience with premium cuts and wine pairings. We\'ll split the bill evenly.'
+    }
   }
 ];
