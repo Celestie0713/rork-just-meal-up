@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, Filter, Plus, Users, X } from 'lucide-react-native';
+import { Search, Filter, Plus, Users, X, TicketPercent } from 'lucide-react-native';
 import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
@@ -60,6 +60,17 @@ export default function EventsScreen() {
   const renderGroup = ({ item }: { item: Group }) => (
     <TouchableOpacity style={styles.groupCard} onPress={() => handleGroupPress(item)}>
       <Image source={{ uri: item.imageUrl }} style={styles.groupImage} />
+      {item.isPaid && item.memberDiscount && (
+        <View style={styles.groupDiscountBadge}>
+          <TicketPercent size={10} color="#FFFFFF" />
+          <Text style={styles.groupDiscountText}>{item.memberDiscount} off</Text>
+        </View>
+      )}
+      {!item.isPaid && (
+        <View style={styles.freeGroupBadge}>
+          <Text style={styles.freeGroupBadgeText}>Free</Text>
+        </View>
+      )}
       <View style={styles.groupOverlay}>
         <Text style={styles.groupName} numberOfLines={2}>{item.name}</Text>
         <View style={styles.memberCountContainer}>
@@ -371,6 +382,37 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     marginBottom: 4,
     lineHeight: 14,
+  },
+  groupDiscountBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.success,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 3,
+  },
+  groupDiscountText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFFFFF',
+  },
+  freeGroupBadge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  freeGroupBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
   memberCountContainer: {
     flexDirection: 'row',
