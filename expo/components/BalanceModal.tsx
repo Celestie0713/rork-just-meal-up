@@ -27,6 +27,10 @@ const MONTHS = [
 
 const YEARS = [2024, 2025, 2026, 2027, 2028];
 
+function daysInMonth(month: number, year: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
 interface EventDetail {
   mealUp: MealUp;
   totalRevenue: number;
@@ -64,6 +68,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
   const [dateEnd, setDateEnd] = useState<Date | null>(null);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerMode, setDatePickerMode] = useState<'start' | 'end'>('start');
+  const [tempDay, setTempDay] = useState(1);
   const [tempMonth, setTempMonth] = useState(0);
   const [tempYear, setTempYear] = useState(2026);
 
@@ -168,11 +173,12 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
   const activeCount = activeTab === 'my-group' ? myGroups.length : memberGroups.length;
 
   function formatDateShort(d: Date): string {
-    return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
+    return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getDate()}, ${d.getFullYear()}`;
   }
 
   function openDatePicker(mode: 'start' | 'end') {
     const existing = mode === 'start' ? dateStart : dateEnd;
+    setTempDay(existing ? existing.getDate() : 1);
     setTempMonth(existing ? existing.getMonth() : 0);
     setTempYear(existing ? existing.getFullYear() : 2026);
     setDatePickerMode(mode);
@@ -180,7 +186,9 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
   }
 
   function applyDateRange() {
-    const d = new Date(tempYear, tempMonth, 1);
+    const maxDay = daysInMonth(tempMonth, tempYear);
+    const day = Math.min(tempDay, maxDay);
+    const d = new Date(tempYear, tempMonth, day);
     if (datePickerMode === 'start') {
       setDateStart(d);
     } else {
@@ -627,6 +635,36 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
             </View>
 
             <View style={styles.pickerBody}>
+              {/* Day selector */}
+              <View style={styles.pickerColumn}>
+                <Text style={styles.pickerColumnLabel}>Day</Text>
+                <ScrollView
+                  style={styles.pickerScroll}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {Array.from({ length: daysInMonth(tempMonth, tempYear) }, (_, i) => i + 1).map((day) => (
+                    <TouchableOpacity
+                      key={day}
+                      style={[
+                        styles.pickerOption,
+                        tempDay === day && styles.pickerOptionActive,
+                      ]}
+                      onPress={() => setTempDay(day)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerOptionText,
+                          tempDay === day && styles.pickerOptionTextActive,
+                        ]}
+                      >
+                        {day}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
               {/* Month selector */}
               <View style={styles.pickerColumn}>
                 <Text style={styles.pickerColumnLabel}>Month</Text>
@@ -641,7 +679,11 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                         styles.pickerOption,
                         tempMonth === idx && styles.pickerOptionActive,
                       ]}
-                      onPress={() => setTempMonth(idx)}
+                      onPress={() => {
+                        setTempMonth(idx);
+                        const maxDay = daysInMonth(idx, tempYear);
+                        if (tempDay > maxDay) setTempDay(maxDay);
+                      }}
                       activeOpacity={0.7}
                     >
                       <Text
@@ -671,7 +713,11 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                         styles.pickerOption,
                         tempYear === year && styles.pickerOptionActive,
                       ]}
-                      onPress={() => setTempYear(year)}
+                      onPress={() => {
+                        setTempYear(year);
+                        const maxDay = daysInMonth(tempMonth, year);
+                        if (tempDay > maxDay) setTempDay(maxDay);
+                      }}
                       activeOpacity={0.7}
                     >
                       <Text
