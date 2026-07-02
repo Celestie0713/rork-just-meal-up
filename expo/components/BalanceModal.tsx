@@ -177,7 +177,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
           {/* Row 1: Event hosted by group creator */}
           <View style={styles.splitRow}>
             <Text style={[styles.splitCell, styles.splitFirstCell, styles.splitLabelCell]}>
-              Event by host
+              Event by host (group founder)
             </Text>
             <Text style={styles.splitCell}>{Math.round(PLATFORM_RATE * 100)}%</Text>
             <Text style={styles.splitCell}>{Math.round(HOST_SELF_RUN_RATE * 100)}%</Text>
@@ -187,7 +187,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
           {/* Row 2: Event hosted by member (cohost) */}
           <View style={styles.splitRow}>
             <Text style={[styles.splitCell, styles.splitFirstCell, styles.splitLabelCell]}>
-              Event by cohost
+              Event by cohost (group member)
             </Text>
             <Text style={styles.splitCell}>{Math.round(PLATFORM_RATE * 100)}%</Text>
             <Text style={styles.splitCell}>{Math.round(HOST_COHOST_SHARE * 100)}%</Text>
