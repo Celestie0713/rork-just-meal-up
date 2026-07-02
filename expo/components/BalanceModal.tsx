@@ -5,8 +5,9 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
+  Modal,
 } from 'react-native';
-import { X, DollarSign, Users, TrendingUp, Crown, UserCheck } from 'lucide-react-native';
+import { X, DollarSign, Users, TrendingUp, Crown, UserCheck, Calendar, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useAuth } from '@/hooks/use-auth';
 import { mockGroups } from '@/mocks/groups';
 import { mockMealUps } from '@/mocks/meal-ups';
@@ -18,6 +19,13 @@ const PLATFORM_RATE = 0.15;
 const HOST_SELF_RUN_RATE = 0.85;
 const HOST_COHOST_SHARE = 0.25;
 const COHOST_RATE = 0.60;
+
+const MONTHS = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const YEARS = [2024, 2025, 2026, 2027, 2028];
 
 interface EventDetail {
   mealUp: MealUp;
@@ -52,6 +60,12 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
   const { user } = useAuth();
   const userId = user?.id;
   const [activeTab, setActiveTab] = useState<Tab>('my-group');
+  const [dateStart, setDateStart] = useState<Date | null>(null);
+  const [dateEnd, setDateEnd] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [datePickerMode, setDatePickerMode] = useState<'start' | 'end'>('start');
+  const [tempMonth, setTempMonth] = useState(0);
+  const [tempYear, setTempYear] = useState(2026);
 
   const { myGroups, memberGroups, totalEarnings } = useMemo(() => {
     if (!userId) {
@@ -70,8 +84,22 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
     );
     const joinedGroups = mockGroups.filter((g) => joinedGroupIds.includes(g.id));
 
+    function filterByDateRange(mealUps: MealUp[]): MealUp[] {
+      if (!dateStart && !dateEnd) return mealUps;
+      return mealUps.filter((m) => {
+        const mealDate = new Date(m.date);
+        if (dateStart && mealDate < dateStart) return false;
+        if (dateEnd) {
+          const endOfDay = new Date(dateEnd);
+          endOfDay.setHours(23, 59, 59, 999);
+          if (mealDate > endOfDay) return false;
+        }
+        return true;
+      });
+    }
+
     function computeMyGroupBalance(group: Group): MyGroupBalance {
-      const groupMealUps = mockMealUps.filter((m) => m.group?.id === group.id);
+      const groupMealUps = filterByDateRange(mockMealUps.filter((m) => m.group?.id === group.id));
 
       const monthlySubsIncome =
         group.isPaid && group.monthlyFee ? group.memberCount * group.monthlyFee : 0;
@@ -104,9 +132,9 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
     }
 
     function computeMemberGroupBalance(group: Group): MemberGroupBalance {
-      const groupMealUps = mockMealUps.filter(
+      const groupMealUps = filterByDateRange(mockMealUps.filter(
         (m) => m.group?.id === group.id && m.organizerId === userId,
-      );
+      ));
 
       const events: EventDetail[] = groupMealUps.map((mealUp) => {
         const attendeeCount = mealUp.currentAttendees.length;
@@ -135,9 +163,43 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
     );
 
     return { myGroups, memberGroups, totalEarnings };
-  }, [userId, user?.joinedGroupIds]);
+  }, [userId, user?.joinedGroupIds, dateStart, dateEnd]);
 
   const activeCount = activeTab === 'my-group' ? myGroups.length : memberGroups.length;
+
+  function formatDateShort(d: Date): string {
+    return `${MONTHS[d.getMonth()].slice(0, 3)} ${d.getFullYear()}`;
+  }
+
+  function openDatePicker(mode: 'start' | 'end') {
+    const existing = mode === 'start' ? dateStart : dateEnd;
+    setTempMonth(existing ? existing.getMonth() : 0);
+    setTempYear(existing ? existing.getFullYear() : 2026);
+    setDatePickerMode(mode);
+    setShowDatePicker(true);
+  }
+
+  function applyDateRange() {
+    const d = new Date(tempYear, tempMonth, 1);
+    if (datePickerMode === 'start') {
+      setDateStart(d);
+    } else {
+      setDateEnd(d);
+    }
+    setShowDatePicker(false);
+  }
+
+  function clearDateRange() {
+    setDateStart(null);
+    setDateEnd(null);
+  }
+
+  const dateRangeLabel = useMemo(() => {
+    if (!dateStart && !dateEnd) return 'All time';
+    if (dateStart && !dateEnd) return `${formatDateShort(dateStart)} – Now`;
+    if (!dateStart && dateEnd) return `Start – ${formatDateShort(dateEnd)}`;
+    return `${formatDateShort(dateStart!)} – ${formatDateShort(dateEnd!)}`;
+  }, [dateStart, dateEnd]);
 
   return (
     <View style={styles.overlay}>
@@ -193,6 +255,51 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
             <Text style={styles.splitCell}>{Math.round(HOST_COHOST_SHARE * 100)}%</Text>
             <Text style={styles.splitCell}>{Math.round(COHOST_RATE * 100)}%</Text>
           </View>
+        </View>
+
+        {/* Date Range */}
+        <View style={styles.dateRangeSection}>
+          <View style={styles.dateRangeHeader}>
+            <View style={styles.dateRangeLabelRow}>
+              <Calendar size={14} color="#888888" />
+              <Text style={styles.dateRangeTitle}>Date Range</Text>
+            </View>
+            <Text style={styles.dateRangeSelected}>{dateRangeLabel}</Text>
+          </View>
+          <View style={styles.dateRangeInputs}>
+            <TouchableOpacity
+              style={styles.dateField}
+              onPress={() => openDatePicker('start')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.dateFieldLabel, dateStart && styles.dateFieldLabelActive]}>
+                From
+              </Text>
+              <Text style={[styles.dateFieldValue, !dateStart && styles.dateFieldValuePlaceholder]}>
+                {dateStart ? formatDateShort(dateStart) : 'Any'}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.dateRangeDash}>
+              <View style={styles.dateDashLine} />
+            </View>
+            <TouchableOpacity
+              style={styles.dateField}
+              onPress={() => openDatePicker('end')}
+              activeOpacity={0.7}
+            >
+              <Text style={[styles.dateFieldLabel, dateEnd && styles.dateFieldLabelActive]}>
+                To
+              </Text>
+              <Text style={[styles.dateFieldValue, !dateEnd && styles.dateFieldValuePlaceholder]}>
+                {dateEnd ? formatDateShort(dateEnd) : 'Any'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          {(dateStart || dateEnd) && (
+            <TouchableOpacity style={styles.dateClearBtn} onPress={clearDateRange} activeOpacity={0.7}>
+              <Text style={styles.dateClearBtnText}>Clear</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Tabs */}
@@ -492,6 +599,105 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
           </Text>
         </View>
       </View>
+
+      {/* Date Picker Modal */}
+      <Modal
+        visible={showDatePicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDatePicker(false)}
+      >
+        <View style={styles.pickerOverlay}>
+          <TouchableOpacity
+            style={styles.pickerBackdrop}
+            onPress={() => setShowDatePicker(false)}
+            activeOpacity={1}
+          />
+          <View style={styles.pickerSheet}>
+            <View style={styles.pickerHeader}>
+              <Text style={styles.pickerTitle}>
+                {datePickerMode === 'start' ? 'Start Date' : 'End Date'}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(false)}
+                hitSlop={8}
+              >
+                <X size={20} color="#000000" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.pickerBody}>
+              {/* Month selector */}
+              <View style={styles.pickerColumn}>
+                <Text style={styles.pickerColumnLabel}>Month</Text>
+                <ScrollView
+                  style={styles.pickerScroll}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {MONTHS.map((month, idx) => (
+                    <TouchableOpacity
+                      key={month}
+                      style={[
+                        styles.pickerOption,
+                        tempMonth === idx && styles.pickerOptionActive,
+                      ]}
+                      onPress={() => setTempMonth(idx)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerOptionText,
+                          tempMonth === idx && styles.pickerOptionTextActive,
+                        ]}
+                      >
+                        {month.slice(0, 3)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {/* Year selector */}
+              <View style={styles.pickerColumn}>
+                <Text style={styles.pickerColumnLabel}>Year</Text>
+                <ScrollView
+                  style={styles.pickerScroll}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {YEARS.map((year) => (
+                    <TouchableOpacity
+                      key={year}
+                      style={[
+                        styles.pickerOption,
+                        tempYear === year && styles.pickerOptionActive,
+                      ]}
+                      onPress={() => setTempYear(year)}
+                      activeOpacity={0.7}
+                    >
+                      <Text
+                        style={[
+                          styles.pickerOptionText,
+                          tempYear === year && styles.pickerOptionTextActive,
+                        ]}
+                      >
+                        {year}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.pickerApplyBtn}
+              onPress={applyDateRange}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.pickerApplyBtnText}>Apply</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -915,5 +1121,180 @@ const styles = StyleSheet.create({
     color: '#AAAAAA',
     textAlign: 'center',
     lineHeight: 15,
+  },
+  // Date Range
+  dateRangeSection: {
+    backgroundColor: '#F8F8F8',
+    marginHorizontal: 20,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+  },
+  dateRangeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  dateRangeLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dateRangeTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#888888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  dateRangeSelected: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#333333',
+  },
+  dateRangeInputs: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 0,
+  },
+  dateField: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+  },
+  dateFieldLabel: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#AAAAAA',
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    marginBottom: 3,
+  },
+  dateFieldLabelActive: {
+    color: Colors.primary,
+  },
+  dateFieldValue: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  dateFieldValuePlaceholder: {
+    color: '#CCCCCC',
+    fontWeight: '500',
+  },
+  dateRangeDash: {
+    width: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateDashLine: {
+    width: 8,
+    height: 2,
+    backgroundColor: '#CCCCCC',
+    borderRadius: 1,
+  },
+  dateClearBtn: {
+    marginTop: 10,
+    alignSelf: 'flex-end',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 8,
+    backgroundColor: '#ECECEC',
+  },
+  dateClearBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#888888',
+  },
+  // Date Picker Modal
+  pickerOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  pickerBackdrop: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  pickerSheet: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 36,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  pickerTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000000',
+  },
+  pickerBody: {
+    flexDirection: 'row',
+    gap: 16,
+    height: 220,
+    marginBottom: 16,
+  },
+  pickerColumn: {
+    flex: 1,
+  },
+  pickerColumnLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#888888',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  pickerScroll: {
+    flex: 1,
+    backgroundColor: '#F5F5F5',
+    borderRadius: 12,
+  },
+  pickerOption: {
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    borderRadius: 8,
+    marginHorizontal: 4,
+    marginVertical: 1,
+  },
+  pickerOptionActive: {
+    backgroundColor: '#000000',
+  },
+  pickerOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#555555',
+  },
+  pickerOptionTextActive: {
+    color: '#FFFFFF',
+  },
+  pickerApplyBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  pickerApplyBtnText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });
