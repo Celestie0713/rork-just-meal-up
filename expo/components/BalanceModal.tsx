@@ -71,6 +71,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
   const [tempDay, setTempDay] = useState(1);
   const [tempMonth, setTempMonth] = useState(0);
   const [tempYear, setTempYear] = useState(2026);
+  const [splitOpen, setSplitOpen] = useState(false);
 
   const { myGroups, memberGroups, totalEarnings } = useMemo(() => {
     if (!userId) {
@@ -232,37 +233,52 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
           </View>
         </View>
 
-        {/* Revenue Split Table */}
+        {/* Revenue Split Dropdown */}
         <View style={styles.splitTable}>
-          <Text style={styles.splitTableTitle}>Revenue Split</Text>
+          <TouchableOpacity
+            style={styles.splitDropdownHeader}
+            onPress={() => setSplitOpen((v) => !v)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.splitTableTitle}>Revenue Split</Text>
+            {splitOpen ? (
+              <ChevronUp size={16} color="#888888" />
+            ) : (
+              <ChevronDown size={16} color="#888888" />
+            )}
+          </TouchableOpacity>
 
-          {/* Table Header */}
-          <View style={styles.splitTableHeader}>
-            <Text style={[styles.splitHeaderCell, styles.splitFirstCell]}>Scenario</Text>
-            <Text style={styles.splitHeaderCell}>Platform</Text>
-            <Text style={styles.splitHeaderCell}>Host</Text>
-            <Text style={styles.splitHeaderCell}>Cohost</Text>
-          </View>
+          {splitOpen && (
+            <>
+              {/* Table Header */}
+              <View style={styles.splitTableHeader}>
+                <Text style={[styles.splitHeaderCell, styles.splitFirstCell]}>Scenario</Text>
+                <Text style={styles.splitHeaderCell}>Platform</Text>
+                <Text style={styles.splitHeaderCell}>Host</Text>
+                <Text style={styles.splitHeaderCell}>Cohost</Text>
+              </View>
 
-          {/* Row 1: Event hosted by group creator */}
-          <View style={styles.splitRow}>
-            <Text style={[styles.splitCell, styles.splitFirstCell, styles.splitLabelCell]}>
-              Event by host (group founder)
-            </Text>
-            <Text style={styles.splitCell}>{Math.round(PLATFORM_RATE * 100)}%</Text>
-            <Text style={styles.splitCell}>{Math.round(HOST_SELF_RUN_RATE * 100)}%</Text>
-            <Text style={[styles.splitCell, styles.splitInactiveCell]}>—</Text>
-          </View>
+              {/* Row 1: Event hosted by group creator */}
+              <View style={styles.splitRow}>
+                <Text style={[styles.splitCell, styles.splitFirstCell, styles.splitLabelCell]}>
+                  Event by host (group founder)
+                </Text>
+                <Text style={styles.splitCell}>{Math.round(PLATFORM_RATE * 100)}%</Text>
+                <Text style={styles.splitCell}>{Math.round(HOST_SELF_RUN_RATE * 100)}%</Text>
+                <Text style={[styles.splitCell, styles.splitInactiveCell]}>—</Text>
+              </View>
 
-          {/* Row 2: Event hosted by member (cohost) */}
-          <View style={styles.splitRow}>
-            <Text style={[styles.splitCell, styles.splitFirstCell, styles.splitLabelCell]}>
-              Event by cohost (group member)
-            </Text>
-            <Text style={styles.splitCell}>{Math.round(PLATFORM_RATE * 100)}%</Text>
-            <Text style={styles.splitCell}>{Math.round(HOST_COHOST_SHARE * 100)}%</Text>
-            <Text style={styles.splitCell}>{Math.round(COHOST_RATE * 100)}%</Text>
-          </View>
+              {/* Row 2: Event hosted by member (cohost) */}
+              <View style={styles.splitRow}>
+                <Text style={[styles.splitCell, styles.splitFirstCell, styles.splitLabelCell]}>
+                  Event by cohost (group member)
+                </Text>
+                <Text style={styles.splitCell}>{Math.round(PLATFORM_RATE * 100)}%</Text>
+                <Text style={styles.splitCell}>{Math.round(HOST_COHOST_SHARE * 100)}%</Text>
+                <Text style={styles.splitCell}>{Math.round(COHOST_RATE * 100)}%</Text>
+              </View>
+            </>
+          )}
         </View>
 
         {/* Date Range */}
@@ -829,6 +845,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 14,
     marginBottom: 16,
+  },
+  splitDropdownHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   splitTableTitle: {
     fontSize: 11,
