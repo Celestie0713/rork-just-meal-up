@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Filter } from 'lucide-react-native';
 import {
   View,
   Text,
@@ -72,6 +73,8 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
   const [tempMonth, setTempMonth] = useState(0);
   const [tempYear, setTempYear] = useState(2026);
   const [splitOpen, setSplitOpen] = useState(false);
+  const [eventFilter, setEventFilter] = useState<'all' | 'self' | 'cohost'>('all');
+  const [eventFilterOpen, setEventFilterOpen] = useState(false);
 
   const { myGroups, memberGroups, totalEarnings } = useMemo(() => {
     if (!userId) {
@@ -480,10 +483,76 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                       )}
                     </View>
 
+                    {/* Event Filter Dropdown */}
+                    {gb.events.length > 0 && (
+                      <View style={styles.eventFilterWrap}>
+                        <TouchableOpacity
+                          style={styles.eventFilterHeader}
+                          onPress={() => setEventFilterOpen((v) => !v)}
+                          activeOpacity={0.7}
+                        >
+                          <View style={styles.eventFilterHeaderLeft}>
+                            <Filter size={13} color="#888888" />
+                            <Text style={styles.eventFilterLabel}>
+                              {eventFilter === 'all'
+                                ? 'All Events'
+                                : eventFilter === 'self'
+                                  ? 'Your Events'
+                                  : 'Cohost Events'}
+                            </Text>
+                          </View>
+                          {eventFilterOpen ? (
+                            <ChevronUp size={14} color="#888888" />
+                          ) : (
+                            <ChevronDown size={14} color="#888888" />
+                          )}
+                        </TouchableOpacity>
+                        {eventFilterOpen && (
+                          <View style={styles.eventFilterOptions}>
+                            {([
+                              ['all', 'All Events'],
+                              ['self', 'Your Events'],
+                              ['cohost', 'Cohost Events'],
+                            ] as const).map(([key, label]) => (
+                              <TouchableOpacity
+                                key={key}
+                                style={[
+                                  styles.eventFilterOption,
+                                  eventFilter === key && styles.eventFilterOptionActive,
+                                ]}
+                                onPress={() => {
+                                  setEventFilter(key);
+                                  setEventFilterOpen(false);
+                                }}
+                                activeOpacity={0.7}
+                              >
+                                <Text
+                                  style={[
+                                    styles.eventFilterOptionText,
+                                    eventFilter === key && styles.eventFilterOptionTextActive,
+                                  ]}
+                                >
+                                  {label}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        )}
+                      </View>
+                    )}
+
                     {/* Event Details */}
                     {gb.events.length > 0 && (
                       <View style={styles.eventSection}>
-                        {gb.events.map((ev) => (
+                        {gb.events
+                          .filter((ev) =>
+                            eventFilter === 'all'
+                              ? true
+                              : eventFilter === 'self'
+                                ? ev.isSelfRun
+                                : !ev.isSelfRun,
+                          )
+                          .map((ev) => (
                           <View key={ev.mealUp.id} style={styles.eventRow}>
                             <View style={styles.eventLeft}>
                               <Text style={styles.eventName}>{ev.mealUp.title}</Text>
@@ -1096,6 +1165,54 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 4,
+  },
+  eventFilterWrap: {
+    marginTop: 6,
+    marginBottom: 4,
+  },
+  eventFilterHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#F0F0F0',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 9,
+  },
+  eventFilterHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  eventFilterLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#555555',
+  },
+  eventFilterOptions: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 8,
+  },
+  eventFilterOption: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
+    alignItems: 'center',
+  },
+  eventFilterOptionActive: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  eventFilterOptionText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#888888',
+  },
+  eventFilterOptionTextActive: {
+    color: '#FFFFFF',
   },
   eventSection: {
     marginTop: 4,
