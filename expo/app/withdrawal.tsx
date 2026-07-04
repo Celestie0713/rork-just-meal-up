@@ -142,7 +142,13 @@ export default function WithdrawalScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace('/(tabs)');
+            }
+          }}
           hitSlop={12}
         >
           <ArrowLeft size={22} color="#000000" />
