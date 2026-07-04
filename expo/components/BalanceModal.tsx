@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { X, DollarSign, Users, TrendingUp, Crown, UserCheck, Calendar, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { useAuth } from '@/hooks/use-auth';
+import { router } from 'expo-router';
 import { mockGroups } from '@/mocks/groups';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { Colors } from '@/constants/colors';
@@ -225,10 +226,17 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
           </View>
           <View style={styles.headerRight}>
             {totalEarnings > 0 && (
-              <View style={styles.headerTotalBadge}>
+              <TouchableOpacity
+                style={styles.headerTotalBadge}
+                activeOpacity={0.7}
+                onPress={() => {
+                  onClose();
+                  router.push({ pathname: '/withdrawal', params: { total: totalEarnings.toFixed(2) } });
+                }}
+              >
                 <Text style={styles.headerTotalLabel}>Total</Text>
                 <Text style={styles.headerTotalAmount}>${totalEarnings.toFixed(2)}</Text>
-              </View>
+              </TouchableOpacity>
             )}
             <TouchableOpacity onPress={onClose} style={styles.closeBtn} hitSlop={8}>
               <X size={22} color="#000000" />

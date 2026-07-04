@@ -27,6 +27,7 @@ function RootLayoutNav() {
       <Stack.Screen name="group-details" options={{ headerShown: true }} />
       <Stack.Screen name="meal-up-details" options={{ headerShown: true }} />
       <Stack.Screen name="user-profile" options={{ headerShown: true }} />
+      <Stack.Screen name="withdrawal" options={{ headerShown: false }} />
     </Stack>
   );
 }
