@@ -522,7 +522,6 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                                 ]}
                                 onPress={() => {
                                   setEventFilter(key);
-                                  setEventFilterOpen(false);
                                 }}
                                 activeOpacity={0.7}
                               >
@@ -541,8 +540,8 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                       </View>
                     )}
 
-                    {/* Event Details */}
-                    {gb.events.length > 0 && (
+                    {/* Event Details - only show when dropdown is open */}
+                    {gb.events.length > 0 && eventFilterOpen && (
                       <View style={styles.eventSection}>
                         {gb.events
                           .filter((ev) =>
