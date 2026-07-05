@@ -116,7 +116,7 @@ const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return 
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
     ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity.'
-    : 'QUANTITY: You MUST return 20-25 diverse, real restaurants per batch. Cover the full range: legendary destinations, neighborhood joints, hawker stalls, chains, and hidden gems. Do NOT return the same place more than once. Every result must be a distinct, real restaurant. More is better — fill the list.';
+    : 'QUANTITY: You MUST return at least 30 diverse, real restaurants per batch — aim for 40 if possible. Cover the full range: legendary destinations, neighborhood joints, hawker stalls, food courts, night markets, chains, and hidden gems. Do NOT return the same place more than once. Every result must be a distinct, real restaurant. More is better — fill the list completely. Return the maximum number of real, distinct places you can.';
 
   return `${BASE_PROMPT}
 
@@ -307,9 +307,11 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
         'IMPORTANT: This is a specific restaurant name: "' + cleanQuery + '". Only return places that GENUINELY match this exact name. Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate. If the query includes a brand name (like "LV"), return ONLY places related to that brand.',
       ]
     : [
-        'BATCH 1/3: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
-        'BATCH 2/3: Focus on HIDDEN GEMS, local favorites, hawker stalls, food courts, neighborhood spots, and lesser-known but excellent places.',
-        'BATCH 3/3: Focus on well-known chain restaurants, popular casual spots, and any remaining notable places not covered in batches 1-2.',
+        'BATCH 1/5: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
+        'BATCH 2/5: Focus on HIDDEN GEMS, local favorites, hawker stalls, food courts, neighborhood spots, and lesser-known but excellent places.',
+        'BATCH 3/5: Focus on well-known chain restaurants, popular casual spots, and notable mid-range places not covered in batches 1-2.',
+        'BATCH 4/5: Focus on street food, night markets, regional specialties, and authentic local spots across different cities/countries.',
+        'BATCH 5/5: Focus on fine dining, Michelin-starred, celebrity chef restaurants, and any remaining notable places worldwide for this query.',
       ];
 
     const isSpecific = isQuoted;
@@ -343,8 +345,8 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   const deduped = deduplicatePlaces(allResults, strictDedup);
   // Sort by matchScore descending
   deduped.sort((a, b) => b.matchScore - a.matchScore);
-  // Quoted/specific searches: cap at 3 results to avoid showing the same place repeatedly
-  const final = isQuoted ? deduped.slice(0, 3) : deduped;
+  // Quoted/specific searches: cap at 5 results to avoid showing the same place repeatedly
+  const final = isQuoted ? deduped.slice(0, 5) : deduped;
 
   console.log("[Places AI Search] Total:", allResults.length, "raw, after dedup:", deduped.length, "final:", final.length);
 
