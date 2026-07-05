@@ -12,6 +12,7 @@ import type { PlaceResult } from '@/hooks/use-places-search';
 
 import { Colors } from '@/constants/colors';
 import { BalanceModal } from '@/components/BalanceModal';
+import { SuccessPopup } from '@/components/SuccessPopup';
 import type { User } from '@/types/user';
 
 const COUNTRIES = [
@@ -92,6 +93,7 @@ export default function SearchScreen() {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
+  const [showFavPopup, setShowFavPopup] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -307,6 +309,7 @@ export default function SearchScreen() {
                               rating: item.place.rating,
                               price_level: item.place.priceLevel,
                             });
+                            setShowFavPopup(true);
                           }
                         }}
                         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
@@ -416,6 +419,7 @@ export default function SearchScreen() {
                       rating: selectedPlace.place.rating,
                       price_level: selectedPlace.place.priceLevel,
                     });
+                    setShowFavPopup(true);
                   }
                 }}
                 activeOpacity={0.7}
@@ -451,6 +455,13 @@ export default function SearchScreen() {
       {showBalance && (
         <BalanceModal onClose={() => setShowBalance(false)} />
       )}
+
+      <SuccessPopup
+        visible={showFavPopup}
+        message={`Added to Food to bribe me with. \uD83C\uDF55`}
+        onHide={() => setShowFavPopup(false)}
+        duration={2500}
+      />
 
       {showFilterModal && (
         <View style={styles.modalOverlay}>
