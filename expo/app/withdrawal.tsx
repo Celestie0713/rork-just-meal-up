@@ -143,9 +143,9 @@ export default function WithdrawalScreen() {
         <TouchableOpacity
           style={styles.backBtn}
           onPress={() => {
-            if (router.canGoBack()) {
+            try {
               router.back();
-            } else {
+            } catch {
               router.replace('/(tabs)');
             }
           }}
