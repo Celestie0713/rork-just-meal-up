@@ -84,6 +84,25 @@ const US_STATE_ABBREVIATIONS = [
   'SD', 'TN', 'TX', 'UT', 'VT', 'VA', 'WA', 'WV', 'WI', 'WY'
 ];
 
+/**
+ * Returns the currency symbol for a country name or ISO code.
+ * Falls back to '$' when the country is unknown.
+ */
+export function getCurrencyFromCountry(country: string): string {
+  if (!country) return '$';
+  const key = country.trim();
+  if (COUNTRY_CURRENCIES[key]) return COUNTRY_CURRENCIES[key];
+  // Try case-insensitive match against country names / codes
+  const lower = key.toLowerCase();
+  for (const [name, symbol] of Object.entries(COUNTRY_CURRENCIES)) {
+    if (name.toLowerCase() === lower) return symbol;
+  }
+  // Handle common aliases
+  if (lower === 'us' || lower === 'usa' || lower === 'united states of america') return '$';
+  if (lower === 'uk' || lower === 'britain' || lower === 'england') return '£';
+  return '$';
+}
+
 export function getCurrencyFromAddress(address: string): string {
   if (!address) return '$';
   

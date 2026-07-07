@@ -9,6 +9,8 @@ export interface User {
   isOnline: boolean;
   sex?: string;
   country?: string;
+  phone?: string;
+  currency?: string;
   income?: number;
   languages?: string[];
   lastSeen?: Date;

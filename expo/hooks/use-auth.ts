@@ -2,6 +2,7 @@ import createContextHook from '@nkzw/create-context-hook';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useState, useEffect, useCallback } from 'react';
 import type { User } from '@/types/user';
+import { getCurrencyFromCountry } from '@/constants/currencies';
 
 const CURRENT_USER_KEY = 'current_user';
 
@@ -15,6 +16,9 @@ const mockCurrentUser: User = {
     'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop'
   ],
   location: 'San Francisco, CA',
+  country: 'United States',
+  phone: '+1 (415) 555-0142',
+  currency: '$',
   membershipTier: 'premium',
   isOnline: true,
   ethnicity: 'english, mandarin, cantonese',
@@ -45,17 +49,56 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       const stored = await AsyncStorage.getItem(CURRENT_USER_KEY);
       if (stored) {
         setUser(JSON.parse(stored));
-      } else {
-        // For demo purposes, set mock user
-        setUser(mockCurrentUser);
-        await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(mockCurrentUser));
       }
+      // No auto mock-user: user must sign up first.
     } catch (error) {
       console.error('Failed to load user:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  /**
+   * Create a new user from the sign-up form (name, country, phone).
+   * Currency is derived from the selected country.
+   */
+  const signUp = useCallback(async (data: {
+    name: string;
+    country: string;
+    phone: string;
+    age?: number;
+  }) => {
+    const newUser: User = {
+      id: Date.now().toString(),
+      name: data.name,
+      age: data.age ?? 25,
+      bio: '',
+      photos: [],
+      location: data.country,
+      country: data.country,
+      phone: data.phone,
+      currency: getCurrencyFromCountry(data.country),
+      membershipTier: 'free',
+      isOnline: true,
+      favoritePlaces: [],
+      joinedGroupIds: [],
+      relationshipStatus: 'single',
+      intention: 'make_new_friends',
+      preferences: {
+        ageRange: [21, 45],
+        maxDistance: 25,
+        cuisinePreferences: [],
+      },
+    };
+    setUser(newUser);
+    await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
+    return newUser;
+  }, []);
+
+  const signOut = useCallback(async () => {
+    await AsyncStorage.removeItem(CURRENT_USER_KEY);
+    setUser(null);
+  }, []);
 
   const updateUser = useCallback(async (updates: Partial<User>) => {
     setUser(prevUser => {
@@ -108,5 +151,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     leaveGroup,
     isGroupMember,
     isAuthenticated: !!user,
+    signUp,
+    signOut,
   };
 });

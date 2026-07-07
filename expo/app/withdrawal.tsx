@@ -23,6 +23,8 @@ import {
   TrendingUp,
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
+import { useAuth } from '@/hooks/use-auth';
+import { getCurrencyFromCountry } from '@/constants/currencies';
 
 type WithdrawalStatus = 'completed' | 'pending' | 'failed';
 
@@ -96,6 +98,8 @@ const STATUS_CONFIG: Record<
 export default function WithdrawalScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ total: string }>();
+  const { user } = useAuth();
+  const currency = user?.currency ?? (user?.country ? getCurrencyFromCountry(user.country) : '$');
   const availableBalance = parseFloat((params.total as string) ?? '0');
 
   const [amount, setAmount] = useState('');
@@ -117,7 +121,7 @@ export default function WithdrawalScreen() {
   function handleRequestWithdraw() {
     const value = parseFloat(amount);
     if (!value || value <= 0) {
-      Alert.alert('Invalid amount', 'Enter an amount greater than $0.');
+      Alert.alert('Invalid amount', `Enter an amount greater than ${currency}0.`);
       return;
     }
     if (value > availableBalance) {
@@ -126,7 +130,7 @@ export default function WithdrawalScreen() {
     }
     Alert.alert(
       'Withdrawal requested',
-      `A $${value.toFixed(2)} payout to ${
+      `A ${currency}${value.toFixed(2)} payout to ${
         PAYOUT_METHODS.find((m) => m.id === selectedMethod)?.label
       } has been queued. Funds typically arrive in 1–3 business days.`,
       [{ text: 'OK', onPress: () => setAmount('') }],
@@ -172,7 +176,7 @@ export default function WithdrawalScreen() {
             <View>
               <Text style={styles.balanceLabel}>Available balance</Text>
               <Text style={styles.balanceAmount}>
-                ${availableBalance.toFixed(2)}
+                {currency}{availableBalance.toFixed(2)}
               </Text>
             </View>
           </View>
@@ -180,13 +184,13 @@ export default function WithdrawalScreen() {
             <View style={styles.balanceStat}>
               <TrendingUp size={13} color="#A7F3D0" />
               <Text style={styles.balanceStatLabel}>Withdrawn</Text>
-              <Text style={styles.balanceStatValue}>${totalWithdrawn.toFixed(2)}</Text>
+              <Text style={styles.balanceStatValue}>{currency}{totalWithdrawn.toFixed(2)}</Text>
             </View>
             <View style={styles.balanceStatDivider} />
             <View style={styles.balanceStat}>
               <Clock size={13} color="#FDE68A" />
               <Text style={styles.balanceStatLabel}>Pending</Text>
-              <Text style={styles.balanceStatValue}>${pendingTotal.toFixed(2)}</Text>
+              <Text style={styles.balanceStatValue}>{currency}{pendingTotal.toFixed(2)}</Text>
             </View>
           </View>
         </View>
@@ -197,7 +201,7 @@ export default function WithdrawalScreen() {
 
           <Text style={styles.inputLabel}>Amount</Text>
           <View style={styles.amountInputWrap}>
-            <Text style={styles.amountCurrency}>$</Text>
+            <Text style={styles.amountCurrency}>{currency}</Text>
             <TextInput
               style={styles.amountInput}
               value={amount}
@@ -216,7 +220,7 @@ export default function WithdrawalScreen() {
             </TouchableOpacity>
           </View>
           <Text style={styles.amountHint}>
-            Up to ${availableBalance.toFixed(2)} available
+            Up to {currency}{availableBalance.toFixed(2)} available
           </Text>
 
           <Text style={[styles.inputLabel, { marginTop: 18 }]}>Payout method</Text>
@@ -310,7 +314,7 @@ export default function WithdrawalScreen() {
                     </View>
                     <View>
                       <Text style={styles.historyAmount}>
-                        ${w.amount.toFixed(2)}
+                        {currency}{w.amount.toFixed(2)}
                       </Text>
                       <Text style={styles.historyMethod}>{w.method}</Text>
                       <Text style={styles.historyDate}>

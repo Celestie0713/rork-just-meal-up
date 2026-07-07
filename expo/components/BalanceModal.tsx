@@ -14,6 +14,7 @@ import { router } from 'expo-router';
 import { mockGroups } from '@/mocks/groups';
 import { mockMealUps } from '@/mocks/meal-ups';
 import { Colors } from '@/constants/colors';
+import { getCurrencyFromCountry } from '@/constants/currencies';
 import type { Group } from '@/mocks/groups';
 import type { MealUp } from '@/types/user';
 
@@ -65,6 +66,7 @@ type Tab = 'my-group' | 'member-in';
 export function BalanceModal({ onClose }: BalanceModalProps) {
   const { user } = useAuth();
   const userId = user?.id;
+  const currency = user?.currency ?? (user?.country ? getCurrencyFromCountry(user.country) : '$');
   const [activeTab, setActiveTab] = useState<Tab>('my-group');
   const [dateStart, setDateStart] = useState<Date | null>(null);
   const [dateEnd, setDateEnd] = useState<Date | null>(null);
@@ -564,7 +566,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                             <View style={styles.eventLeft}>
                               <Text style={styles.eventName}>{ev.mealUp.title}</Text>
                               <Text style={styles.eventMeta}>
-                                {ev.mealUp.currentAttendees.length} attendees · $
+                                {ev.mealUp.currentAttendees.length} attendees · {currency}
                                 {ev.mealUp.ticketPrice}/ticket
                               </Text>
                               {ev.isSelfRun ? (
@@ -662,7 +664,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
                             <View style={styles.eventLeft}>
                               <Text style={styles.eventName}>{ev.mealUp.title}</Text>
                               <Text style={styles.eventMeta}>
-                                {ev.mealUp.currentAttendees.length} attendees · $
+                                {ev.mealUp.currentAttendees.length} attendees · {currency}
                                 {ev.mealUp.ticketPrice}/ticket
                               </Text>
                             </View>
