@@ -766,7 +766,7 @@ export default function ProfileScreen() {
             </View>
             <Text style={styles.signOutModalTitle}>Sign Out</Text>
             <Text style={styles.signOutModalMessage}>
-              Are you sure you want to sign out? You will need to sign up again to use the app.
+              Sign out? We'll miss you. ❤️
             </Text>
             <View style={styles.signOutModalActions}>
               <TouchableOpacity
