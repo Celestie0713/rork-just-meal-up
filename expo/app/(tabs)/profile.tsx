@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart } from 'lucide-react-native';
+import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart, LogOut } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
@@ -56,7 +56,7 @@ const INTENTION_LABEL_MAP: Record<string, string> = {
 type TabType = 'food' | 'pictures' | 'mealups';
 
 export default function ProfileScreen() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, signOut } = useAuth();
   const { getExclusiveMatchPartner, removeMatchedProfile, hasActiveExclusiveMatch } = useChat();
   const { favoritePlaces, removeFromFavorites } = useFavorites();
 
@@ -580,6 +580,24 @@ export default function ProfileScreen() {
 
 
 
+  const handleSignOut = () => {
+    Alert.alert(
+      'Sign out',
+      'Are you sure you want to sign out? You will need to sign up again to use the app.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Sign out',
+          style: 'destructive',
+          onPress: async () => {
+            await signOut();
+            router.replace('/signup');
+          },
+        },
+      ],
+    );
+  };
+
   const renderSettingsModal = () => (
     <Modal visible={showSettingsModal} transparent animationType="slide">
       <View style={styles.modalOverlay}>
@@ -594,6 +612,10 @@ export default function ProfileScreen() {
             <TouchableOpacity style={styles.settingsItem}>
               <Settings size={20} color={Colors.textLight} />
               <Text style={styles.settingsItemText}>Account Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.settingsItem, { marginTop: 8 }]} onPress={handleSignOut} activeOpacity={0.7}>
+              <LogOut size={20} color="#FF4444" />
+              <Text style={[styles.settingsItemText, { color: '#FF4444' }]}>Sign Out</Text>
             </TouchableOpacity>
           </View>
         </View>
