@@ -635,11 +635,14 @@ export default function ProfileScreen() {
             </View>
           ) : (
             <View style={styles.normalHeader}>
+              <View style={{ flex: 1 }} />
               <TouchableOpacity 
                 style={styles.settingsButton}
                 onPress={() => setShowSettingsModal(true)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
               >
-                <Settings size={24} color={Colors.text} />
+                <Settings size={26} color={Colors.text} strokeWidth={2.5} />
               </TouchableOpacity>
             </View>
           )}
@@ -814,7 +817,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   settingsButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   editButton: {
     position: 'absolute',
