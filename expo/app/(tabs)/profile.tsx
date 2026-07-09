@@ -74,6 +74,7 @@ export default function ProfileScreen() {
   const [showPersonalLanguageModal, setShowPersonalLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showRemoveLoveModal, setShowRemoveLoveModal] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('food');
@@ -581,21 +582,14 @@ export default function ProfileScreen() {
 
 
   const handleSignOut = () => {
-    Alert.alert(
-      'Sign out',
-      'Are you sure you want to sign out? You will need to sign up again to use the app.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Sign out',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
-            router.replace('/signup');
-          },
-        },
-      ],
-    );
+    setShowSettingsModal(false);
+    setShowSignOutModal(true);
+  };
+
+  const confirmSignOut = async () => {
+    await signOut();
+    setShowSignOutModal(false);
+    router.replace('/signup');
   };
 
   const renderSettingsModal = () => (
@@ -760,6 +754,40 @@ export default function ProfileScreen() {
       {renderIntentionModal()}
       {renderPersonalLanguageModal()}
       {renderSettingsModal()}
+      <Modal visible={showSignOutModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.signOutModalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowSignOutModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.signOutModalCard}>
+            <View style={styles.signOutModalIconWrap}>
+              <LogOut size={28} color={Colors.primary} />
+            </View>
+            <Text style={styles.signOutModalTitle}>Sign Out</Text>
+            <Text style={styles.signOutModalMessage}>
+              Are you sure you want to sign out? You will need to sign up again to use the app.
+            </Text>
+            <View style={styles.signOutModalActions}>
+              <TouchableOpacity
+                style={styles.signOutModalCancelBtn}
+                onPress={() => setShowSignOutModal(false)}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.signOutModalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.signOutModalConfirmBtn}
+                onPress={confirmSignOut}
+                activeOpacity={0.7}
+              >
+                <LogOut size={16} color="#FFFFFF" />
+                <Text style={styles.signOutModalConfirmText}>Sign Out</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
       <Modal visible={showRemoveLoveModal} transparent animationType="fade">
         <TouchableOpacity
           style={styles.removeLoveModalOverlay}
@@ -1485,6 +1513,80 @@ const styles = StyleSheet.create({
     justifyContent: 'center' as const,
   },
   removeLoveModalRemoveText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+  },
+  signOutModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  signOutModalCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: 20,
+    width: '100%',
+    maxWidth: 320,
+    paddingTop: 28,
+    paddingBottom: 20,
+    paddingHorizontal: 24,
+    alignItems: 'center' as const,
+  },
+  signOutModalIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(255,107,53,0.12)',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginBottom: 16,
+  },
+  signOutModalTitle: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#FFFFFF',
+    textAlign: 'center' as const,
+    marginBottom: 8,
+  },
+  signOutModalMessage: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center' as const,
+    lineHeight: 20,
+    marginBottom: 24,
+  },
+  signOutModalActions: {
+    flexDirection: 'row' as const,
+    gap: 12,
+    width: '100%',
+  },
+  signOutModalCancelBtn: {
+    flex: 1,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  signOutModalCancelText: {
+    fontSize: 15,
+    fontWeight: '600' as const,
+    color: '#FFFFFF',
+  },
+  signOutModalConfirmBtn: {
+    flex: 1,
+    flexDirection: 'row' as const,
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: Colors.primary,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    gap: 6,
+  },
+  signOutModalConfirmText: {
     fontSize: 15,
     fontWeight: '600' as const,
     color: '#FFFFFF',
