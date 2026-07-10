@@ -223,7 +223,7 @@ export default function SignUpScreen() {
 
           {/* Summary chip */}
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Earnings currency</Text>
+            <Text style={styles.summaryLabel}>Currency you use to host an event</Text>
             <View style={styles.summaryBadge}>
               <Text style={styles.summaryBadgeText}>
                 {currencySymbol} · {country}
