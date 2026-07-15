@@ -221,16 +221,6 @@ export default function SignUpScreen() {
             </View>
           </View>
 
-          {/* Summary chip */}
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Currency you use to host an event</Text>
-            <View style={styles.summaryBadge}>
-              <Text style={styles.summaryBadgeText}>
-                {currencySymbol} · {country}
-              </Text>
-            </View>
-          </View>
-
           {/* Submit */}
           <TouchableOpacity
             style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
@@ -427,33 +417,6 @@ const styles = StyleSheet.create({
   currencyPreviewText: {
     color: Colors.primary,
     fontSize: 14,
-    fontWeight: '700',
-  },
-  summaryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingVertical: 14,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    marginBottom: 20,
-  },
-  summaryLabel: {
-    fontSize: 13,
-    color: Colors.textLight,
-    fontWeight: '600',
-  },
-  summaryBadge: {
-    backgroundColor: `${Colors.primary}1A`,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  summaryBadgeText: {
-    color: Colors.primary,
-    fontSize: 13,
     fontWeight: '700',
   },
   submitBtn: {
