@@ -148,9 +148,9 @@ export default function SignUpScreen() {
           <View style={styles.brandIconWrap}>
             <UtensilsCrossed size={30} color={Colors.primary} />
           </View>
-          <Text style={styles.brandTitle}>Meal Up</Text>
+          <Text style={styles.brandTitle}>Just Meal Up</Text>
           <Text style={styles.brandTagline}>
-            Meet people over great food.{'\n'}Start by telling us about you.
+            Get off the screen. Eat first. Decide later🥩
           </Text>
         </View>
 
