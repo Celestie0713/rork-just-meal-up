@@ -26,7 +26,6 @@ import {
 } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
-import { getCurrencyFromCountry } from '@/constants/currencies';
 import { ALL_COUNTRIES } from '@/constants/countries';
 
 const COUNTRY_DIAL_CODES: Record<string, string> = {
@@ -101,7 +100,6 @@ export default function SignUpScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const dialCode = useMemo(() => getDialCode(country), [country]);
-  const currencySymbol = useMemo(() => getCurrencyFromCountry(country), [country]);
 
   const phoneValid = phone.trim().length >= 6 && /^\d[\d\s-]*$/.test(phone.trim());
   const nameValid = name.trim().length >= 2;
@@ -192,9 +190,6 @@ export default function SignUpScreen() {
               <Text style={styles.selectValue} numberOfLines={1}>
                 {country}
               </Text>
-              <View style={styles.currencyPreview}>
-                <Text style={styles.currencyPreviewText}>{currencySymbol}</Text>
-              </View>
               <ChevronDown size={18} color="#888888" />
             </TouchableOpacity>
             <Text style={styles.hint}>
@@ -268,8 +263,6 @@ export default function SignUpScreen() {
               keyExtractor={(item) => item}
               renderItem={({ item }) => {
                 const selected = item === country;
-                const symbol = getCurrencyFromCountry(item);
-                const code = getDialCode(item);
                 return (
                   <TouchableOpacity
                     style={[styles.countryRow, selected && styles.countryRowSelected]}
@@ -278,9 +271,6 @@ export default function SignUpScreen() {
                   >
                     <View style={styles.countryRowLeft}>
                       <Text style={styles.countryName}>{item}</Text>
-                      <Text style={styles.countryMeta}>
-                        {code} · {symbol}
-                      </Text>
                     </View>
                     {selected && <Check size={18} color={Colors.primary} />}
                   </TouchableOpacity>
@@ -408,17 +398,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     padding: 0,
   },
-  currencyPreview: {
-    backgroundColor: `${Colors.primary}1A`,
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  currencyPreviewText: {
-    color: Colors.primary,
-    fontSize: 14,
-    fontWeight: '700',
-  },
   submitBtn: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -496,11 +475,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Colors.text,
     fontWeight: '600',
-  },
-  countryMeta: {
-    fontSize: 12,
-    color: '#888888',
-    marginTop: 2,
   },
   rowDivider: {
     height: 1,
