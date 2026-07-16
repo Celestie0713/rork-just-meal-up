@@ -253,16 +253,13 @@ export default function ProfileScreen() {
 
   const toggleLanguage = (language: string) => {
     if (!editedUser) return;
-    
-    const currentLanguages = editedUser.preferences.preferredEthnicity || [];
+
+    const currentLanguages = editedUser.ethnicity || [];
     if (currentLanguages.includes(language)) {
       const updatedLanguages = currentLanguages.filter((e: string) => e !== language);
       setEditedUser({
         ...editedUser,
-        preferences: {
-          ...editedUser.preferences,
-          preferredEthnicity: updatedLanguages
-        }
+        ethnicity: updatedLanguages
       });
     } else {
       if (currentLanguages.length >= 5) {
@@ -271,10 +268,7 @@ export default function ProfileScreen() {
       }
       setEditedUser({
         ...editedUser,
-        preferences: {
-          ...editedUser.preferences,
-          preferredEthnicity: [...currentLanguages, language]
-        }
+        ethnicity: [...currentLanguages, language]
       });
     }
   };
