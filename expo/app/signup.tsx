@@ -171,8 +171,9 @@ function getCountryExample(country: string): string {
 
 export default function SignUpScreen() {
   const router = useRouter();
-  const { signUp } = useAuth();
+  const { signUp, signIn } = useAuth();
 
+  const [mode, setMode] = useState<'signup' | 'signin'>('signup');
   const [name, setName] = useState('');
   const [country, setCountry] = useState('United States');
   const [phone, setPhone] = useState('');
@@ -186,7 +187,9 @@ export default function SignUpScreen() {
   const [minLen, maxLen] = getPhoneLengthRange(country);
   const phoneValid = phoneDigits.length >= minLen && phoneDigits.length <= maxLen;
   const nameValid = name.trim().length >= 2;
-  const canSubmit = nameValid && phoneValid && !isSubmitting;
+  const canSubmit = mode === 'signup'
+    ? nameValid && phoneValid && !isSubmitting
+    : phoneValid && !isSubmitting;
 
   // Format phone digits for display: +1 (415) 555-0142
   const formattedPhone = useMemo(() => {
@@ -215,11 +218,46 @@ export default function SignUpScreen() {
     setShowCountryPicker(false);
   }
 
+  async function handleSignIn() {
+    if (!phoneValid) {
+      const digits = phoneDigits.length;
+      Alert.alert(
+        'Invalid phone number',
+        digits < minLen
+          ? `Phone number for ${country} is too short. Please enter a valid number (${minLen}–${maxLen} digits).`
+          : `Phone number for ${country} is too long. Please enter a valid number (${minLen}–${maxLen} digits).`,
+      );
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const fullPhone = `${dialCode} ${formattedPhone}`;
+      const existing = await signIn({ country, phone: fullPhone });
+      if (!existing) {
+        Alert.alert(
+          'No account found',
+          'No account exists with this phone number. Please sign up to create one.',
+          [
+            { text: 'Sign Up', onPress: () => setMode('signup') },
+            { text: 'OK' },
+          ],
+        );
+        return;
+      }
+      router.replace('/(tabs)');
+    } catch (e) {
+      Alert.alert('Sign in failed', 'Something went wrong. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   async function handleSignUp() {
     if (!nameValid) {
       Alert.alert('Missing name', 'Please enter your name to continue.');
       return;
     }
+
     if (!phoneValid) {
       const digits = phoneDigits.length;
       Alert.alert(
@@ -269,25 +307,29 @@ export default function SignUpScreen() {
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Sparkles size={16} color={Colors.primary} />
-            <Text style={styles.cardTitle}>Create your account</Text>
+            <Text style={styles.cardTitle}>
+              {mode === 'signup' ? 'Create your account' : 'Welcome back'}
+            </Text>
           </View>
 
-          {/* Name */}
-          <View style={styles.field}>
-            <Text style={styles.label}>Name</Text>
-            <View style={styles.inputWrap}>
-              <UserIcon size={18} color="#888888" />
-              <TextInput
-                style={styles.input}
-                value={name}
-                onChangeText={(t) => setName(t.length > 0 ? t.charAt(0).toUpperCase() + t.slice(1) : t)}
-                placeholder="Your name"
-                placeholderTextColor="#666666"
-                autoCapitalize="words"
-                returnKeyType="next"
-              />
+          {/* Name — only for signup */}
+          {mode === 'signup' && (
+            <View style={styles.field}>
+              <Text style={styles.label}>Name</Text>
+              <View style={styles.inputWrap}>
+                <UserIcon size={18} color="#888888" />
+                <TextInput
+                  style={styles.input}
+                  value={name}
+                  onChangeText={(t) => setName(t.length > 0 ? t.charAt(0).toUpperCase() + t.slice(1) : t)}
+                  placeholder="Your name"
+                  placeholderTextColor="#666666"
+                  autoCapitalize="words"
+                  returnKeyType="next"
+                />
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Country */}
           <View style={styles.field}>
@@ -303,9 +345,11 @@ export default function SignUpScreen() {
               </Text>
               <ChevronDown size={18} color="#888888" />
             </TouchableOpacity>
-            <Text style={styles.hint}>
-              We use your country to show earnings in the right currency.
-            </Text>
+            {mode === 'signup' && (
+              <Text style={styles.hint}>
+                We use your country to show earnings in the right currency.
+              </Text>
+            )}
           </View>
 
           {/* Phone */}
@@ -340,19 +384,43 @@ export default function SignUpScreen() {
           {/* Submit */}
           <TouchableOpacity
             style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
-            onPress={handleSignUp}
+            onPress={mode === 'signup' ? handleSignUp : handleSignIn}
             disabled={!canSubmit}
             activeOpacity={0.8}
           >
             <Text style={styles.submitBtnText}>
-              {isSubmitting ? 'Creating account…' : 'Continue'}
+              {isSubmitting
+                ? mode === 'signup' ? 'Creating account…' : 'Signing in…'
+                : mode === 'signup' ? 'Continue' : 'Sign In'}
             </Text>
             {!isSubmitting && <ArrowRight size={18} color="#FFFFFF" />}
           </TouchableOpacity>
 
-          <Text style={styles.legal}>
-            By continuing you agree to our Terms of Service and Privacy Policy.
-          </Text>
+          {mode === 'signup' && (
+            <Text style={styles.legal}>
+              By continuing you agree to our Terms of Service and Privacy Policy.
+            </Text>
+          )}
+
+          {/* Toggle Sign Up / Sign In */}
+          <View style={styles.toggleRow}>
+            <Text style={styles.toggleText}>
+              {mode === 'signup'
+                ? 'Already have an account?'
+                : "Don't have an account?"}
+            </Text>
+            <TouchableOpacity
+              onPress={() => {
+                setMode(mode === 'signup' ? 'signin' : 'signup');
+                setPhone('');
+              }}
+              hitSlop={8}
+            >
+              <Text style={styles.toggleLink}>
+                {mode === 'signup' ? 'Sign In' : 'Sign Up'}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </ScrollView>
 
@@ -606,5 +674,21 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.border,
     marginHorizontal: 20,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: 20,
+  },
+  toggleText: {
+    fontSize: 14,
+    color: '#999999',
+  },
+  toggleLink: {
+    fontSize: 14,
+    color: Colors.primary,
+    fontWeight: '700',
   },
 });

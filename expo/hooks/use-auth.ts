@@ -174,6 +174,31 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     return (user?.joinedGroupIds ?? []).includes(groupId);
   }, [user]);
 
+  /**
+   * Sign in an existing user by looking up their stored phone number.
+   * Returns the user if found, or null if no matching account exists.
+   */
+  const signIn = useCallback(async (data: {
+    country: string;
+    phone: string;
+  }): Promise<User | null> => {
+    try {
+      const stored = await AsyncStorage.getItem(CURRENT_USER_KEY);
+      if (!stored) return null;
+      const parsed = JSON.parse(stored) as User;
+      // Match on phone — normalize by stripping spaces for comparison
+      const normalizePhone = (p: string) => p.replace(/\s/g, '');
+      if (parsed.phone && normalizePhone(parsed.phone) === normalizePhone(data.phone)) {
+        setUser(parsed);
+        return parsed;
+      }
+      return null;
+    } catch (error) {
+      console.error('Failed to sign in:', error);
+      return null;
+    }
+  }, []);
+
   return {
     user,
     isLoading,
@@ -183,6 +208,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     isGroupMember,
     isAuthenticated: !!user,
     signUp,
+    signIn,
     signOut,
   };
 });
