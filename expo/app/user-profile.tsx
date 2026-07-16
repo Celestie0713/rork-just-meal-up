@@ -267,7 +267,7 @@ export default function UserProfileScreen() {
             <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
           </View>
           <View style={styles.nameContainer}>
-            <Text style={styles.name}>{user.name}, {user.age}</Text>
+            <Text style={styles.name}>{user.name}{user.age != null ? `, ${user.age}` : ''}</Text>
           </View>
           <View style={styles.locationContainer}>
             <MapPin size={16} color={Colors.textLight} />

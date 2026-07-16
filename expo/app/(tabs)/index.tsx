@@ -135,7 +135,7 @@ export default function SearchScreen() {
     const matchesLanguages = filters.languages.length === 0 || filters.languages.some(lang => user.languages?.includes(lang));
     const minAge = filters.minAge ? parseInt(filters.minAge) : null;
     const maxAge = filters.maxAge ? parseInt(filters.maxAge) : null;
-    const matchesAge = (!minAge || user.age >= minAge) && (!maxAge || user.age <= maxAge);
+    const matchesAge = (!minAge || (user.age != null && user.age >= minAge)) && (!maxAge || (user.age != null && user.age <= maxAge));
     return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge;
   });
 

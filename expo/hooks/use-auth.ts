@@ -71,7 +71,6 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     const newUser: User = {
       id: Date.now().toString(),
       name: data.name,
-      age: data.age ?? 25,
       bio: '',
       photos: [],
       location: data.country,
@@ -83,7 +82,7 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
       favoritePlaces: [],
       joinedGroupIds: [],
       relationshipStatus: 'single',
-      intention: 'make_new_friends',
+      // intention left undefined — user picks it on the profile page
       preferences: {
         ageRange: [21, 45],
         maxDistance: 25,

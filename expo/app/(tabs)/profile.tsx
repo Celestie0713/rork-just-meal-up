@@ -742,7 +742,7 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.nameContainer}>
-            <Text style={styles.name}>{user.name}, {user.age}</Text>
+            <Text style={styles.name}>{user.name}{user.age != null ? `, ${user.age}` : ''}</Text>
           </View>
           {isExclusive && partnerUser && (
             <View style={styles.loveIconRow}>
@@ -777,6 +777,33 @@ export default function ProfileScreen() {
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           <View style={styles.personalInfoRow}>
+            <View style={styles.halfPreferenceItem}>
+              <View style={styles.preferenceHeader}>
+                <Text style={styles.preferenceLabel}>Age</Text>
+                {isEditing && <Pencil size={16} color={Colors.primary} />}
+              </View>
+              {isEditing ? (
+                <TextInput
+                  style={styles.ageInput}
+                  value={editedUser?.age != null ? String(editedUser.age) : ''}
+                  onChangeText={(t) => {
+                    const digits = t.replace(/\D/g, '').slice(0, 3);
+                    setEditedUser(prev => prev ? {
+                      ...prev,
+                      age: digits ? parseInt(digits, 10) : undefined,
+                    } : prev);
+                  }}
+                  placeholder="Add age"
+                  placeholderTextColor={Colors.textLight}
+                  keyboardType="number-pad"
+                  maxLength={3}
+                />
+              ) : (
+                <Text style={styles.preferenceValue}>
+                  {user.age != null ? user.age : 'Not specified'}
+                </Text>
+              )}
+            </View>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
               onPress={() => isEditing && setShowPersonalLanguageModal(true)}
@@ -790,6 +817,8 @@ export default function ProfileScreen() {
                 {(isEditing ? editedUser?.ethnicity : user.ethnicity) || 'Not specified'}
               </Text>
             </TouchableOpacity>
+          </View>
+          <View style={styles.personalInfoRow}>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
               onPress={() => isEditing && setShowIntentionModal(true)}
@@ -1346,6 +1375,14 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
     lineHeight: 20,
+  },
+  ageInput: {
+    fontSize: 14,
+    color: Colors.text,
+    lineHeight: 20,
+    padding: 0,
+    margin: 0,
+    height: 22,
   },
   modalOverlay: {
     flex: 1,
