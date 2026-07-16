@@ -48,7 +48,22 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
     try {
       const stored = await AsyncStorage.getItem(CURRENT_USER_KEY);
       if (stored) {
-        setUser(JSON.parse(stored));
+        const parsed = JSON.parse(stored) as User;
+
+        // One-time migration: the old signUp hardcoded age: 25.
+        // Strip it so existing cached users see "Not specified" until they
+        // set their own age on the profile page.
+        const MIGRATION_KEY = 'user_schema_v2_age_fix';
+        const migrated = await AsyncStorage.getItem(MIGRATION_KEY);
+        if (!migrated) {
+          if (parsed.age != null) {
+            delete (parsed as Partial<User>).age;
+            await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(parsed));
+          }
+          await AsyncStorage.setItem(MIGRATION_KEY, 'done');
+        }
+
+        setUser(parsed);
       }
       // No auto mock-user: user must sign up first.
     } catch (error) {
