@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList, ActivityIndicator } from 'react-native';
-import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart, LogOut, ImageIcon } from 'lucide-react-native';
+import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, ExternalLink, Heart, LogOut, ImageIcon } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
 import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '@/constants/colors';
@@ -772,15 +772,7 @@ export default function ProfileScreen() {
               <Text style={styles.editButtonText}>Edit</Text>
             </TouchableOpacity>
           )}
-          {!isEditing && (
-            <TouchableOpacity 
-              style={styles.voiceNoteButtonProfile}
-              onPress={() => router.push('/(tabs)/messages' as any)}
-            >
-              <Mic size={20} color={Colors.primary} />
-              <Text style={styles.voiceNoteButtonText}>Voice Note</Text>
-            </TouchableOpacity>
-          )}
+
         </View>
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
@@ -1071,25 +1063,6 @@ const styles = StyleSheet.create({
   bioSection: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-  },
-  voiceNoteButtonProfile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: Colors.primary,
-    marginTop: 12,
-    alignSelf: 'center',
-  },
-  voiceNoteButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginLeft: 6,
   },
   personalInfoSection: {
     paddingHorizontal: 20,
