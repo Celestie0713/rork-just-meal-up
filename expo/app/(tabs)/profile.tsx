@@ -567,7 +567,7 @@ export default function ProfileScreen() {
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
           </View>
-          <Text style={styles.modalSubtitle}>Select all that apply (optional)</Text>
+          <Text style={styles.modalSubtitle}>Select all that apply (up to 5)</Text>
           <FlatList
             data={LANGUAGE_OPTIONS}
             keyExtractor={(item, index) => `language-option-${index}-${item.replace(/\s+/g, '-')}`}
@@ -849,6 +849,37 @@ export default function ProfileScreen() {
               </Text>
             </TouchableOpacity>
           </View>
+          <TouchableOpacity 
+            style={styles.fullPreferenceItem}
+            onPress={() => isEditing && setShowLanguageModal(true)}
+            disabled={!isEditing}
+            activeOpacity={0.7}
+          >
+            <View style={styles.preferenceHeader}>
+              <Text style={styles.preferenceLabel}>
+                Preferred Language{(() => {
+                  const langs = (isEditing ? editedUser?.preferences.preferredEthnicity : user?.preferences.preferredEthnicity) || [];
+                  return langs.length > 0 ? ` (${langs.length}/5)` : '';
+                })()}
+              </Text>
+              {isEditing && <Pencil size={16} color={Colors.primary} />}
+            </View>
+            {(() => {
+              const langs = (isEditing ? editedUser?.preferences.preferredEthnicity : user?.preferences.preferredEthnicity) || [];
+              if (langs.length === 0) {
+                return <Text style={styles.preferenceValue}>Not specified</Text>;
+              }
+              return (
+                <View style={styles.languageChipsContainer}>
+                  {langs.map((lang: string) => (
+                    <View key={`lang-${lang}`} style={styles.languageChip}>
+                      <Text style={styles.languageChipText}>{lang}</Text>
+                    </View>
+                  ))}
+                </View>
+              );
+            })()}
+          </TouchableOpacity>
         </View>
         <View style={styles.bioSection}>
           <Text style={styles.sectionTitle}>Bio</Text>
@@ -1372,6 +1403,29 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 12,
     padding: 16,
+  },
+  fullPreferenceItem: {
+    backgroundColor: Colors.surface,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 12,
+  },
+  languageChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 4,
+  },
+  languageChip: {
+    backgroundColor: `${Colors.primary}1A`,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  languageChipText: {
+    fontSize: 13,
+    fontWeight: '500' as const,
+    color: Colors.primary,
   },
   preferenceHeader: {
     flexDirection: 'row',
