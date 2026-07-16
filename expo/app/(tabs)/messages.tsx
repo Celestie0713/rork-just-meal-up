@@ -644,7 +644,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 14,
     color: Colors.textLight,
-    marginTop: 2,
+    marginTop: 10,
   },
   chatsList: {
     flex: 1,
