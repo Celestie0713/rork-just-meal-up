@@ -256,17 +256,28 @@ export default function ProfileScreen() {
     if (!editedUser) return;
     
     const currentLanguages = editedUser.preferences.preferredEthnicity || [];
-    const updatedLanguages = currentLanguages.includes(language)
-      ? currentLanguages.filter((e: string) => e !== language)
-      : [...currentLanguages, language];
-    
-    setEditedUser({
-      ...editedUser,
-      preferences: {
-        ...editedUser.preferences,
-        preferredEthnicity: updatedLanguages
+    if (currentLanguages.includes(language)) {
+      const updatedLanguages = currentLanguages.filter((e: string) => e !== language);
+      setEditedUser({
+        ...editedUser,
+        preferences: {
+          ...editedUser.preferences,
+          preferredEthnicity: updatedLanguages
+        }
+      });
+    } else {
+      if (currentLanguages.length >= 5) {
+        Alert.alert('Limit Reached', 'You can select a maximum of 5 languages');
+        return;
       }
-    });
+      setEditedUser({
+        ...editedUser,
+        preferences: {
+          ...editedUser.preferences,
+          preferredEthnicity: [...currentLanguages, language]
+        }
+      });
+    }
   };
 
   const setIntention = (intention: User['intention']) => {
@@ -788,9 +799,11 @@ export default function ProfileScreen() {
                   value={editedUser?.age != null ? String(editedUser.age) : ''}
                   onChangeText={(t) => {
                     const digits = t.replace(/\D/g, '').slice(0, 3);
+                    const parsed = digits ? parseInt(digits, 10) : 0;
+                    const capped = Math.min(parsed, 100);
                     setEditedUser(prev => prev ? {
                       ...prev,
-                      age: digits ? parseInt(digits, 10) : undefined,
+                      age: digits ? capped : undefined,
                     } : prev);
                   }}
                   placeholder="Add age"
