@@ -101,9 +101,29 @@ export default function SignUpScreen() {
 
   const dialCode = useMemo(() => getDialCode(country), [country]);
 
-  const phoneValid = phone.trim().length >= 6 && /^\d[\d\s-]*$/.test(phone.trim());
+  // Strip non-digit characters for validation (E.164 allows 7–15 digits)
+  const phoneDigits = phone.replace(/\D/g, '');
+  const phoneValid = phoneDigits.length >= 7 && phoneDigits.length <= 15;
   const nameValid = name.trim().length >= 2;
   const canSubmit = nameValid && phoneValid && !isSubmitting;
+
+  // Format phone digits for display: +1 (415) 555-0142
+  const formattedPhone = useMemo(() => {
+    const digits = phone.replace(/\D/g, '');
+    if (!digits) return '';
+    if (dialCode === '+1' && digits.length >= 4) {
+      const area = digits.slice(0, 3);
+      const mid = digits.slice(3, 6);
+      const end = digits.slice(6, 10);
+      let result = `(${area}`;
+      if (digits.length >= 4) result += `) ${mid}`;
+      if (digits.length >= 7) result += `-${end}`;
+      if (digits.length > 10) result += digits.slice(10);
+      return result;
+    }
+    // Group in 3s for non-US numbers
+    return digits.replace(/(\d{3})(?=\d)/g, '$1 ');
+  }, [phone, dialCode]);
 
   function handleCountrySelect(c: string) {
     setCountry(c);
@@ -116,12 +136,18 @@ export default function SignUpScreen() {
       return;
     }
     if (!phoneValid) {
-      Alert.alert('Invalid phone number', 'Please enter a valid phone number.');
+      const digits = phoneDigits.length;
+      Alert.alert(
+        'Invalid phone number',
+        digits < 7
+          ? 'Phone number is too short. Please enter a valid number (7–15 digits).'
+          : 'Phone number is too long. Please enter a valid number (7–15 digits).',
+      );
       return;
     }
     setIsSubmitting(true);
     try {
-      const fullPhone = `${dialCode} ${phone.trim()}`;
+      const fullPhone = `${dialCode} ${formattedPhone}`;
       await signUp({ name: name.trim(), country, phone: fullPhone });
       router.replace('/(tabs)');
     } catch (e) {
@@ -206,15 +232,21 @@ export default function SignUpScreen() {
               <View style={styles.dialDivider} />
               <TextInput
                 style={styles.phoneInput}
-                value={phone}
-                onChangeText={setPhone}
-                placeholder="e.g. 415 555 0142"
+                value={formattedPhone}
+                onChangeText={(t) => setPhone(t)}
+                placeholder="e.g. (415) 555-0142"
                 placeholderTextColor="#666666"
                 keyboardType="phone-pad"
                 returnKeyType="done"
+                maxLength={16}
               />
             </View>
           </View>
+          {phone.length > 0 && !phoneValid && (
+            <Text style={styles.phoneError}>
+              Enter a valid phone number (7–15 digits).
+            </Text>
+          )}
 
           {/* Submit */}
           <TouchableOpacity
@@ -397,6 +429,11 @@ const styles = StyleSheet.create({
     color: Colors.text,
     fontSize: 16,
     padding: 0,
+  },
+  phoneError: {
+    fontSize: 12,
+    color: '#FF4444',
+    marginTop: 6,
   },
   submitBtn: {
     flexDirection: 'row',
