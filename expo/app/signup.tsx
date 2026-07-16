@@ -150,7 +150,7 @@ export default function SignUpScreen() {
           </View>
           <Text style={styles.brandTitle}>Just Meal Up</Text>
           <Text style={styles.brandTagline}>
-            Get off the screen. Eat first. Decide later🍜
+            Get Off The Screen. Eat First. Decide Later🍜
           </Text>
         </View>
 
