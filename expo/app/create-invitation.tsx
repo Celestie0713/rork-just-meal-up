@@ -13,7 +13,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Linking } from 'react-native';
-import { ArrowLeft, Calendar, Clock, Send, MapPin, ChevronLeft, ChevronRight, ExternalLink, Pencil, Check } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, Send, ChevronLeft, ChevronRight, ExternalLink, Pencil, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
@@ -51,10 +51,10 @@ export default function CreateInvitationScreen() {
 
   const [isEditingPlace, setIsEditingPlace] = useState(!placeName);
   const [editName, setEditName] = useState(placeName || '');
-  const [editAddress, setEditAddress] = useState(placeAddress || '');
+
 
   const fallbackMapsUrl = (isEditingPlace
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(((editName || placeName || '') + ' ' + (editAddress || placeAddress || '')).trim())}`
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((editName || placeName || '').trim())}`
     : placeGoogleMapsUrl || (placeLatitude && placeLongitude
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || ''))}`
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || ''))}`));
@@ -277,7 +277,7 @@ export default function CreateInvitationScreen() {
   const handleSendInvitation = () => {
     const invitationData: Record<string, string> = {
       placeName: editName || placeName || '',
-      placeAddress: editAddress || placeAddress || '',
+      placeAddress: placeAddress || '',
       placeGoogleMapsUrl: fallbackMapsUrl,
       placeId: placeId || '',
       date: selectedDate.toISOString(),
@@ -515,7 +515,6 @@ export default function CreateInvitationScreen() {
                   setIsEditingPlace(false);
                 } else {
                   setEditName(placeName || '');
-                  setEditAddress(placeAddress || '');
                   setIsEditingPlace(true);
                 }
               }}
@@ -533,38 +532,16 @@ export default function CreateInvitationScreen() {
           </View>
           <View style={styles.restaurantCard}>
             {isEditingPlace ? (
-              <>
-                <TextInput
-                  style={styles.editInput}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="Restaurant name"
-                  placeholderTextColor={Colors.textLight}
-                  autoFocus
-                />
-                <View style={styles.editAddressRow}>
-                  <MapPin size={14} color={Colors.textLight} style={{ marginTop: 8 }} />
-                  <TextInput
-                    style={[styles.editInputSmall, { flex: 1 }]}
-                    value={editAddress}
-                    onChangeText={setEditAddress}
-                    placeholder="Address"
-                    placeholderTextColor={Colors.textLight}
-                  />
-                </View>
-              </>
+              <TextInput
+                style={styles.editInput}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Restaurant name"
+                placeholderTextColor={Colors.textLight}
+                autoFocus
+              />
             ) : (
-              <>
-                <Text style={styles.restaurantName}>{editName || placeName || 'Restaurant Name'}</Text>
-                {(editAddress || placeAddress) && (
-                  <View style={styles.addressRow}>
-                    <MapPin size={14} color={Colors.textLight} style={{ marginTop: 3 }} />
-                    <Text style={styles.restaurantCityCountry}>
-                      {editAddress || placeAddress}
-                    </Text>
-                  </View>
-                )}
-              </>
+              <Text style={styles.restaurantName}>{editName || placeName || 'Restaurant Name'}</Text>
             )}
             <Text style={styles.addressHint}>
               Tap below to see the exact address on Google Maps.
@@ -691,40 +668,7 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 8,
   },
-  addressRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 6,
-  },
-  restaurantAddress: {
-    fontSize: 14,
-    color: Colors.textLight,
-    flex: 1,
-    lineHeight: 20,
-  },
-  addressInput: {
-    fontSize: 14,
-    color: Colors.text,
-    flex: 1,
-    lineHeight: 20,
-    paddingVertical: 4,
-    paddingHorizontal: 0,
-  },
-  addressInputSmall: {
-    fontSize: 13,
-    color: Colors.text,
-    lineHeight: 18,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: 'rgba(0,0,0,0.03)',
-    borderRadius: 8,
-  },
-  restaurantCityCountry: {
-    fontSize: 14,
-    color: Colors.textLight,
-    lineHeight: 20,
-    flex: 1,
-  },
+
   editButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -749,23 +693,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
   },
-  editAddressRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  editCityCountryCol: {
-    flex: 1,
-    flexDirection: 'column',
-    gap: 8,
-  },
-  editInputSmall: {
-    fontSize: 14,
-    color: Colors.text,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    borderRadius: 10,
-  },
+
   addressHint: {
     fontSize: 12,
     color: Colors.textLight,
