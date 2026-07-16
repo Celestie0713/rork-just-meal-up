@@ -768,6 +768,24 @@ export default function ProfileScreen() {
             </View>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
+              onPress={() => isEditing && setShowIntentionModal(true)}
+              disabled={!isEditing}
+            >
+              <View style={styles.preferenceHeader}>
+                <Text style={styles.preferenceLabel}>Intention</Text>
+                {isEditing && <Pencil size={16} color={Colors.primary} />}
+              </View>
+              <Text style={styles.preferenceValue}>
+                {(() => {
+                  const intentionValue = isEditing ? editedUser?.intention : user?.intention;
+                  return intentionValue ? INTENTION_LABEL_MAP[intentionValue] : 'Not specified';
+                })()}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.personalInfoRow}>
+            <TouchableOpacity 
+              style={styles.halfPreferenceItem}
               onPress={() => isEditing && setShowLanguageModal(true)}
               disabled={!isEditing}
             >
@@ -795,24 +813,6 @@ export default function ProfileScreen() {
                   </View>
                 );
               })()}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.personalInfoRow}>
-            <TouchableOpacity 
-              style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowIntentionModal(true)}
-              disabled={!isEditing}
-            >
-              <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Intention</Text>
-                {isEditing && <Pencil size={16} color={Colors.primary} />}
-              </View>
-              <Text style={styles.preferenceValue}>
-                {(() => {
-                  const intentionValue = isEditing ? editedUser?.intention : user?.intention;
-                  return intentionValue ? INTENTION_LABEL_MAP[intentionValue] : 'Not specified';
-                })()}
-              </Text>
             </TouchableOpacity>
           </View>
         </View>
