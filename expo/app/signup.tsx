@@ -89,6 +89,86 @@ function getDialCode(country: string): string {
   return COUNTRY_DIAL_CODES[country] ?? '+';
 }
 
+/** Expected digit count (excluding country code) for national phone numbers. */
+const COUNTRY_PHONE_LENGTHS: Record<string, [number, number]> = {
+  'United States': [10, 10],
+  Canada: [10, 10],
+  'United Kingdom': [10, 10],
+  Australia: [9, 10],
+  Germany: [10, 11],
+  France: [9, 9],
+  Italy: [9, 10],
+  Spain: [9, 9],
+  Japan: [9, 10],
+  China: [11, 11],
+  India: [10, 10],
+  Brazil: [10, 11],
+  Mexico: [10, 10],
+  'South Korea': [9, 10],
+  Netherlands: [9, 9],
+  Sweden: [9, 10],
+  Switzerland: [9, 9],
+  Singapore: [8, 8],
+  'Hong Kong': [8, 8],
+  Thailand: [9, 9],
+  'United Arab Emirates': [9, 9],
+  'Saudi Arabia': [9, 9],
+  Turkey: [10, 10],
+  Russia: [10, 10],
+  Poland: [9, 9],
+  'Czech Republic': [9, 9],
+  Hungary: [9, 9],
+  Greece: [10, 10],
+  Portugal: [9, 9],
+  Ireland: [9, 9],
+  Belgium: [9, 9],
+  Austria: [10, 11],
+  Denmark: [8, 8],
+  Norway: [8, 8],
+  Finland: [9, 10],
+  'New Zealand': [9, 10],
+  'South Africa': [9, 9],
+  Israel: [9, 9],
+  Indonesia: [9, 11],
+  Malaysia: [9, 10],
+  Philippines: [10, 10],
+  Vietnam: [9, 10],
+  Argentina: [10, 11],
+  Chile: [9, 9],
+  Colombia: [10, 10],
+  Peru: [9, 9],
+  Ukraine: [9, 9],
+  Romania: [9, 9],
+  Pakistan: [10, 10],
+  Bangladesh: [10, 11],
+  Egypt: [10, 10],
+  Morocco: [9, 9],
+  Nigeria: [10, 11],
+  Kenya: [9, 9],
+};
+
+/** Default range for countries not explicitly listed. */
+const DEFAULT_PHONE_LENGTH: [number, number] = [7, 15];
+
+function getPhoneLengthRange(country: string): [number, number] {
+  return COUNTRY_PHONE_LENGTHS[country] ?? DEFAULT_PHONE_LENGTH;
+}
+
+function getCountryExample(country: string): string {
+  const examples: Record<string, string> = {
+    'United States': '(415) 555-0142',
+    'United Kingdom': '7911 123456',
+    Canada: '(416) 555-0142',
+    Australia: '412 345 678',
+    Germany: '151 2345 6789',
+    France: '6 12 34 56 78',
+    Japan: '90 1234 5678',
+    China: '138 0013 8000',
+    India: '98765 43210',
+  };
+  return examples[country] ?? 'e.g. 1234567890';
+}
+
 export default function SignUpScreen() {
   const router = useRouter();
   const { signUp } = useAuth();
@@ -101,9 +181,10 @@ export default function SignUpScreen() {
 
   const dialCode = useMemo(() => getDialCode(country), [country]);
 
-  // Strip non-digit characters for validation (E.164 allows 7–15 digits)
+  // Strip non-digit characters for validation
   const phoneDigits = phone.replace(/\D/g, '');
-  const phoneValid = phoneDigits.length >= 7 && phoneDigits.length <= 15;
+  const [minLen, maxLen] = getPhoneLengthRange(country);
+  const phoneValid = phoneDigits.length >= minLen && phoneDigits.length <= maxLen;
   const nameValid = name.trim().length >= 2;
   const canSubmit = nameValid && phoneValid && !isSubmitting;
 
@@ -127,6 +208,10 @@ export default function SignUpScreen() {
 
   function handleCountrySelect(c: string) {
     setCountry(c);
+    // Trim phone to the new country's max length if needed
+    const [, newMax] = getPhoneLengthRange(c);
+    const trimmed = phoneDigits.slice(0, newMax);
+    setPhone(trimmed);
     setShowCountryPicker(false);
   }
 
@@ -139,9 +224,9 @@ export default function SignUpScreen() {
       const digits = phoneDigits.length;
       Alert.alert(
         'Invalid phone number',
-        digits < 7
-          ? 'Phone number is too short. Please enter a valid number (7–15 digits).'
-          : 'Phone number is too long. Please enter a valid number (7–15 digits).',
+        digits < minLen
+          ? `Phone number for ${country} is too short. Please enter a valid number (${minLen}–${maxLen} digits).`
+          : `Phone number for ${country} is too long. Please enter a valid number (${minLen}–${maxLen} digits).`,
       );
       return;
     }
@@ -233,18 +318,22 @@ export default function SignUpScreen() {
               <TextInput
                 style={styles.phoneInput}
                 value={formattedPhone}
-                onChangeText={(t) => setPhone(t)}
-                placeholder="e.g. (415) 555-0142"
+                onChangeText={(t) => {
+                  const digits = t.replace(/\D/g, '');
+                  const capped = digits.slice(0, maxLen);
+                  setPhone(capped);
+                }}
+                placeholder={`e.g. ${getCountryExample(country)}`}
                 placeholderTextColor="#666666"
                 keyboardType="phone-pad"
                 returnKeyType="done"
-                maxLength={16}
+                maxLength={maxLen + 6}
               />
             </View>
           </View>
           {phone.length > 0 && !phoneValid && (
             <Text style={styles.phoneError}>
-              Enter a valid phone number (7–15 digits).
+              {`Enter a valid phone number for ${country} (${minLen}–${maxLen} digits).`}
             </Text>
           )}
 
