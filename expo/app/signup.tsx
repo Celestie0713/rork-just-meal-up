@@ -169,7 +169,7 @@ export default function SignUpScreen() {
               <TextInput
                 style={styles.input}
                 value={name}
-                onChangeText={setName}
+                onChangeText={(t) => setName(t.length > 0 ? t.charAt(0).toUpperCase() + t.slice(1) : t)}
                 placeholder="Your name"
                 placeholderTextColor="#666666"
                 autoCapitalize="words"
