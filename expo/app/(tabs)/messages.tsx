@@ -341,19 +341,6 @@ export default function MessagesScreen() {
                 testID="edit-place-name"
               />
 
-              <Text style={styles.fieldLabel}>Address</Text>
-              <TextInput
-                value={editDraft.placeAddress}
-                onChangeText={(t) => setEditDraft((prev) => (prev ? { ...prev, placeAddress: t } : prev))}
-                placeholder="Street, neighborhood"
-                placeholderTextColor={Colors.textLight}
-                style={[styles.textInput, styles.textInputMultiline]}
-                multiline
-                testID="edit-place-address"
-              />
-
-              
-
               <Text style={styles.fieldLabel}>Date</Text>
               <TouchableOpacity
                 style={styles.pickerRow}
@@ -458,12 +445,6 @@ export default function MessagesScreen() {
           </View>
           <View style={styles.summaryBlock}>
             <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
-            <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
-            {(invitationData.placeCity || invitationData.placeCountry) && (
-              <Text style={styles.summaryCityCountry}>
-                {[invitationData.placeCity, invitationData.placeCountry].filter(Boolean).join(', ')}
-              </Text>
-            )}
             {invitationData.placeGoogleMapsUrl ? (
               <TouchableOpacity
                 style={styles.summaryMapsButton}
