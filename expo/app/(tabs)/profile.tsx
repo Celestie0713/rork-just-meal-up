@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList } from 'react-native';
-import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart, LogOut } from 'lucide-react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity, Image, TextInput, Alert, Modal, FlatList, ActivityIndicator } from 'react-native';
+import { Star, Settings, MapPin, Plus, X, Pencil, Check, Camera, Users, Utensils, Mic, ExternalLink, Heart, LogOut, ImageIcon } from 'lucide-react-native';
 import * as WebBrowser from 'expo-web-browser';
+import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import type { User } from '@/types/user';
@@ -78,6 +79,8 @@ export default function ProfileScreen() {
 
   const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [activeTab, setActiveTab] = useState<TabType>('food');
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [showPhotoSourceModal, setShowPhotoSourceModal] = useState(false);
 
   const [editedBio, setEditedBio] = useState(user?.bio || '');
   const [selectedPlace, setSelectedPlace] = useState<{
@@ -99,6 +102,72 @@ export default function ProfileScreen() {
   const exclusivePartner = getExclusiveMatchPartner();
   const partnerUser = exclusivePartner ? mockUsers.find(u => u.id === exclusivePartner.userId) : null;
   const isExclusive = hasActiveExclusiveMatch();
+
+  /** Current profile photo URI (first photo or empty if none). */
+  const profilePhotoUri = (isEditing ? editedUser?.photos : user?.photos)?.[0] ?? '';
+
+  /** Pick a profile photo from the device media library. */
+  const pickProfilePhotoFromLibrary = useCallback(async () => {
+    setShowPhotoSourceModal(false);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant permission to access your photos');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      if (!result.canceled && result.assets[0]) {
+        await setProfilePhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error picking profile photo:', error);
+      Alert.alert('Error', 'Failed to pick photo');
+    }
+  }, []);
+
+  /** Take a profile photo with the device camera. */
+  const takeProfilePhoto = useCallback(async () => {
+    setShowPhotoSourceModal(false);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant permission to access your camera');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.85,
+      });
+      if (!result.canceled && result.assets[0]) {
+        await setProfilePhoto(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking profile photo:', error);
+      Alert.alert('Error', 'Failed to take photo');
+    }
+  }, []);
+
+  /** Save the chosen photo URI as the user's profile picture. */
+  const setProfilePhoto = useCallback(async (uri: string) => {
+    setIsUploadingPhoto(true);
+    try {
+      const currentPhotos = user?.photos ?? [];
+      const updatedPhotos = [uri, ...currentPhotos.slice(1)]; // replace first photo, keep rest
+      await updateUser({ photos: updatedPhotos });
+    } catch (error) {
+      console.error('Error saving profile photo:', error);
+      Alert.alert('Error', 'Failed to save profile photo');
+    } finally {
+      setIsUploadingPhoto(false);
+    }
+  }, [user, updateUser]);
 
   const handleRemoveLoveIcon = () => {
     if (!exclusivePartner) return;
@@ -648,7 +717,29 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           )}
           <View style={styles.profileImageContainer}>
-            <Image source={{ uri: user.photos[0] }} style={styles.profileImage} />
+            {profilePhotoUri ? (
+              <Image source={{ uri: profilePhotoUri }} style={styles.profileImage} />
+            ) : (
+              <View style={[styles.profileImage, styles.profileImagePlaceholder]}>
+                {isUploadingPhoto ? (
+                  <ActivityIndicator size="large" color={Colors.primary} />
+                ) : (
+                  <Camera size={36} color={Colors.textLight} />
+                )}
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.profileCameraBadge}
+              onPress={() => setShowPhotoSourceModal(true)}
+              activeOpacity={0.7}
+              disabled={isUploadingPhoto}
+            >
+              {isUploadingPhoto ? (
+                <ActivityIndicator size="small" color="#FFFFFF" />
+              ) : (
+                <Camera size={18} color="#FFFFFF" />
+              )}
+            </TouchableOpacity>
           </View>
           <View style={styles.nameContainer}>
             <Text style={styles.name}>{user.name}, {user.age}</Text>
@@ -818,6 +909,52 @@ export default function ProfileScreen() {
                 <Text style={styles.removeLoveModalRemoveText}>Remove</Text>
               </TouchableOpacity>
             </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+      <Modal visible={showPhotoSourceModal} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.photoSourceOverlay}
+          activeOpacity={1}
+          onPress={() => setShowPhotoSourceModal(false)}
+        >
+          <TouchableOpacity activeOpacity={1} style={styles.photoSourceCard}>
+            <View style={styles.photoSourceHandle} />
+            <Text style={styles.photoSourceTitle}>Upload profile picture</Text>
+            <Text style={styles.photoSourceSubtitle}>Choose how you'd like to add your photo</Text>
+            <TouchableOpacity
+              style={styles.photoSourceOption}
+              onPress={takeProfilePhoto}
+              activeOpacity={0.7}
+            >
+              <View style={styles.photoSourceOptionIcon}>
+                <Camera size={22} color={Colors.primary} />
+              </View>
+              <View style={styles.photoSourceOptionText}>
+                <Text style={styles.photoSourceOptionTitle}>Take Photo</Text>
+                <Text style={styles.photoSourceOptionHint}>Use your camera</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.photoSourceOption}
+              onPress={pickProfilePhotoFromLibrary}
+              activeOpacity={0.7}
+            >
+              <View style={styles.photoSourceOptionIcon}>
+                <ImageIcon size={22} color={Colors.primary} />
+              </View>
+              <View style={styles.photoSourceOptionText}>
+                <Text style={styles.photoSourceOptionTitle}>Choose from Library</Text>
+                <Text style={styles.photoSourceOptionHint}>Pick a photo from your gallery</Text>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.photoSourceCancelBtn}
+              onPress={() => setShowPhotoSourceModal(false)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.photoSourceCancelText}>Cancel</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
         </TouchableOpacity>
       </Modal>
@@ -1590,5 +1727,102 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600' as const,
     color: '#FFFFFF',
+  },
+  profileImagePlaceholder: {
+    backgroundColor: Colors.surface,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  profileCameraBadge: {
+    position: 'absolute' as const,
+    bottom: 0,
+    right: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.primary,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    borderWidth: 3,
+    borderColor: Colors.background,
+  },
+  photoSourceOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'flex-end' as const,
+  },
+  photoSourceCard: {
+    backgroundColor: Colors.background,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+  },
+  photoSourceHandle: {
+    width: 40,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: Colors.border,
+    alignSelf: 'center' as const,
+    marginBottom: 20,
+  },
+  photoSourceTitle: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'center' as const,
+    marginBottom: 6,
+  },
+  photoSourceSubtitle: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center' as const,
+    marginBottom: 24,
+  },
+  photoSourceOption: {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    gap: 14,
+  },
+  photoSourceOptionIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: `${Colors.primary}1A`,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  photoSourceOptionText: {
+    flex: 1,
+  },
+  photoSourceOptionTitle: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    marginBottom: 2,
+  },
+  photoSourceOptionHint: {
+    fontSize: 13,
+    color: Colors.textLight,
+  },
+  photoSourceCancelBtn: {
+    paddingVertical: 15,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    marginTop: 4,
+  },
+  photoSourceCancelText: {
+    fontSize: 16,
+    fontWeight: '600' as const,
+    color: Colors.textLight,
   },
 });

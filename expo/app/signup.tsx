@@ -234,7 +234,7 @@ export default function SignUpScreen() {
     try {
       const fullPhone = `${dialCode} ${formattedPhone}`;
       await signUp({ name: name.trim(), country, phone: fullPhone });
-      router.replace('/(tabs)');
+      router.replace('/(tabs)/profile');
     } catch (e) {
       Alert.alert('Sign up failed', 'Something went wrong. Please try again.');
     } finally {
