@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   },
   legal: {
     fontSize: 11,
-    color: '#777777',
+    color: '#FFFFFF',
     textAlign: 'center',
     marginTop: 14,
     lineHeight: 15,
