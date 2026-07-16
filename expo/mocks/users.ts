@@ -17,7 +17,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
-    ethnicity: 'english, mandarin, cantonese',
+    ethnicity: ['English', 'Mandarin', 'Cantonese'],
     intention: 'relationship' as const,
     favoritePlaces: ['mock_place_1', 'mock_place_2', 'mock_place_3'], // The Italian Corner, Sushi Zen, Burger Palace
     preferences: {
@@ -45,7 +45,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
-    ethnicity: 'English, Mandarin',
+    ethnicity: ['English', 'Mandarin'],
     intention: 'casual' as const,
     preferences: {
       ageRange: [23, 30],
@@ -71,7 +71,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'organizer',
     isOnline: true,
-    ethnicity: 'English, Cantonese',
+    ethnicity: ['English', 'Cantonese'],
     intention: 'make_new_friends' as const,
     preferences: {
       ageRange: [24, 32],
@@ -98,7 +98,7 @@ export const mockUsers: User[] = [
     membershipTier: 'premium',
     isOnline: false,
     lastSeen: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-    ethnicity: 'English, Mandarin',
+    ethnicity: ['English', 'Mandarin'],
     intention: 'marriage' as const,
     preferences: {
       ageRange: [25, 35],
@@ -124,7 +124,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'free',
     isOnline: true,
-    ethnicity: 'English, Cantonese',
+    ethnicity: ['English', 'Cantonese'],
     intention: 'figuring_it_out' as const,
     favoritePlaces: [], // No favorite places
     preferences: {
@@ -151,7 +151,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
-    ethnicity: 'English, Mandarin',
+    ethnicity: ['English', 'Mandarin'],
     intention: 'open_marriage' as const,
     preferences: {
       ageRange: [28, 38],
@@ -178,7 +178,7 @@ export const mockUsers: User[] = [
     membershipTier: 'organizer',
     isOnline: false,
     lastSeen: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
-    ethnicity: 'English, Cantonese',
+    ethnicity: ['English', 'Cantonese'],
     intention: 'relationship' as const,
     preferences: {
       ageRange: [24, 32],
@@ -204,7 +204,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'premium',
     isOnline: true,
-    ethnicity: 'English, Mandarin',
+    ethnicity: ['English', 'Mandarin'],
     intention: 'casual' as const,
     preferences: {
       ageRange: [25, 35],
@@ -230,7 +230,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'free',
     isOnline: true,
-    ethnicity: 'English, Cantonese',
+    ethnicity: ['English', 'Cantonese'],
     intention: 'make_new_friends' as const,
     preferences: {
       ageRange: [25, 33],
@@ -257,7 +257,7 @@ export const mockUsers: User[] = [
     membershipTier: 'premium',
     isOnline: false,
     lastSeen: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
-    ethnicity: 'English, Mandarin',
+    ethnicity: ['English', 'Mandarin'],
     intention: 'relationship' as const,
     preferences: {
       ageRange: [28, 40],
@@ -283,7 +283,7 @@ export const mockUsers: User[] = [
     location: 'San Francisco, CA',
     membershipTier: 'free',
     isOnline: true,
-    ethnicity: 'English, Cantonese',
+    ethnicity: ['English', 'Cantonese'],
     intention: 'figuring_it_out' as const,
     preferences: {
       ageRange: [22, 30],

@@ -72,7 +72,6 @@ export default function ProfileScreen() {
   const [showLanguageModal, setShowLanguageModal] = useState(false);
 
   const [showIntentionModal, setShowIntentionModal] = useState(false);
-  const [showPersonalLanguageModal, setShowPersonalLanguageModal] = useState(false);
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showRemoveLoveModal, setShowRemoveLoveModal] = useState(false);
   const [showSignOutModal, setShowSignOutModal] = useState(false);
@@ -288,16 +287,6 @@ export default function ProfileScreen() {
       intention
     });
     setShowIntentionModal(false);
-  };
-
-  const setPersonalLanguage = (language: string) => {
-    if (!editedUser) return;
-    
-    setEditedUser({
-      ...editedUser,
-      ethnicity: language
-    });
-    setShowPersonalLanguageModal(false);
   };
 
 
@@ -562,7 +551,7 @@ export default function ProfileScreen() {
       <View style={styles.modalOverlay}>
         <View style={styles.modalContent}>
           <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Preferred language</Text>
+            <Text style={styles.modalTitle}>Language</Text>
             <TouchableOpacity onPress={() => setShowLanguageModal(false)}>
               <X size={24} color={Colors.text} />
             </TouchableOpacity>
@@ -572,7 +561,7 @@ export default function ProfileScreen() {
             data={LANGUAGE_OPTIONS}
             keyExtractor={(item, index) => `language-option-${index}-${item.replace(/\s+/g, '-')}`}
             renderItem={({ item }) => {
-              const isSelected = editedUser?.preferences.preferredEthnicity?.includes(item) || false;
+              const isSelected = editedUser?.ethnicity?.includes(item) || false;
               return (
                 <TouchableOpacity
                   style={[styles.optionItem, isSelected && styles.selectedOption]}
@@ -614,40 +603,6 @@ export default function ProfileScreen() {
                 >
                   <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
                     {item.label}
-                  </Text>
-                  {isSelected && <Check size={20} color={Colors.background} />}
-                </TouchableOpacity>
-              );
-            }}
-          />
-        </View>
-      </View>
-    </Modal>
-  );
-
-  const renderPersonalLanguageModal = () => (
-    <Modal visible={showPersonalLanguageModal} transparent animationType="slide">
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>Your Language</Text>
-            <TouchableOpacity onPress={() => setShowPersonalLanguageModal(false)}>
-              <X size={24} color={Colors.text} />
-            </TouchableOpacity>
-          </View>
-          <Text style={styles.modalSubtitle}>Select your language (optional)</Text>
-          <FlatList
-            data={LANGUAGE_OPTIONS.filter(option => option !== 'No preference')}
-            keyExtractor={(item, index) => `personal-language-${index}-${item.replace(/\s+/g, '-')}`}
-            renderItem={({ item }) => {
-              const isSelected = editedUser?.ethnicity === item;
-              return (
-                <TouchableOpacity
-                  style={[styles.optionItem, isSelected && styles.selectedOption]}
-                  onPress={() => setPersonalLanguage(item)}
-                >
-                  <Text style={[styles.optionText, isSelected && styles.selectedOptionText]}>
-                    {item}
                   </Text>
                   {isSelected && <Check size={20} color={Colors.background} />}
                 </TouchableOpacity>
@@ -819,16 +774,33 @@ export default function ProfileScreen() {
             </View>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
-              onPress={() => isEditing && setShowPersonalLanguageModal(true)}
+              onPress={() => isEditing && setShowLanguageModal(true)}
               disabled={!isEditing}
             >
               <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Language</Text>
+                <Text style={styles.preferenceLabel}>
+                  Language{(() => {
+                    const langs = (isEditing ? editedUser?.ethnicity : user?.ethnicity) || [];
+                    return langs.length > 0 ? ` (${langs.length}/5)` : '';
+                  })()}
+                </Text>
                 {isEditing && <Pencil size={16} color={Colors.primary} />}
               </View>
-              <Text style={styles.preferenceValue}>
-                {(isEditing ? editedUser?.ethnicity : user.ethnicity) || 'Not specified'}
-              </Text>
+              {(() => {
+                const langs = (isEditing ? editedUser?.ethnicity : user?.ethnicity) || [];
+                if (langs.length === 0) {
+                  return <Text style={styles.preferenceValue}>Not specified</Text>;
+                }
+                return (
+                  <View style={styles.languageChipsContainer}>
+                    {langs.map((lang: string) => (
+                      <View key={`lang-${lang}`} style={styles.languageChip}>
+                        <Text style={styles.languageChipText}>{lang}</Text>
+                      </View>
+                    ))}
+                  </View>
+                );
+              })()}
             </TouchableOpacity>
           </View>
           <View style={styles.personalInfoRow}>
@@ -849,37 +821,6 @@ export default function ProfileScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity 
-            style={styles.fullPreferenceItem}
-            onPress={() => isEditing && setShowLanguageModal(true)}
-            disabled={!isEditing}
-            activeOpacity={0.7}
-          >
-            <View style={styles.preferenceHeader}>
-              <Text style={styles.preferenceLabel}>
-                Preferred Language{(() => {
-                  const langs = (isEditing ? editedUser?.preferences.preferredEthnicity : user?.preferences.preferredEthnicity) || [];
-                  return langs.length > 0 ? ` (${langs.length}/5)` : '';
-                })()}
-              </Text>
-              {isEditing && <Pencil size={16} color={Colors.primary} />}
-            </View>
-            {(() => {
-              const langs = (isEditing ? editedUser?.preferences.preferredEthnicity : user?.preferences.preferredEthnicity) || [];
-              if (langs.length === 0) {
-                return <Text style={styles.preferenceValue}>Not specified</Text>;
-              }
-              return (
-                <View style={styles.languageChipsContainer}>
-                  {langs.map((lang: string) => (
-                    <View key={`lang-${lang}`} style={styles.languageChip}>
-                      <Text style={styles.languageChipText}>{lang}</Text>
-                    </View>
-                  ))}
-                </View>
-              );
-            })()}
-          </TouchableOpacity>
         </View>
         <View style={styles.bioSection}>
           <Text style={styles.sectionTitle}>Bio</Text>
@@ -908,7 +849,6 @@ export default function ProfileScreen() {
       {renderPlaceDetailModal()}
       {renderLanguageModal()}
       {renderIntentionModal()}
-      {renderPersonalLanguageModal()}
       {renderSettingsModal()}
       <Modal visible={showSignOutModal} transparent animationType="fade">
         <TouchableOpacity

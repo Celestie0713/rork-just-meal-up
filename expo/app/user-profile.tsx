@@ -292,7 +292,7 @@ export default function UserProfileScreen() {
             <View style={styles.halfPreferenceItem}>
               <Text style={styles.preferenceLabel}>Language</Text>
               <Text style={styles.preferenceValue}>
-                {user.ethnicity || 'Not specified'}
+                {(user.ethnicity && user.ethnicity.length > 0) ? user.ethnicity.join(', ') : 'Not specified'}
               </Text>
             </View>
             <View style={styles.halfPreferenceItem}>

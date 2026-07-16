@@ -14,7 +14,7 @@ export interface User {
   income?: number;
   languages?: string[];
   lastSeen?: Date;
-  ethnicity?: string;
+  ethnicity?: string[];
   favoritePlaces?: string[];
   joinedGroupIds?: string[];
   relationshipStatus?: 'single' | 'in_relationship';

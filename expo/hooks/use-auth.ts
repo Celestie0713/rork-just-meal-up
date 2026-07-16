@@ -21,7 +21,7 @@ const mockCurrentUser: User = {
   currency: '$',
   membershipTier: 'premium',
   isOnline: true,
-  ethnicity: 'english, mandarin, cantonese',
+  ethnicity: ['English', 'Mandarin', 'Cantonese'],
   favoritePlaces: ['mock_place_1', 'mock_place_2', 'mock_place_3'],
   joinedGroupIds: ['3'],
   relationshipStatus: 'single',
@@ -53,14 +53,31 @@ export const [AuthProvider, useAuth] = createContextHook(() => {
         // One-time migration: the old signUp hardcoded age: 25.
         // Strip it so existing cached users see "Not specified" until they
         // set their own age on the profile page.
-        const MIGRATION_KEY = 'user_schema_v2_age_fix';
-        const migrated = await AsyncStorage.getItem(MIGRATION_KEY);
-        if (!migrated) {
+        const AGE_MIGRATION_KEY = 'user_schema_v2_age_fix';
+        const ageMigrated = await AsyncStorage.getItem(AGE_MIGRATION_KEY);
+        if (!ageMigrated) {
           if (parsed.age != null) {
             delete (parsed as Partial<User>).age;
             await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(parsed));
           }
-          await AsyncStorage.setItem(MIGRATION_KEY, 'done');
+          await AsyncStorage.setItem(AGE_MIGRATION_KEY, 'done');
+        }
+
+        // One-time migration: ethnicity changed from string to string[].
+        // Convert any old comma-separated string values to arrays.
+        const ETHNICITY_MIGRATION_KEY = 'user_schema_v3_ethnicity_array';
+        const ethnicityMigrated = await AsyncStorage.getItem(ETHNICITY_MIGRATION_KEY);
+        if (!ethnicityMigrated) {
+          if (typeof parsed.ethnicity === 'string') {
+            const parsedEthnicity = (parsed.ethnicity as string)
+              .split(',')
+              .map((e: string) => e.trim())
+              .filter((e: string) => e.length > 0)
+              .map((e: string) => e.charAt(0).toUpperCase() + e.slice(1));
+            (parsed as Partial<User>).ethnicity = parsedEthnicity;
+            await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(parsed));
+          }
+          await AsyncStorage.setItem(ETHNICITY_MIGRATION_KEY, 'done');
         }
 
         setUser(parsed);
