@@ -442,7 +442,7 @@ const styles = StyleSheet.create({
   },
   brandTagline: {
     fontSize: 15,
-    color: Colors.textLight,
+    color: '#FFFFFF',
     textAlign: 'center',
     lineHeight: 21,
   },
