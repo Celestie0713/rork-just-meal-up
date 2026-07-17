@@ -779,9 +779,9 @@ const styles = StyleSheet.create({
     borderColor: colors.primary + '30',
   },
   infoBannerText: {
-    fontSize: 13,
+    fontSize: 15,
     color: '#FFFFFF',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   filterContainer: {
     flexDirection: 'row',
