@@ -711,7 +711,7 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
             </Text>
           </TouchableOpacity>
           <Text style={styles.footerNote}>
-            Platform fee (15%) applies to all ticket sales. Payouts weekly.
+            Platform fee (15%) applies to all ticket sales.
           </Text>
         </View>
       </View>
@@ -1345,10 +1345,10 @@ const styles = StyleSheet.create({
     borderTopColor: '#ECECEC',
   },
   footerNote: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#000000',
     textAlign: 'center',
-    lineHeight: 15,
+    lineHeight: 17,
   },
   // Date Range
   dateRangeSection: {
