@@ -780,7 +780,7 @@ const styles = StyleSheet.create({
   },
   infoBannerText: {
     fontSize: 13,
-    color: colors.textLight,
+    color: '#FFFFFF',
     lineHeight: 20,
     fontStyle: 'italic',
   },
