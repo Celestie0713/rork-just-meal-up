@@ -696,6 +696,20 @@ export function BalanceModal({ onClose }: BalanceModalProps) {
 
         {/* Footer */}
         <View style={styles.footer}>
+          <TouchableOpacity
+            style={[styles.withdrawBtn, totalEarnings <= 0 && styles.withdrawBtnDisabled]}
+            onPress={() => {
+              onClose();
+              router.push({ pathname: '/withdrawal', params: { total: totalEarnings.toFixed(2) } });
+            }}
+            disabled={totalEarnings <= 0}
+            activeOpacity={0.7}
+          >
+            <DollarSign size={16} color={totalEarnings > 0 ? '#FFFFFF' : '#AAAAAA'} />
+            <Text style={[styles.withdrawBtnText, totalEarnings <= 0 && styles.withdrawBtnTextDisabled]}>
+              {totalEarnings > 0 ? `Request withdrawal · $${totalEarnings.toFixed(2)}` : 'No balance to withdraw'}
+            </Text>
+          </TouchableOpacity>
           <Text style={styles.footerNote}>
             Platform fee (15%) applies to all ticket sales. Payouts weekly.
           </Text>
@@ -1028,6 +1042,27 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#999999',
+  },
+  withdrawBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: '#000000',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 12,
+  },
+  withdrawBtnDisabled: {
+    backgroundColor: '#F0F0F0',
+  },
+  withdrawBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  withdrawBtnTextDisabled: {
+    color: '#AAAAAA',
   },
   body: {
     flex: 1,
