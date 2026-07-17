@@ -549,6 +549,11 @@ export default function InvitationsScreen() {
           </View>
         ) : (
           <View style={styles.mainSection}>
+            <View style={styles.infoBanner}>
+              <Text style={styles.infoBannerText}>
+                Meal invitations aren't free. They tip first before landing here😘 #Effort
+              </Text>
+            </View>
             <View style={styles.filterContainer}>
               <TouchableOpacity 
                 style={[styles.filterChip, statusFilter === 'all' && styles.filterChipActive]}
@@ -763,6 +768,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textLight,
     marginBottom: 16,
+  },
+  infoBanner: {
+    backgroundColor: colors.primary + '15',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+  },
+  infoBannerText: {
+    fontSize: 13,
+    color: colors.textLight,
+    lineHeight: 20,
+    fontStyle: 'italic',
   },
   filterContainer: {
     flexDirection: 'row',
