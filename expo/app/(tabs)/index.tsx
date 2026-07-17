@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus, Menu, Wallet, Sparkles } from 'lucide-react-native';
+import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus, Trash2, Menu, Wallet, Sparkles } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
@@ -328,23 +328,7 @@ export default function SearchScreen() {
                 return (
                 <TouchableOpacity
                   style={[styles.placeCard, pickerMode && isInPicker && styles.placeCardInPicker]}
-                  onPress={() => {
-                    if (pickerMode) {
-                      const newPlace: PickerPlace = {
-                        id: item.place.id,
-                        name: item.place.name,
-                        emoji: item.place.cuisineEmoji || '🍽️',
-                        city: item.place.city,
-                      };
-                      if (isInPicker) {
-                        setPickerPlaces((prev) => prev.filter((p) => p.id !== newPlace.id));
-                      } else {
-                        setPickerPlaces((prev) => [...prev, newPlace]);
-                      }
-                    } else {
-                      setSelectedPlace(item);
-                    }
-                  }}
+                  onPress={() => setSelectedPlace(item)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.placeCardHeader}>
@@ -430,7 +414,9 @@ export default function SearchScreen() {
         </View>
       )}
 
-      {selectedPlace && (
+      {selectedPlace && (() => {
+        const isPlaceInPicker = pickerPlaces.some((p) => p.id === selectedPlace.place.id);
+        return (
         <View style={styles.detailOverlay}>
           <View style={styles.detailBackdrop} />
           <View style={styles.detailSheet}>
@@ -516,27 +502,65 @@ export default function SearchScreen() {
                   fill={isPlaceInFavorites(selectedPlace.place.id) ? '#FF2D55' : 'none'}
                 />
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.detailInviteButton}
-                onPress={() => {
-                  setSelectedPlace(null);
-                  router.push({
-                    pathname: '/create-invitation' as any,
-                    params: {
-                      placeName: selectedPlace.place.name,
-                      placeAddress: selectedPlace.place.address || `${selectedPlace.place.city}, ${selectedPlace.place.country}`,
-                    },
-                  });
-                }}
-                activeOpacity={0.7}
-              >
-                <Send size={18} color="#FFFFFF" />
-                <Text style={styles.detailInviteButtonText}>Invite to Eat</Text>
-              </TouchableOpacity>
+              {pickerMode ? (
+                <TouchableOpacity
+                  style={[
+                    styles.detailInviteButton,
+                    isPlaceInPicker && { backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.primary },
+                  ]}
+                  onPress={() => {
+                    const newPlace: PickerPlace = {
+                      id: selectedPlace.place.id,
+                      name: selectedPlace.place.name,
+                      emoji: selectedPlace.place.cuisineEmoji || '🍽️',
+                      city: selectedPlace.place.city,
+                    };
+                    if (isPlaceInPicker) {
+                      setPickerPlaces((prev) => prev.filter((p) => p.id !== newPlace.id));
+                    } else {
+                      setPickerPlaces((prev) => [...prev, newPlace]);
+                    }
+                  }}
+                  activeOpacity={0.7}
+                >
+                  {isPlaceInPicker ? (
+                    <Trash2 size={18} color={Colors.primary} />
+                  ) : (
+                    <Plus size={18} color="#FFFFFF" />
+                  )}
+                  <Text
+                    style={[
+                      styles.detailInviteButtonText,
+                      isPlaceInPicker && { color: Colors.primary },
+                    ]}
+                  >
+                    {isPlaceInPicker ? 'Remove from Picker' : 'Add to Picker'}
+                  </Text>
+                </TouchableOpacity>
+              ) : (
+                <TouchableOpacity
+                  style={styles.detailInviteButton}
+                  onPress={() => {
+                    setSelectedPlace(null);
+                    router.push({
+                      pathname: '/create-invitation' as any,
+                      params: {
+                        placeName: selectedPlace.place.name,
+                        placeAddress: selectedPlace.place.address || `${selectedPlace.place.city}, ${selectedPlace.place.country}`,
+                      },
+                    });
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Send size={18} color="#FFFFFF" />
+                  <Text style={styles.detailInviteButtonText}>Invite to Eat</Text>
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         </View>
-      )}
+        );
+      })()}
 
       {showMenuDropdown && (
         <TouchableOpacity
