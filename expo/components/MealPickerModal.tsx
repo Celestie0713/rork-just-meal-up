@@ -295,6 +295,8 @@ export function MealPickerModal({ visible, onClose, onPick }: MealPickerModalPro
   const centerX = SCREEN_WIDTH / 2 - CARD_W / 2;
   const centerY = SHUFFLE_AREA_HEIGHT / 2 - CARD_H / 2;
 
+  if (!visible) return null;
+
   return (
     <View style={styles.overlay}>
       <Pressable style={styles.backdrop} onPress={handleClose} />
