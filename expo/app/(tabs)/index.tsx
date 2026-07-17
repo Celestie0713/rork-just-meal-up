@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
 import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus, Trash2, Menu, Wallet, Sparkles } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
 import { useNotifications } from '@/hooks/use-notifications';
@@ -120,15 +121,16 @@ export default function SearchScreen() {
 
   const handleMealPicked = useCallback((place: PickerPlace) => {
     setShowMealPicker(false);
-    setActiveTab('places');
-    // Wrap the name in quotes so the places search uses specific-restaurant
-    // matching (strict, exact-name) instead of a broad cuisine/keyword search.
-    const quotedQuery = `"${place.name}"`;
-    setPlaceSearchQuery(place.name);
-    setTimeout(() => {
-      placesSearch.search(quotedQuery);
-    }, 50);
-  }, [placesSearch]);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    router.push({
+      pathname: '/create-invitation' as any,
+      params: {
+        placeName: place.name,
+        placeAddress: place.city,
+        placeId: place.id,
+      },
+    });
+  }, []);
 
   const handleAddPickerPlace = useCallback(() => {
     setShowMealPicker(false);

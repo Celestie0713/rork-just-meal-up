@@ -11,7 +11,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { X, Sparkles, Shuffle, Search, RotateCcw, Plus, Send, Trash2 } from 'lucide-react-native';
+import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/colors';
 
@@ -203,10 +203,6 @@ export function MealPickerModal({
     });
   };
 
-  const shuffleAgain = useCallback(() => {
-    startShuffle();
-  }, [startShuffle]);
-
   const handleSearch = useCallback(() => {
     if (winner) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -380,13 +376,9 @@ export function MealPickerModal({
             </View>
 
             <View style={styles.resultActions}>
-              <TouchableOpacity style={styles.againButton} onPress={shuffleAgain} activeOpacity={0.7}>
-                <RotateCcw size={18} color={Colors.text} />
-                <Text style={styles.againButtonText}>Shuffle again</Text>
-              </TouchableOpacity>
               <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.8}>
-                <Search size={18} color="#FFFFFF" />
-                <Text style={styles.searchButtonText}>Search this place</Text>
+                <Calendar size={18} color="#FFFFFF" />
+                <Text style={styles.searchButtonText}>Set date & time</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -712,25 +704,8 @@ const styles = StyleSheet.create({
     gap: 12,
     width: '100%',
   },
-  againButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: 16,
-    paddingVertical: 15,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  againButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.text,
-  },
   searchButton: {
-    flex: 1.3,
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
