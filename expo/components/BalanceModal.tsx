@@ -1311,7 +1311,7 @@ const styles = StyleSheet.create({
   },
   footerNote: {
     fontSize: 10,
-    color: '#AAAAAA',
+    color: '#000000',
     textAlign: 'center',
     lineHeight: 15,
   },
