@@ -551,7 +551,7 @@ export default function InvitationsScreen() {
           <View style={styles.mainSection}>
             <View style={styles.infoBanner}>
               <Text style={styles.infoBannerText}>
-                Meal invitations aren't free. They tip first before landing here😘 #effort
+                Meal invitations aren't free. They tip us before they get here😘 #effort
               </Text>
             </View>
             <View style={styles.filterContainer}>
