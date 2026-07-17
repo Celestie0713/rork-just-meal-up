@@ -13,6 +13,7 @@ import type { PlaceResult } from '@/hooks/use-places-search';
 import { Colors } from '@/constants/colors';
 import { BalanceModal } from '@/components/BalanceModal';
 import { MealPickerModal } from '@/components/MealPickerModal';
+import type { PickerPlace } from '@/components/MealPickerModal';
 import { SuccessPopup } from '@/components/SuccessPopup';
 import type { User } from '@/types/user';
 
@@ -97,6 +98,8 @@ export default function SearchScreen() {
   const [showFavPopup, setShowFavPopup] = useState(false);
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
   const [showMealPicker, setShowMealPicker] = useState(false);
+  const [pickerPlaces, setPickerPlaces] = useState<PickerPlace[]>([]);
+  const [pickerMode, setPickerMode] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -115,14 +118,38 @@ export default function SearchScreen() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const { addToFavorites, removeFromFavorites, isPlaceInFavorites } = useFavorites();
 
-  const handleMealPicked = useCallback((cuisine: string) => {
+  const handleMealPicked = useCallback((place: PickerPlace) => {
     setShowMealPicker(false);
     setActiveTab('places');
-    setPlaceSearchQuery(cuisine);
+    setPlaceSearchQuery(place.name);
     setTimeout(() => {
-      placesSearch.search(cuisine);
+      placesSearch.search(place.name);
     }, 50);
   }, [placesSearch]);
+
+  const handleAddPickerPlace = useCallback(() => {
+    setShowMealPicker(false);
+    setPickerMode(true);
+    setActiveTab('places');
+  }, []);
+
+  const handleRemovePickerPlace = useCallback((id: string) => {
+    setPickerPlaces((prev) => prev.filter((p) => p.id !== id));
+  }, []);
+
+  const handleInviteePick = useCallback((places: PickerPlace[]) => {
+    setShowMealPicker(false);
+    if (places.length > 0) {
+      const first = places[0];
+      router.push({
+        pathname: '/create-invitation' as any,
+        params: {
+          placeName: first.name,
+          placeAddress: first.city,
+        },
+      });
+    }
+  }, []);
 
   const handlePlaceSearch = useCallback(() => {
     const query = placeSearchQuery.trim();
@@ -249,14 +276,43 @@ export default function SearchScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={styles.placesAddButton}
-            onPress={() => router.push('/create-invitation' as any)}
-            activeOpacity={0.7}
-          >
-            <Plus size={16} color={Colors.primary} />
-            <Text style={styles.placesAddButtonText}>Add a place</Text>
-          </TouchableOpacity>
+          {pickerMode ? (
+            <View style={styles.pickerModeBar}>
+              <Text style={styles.pickerModeText}>
+                {pickerPlaces.length > 0
+                  ? `${pickerPlaces.length} place${pickerPlaces.length === 1 ? '' : 's'} added — tap more to add`
+                  : 'Tap a place to add it to the Meal Picker'}
+              </Text>
+              <View style={{ flexDirection: 'row', gap: 8 }}>
+                <TouchableOpacity
+                  style={styles.pickerModeCancelBtn}
+                  onPress={() => { setPickerMode(false); }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.pickerModeCancelText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.pickerModeDoneBtn}
+                  onPress={() => {
+                    setPickerMode(false);
+                    setShowMealPicker(true);
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Text style={styles.pickerModeDoneText}>Done</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.placesAddButton}
+              onPress={() => router.push('/create-invitation' as any)}
+              activeOpacity={0.7}
+            >
+              <Plus size={16} color={Colors.primary} />
+              <Text style={styles.placesAddButtonText}>Add a place</Text>
+            </TouchableOpacity>
+          )}
 
           {placesSearch.isLoading ? (
             <View style={styles.placesLoading}>
@@ -267,10 +323,28 @@ export default function SearchScreen() {
             <FlatList
               data={placesSearch.data.results}
               keyExtractor={(item) => item.place.id}
-              renderItem={({ item }) => (
+              renderItem={({ item }) => {
+                const isInPicker = pickerPlaces.some((p) => p.id === item.place.id);
+                return (
                 <TouchableOpacity
-                  style={styles.placeCard}
-                  onPress={() => setSelectedPlace(item)}
+                  style={[styles.placeCard, pickerMode && isInPicker && styles.placeCardInPicker]}
+                  onPress={() => {
+                    if (pickerMode) {
+                      const newPlace: PickerPlace = {
+                        id: item.place.id,
+                        name: item.place.name,
+                        emoji: item.place.cuisineEmoji || '🍽️',
+                        city: item.place.city,
+                      };
+                      if (isInPicker) {
+                        setPickerPlaces((prev) => prev.filter((p) => p.id !== newPlace.id));
+                      } else {
+                        setPickerPlaces((prev) => [...prev, newPlace]);
+                      }
+                    } else {
+                      setSelectedPlace(item);
+                    }
+                  }}
                   activeOpacity={0.7}
                 >
                   <View style={styles.placeCardHeader}>
@@ -336,7 +410,7 @@ export default function SearchScreen() {
                     </View>
                   </View>
                 </TouchableOpacity>
-              )}
+              );}}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={styles.placesList}
             />
@@ -497,8 +571,12 @@ export default function SearchScreen() {
 
       <MealPickerModal
         visible={showMealPicker}
+        places={pickerPlaces}
         onClose={() => setShowMealPicker(false)}
+        onAddPlace={handleAddPickerPlace}
+        onRemovePlace={handleRemovePickerPlace}
         onPick={handleMealPicked}
+        onInviteePick={handleInviteePick}
       />
 
       <SuccessPopup
@@ -674,6 +752,13 @@ const styles = StyleSheet.create({
 
   placesAddButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 16, marginBottom: 12, paddingVertical: 14, borderRadius: 14, backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.primary, gap: 8 },
   placesAddButtonText: { fontSize: 14, fontWeight: '600' as const, color: Colors.primary },
+  pickerModeBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 16, marginBottom: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 14, backgroundColor: Colors.surface, borderWidth: 1.5, borderColor: Colors.primary, gap: 8 },
+  pickerModeText: { fontSize: 12, fontWeight: '600' as const, color: Colors.primary, flex: 1, flexShrink: 1 },
+  pickerModeCancelBtn: { paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, backgroundColor: Colors.background, borderWidth: 1, borderColor: Colors.border },
+  pickerModeCancelText: { fontSize: 13, fontWeight: '600' as const, color: Colors.textLight },
+  pickerModeDoneBtn: { paddingVertical: 8, paddingHorizontal: 14, borderRadius: 10, backgroundColor: Colors.primary },
+  pickerModeDoneText: { fontSize: 13, fontWeight: '700' as const, color: '#FFFFFF' },
+  placeCardInPicker: { borderColor: Colors.primary, borderWidth: 2, backgroundColor: '#2A1A12' },
 
   placesLoading: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingBottom: 60 },
   placesLoadingText: { fontSize: 14, color: Colors.textLight, marginTop: 12 },
