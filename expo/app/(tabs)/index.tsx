@@ -181,32 +181,6 @@ export default function SearchScreen() {
             </TouchableOpacity>
           </View>
         </View>
-        {showMenuDropdown && (
-          <TouchableOpacity
-            style={styles.menuBackdrop}
-            activeOpacity={1}
-            onPress={() => setShowMenuDropdown(false)}
-          />
-        )}
-        {showMenuDropdown && (
-          <View style={styles.menuDropdown} pointerEvents="auto">
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={() => { setShowMenuDropdown(false); setShowBalance(true); }}
-            >
-              <Wallet size={18} color="#000000" />
-              <Text style={styles.menuItemText}>My balance</Text>
-            </TouchableOpacity>
-            <View style={styles.menuDivider} />
-            <TouchableOpacity
-              style={styles.menuItem}
-              onPress={handleSurpriseMe}
-            >
-              <Sparkles size={18} color="#FF6B35" />
-              <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
-            </TouchableOpacity>
-          </View>
-        )}
         {activeTab === 'user' && (
           <View style={styles.searchContainer}>
             <View style={styles.searchInputContainer}>
@@ -496,6 +470,33 @@ export default function SearchScreen() {
         </View>
       )}
 
+      {showMenuDropdown && (
+        <TouchableOpacity
+          style={styles.menuBackdrop}
+          activeOpacity={1}
+          onPress={() => setShowMenuDropdown(false)}
+        />
+      )}
+      {showMenuDropdown && (
+        <View style={styles.menuDropdown} pointerEvents="auto">
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => { setShowMenuDropdown(false); setShowBalance(true); }}
+          >
+            <Wallet size={18} color="#000000" />
+            <Text style={styles.menuItemText}>My balance</Text>
+          </TouchableOpacity>
+          <View style={styles.menuDivider} />
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={handleSurpriseMe}
+          >
+            <Sparkles size={18} color="#FF6B35" />
+            <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
       {showBalance && (
         <BalanceModal onClose={() => setShowBalance(false)} />
       )}
@@ -642,8 +643,8 @@ const styles = StyleSheet.create({
   titleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, zIndex: 30, elevation: 30 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   balanceButton: { padding: 8, borderRadius: 20, backgroundColor: '#FFF8E7', borderWidth: 1, borderColor: '#888888' },
-  menuBackdrop: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 40, elevation: 40 },
-  menuDropdown: { position: 'absolute' as const, top: 76, right: 16, backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 6, minWidth: 220, borderWidth: 1, borderColor: '#E0E0E0', zIndex: 50, elevation: 50, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+  menuBackdrop: { position: 'absolute' as const, top: 0, left: 0, right: 0, bottom: 0, zIndex: 998, elevation: 998 },
+  menuDropdown: { position: 'absolute' as const, top: 100, right: 16, backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 6, minWidth: 220, borderWidth: 1, borderColor: '#E0E0E0', zIndex: 999, elevation: 999, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
   menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 12 },
   menuItemText: { fontSize: 15, fontWeight: '500', color: '#000000' },
   menuDivider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 16, marginVertical: 2 },
