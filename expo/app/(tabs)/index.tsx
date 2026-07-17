@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, ScrollView, Linking, Platform, ActivityIndicator } from 'react-native';
-import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus, Menu } from 'lucide-react-native';
+import { Search, Filter, Heart, X, ChevronDown, MapPin, UtensilsCrossed, Map, Send, Plus, Menu, Wallet, Sparkles } from 'lucide-react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
@@ -94,6 +94,7 @@ export default function SearchScreen() {
   const [showCountryPicker, setShowCountryPicker] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
   const [showFavPopup, setShowFavPopup] = useState(false);
+  const [showMenuDropdown, setShowMenuDropdown] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -111,6 +112,23 @@ export default function SearchScreen() {
   const [placeSearchQuery, setPlaceSearchQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const { addToFavorites, removeFromFavorites, isPlaceInFavorites } = useFavorites();
+
+  const SURPRISE_CUISINES = [
+    'sushi', 'pizza', 'ramen', 'tacos', 'burger', 'pad thai', 'pho', 'korean bbq',
+    'pasta', 'curry', 'dumplings', 'kebab', 'paella', 'steak', 'lobster', 'biryani',
+    'nachos', 'wings', 'salad', 'smoothie bowl', 'crepe', 'gelato', 'barbecue',
+  ];
+
+  const handleSurpriseMe = useCallback(() => {
+    const random = SURPRISE_CUISINES[Math.floor(Math.random() * SURPRISE_CUISINES.length)];
+    setShowMenuDropdown(false);
+    setActiveTab('places');
+    setPlaceSearchQuery(random);
+    // Defer search so the places tab state is active before searching
+    setTimeout(() => {
+      placesSearch.search(random);
+    }, 50);
+  }, [placesSearch]);
 
   const handlePlaceSearch = useCallback(() => {
     const query = placeSearchQuery.trim();
@@ -150,9 +168,28 @@ export default function SearchScreen() {
         <View style={styles.titleContainer}>
           <Text style={styles.title}>Just Meal Up</Text>
           <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.balanceButton} onPress={() => setShowBalance(true)}>
+            <TouchableOpacity style={styles.balanceButton} onPress={() => setShowMenuDropdown(!showMenuDropdown)}>
               <Menu size={22} color="#000000" />
             </TouchableOpacity>
+            {showMenuDropdown && (
+              <View style={styles.menuDropdown}>
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={() => { setShowMenuDropdown(false); setShowBalance(true); }}
+                >
+                  <Wallet size={18} color="#000000" />
+                  <Text style={styles.menuItemText}>My balance</Text>
+                </TouchableOpacity>
+                <View style={styles.menuDivider} />
+                <TouchableOpacity
+                  style={styles.menuItem}
+                  onPress={handleSurpriseMe}
+                >
+                  <Sparkles size={18} color="#FF6B35" />
+                  <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
+                </TouchableOpacity>
+              </View>
+            )}
             <TouchableOpacity style={styles.notificationButton}>
               <Heart size={24} color="#FF6B35" fill={unreadCount > 0 ? "#FF6B35" : "none"} />
               {unreadCount > 0 && (
@@ -598,6 +635,10 @@ const styles = StyleSheet.create({
   titleContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   headerActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   balanceButton: { padding: 8, borderRadius: 20, backgroundColor: '#FFF8E7', borderWidth: 1, borderColor: '#888888' },
+  menuDropdown: { position: 'absolute', top: 48, right: 0, backgroundColor: '#FFFFFF', borderRadius: 14, paddingVertical: 6, minWidth: 220, borderWidth: 1, borderColor: '#E0E0E0', zIndex: 500, elevation: 8, shadowColor: '#000000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 12 },
+  menuItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 16, gap: 12 },
+  menuItemText: { fontSize: 15, fontWeight: '500', color: '#000000' },
+  menuDivider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 16, marginVertical: 2 },
   title: { fontSize: 28, fontWeight: '800', color: '#000000' },
   notificationButton: { padding: 8, borderRadius: 20, backgroundColor: '#FFF8E7', borderWidth: 1, borderColor: '#888888', position: 'relative' },
   notificationBadge: { position: 'absolute', bottom: -2, left: -2, backgroundColor: '#FF4444', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#FFF8E7' },
