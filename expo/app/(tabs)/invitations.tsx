@@ -782,7 +782,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#FFFFFF',
     lineHeight: 20,
-    fontStyle: 'italic',
   },
   filterContainer: {
     flexDirection: 'row',
