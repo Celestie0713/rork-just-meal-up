@@ -12,6 +12,7 @@ import type { PlaceResult } from '@/hooks/use-places-search';
 
 import { Colors } from '@/constants/colors';
 import { BalanceModal } from '@/components/BalanceModal';
+import { MealPickerModal } from '@/components/MealPickerModal';
 import { SuccessPopup } from '@/components/SuccessPopup';
 import type { User } from '@/types/user';
 
@@ -95,6 +96,7 @@ export default function SearchScreen() {
   const [showBalance, setShowBalance] = useState(false);
   const [showFavPopup, setShowFavPopup] = useState(false);
   const [showMenuDropdown, setShowMenuDropdown] = useState(false);
+  const [showMealPicker, setShowMealPicker] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -113,20 +115,12 @@ export default function SearchScreen() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
   const { addToFavorites, removeFromFavorites, isPlaceInFavorites } = useFavorites();
 
-  const SURPRISE_CUISINES = [
-    'sushi', 'pizza', 'ramen', 'tacos', 'burger', 'pad thai', 'pho', 'korean bbq',
-    'pasta', 'curry', 'dumplings', 'kebab', 'paella', 'steak', 'lobster', 'biryani',
-    'nachos', 'wings', 'salad', 'smoothie bowl', 'crepe', 'gelato', 'barbecue',
-  ];
-
-  const handleSurpriseMe = useCallback(() => {
-    const random = SURPRISE_CUISINES[Math.floor(Math.random() * SURPRISE_CUISINES.length)];
-    setShowMenuDropdown(false);
+  const handleMealPicked = useCallback((cuisine: string) => {
+    setShowMealPicker(false);
     setActiveTab('places');
-    setPlaceSearchQuery(random);
-    // Defer search so the places tab state is active before searching
+    setPlaceSearchQuery(cuisine);
     setTimeout(() => {
-      placesSearch.search(random);
+      placesSearch.search(cuisine);
     }, 50);
   }, [placesSearch]);
 
@@ -489,7 +483,7 @@ export default function SearchScreen() {
           <View style={styles.menuDivider} />
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={handleSurpriseMe}
+            onPress={() => { setShowMenuDropdown(false); setShowMealPicker(true); }}
           >
             <Sparkles size={18} color="#FF6B35" />
             <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
@@ -500,6 +494,12 @@ export default function SearchScreen() {
       {showBalance && (
         <BalanceModal onClose={() => setShowBalance(false)} />
       )}
+
+      <MealPickerModal
+        visible={showMealPicker}
+        onClose={() => setShowMealPicker(false)}
+        onPick={handleMealPicked}
+      />
 
       <SuccessPopup
         visible={showFavPopup}
