@@ -121,9 +121,12 @@ export default function SearchScreen() {
   const handleMealPicked = useCallback((place: PickerPlace) => {
     setShowMealPicker(false);
     setActiveTab('places');
+    // Wrap the name in quotes so the places search uses specific-restaurant
+    // matching (strict, exact-name) instead of a broad cuisine/keyword search.
+    const quotedQuery = `"${place.name}"`;
     setPlaceSearchQuery(place.name);
     setTimeout(() => {
-      placesSearch.search(place.name);
+      placesSearch.search(quotedQuery);
     }, 50);
   }, [placesSearch]);
 
