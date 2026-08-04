@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView, Linking } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X, ExternalLink, Gift } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
@@ -12,6 +12,7 @@ import { useInvitations } from '@/hooks/use-invitations';
 import { TipSelectionModal } from '@/components/TipSelectionModal';
 import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 import type { User, SystemMessage } from '@/types/user';
+import { getUserFavorites } from '@/mocks/user-favorites';
 
 interface ChatData {
   user: User;
@@ -65,6 +66,7 @@ export default function MessagesScreen() {
     time?: string;
     fromInvitation?: string;
     fromMealUpShare?: string;
+    fromBribePicker?: string;
     mealUpId?: string;
     mealUpTitle?: string;
     mealUpVenue?: string;
@@ -79,6 +81,7 @@ export default function MessagesScreen() {
   const exclusivePartner = getExclusiveMatchPartner();
   const [isInvitationMode, setIsInvitationMode] = useState<boolean>(false);
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
+  const [isBribePickerMode, setIsBribePickerMode] = useState<boolean>(false);
   const [invitationData, setInvitationData] = useState<any>(null);
   const [mealUpData, setMealUpData] = useState<any>(null);
   const [showTipModal, setShowTipModal] = useState(false);
@@ -101,6 +104,8 @@ export default function MessagesScreen() {
         date: params.date ? new Date(params.date) : null,
         time: params.time ? new Date(params.time) : null,
       });
+    } else if (params.fromBribePicker === 'true') {
+      setIsBribePickerMode(true);
     } else if (params.fromMealUpShare === 'true') {
       setIsMealUpShareMode(true);
       setMealUpData({
@@ -113,7 +118,7 @@ export default function MessagesScreen() {
         image: params.mealUpImage,
       });
     }
-  }, [params.fromInvitation, params.fromMealUpShare, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
@@ -135,6 +140,24 @@ export default function MessagesScreen() {
       console.log('[handleChatPress] Showing tip modal for:', user.name);
       setSelectedRecipient(user);
       setShowTipModal(true);
+    } else if (isBribePickerMode) {
+      const favorites = getUserFavorites(user.id);
+      if (favorites.length === 0) {
+        Alert.alert(
+          'No favorites',
+          `${user.name} hasn't added any "Food to bribe me with" yet. Try someone else!`,
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+      router.replace({
+        pathname: '/(tabs)' as any,
+        params: {
+          bribePicker: 'true',
+          bribeUserId: user.id,
+          bribeUserName: user.name,
+        },
+      });
     } else if (isMealUpShareMode && mealUpData) {
       console.log('[handleChatPress] Showing meal up share alert for:', mealUpData.title);
       
@@ -401,21 +424,29 @@ export default function MessagesScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        {(isInvitationMode || isMealUpShareMode) && (
+        {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && (
           <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
             <ArrowLeft size={24} color={Colors.text} />
           </TouchableOpacity>
         )}
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>
-            {isInvitationMode ? 'Send Invitation' : isMealUpShareMode ? 'Share Meal Up' : 'Messages'}
+            {isInvitationMode ? 'Send Invitation' : isMealUpShareMode ? 'Share Meal Up' : isBribePickerMode ? 'Food to Bribe Me' : 'Messages'}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : 'Voice conversations'}
+            {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : isBribePickerMode ? 'Pick someone to bribe you with food 🎁' : 'Voice conversations'}
           </Text>
         </View>
-        {(isInvitationMode || isMealUpShareMode) && <View style={styles.placeholder} />}
+        {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && <View style={styles.placeholder} />}
       </View>
+      {isBribePickerMode && (
+        <View style={styles.bribePickerBanner}>
+          <Gift size={20} color={Colors.primary} />
+          <Text style={styles.bribePickerBannerText}>
+            Choose someone whose favorites will be your meal picker options
+          </Text>
+        </View>
+      )}
       {isInvitationMode && !!invitationData && (
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
@@ -934,5 +965,22 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.primary,
     marginLeft: 4,
+  },
+  bribePickerBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    backgroundColor: 'rgba(255, 165, 0, 0.08)',
+  },
+  bribePickerBannerText: {
+    fontSize: 13,
+    fontWeight: '500',
+    color: Colors.primary,
+    flex: 1,
+    flexShrink: 1,
   },
 });

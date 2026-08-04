@@ -11,7 +11,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar } from 'lucide-react-native';
+import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, Gift } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/colors';
 
@@ -43,6 +43,7 @@ interface MealPickerModalProps {
   onRemovePlace: (id: string) => void;
   onPick: (place: PickerPlace) => void;
   onInviteePick: (places: PickerPlace[]) => void;
+  onBribeMe: () => void;
 }
 
 const CARD_W = 96;
@@ -58,6 +59,7 @@ export function MealPickerModal({
   onRemovePlace,
   onPick,
   onInviteePick,
+  onBribeMe,
 }: MealPickerModalProps) {
   const [phase, setPhase] = useState<Phase>('select');
   const [shuffleCards, setShuffleCards] = useState<PickerPlace[]>([]);
@@ -218,6 +220,11 @@ export function MealPickerModal({
     reset();
   }, [places, onInviteePick, reset]);
 
+  const handleBribeMe = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onBribeMe();
+  }, [onBribeMe]);
+
   const centerX = SCREEN_WIDTH / 2 - CARD_W / 2;
   const centerY = SHUFFLE_AREA_HEIGHT / 2 - CARD_H / 2;
   const canShuffle = places.length >= MIN_TO_SHUFFLE;
@@ -303,6 +310,16 @@ export function MealPickerModal({
                 <Send size={17} color={canShuffle ? Colors.primary : '#666666'} />
                 <Text style={[styles.secondaryButtonText, !canShuffle && styles.secondaryButtonTextDisabled]}>
                   Invitee will shuffle & pick
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tertiaryButton, !canShuffle && styles.tertiaryButtonDisabled]}
+                onPress={handleBribeMe}
+                activeOpacity={0.8}
+              >
+                <Gift size={17} color={canShuffle ? Colors.primary : '#666666'} />
+                <Text style={[styles.tertiaryButtonText, !canShuffle && styles.tertiaryButtonTextDisabled]}>
+                  Choose from Food to bribe me with
                 </Text>
               </TouchableOpacity>
             </View>
@@ -564,6 +581,31 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   secondaryButtonTextDisabled: {
+    color: '#666666',
+  },
+  tertiaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 16,
+    paddingVertical: 14,
+    gap: 10,
+    borderWidth: 1.5,
+    borderColor: Colors.primary,
+    borderStyle: 'dashed',
+    marginTop: 4,
+  },
+  tertiaryButtonDisabled: {
+    borderColor: '#444444',
+    borderStyle: 'solid',
+  },
+  tertiaryButtonText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.primary,
+  },
+  tertiaryButtonTextDisabled: {
     color: '#666666',
   },
 

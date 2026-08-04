@@ -17,6 +17,7 @@ import { MealPickerModal } from '@/components/MealPickerModal';
 import type { PickerPlace } from '@/components/MealPickerModal';
 import { SuccessPopup } from '@/components/SuccessPopup';
 import type { User } from '@/types/user';
+import { getUserFavorites } from '@/mocks/user-favorites';
 
 const COUNTRIES = [
     { name: 'Afghanistan', code: 'AF' }, { name: 'Albania', code: 'AL' }, { name: 'Algeria', code: 'DZ' },
@@ -85,12 +86,24 @@ function openGoogleMaps(query: string) {
 const PRICE_LABELS: Record<number, string> = { 1: '$', 2: '$$', 3: '$$$', 4: '$$$$' };
 
 export default function SearchScreen() {
-  const params = useLocalSearchParams<{ tab?: string }>();
+  const params = useLocalSearchParams<{ tab?: string; bribePicker?: string; bribeUserId?: string; bribeUserName?: string }>();
   const [activeTab, setActiveTab] = useState<'user' | 'places'>('user');
 
   useEffect(() => {
     if (params.tab === 'places') setActiveTab('places');
   }, [params.tab]);
+
+  // Handle return from bribe-picker: user picked an invitee from messages,
+  // load their favorites and reopen the meal picker
+  useEffect(() => {
+    if (params.bribePicker === 'true' && params.bribeUserId) {
+      const favorites = getUserFavorites(params.bribeUserId);
+      if (favorites.length > 0) {
+        setPickerPlaces(favorites);
+        setShowMealPicker(true);
+      }
+    }
+  }, [params.bribePicker, params.bribeUserId]);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -154,6 +167,14 @@ export default function SearchScreen() {
         },
       });
     }
+  }, []);
+
+  const handleBribeMe = useCallback(() => {
+    setShowMealPicker(false);
+    router.push({
+      pathname: '/(tabs)/messages' as any,
+      params: { fromBribePicker: 'true' },
+    });
   }, []);
 
   const handlePlaceSearch = useCallback(() => {
@@ -606,6 +627,7 @@ export default function SearchScreen() {
         onRemovePlace={handleRemovePickerPlace}
         onPick={handleMealPicked}
         onInviteePick={handleInviteePick}
+        onBribeMe={handleBribeMe}
       />
 
       <SuccessPopup
