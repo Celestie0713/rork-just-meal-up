@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'rgba(255, 165, 0, 0.12)',
     borderRadius: 16,
     paddingVertical: 14,
     gap: 10,
@@ -597,8 +597,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   tertiaryButtonDisabled: {
-    borderColor: '#444444',
-    borderStyle: 'solid',
+    borderColor: 'rgba(255, 165, 0, 0.4)',
+    borderStyle: 'dashed',
   },
   tertiaryButtonText: {
     fontSize: 14,
@@ -606,7 +606,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   tertiaryButtonTextDisabled: {
-    color: '#666666',
+    color: 'rgba(255, 165, 0, 0.5)',
   },
 
   shuffleStage: {
