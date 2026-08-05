@@ -587,18 +587,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 165, 0, 0.12)',
+    backgroundColor: Colors.background,
     borderRadius: 16,
     paddingVertical: 14,
     gap: 10,
-    borderWidth: 1.5,
+    borderWidth: 2,
     borderColor: Colors.primary,
-    borderStyle: 'dashed',
     marginTop: 4,
   },
   tertiaryButtonDisabled: {
-    borderColor: 'rgba(255, 165, 0, 0.4)',
-    borderStyle: 'dashed',
+    borderColor: Colors.border,
   },
   tertiaryButtonText: {
     fontSize: 14,
@@ -606,7 +604,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   tertiaryButtonTextDisabled: {
-    color: 'rgba(255, 165, 0, 0.5)',
+    color: Colors.textLight,
   },
 
   shuffleStage: {
