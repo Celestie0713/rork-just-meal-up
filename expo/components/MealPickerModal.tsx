@@ -38,12 +38,14 @@ interface CardAnim {
 interface MealPickerModalProps {
   visible: boolean;
   places: PickerPlace[];
+  bribeMode: boolean;
   onClose: () => void;
   onAddPlace: () => void;
   onRemovePlace: (id: string) => void;
   onPick: (place: PickerPlace) => void;
   onInviteePick: (places: PickerPlace[]) => void;
   onBribeMe: () => void;
+  onAddMine: () => void;
 }
 
 const CARD_W = 96;
@@ -54,12 +56,14 @@ const MIN_TO_SHUFFLE = 2;
 export function MealPickerModal({
   visible,
   places,
+  bribeMode,
   onClose,
   onAddPlace,
   onRemovePlace,
   onPick,
   onInviteePick,
   onBribeMe,
+  onAddMine,
 }: MealPickerModalProps) {
   const [phase, setPhase] = useState<Phase>('select');
   const [shuffleCards, setShuffleCards] = useState<PickerPlace[]>([]);
@@ -225,6 +229,11 @@ export function MealPickerModal({
     onBribeMe();
   }, [onBribeMe]);
 
+  const handleAddMine = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    onAddMine();
+  }, [onAddMine]);
+
   const centerX = SCREEN_WIDTH / 2 - CARD_W / 2;
   const centerY = SHUFFLE_AREA_HEIGHT / 2 - CARD_H / 2;
   const canShuffle = places.length >= MIN_TO_SHUFFLE;
@@ -314,12 +323,16 @@ export function MealPickerModal({
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.tertiaryButton}
-                onPress={handleBribeMe}
+                onPress={bribeMode ? handleAddMine : handleBribeMe}
                 activeOpacity={0.8}
               >
-                <Gift size={17} color="#FFFFFF" />
+                {bribeMode ? (
+                  <Plus size={17} color="#FFFFFF" />
+                ) : (
+                  <Gift size={17} color="#FFFFFF" />
+                )}
                 <Text style={styles.tertiaryButtonText}>
-                  Choose from Food to bribe me with
+                  {bribeMode ? 'Add mine as well' : 'Choose from Food to bribe me with'}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -100,6 +100,7 @@ export default function SearchScreen() {
       const favorites = getUserFavorites(params.bribeUserId);
       if (favorites.length > 0) {
         setPickerPlaces(favorites);
+        setPickerBribeMode(true);
         setShowMealPicker(true);
       }
     }
@@ -114,6 +115,7 @@ export default function SearchScreen() {
   const [showMealPicker, setShowMealPicker] = useState(false);
   const [pickerPlaces, setPickerPlaces] = useState<PickerPlace[]>([]);
   const [pickerMode, setPickerMode] = useState(false);
+  const [pickerBribeMode, setPickerBribeMode] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -130,7 +132,7 @@ export default function SearchScreen() {
   const placesSearch = usePlacesSearch();
   const [placeSearchQuery, setPlaceSearchQuery] = useState('');
   const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
-  const { addToFavorites, removeFromFavorites, isPlaceInFavorites } = useFavorites();
+  const { addToFavorites, removeFromFavorites, isPlaceInFavorites, favoritePlaces } = useFavorites();
 
   const handleMealPicked = useCallback((place: PickerPlace) => {
     setShowMealPicker(false);
@@ -176,6 +178,29 @@ export default function SearchScreen() {
       params: { fromBribePicker: 'true' },
     });
   }, []);
+
+  const handleAddMine = useCallback(() => {
+    // Load the current user's own favorites and append to picker places
+    const myFavPlaces: PickerPlace[] = favoritePlaces.map((p) => ({
+      id: `mine-${p.place_id}`,
+      name: p.name,
+      emoji: p.cuisineEmoji ?? '🍽️',
+      city: p.city ?? p.vicinity ?? '',
+    }));
+    if (myFavPlaces.length === 0) {
+      // No favorites yet — send them to places tab to add some
+      setPickerMode(true);
+      setActiveTab('places');
+      setShowMealPicker(false);
+      return;
+    }
+    setPickerPlaces((prev) => {
+      // Avoid duplicates by id
+      const existingIds = new Set(prev.map((p) => p.id));
+      return [...prev, ...myFavPlaces.filter((p) => !existingIds.has(p.id))];
+    });
+    setPickerBribeMode(false);
+  }, [favoritePlaces]);
 
   const handlePlaceSearch = useCallback(() => {
     const query = placeSearchQuery.trim();
@@ -321,6 +346,7 @@ export default function SearchScreen() {
                   style={styles.pickerModeDoneBtn}
                   onPress={() => {
                     setPickerMode(false);
+                    setPickerBribeMode(false);
                     setShowMealPicker(true);
                   }}
                   activeOpacity={0.7}
@@ -607,7 +633,7 @@ export default function SearchScreen() {
           <View style={styles.menuDivider} />
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => { setShowMenuDropdown(false); setShowMealPicker(true); }}
+            onPress={() => { setShowMenuDropdown(false); setPickerBribeMode(false); setShowMealPicker(true); }}
           >
             <Sparkles size={18} color="#FF6B35" />
             <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
@@ -622,12 +648,17 @@ export default function SearchScreen() {
       <MealPickerModal
         visible={showMealPicker}
         places={pickerPlaces}
-        onClose={() => setShowMealPicker(false)}
+        bribeMode={pickerBribeMode}
+        onClose={() => {
+          setShowMealPicker(false);
+          setPickerBribeMode(false);
+        }}
         onAddPlace={handleAddPickerPlace}
         onRemovePlace={handleRemovePickerPlace}
         onPick={handleMealPicked}
         onInviteePick={handleInviteePick}
         onBribeMe={handleBribeMe}
+        onAddMine={handleAddMine}
       />
 
       <SuccessPopup
