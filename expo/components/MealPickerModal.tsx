@@ -313,12 +313,12 @@ export function MealPickerModal({
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.tertiaryButton, !canShuffle && styles.tertiaryButtonDisabled]}
+                style={styles.tertiaryButton}
                 onPress={handleBribeMe}
                 activeOpacity={0.8}
               >
-                <Gift size={17} color={canShuffle ? Colors.primary : '#666666'} />
-                <Text style={[styles.tertiaryButtonText, !canShuffle && styles.tertiaryButtonTextDisabled]}>
+                <Gift size={17} color="#FFFFFF" />
+                <Text style={styles.tertiaryButtonText}>
                   Choose from Food to bribe me with
                 </Text>
               </TouchableOpacity>
@@ -587,24 +587,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.surface,
+    backgroundColor: Colors.primary,
     borderRadius: 16,
-    paddingVertical: 14,
+    paddingVertical: 15,
     gap: 10,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    marginTop: 4,
-  },
-  tertiaryButtonDisabled: {
-    opacity: 0.5,
+    marginTop: 10,
   },
   tertiaryButtonText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: Colors.primary,
-  },
-  tertiaryButtonTextDisabled: {
-    color: Colors.primary,
+    color: '#FFFFFF',
   },
 
   shuffleStage: {
