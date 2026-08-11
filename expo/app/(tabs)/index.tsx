@@ -651,7 +651,6 @@ export default function SearchScreen() {
         bribeMode={pickerBribeMode}
         onClose={() => {
           setShowMealPicker(false);
-          setPickerBribeMode(false);
         }}
         onAddPlace={handleAddPickerPlace}
         onRemovePlace={handleRemovePickerPlace}
