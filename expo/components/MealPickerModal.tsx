@@ -587,16 +587,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
     borderRadius: 16,
     paddingVertical: 14,
     gap: 10,
-    borderWidth: 2,
-    borderColor: Colors.primary,
+    borderWidth: 1,
+    borderColor: Colors.border,
     marginTop: 4,
   },
   tertiaryButtonDisabled: {
-    borderColor: Colors.border,
+    opacity: 0.5,
   },
   tertiaryButtonText: {
     fontSize: 14,
@@ -604,7 +604,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   tertiaryButtonTextDisabled: {
-    color: Colors.textLight,
+    color: Colors.primary,
   },
 
   shuffleStage: {
