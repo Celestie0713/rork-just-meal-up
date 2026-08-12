@@ -434,7 +434,7 @@ export default function MessagesScreen() {
             {isInvitationMode ? 'Send Invitation' : isMealUpShareMode ? 'Share Meal Up' : isBribePickerMode ? 'Food to Bribe Me' : 'Messages'}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : isBribePickerMode ? 'Pick someone to bribe you with food 🎁' : 'Voice conversations'}
+            {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : isBribePickerMode ? 'Choose whose favorites to use' : 'Voice conversations'}
           </Text>
         </View>
         {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && <View style={styles.placeholder} />}
