@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView, TouchableOpacity, Alert, Image, Platform, Modal, TextInput, KeyboardAvoidingView, ScrollView, Linking } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
-import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X, ExternalLink, Gift } from 'lucide-react-native';
+import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X, ExternalLink } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
@@ -434,19 +434,11 @@ export default function MessagesScreen() {
             {isInvitationMode ? 'Send Invitation' : isMealUpShareMode ? 'Share Meal Up' : isBribePickerMode ? 'Food to Bribe Me' : 'Messages'}
           </Text>
           <Text style={styles.headerSubtitle}>
-            {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : isBribePickerMode ? 'Choose whose favorites to use' : 'Voice conversations'}
+            {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : 'Voice conversations'}
           </Text>
         </View>
         {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && <View style={styles.placeholder} />}
       </View>
-      {isBribePickerMode && (
-        <View style={styles.bribePickerBanner}>
-          <Gift size={20} color={Colors.primary} />
-          <Text style={styles.bribePickerBannerText}>
-            Choose someone whose favorites will be your meal picker options
-          </Text>
-        </View>
-      )}
       {isInvitationMode && !!invitationData && (
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
@@ -965,22 +957,5 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: Colors.primary,
     marginLeft: 4,
-  },
-  bribePickerBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    backgroundColor: 'rgba(255, 165, 0, 0.08)',
-  },
-  bribePickerBannerText: {
-    fontSize: 13,
-    fontWeight: '500',
-    color: Colors.primary,
-    flex: 1,
-    flexShrink: 1,
   },
 });
