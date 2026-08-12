@@ -300,31 +300,27 @@ export function MealPickerModal({
                     : `${places.length} places — ready to shuffle!`}
               </Text>
 
-              {!bribeMode && (
-                <>
-                  <TouchableOpacity
-                    style={[styles.primaryButton, !canShuffle && styles.primaryButtonDisabled]}
-                    onPress={startShuffle}
-                    disabled={!canShuffle}
-                    activeOpacity={0.8}
-                  >
-                    <Shuffle size={18} color="#FFFFFF" />
-                    <Text style={styles.primaryButtonText}>I'll shuffle & pick</Text>
-                  </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.primaryButton, !canShuffle && styles.primaryButtonDisabled]}
+                onPress={startShuffle}
+                disabled={!canShuffle}
+                activeOpacity={0.8}
+              >
+                <Shuffle size={18} color="#FFFFFF" />
+                <Text style={styles.primaryButtonText}>I'll shuffle & pick</Text>
+              </TouchableOpacity>
 
-                  <TouchableOpacity
-                    style={[styles.secondaryButton, !canShuffle && styles.secondaryButtonDisabled]}
-                    onPress={handleInviteePick}
-                    disabled={!canShuffle}
-                    activeOpacity={0.8}
-                  >
-                    <Send size={17} color={canShuffle ? Colors.primary : '#666666'} />
-                    <Text style={[styles.secondaryButtonText, !canShuffle && styles.secondaryButtonTextDisabled]}>
-                      Invitee will shuffle & pick
-                    </Text>
-                  </TouchableOpacity>
-                </>
-              )}
+              <TouchableOpacity
+                style={[styles.secondaryButton, !canShuffle && styles.secondaryButtonDisabled]}
+                onPress={handleInviteePick}
+                disabled={!canShuffle}
+                activeOpacity={0.8}
+              >
+                <Send size={17} color={canShuffle ? Colors.primary : '#666666'} />
+                <Text style={[styles.secondaryButtonText, !canShuffle && styles.secondaryButtonTextDisabled]}>
+                  Invitee will shuffle & pick
+                </Text>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.tertiaryButton}
