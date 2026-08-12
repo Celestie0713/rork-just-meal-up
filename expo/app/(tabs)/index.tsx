@@ -162,10 +162,12 @@ export default function SearchScreen() {
     if (places.length > 0) {
       const first = places[0];
       router.push({
-        pathname: '/create-invitation' as any,
+        pathname: '/(tabs)/messages' as any,
         params: {
+          fromInvitation: 'true',
           placeName: first.name,
           placeAddress: first.city,
+          placeId: first.id,
         },
       });
     }
