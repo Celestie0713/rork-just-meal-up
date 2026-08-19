@@ -535,30 +535,31 @@ export default function CreateInvitationScreen() {
           </View>
           <View style={styles.restaurantCard}>
             {isEditingPlace ? (
-              <>
+              <View>
+                <Text style={styles.inputLabel}>Restaurant name</Text>
                 <TextInput
                   style={styles.editInput}
                   value={editName}
                   onChangeText={setEditName}
-                  placeholder="Restaurant name"
+                  placeholder="Enter restaurant name"
                   placeholderTextColor={Colors.textLight}
-                  autoFocus
                 />
+                <Text style={styles.inputLabel}>Location</Text>
                 <TextInput
-                  style={[styles.editInput, { marginTop: 8 }]}
+                  style={[styles.editInput, { marginBottom: 4 }]}
                   value={editAddress}
                   onChangeText={setEditAddress}
-                  placeholder="Location / Address"
+                  placeholder="Enter location / address"
                   placeholderTextColor={Colors.textLight}
                 />
-              </>
+              </View>
             ) : (
-              <>
+              <View>
                 <Text style={styles.restaurantName}>{effectiveName || 'Restaurant Name'}</Text>
                 {!!effectiveAddress && (
                   <Text style={styles.restaurantAddress}>{effectiveAddress}</Text>
                 )}
-              </>
+              </View>
             )}
             <Text style={styles.addressHint}>
               Tap below to see the exact address on Google Maps.
@@ -700,14 +701,23 @@ const styles = StyleSheet.create({
     fontWeight: '600' as const,
     color: Colors.primary,
   },
+  inputLabel: {
+    fontSize: 13,
+    fontWeight: '600' as const,
+    color: Colors.primary,
+    marginBottom: 6,
+    marginTop: 8,
+  },
   editInput: {
-    fontSize: 18,
-    fontWeight: '700' as const,
+    fontSize: 16,
+    fontWeight: '600' as const,
     color: Colors.text,
-    paddingVertical: 8,
+    paddingVertical: 12,
     paddingHorizontal: 12,
-    backgroundColor: 'rgba(0,0,0,0.04)',
+    backgroundColor: Colors.background,
     borderRadius: 10,
+    borderWidth: 1,
+    borderColor: Colors.border,
     marginBottom: 10,
   },
 
