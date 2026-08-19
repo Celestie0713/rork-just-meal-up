@@ -51,10 +51,13 @@ export default function CreateInvitationScreen() {
 
   const [isEditingPlace, setIsEditingPlace] = useState(!placeName);
   const [editName, setEditName] = useState(placeName || '');
+  const [editAddress, setEditAddress] = useState(placeAddress || '');
 
 
+  const effectiveAddress = editAddress || placeAddress || '';
+  const effectiveName = editName || placeName || '';
   const fallbackMapsUrl = (isEditingPlace
-    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((editName || placeName || '').trim())}`
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((effectiveName + ' ' + effectiveAddress).trim())}`
     : placeGoogleMapsUrl || (placeLatitude && placeLongitude
       ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || ''))}`
       : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent((placeName || '') + ' ' + (placeAddress || ''))}`));
@@ -277,7 +280,7 @@ export default function CreateInvitationScreen() {
   const handleSendInvitation = () => {
     const invitationData: Record<string, string> = {
       placeName: editName || placeName || '',
-      placeAddress: placeAddress || '',
+      placeAddress: editAddress || placeAddress || '',
       placeGoogleMapsUrl: fallbackMapsUrl,
       placeId: placeId || '',
       date: selectedDate.toISOString(),
@@ -532,19 +535,30 @@ export default function CreateInvitationScreen() {
           </View>
           <View style={styles.restaurantCard}>
             {isEditingPlace ? (
-              <TextInput
-                style={styles.editInput}
-                value={editName}
-                onChangeText={setEditName}
-                placeholder="Restaurant name"
-                placeholderTextColor={Colors.textLight}
-                autoFocus
-              />
+              <>
+                <TextInput
+                  style={styles.editInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="Restaurant name"
+                  placeholderTextColor={Colors.textLight}
+                  autoFocus
+                />
+                <TextInput
+                  style={[styles.editInput, { marginTop: 8 }]}
+                  value={editAddress}
+                  onChangeText={setEditAddress}
+                  placeholder="Location / Address"
+                  placeholderTextColor={Colors.textLight}
+                />
+              </>
             ) : (
-              <Text style={styles.restaurantName}>{editName || placeName || 'Restaurant Name'}</Text>
-            )}
-            {!!placeAddress && (
-              <Text style={styles.restaurantAddress}>{placeAddress}</Text>
+              <>
+                <Text style={styles.restaurantName}>{effectiveName || 'Restaurant Name'}</Text>
+                {!!effectiveAddress && (
+                  <Text style={styles.restaurantAddress}>{effectiveAddress}</Text>
+                )}
+              </>
             )}
             <Text style={styles.addressHint}>
               Tap below to see the exact address on Google Maps.
