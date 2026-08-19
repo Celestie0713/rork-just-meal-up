@@ -431,7 +431,7 @@ export default function MessagesScreen() {
         )}
         <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>
-            {isInvitationMode ? 'Send Invitation' : isMealUpShareMode ? 'Share Meal Up' : isBribePickerMode ? 'Food to Bribe Me' : 'Messages'}
+            {isInvitationMode ? 'Send Invitation' : isMealUpShareMode ? 'Share Meal Up' : isBribePickerMode ? 'Who would you like to invite?' : 'Messages'}
           </Text>
           <Text style={styles.headerSubtitle}>
             {isInvitationMode ? 'Choose a chat to send invitation' : isMealUpShareMode ? 'Choose who to share with' : 'Voice conversations'}
