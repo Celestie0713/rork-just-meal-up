@@ -543,6 +543,9 @@ export default function CreateInvitationScreen() {
             ) : (
               <Text style={styles.restaurantName}>{editName || placeName || 'Restaurant Name'}</Text>
             )}
+            {!!placeAddress && (
+              <Text style={styles.restaurantAddress}>{placeAddress}</Text>
+            )}
             <Text style={styles.addressHint}>
               Tap below to see the exact address on Google Maps.
             </Text>
@@ -694,6 +697,13 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
 
+  restaurantAddress: {
+    fontSize: 14,
+    fontWeight: '400' as const,
+    color: Colors.textLight,
+    marginTop: 2,
+    marginBottom: 4,
+  },
   addressHint: {
     fontSize: 12,
     color: Colors.textLight,
