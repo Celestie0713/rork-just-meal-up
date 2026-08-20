@@ -93,8 +93,43 @@ export default function MessagesScreen() {
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [editDraft, setEditDraft] = useState<{ placeName: string; placeAddress: string; date: Date; time: Date } | null>(null);
   
+  // Clear every pending mode + its data — the messages tab stays mounted, so
+  // leftover invitation/bribe/share state must be reset explicitly.
+  const resetModes = () => {
+    setIsInvitationMode(false);
+    setInvitationData(null);
+    setIsBribePickerMode(false);
+    setIsMealUpShareMode(false);
+    setMealUpData(null);
+  };
+
+  // Clear stale route params so the tab doesn't re-enter a special mode later.
+  const clearModeParams = () => {
+    router.setParams({
+      fromInvitation: undefined,
+      fromBribePicker: undefined,
+      fromMealUpShare: undefined,
+      placeName: undefined,
+      placeAddress: undefined,
+      placeGoogleMapsUrl: undefined,
+      placeId: undefined,
+      date: undefined,
+      time: undefined,
+      mealUpId: undefined,
+      mealUpTitle: undefined,
+      mealUpVenue: undefined,
+      mealUpDate: undefined,
+      mealUpTime: undefined,
+      mealUpPrice: undefined,
+      mealUpImage: undefined,
+    });
+  };
+
   useEffect(() => {
     if (params.fromInvitation === 'true') {
+      setIsBribePickerMode(false);
+      setIsMealUpShareMode(false);
+      setMealUpData(null);
       setIsInvitationMode(true);
       setInvitationData({
         placeName: params.placeName,
@@ -105,8 +140,15 @@ export default function MessagesScreen() {
         time: params.time ? new Date(params.time) : null,
       });
     } else if (params.fromBribePicker === 'true') {
+      setIsInvitationMode(false);
+      setInvitationData(null);
+      setIsMealUpShareMode(false);
+      setMealUpData(null);
       setIsBribePickerMode(true);
     } else if (params.fromMealUpShare === 'true') {
+      setIsInvitationMode(false);
+      setInvitationData(null);
+      setIsBribePickerMode(false);
       setIsMealUpShareMode(true);
       setMealUpData({
         id: params.mealUpId,
@@ -117,6 +159,8 @@ export default function MessagesScreen() {
         price: params.mealUpPrice,
         image: params.mealUpImage,
       });
+    } else {
+      resetModes();
     }
   }, [params.fromInvitation, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
@@ -425,7 +469,14 @@ export default function MessagesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && (
-          <TouchableOpacity onPress={() => safeGoBack()} style={styles.backButton}>
+          <TouchableOpacity
+            onPress={() => {
+              resetModes();
+              clearModeParams();
+              safeGoBack();
+            }}
+            style={styles.backButton}
+          >
             <ArrowLeft size={24} color={Colors.text} />
           </TouchableOpacity>
         )}
