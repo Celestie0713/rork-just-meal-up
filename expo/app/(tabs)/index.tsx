@@ -101,6 +101,7 @@ export default function SearchScreen() {
       if (favorites.length > 0) {
         setPickerPlaces(favorites);
         setPickerBribeMode(true);
+        setPickerMineAdded(false);
         setShowMealPicker(true);
       }
     }
@@ -116,6 +117,7 @@ export default function SearchScreen() {
   const [pickerPlaces, setPickerPlaces] = useState<PickerPlace[]>([]);
   const [pickerMode, setPickerMode] = useState(false);
   const [pickerBribeMode, setPickerBribeMode] = useState(false);
+  const [pickerMineAdded, setPickerMineAdded] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -201,6 +203,7 @@ export default function SearchScreen() {
       const existingIds = new Set(prev.map((p) => p.id));
       return [...prev, ...myFavPlaces.filter((p) => !existingIds.has(p.id))];
     });
+    setPickerMineAdded(true);
     setPickerBribeMode(false);
   }, [favoritePlaces]);
 
@@ -349,6 +352,7 @@ export default function SearchScreen() {
                   onPress={() => {
                     setPickerMode(false);
                     setPickerBribeMode(false);
+                    setPickerMineAdded(false);
                     setShowMealPicker(true);
                   }}
                   activeOpacity={0.7}
@@ -635,7 +639,7 @@ export default function SearchScreen() {
           <View style={styles.menuDivider} />
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => { setShowMenuDropdown(false); setPickerBribeMode(false); setShowMealPicker(true); }}
+            onPress={() => { setShowMenuDropdown(false); setPickerBribeMode(false); setPickerMineAdded(false); setShowMealPicker(true); }}
           >
             <Sparkles size={18} color="#FF6B35" />
             <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
@@ -651,6 +655,7 @@ export default function SearchScreen() {
         visible={showMealPicker}
         places={pickerPlaces}
         bribeMode={pickerBribeMode}
+        mineAdded={pickerMineAdded}
         onClose={() => {
           setShowMealPicker(false);
         }}

@@ -39,6 +39,8 @@ interface MealPickerModalProps {
   visible: boolean;
   places: PickerPlace[];
   bribeMode: boolean;
+  /** Own favorites already merged into the picker — hide the bribe button. */
+  mineAdded: boolean;
   onClose: () => void;
   onAddPlace: () => void;
   onRemovePlace: (id: string) => void;
@@ -57,6 +59,7 @@ export function MealPickerModal({
   visible,
   places,
   bribeMode,
+  mineAdded,
   onClose,
   onAddPlace,
   onRemovePlace,
@@ -322,20 +325,22 @@ export function MealPickerModal({
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={styles.tertiaryButton}
-                onPress={bribeMode ? handleAddMine : handleBribeMe}
-                activeOpacity={0.8}
-              >
-                {bribeMode ? (
-                  <Plus size={17} color="#FFFFFF" />
-                ) : (
-                  <Gift size={17} color="#FFFFFF" />
-                )}
-                <Text style={styles.tertiaryButtonText}>
-                  {bribeMode ? 'Add mine as well' : 'Choose from Food to bribe me with'}
-                </Text>
-              </TouchableOpacity>
+              {!mineAdded && (
+                <TouchableOpacity
+                  style={styles.tertiaryButton}
+                  onPress={bribeMode ? handleAddMine : handleBribeMe}
+                  activeOpacity={0.8}
+                >
+                  {bribeMode ? (
+                    <Plus size={17} color="#FFFFFF" />
+                  ) : (
+                    <Gift size={17} color="#FFFFFF" />
+                  )}
+                  <Text style={styles.tertiaryButtonText}>
+                    {bribeMode ? 'Add mine as well' : 'Choose from Food to bribe me with'}
+                  </Text>
+                </TouchableOpacity>
+              )}
             </View>
           </>
         )}
