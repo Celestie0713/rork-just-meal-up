@@ -521,7 +521,7 @@ export default function MessagesScreen() {
             <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
             {!!invitationData.placeAddress && (
               <View style={styles.summaryAddressRow}>
-                <MapPin size={13} color={Colors.textLight} />
+                <MapPin size={14} color={Colors.text} />
                 <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
               </View>
             )}
@@ -878,7 +878,8 @@ const styles = StyleSheet.create({
   },
   summaryAddress: {
     fontSize: 14,
-    color: Colors.textLight,
+    fontWeight: '600' as const,
+    color: Colors.text,
     flex: 1,
     lineHeight: 19,
   },
