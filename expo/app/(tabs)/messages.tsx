@@ -519,6 +519,12 @@ export default function MessagesScreen() {
           </View>
           <View style={styles.summaryBlock}>
             <Text style={styles.summaryRestaurant}>{invitationData.placeName}</Text>
+            {!!invitationData.placeAddress && (
+              <View style={styles.summaryAddressRow}>
+                <MapPin size={13} color={Colors.textLight} />
+                <Text style={styles.summaryAddress}>{invitationData.placeAddress}</Text>
+              </View>
+            )}
             {invitationData.placeGoogleMapsUrl ? (
               <TouchableOpacity
                 style={styles.summaryMapsButton}
@@ -863,9 +869,18 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 2,
   },
+  summaryAddressRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 5,
+    marginTop: 2,
+    marginBottom: 2,
+  },
   summaryAddress: {
     fontSize: 14,
     color: Colors.textLight,
+    flex: 1,
+    lineHeight: 19,
   },
   summaryCityCountry: {
     fontSize: 12,
