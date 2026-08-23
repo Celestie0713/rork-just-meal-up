@@ -167,13 +167,14 @@ export default function SearchScreen() {
         pathname: '/(tabs)/messages' as any,
         params: {
           fromInvitation: 'true',
+          bribePick: pickerBribeMode ? 'true' : undefined,
           placeName: first.name,
           placeAddress: first.city,
           placeId: first.id,
         },
       });
     }
-  }, []);
+  }, [pickerBribeMode]);
 
   const handleBribeMe = useCallback(() => {
     setShowMealPicker(false);

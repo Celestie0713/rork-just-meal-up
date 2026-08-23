@@ -65,6 +65,7 @@ export default function MessagesScreen() {
     date?: string;
     time?: string;
     fromInvitation?: string;
+    bribePick?: string;
     fromMealUpShare?: string;
     fromBribePicker?: string;
     mealUpId?: string;
@@ -107,6 +108,7 @@ export default function MessagesScreen() {
   const clearModeParams = () => {
     router.setParams({
       fromInvitation: undefined,
+      bribePick: undefined,
       fromBribePicker: undefined,
       fromMealUpShare: undefined,
       placeName: undefined,
@@ -132,6 +134,7 @@ export default function MessagesScreen() {
       setMealUpData(null);
       setIsInvitationMode(true);
       setInvitationData({
+        isBribePick: params.bribePick === 'true',
         placeName: params.placeName,
         placeAddress: params.placeAddress,
         placeGoogleMapsUrl: params.placeGoogleMapsUrl,
@@ -162,7 +165,7 @@ export default function MessagesScreen() {
     } else {
       resetModes();
     }
-  }, [params.fromInvitation, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.bribePick, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
@@ -490,7 +493,7 @@ export default function MessagesScreen() {
         </View>
         {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && <View style={styles.placeholder} />}
       </View>
-      {isInvitationMode && !!invitationData && (
+      {isInvitationMode && !!invitationData && !invitationData.isBribePick && (
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
             <Text style={styles.summaryTitle}>Meal Invitation</Text>
