@@ -286,6 +286,9 @@ export default function CreateInvitationScreen() {
       date: selectedDate.toISOString(),
       time: selectedTime.toISOString(),
       fromInvitation: 'true',
+      // Explicitly not a bribe pick — tab params merge, so this overrides
+      // any stale bribePick='true' left by an earlier bribe flow.
+      bribePick: 'false',
     };
     
     const params = new URLSearchParams(invitationData).toString();

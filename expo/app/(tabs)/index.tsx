@@ -102,8 +102,12 @@ export default function SearchScreen() {
         setPickerPlaces(favorites);
         setPickerBribeMode(true);
         setPickerMineAdded(false);
+        setPickerPlacesAreBribe(true);
         setShowMealPicker(true);
       }
+      // Clear the trigger params so repeating this flow with the same
+      // invitee re-fires this effect instead of being seen as no change.
+      router.setParams({ bribePicker: undefined, bribeUserId: undefined, bribeUserName: undefined });
     }
   }, [params.bribePicker, params.bribeUserId]);
 
@@ -118,6 +122,9 @@ export default function SearchScreen() {
   const [pickerMode, setPickerMode] = useState(false);
   const [pickerBribeMode, setPickerBribeMode] = useState(false);
   const [pickerMineAdded, setPickerMineAdded] = useState(false);
+  // True while the picker holds the invitee's bribe foods — survives modal
+  // close/reopen and bribe-mode UI resets, unlike pickerBribeMode.
+  const [pickerPlacesAreBribe, setPickerPlacesAreBribe] = useState(false);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -138,6 +145,8 @@ export default function SearchScreen() {
 
   const handleMealPicked = useCallback((place: PickerPlace) => {
     setShowMealPicker(false);
+    // Personal pick flow completed — the pool is no longer the invitee's bribe foods
+    setPickerPlacesAreBribe(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: '/create-invitation' as any,
@@ -163,18 +172,21 @@ export default function SearchScreen() {
     setShowMealPicker(false);
     if (places.length > 0) {
       const first = places[0];
+      console.log('[handleInviteePick] bribe places:', pickerPlacesAreBribe);
       router.push({
         pathname: '/(tabs)/messages' as any,
         params: {
           fromInvitation: 'true',
-          bribePick: pickerBribeMode ? 'true' : undefined,
+          // Explicit 'true'/'false' so a stale param from an earlier bribe
+          // push can't leak into a normal invitation (params merge on tabs).
+          bribePick: pickerPlacesAreBribe ? 'true' : 'false',
           placeName: first.name,
           placeAddress: first.city,
           placeId: first.id,
         },
       });
     }
-  }, [pickerBribeMode]);
+  }, [pickerPlacesAreBribe]);
 
   const handleBribeMe = useCallback(() => {
     setShowMealPicker(false);
