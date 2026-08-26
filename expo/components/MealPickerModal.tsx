@@ -38,8 +38,9 @@ interface CardAnim {
 interface MealPickerModalProps {
   visible: boolean;
   places: PickerPlace[];
+  /** Picker holds the invitee's bribe foods (bribe pool active). */
   bribeMode: boolean;
-  /** Own favorites already merged into the picker — hide the bribe button. */
+  /** Own favorites already merged into the bribe pool — hide the bribe button. */
   mineAdded: boolean;
   onClose: () => void;
   onAddPlace: () => void;
@@ -325,7 +326,7 @@ export function MealPickerModal({
                 </Text>
               </TouchableOpacity>
 
-              {!mineAdded && (
+              {(!bribeMode || !mineAdded) && (
                 <TouchableOpacity
                   style={styles.tertiaryButton}
                   onPress={bribeMode ? handleAddMine : handleBribeMe}

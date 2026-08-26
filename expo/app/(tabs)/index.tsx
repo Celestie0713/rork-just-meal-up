@@ -100,7 +100,6 @@ export default function SearchScreen() {
       const favorites = getUserFavorites(params.bribeUserId);
       if (favorites.length > 0) {
         setPickerPlaces(favorites);
-        setPickerBribeMode(true);
         setPickerMineAdded(false);
         setPickerPlacesAreBribe(true);
         setShowMealPicker(true);
@@ -120,10 +119,9 @@ export default function SearchScreen() {
   const [showMealPicker, setShowMealPicker] = useState(false);
   const [pickerPlaces, setPickerPlaces] = useState<PickerPlace[]>([]);
   const [pickerMode, setPickerMode] = useState(false);
-  const [pickerBribeMode, setPickerBribeMode] = useState(false);
   const [pickerMineAdded, setPickerMineAdded] = useState(false);
   // True while the picker holds the invitee's bribe foods — survives modal
-  // close/reopen and bribe-mode UI resets, unlike pickerBribeMode.
+  // close/reopen, unlike transient UI flags. Drives the bribe button.
   const [pickerPlacesAreBribe, setPickerPlacesAreBribe] = useState(false);
 
   const [filters, setFilters] = useState({
@@ -147,6 +145,7 @@ export default function SearchScreen() {
     setShowMealPicker(false);
     // Personal pick flow completed — the pool is no longer the invitee's bribe foods
     setPickerPlacesAreBribe(false);
+    setPickerMineAdded(false);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: '/create-invitation' as any,
@@ -217,7 +216,6 @@ export default function SearchScreen() {
       return [...prev, ...myFavPlaces.filter((p) => !existingIds.has(p.id))];
     });
     setPickerMineAdded(true);
-    setPickerBribeMode(false);
   }, [favoritePlaces]);
 
   const handlePlaceSearch = useCallback(() => {
@@ -364,8 +362,6 @@ export default function SearchScreen() {
                   style={styles.pickerModeDoneBtn}
                   onPress={() => {
                     setPickerMode(false);
-                    setPickerBribeMode(false);
-                    setPickerMineAdded(false);
                     setShowMealPicker(true);
                   }}
                   activeOpacity={0.7}
@@ -652,7 +648,7 @@ export default function SearchScreen() {
           <View style={styles.menuDivider} />
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => { setShowMenuDropdown(false); setPickerBribeMode(false); setPickerMineAdded(false); setShowMealPicker(true); }}
+            onPress={() => { setShowMenuDropdown(false); setShowMealPicker(true); }}
           >
             <Sparkles size={18} color="#FF6B35" />
             <Text style={styles.menuItemText}>Meal picker (Surprise me)</Text>
@@ -667,7 +663,7 @@ export default function SearchScreen() {
       <MealPickerModal
         visible={showMealPicker}
         places={pickerPlaces}
-        bribeMode={pickerBribeMode}
+        bribeMode={pickerPlacesAreBribe}
         mineAdded={pickerMineAdded}
         onClose={() => {
           setShowMealPicker(false);
