@@ -102,6 +102,7 @@ export default function SearchScreen() {
         setPickerPlaces(favorites);
         setPickerMineAdded(false);
         setPickerPlacesAreBribe(true);
+        setPickerWinner(null);
         setShowMealPicker(true);
       }
       // Clear the trigger params so repeating this flow with the same
@@ -123,6 +124,9 @@ export default function SearchScreen() {
   // True while the picker holds the invitee's bribe foods — survives modal
   // close/reopen, unlike transient UI flags. Drives the bribe button.
   const [pickerPlacesAreBribe, setPickerPlacesAreBribe] = useState(false);
+  // Winner of the last completed shuffle — locks the picker to that result
+  // so the user can't close and reshuffle for a different venue.
+  const [pickerWinner, setPickerWinner] = useState<PickerPlace | null>(null);
 
   const [filters, setFilters] = useState({
     country: '' as string,
@@ -165,6 +169,12 @@ export default function SearchScreen() {
 
   const handleRemovePickerPlace = useCallback((id: string) => {
     setPickerPlaces((prev) => prev.filter((p) => p.id !== id));
+    // Removing the chosen venue means the pool is being rebuilt — unlock the pick
+    setPickerWinner((prev) => (prev?.id === id ? null : prev));
+  }, []);
+
+  const handleShuffleComplete = useCallback((place: PickerPlace) => {
+    setPickerWinner(place);
   }, []);
 
   const handleInviteePick = useCallback((places: PickerPlace[]) => {
@@ -671,6 +681,8 @@ export default function SearchScreen() {
         onAddPlace={handleAddPickerPlace}
         onRemovePlace={handleRemovePickerPlace}
         onPick={handleMealPicked}
+        lockedWinner={pickerWinner}
+        onShuffleComplete={handleShuffleComplete}
         onInviteePick={handleInviteePick}
         onBribeMe={handleBribeMe}
         onAddMine={handleAddMine}

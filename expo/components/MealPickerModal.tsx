@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -46,6 +46,10 @@ interface MealPickerModalProps {
   onAddPlace: () => void;
   onRemovePlace: (id: string) => void;
   onPick: (place: PickerPlace) => void;
+  /** Winner of a completed shuffle — reopening shows the locked result, no reshuffle. */
+  lockedWinner: PickerPlace | null;
+  /** Fired once a shuffle finishes and its winner is final. */
+  onShuffleComplete: (place: PickerPlace) => void;
   onInviteePick: (places: PickerPlace[]) => void;
   onBribeMe: () => void;
   onAddMine: () => void;
@@ -65,6 +69,8 @@ export function MealPickerModal({
   onAddPlace,
   onRemovePlace,
   onPick,
+  lockedWinner,
+  onShuffleComplete,
   onInviteePick,
   onBribeMe,
   onAddMine,
@@ -75,6 +81,7 @@ export function MealPickerModal({
   const [winner, setWinner] = useState<PickerPlace | null>(null);
 
   const cardAnimsRef = useRef<CardAnim[]>([]);
+  const wasVisibleRef = useRef(false);
 
   const reset = useCallback(() => {
     setPhase('select');
@@ -83,6 +90,23 @@ export function MealPickerModal({
     setWinnerIndex(0);
     cardAnimsRef.current = [];
   }, []);
+
+  // A completed shuffle is final: reopening the picker lands on the locked
+  // result instead of the select phase, so the user can't reshuffle & re-pick.
+  useEffect(() => {
+    if (visible && !wasVisibleRef.current) {
+      if (lockedWinner) {
+        setWinner(lockedWinner);
+        setShuffleCards([]);
+        setWinnerIndex(0);
+        setPhase('result');
+        cardAnimsRef.current = [];
+      } else {
+        reset();
+      }
+    }
+    wasVisibleRef.current = visible;
+  }, [visible, lockedWinner, reset]);
 
   const handleClose = useCallback(() => {
     reset();
@@ -209,6 +233,7 @@ export function MealPickerModal({
     ]).start(() => {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setWinner(cards[pickIdx]);
+      onShuffleComplete(cards[pickIdx]);
       setTimeout(() => setPhase('result'), 250);
     });
   };
