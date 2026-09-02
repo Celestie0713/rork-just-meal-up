@@ -66,6 +66,8 @@ export default function MessagesScreen() {
     time?: string;
     fromInvitation?: string;
     bribePick?: string;
+    bribeUserId?: string;
+    bribeUserName?: string;
     fromMealUpShare?: string;
     fromBribePicker?: string;
     mealUpId?: string;
@@ -83,6 +85,9 @@ export default function MessagesScreen() {
   const [isInvitationMode, setIsInvitationMode] = useState<boolean>(false);
   const [isMealUpShareMode, setIsMealUpShareMode] = useState<boolean>(false);
   const [isBribePickerMode, setIsBribePickerMode] = useState<boolean>(false);
+  // Bribe flow: the invitation must go ONLY to the person whose "Food to
+  // bribe me with" the picker used — filter the chat list down to them.
+  const [bribeFilterUserId, setBribeFilterUserId] = useState<string | null>(null);
   const [invitationData, setInvitationData] = useState<any>(null);
   const [mealUpData, setMealUpData] = useState<any>(null);
   const [showTipModal, setShowTipModal] = useState(false);
@@ -102,6 +107,7 @@ export default function MessagesScreen() {
     setIsBribePickerMode(false);
     setIsMealUpShareMode(false);
     setMealUpData(null);
+    setBribeFilterUserId(null);
   };
 
   // Clear stale route params so the tab doesn't re-enter a special mode later.
@@ -109,6 +115,8 @@ export default function MessagesScreen() {
     router.setParams({
       fromInvitation: undefined,
       bribePick: undefined,
+      bribeUserId: undefined,
+      bribeUserName: undefined,
       fromBribePicker: undefined,
       fromMealUpShare: undefined,
       placeName: undefined,
@@ -133,6 +141,9 @@ export default function MessagesScreen() {
       setIsMealUpShareMode(false);
       setMealUpData(null);
       setIsInvitationMode(true);
+      setBribeFilterUserId(
+        params.bribePick === 'true' && params.bribeUserId ? params.bribeUserId : null
+      );
       setInvitationData({
         isBribePick: params.bribePick === 'true',
         placeName: params.placeName,
@@ -147,12 +158,14 @@ export default function MessagesScreen() {
       setInvitationData(null);
       setIsMealUpShareMode(false);
       setMealUpData(null);
+      setBribeFilterUserId(null);
       setIsBribePickerMode(true);
     } else if (params.fromMealUpShare === 'true') {
       setIsInvitationMode(false);
       setInvitationData(null);
       setIsBribePickerMode(false);
       setIsMealUpShareMode(true);
+      setBribeFilterUserId(null);
       setMealUpData({
         id: params.mealUpId,
         title: params.mealUpTitle,
@@ -165,16 +178,20 @@ export default function MessagesScreen() {
     } else {
       resetModes();
     }
-  }, [params.fromInvitation, params.bribePick, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.bribePick, params.bribeUserId, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
     if (isLoaded) {
-      const availableChats = getAvailableChats(chats);
+      let availableChats = getAvailableChats(chats);
+      // Bribe flow: only the chosen invitee can receive this invitation
+      if (isInvitationMode && bribeFilterUserId) {
+        availableChats = availableChats.filter((c) => c.user.id === bribeFilterUserId);
+      }
       setFilteredChats(availableChats);
       console.log(`Filtered chats: ${availableChats.length} out of ${chats.length} total chats`);
     }
-  }, [chats, isLoaded, getAvailableChats]);
+  }, [chats, isLoaded, getAvailableChats, isInvitationMode, bribeFilterUserId]);
 
   const handleChatPress = (user: User) => {
     console.log('[handleChatPress] User clicked:', user.name, 'ID:', user.id);

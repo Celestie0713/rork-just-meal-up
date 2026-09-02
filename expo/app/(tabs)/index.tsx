@@ -108,6 +108,7 @@ export default function SearchScreen() {
         });
         setPickerMineAdded(false);
         setPickerPlacesAreBribe(true);
+        setPickerBribeUserId(params.bribeUserId ?? null);
         setPickerWinner(null);
         setShowMealPicker(true);
       }
@@ -130,6 +131,9 @@ export default function SearchScreen() {
   // True while the picker holds the invitee's bribe foods — survives modal
   // close/reopen, unlike transient UI flags. Drives the bribe button.
   const [pickerPlacesAreBribe, setPickerPlacesAreBribe] = useState(false);
+  // The invitee whose "Food to bribe me with" the picker currently holds —
+  // passed along so the invitation screen shows only that person.
+  const [pickerBribeUserId, setPickerBribeUserId] = useState<string | null>(null);
   // Winner of the last completed shuffle — locks the picker to that result
   // so the user can't close and reshuffle for a different venue.
   const [pickerWinner, setPickerWinner] = useState<PickerPlace | null>(null);
@@ -156,6 +160,7 @@ export default function SearchScreen() {
     // Personal pick flow completed — the pool is no longer the invitee's bribe foods
     setPickerPlacesAreBribe(false);
     setPickerMineAdded(false);
+    setPickerBribeUserId(null);
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     router.push({
       pathname: '/create-invitation' as any,
@@ -195,13 +200,15 @@ export default function SearchScreen() {
           // Explicit 'true'/'false' so a stale param from an earlier bribe
           // push can't leak into a normal invitation (params merge on tabs).
           bribePick: pickerPlacesAreBribe ? 'true' : 'false',
+          // Bribe flow: restrict the invitation screen to the chosen invitee only
+          bribeUserId: pickerPlacesAreBribe ? pickerBribeUserId ?? undefined : undefined,
           placeName: first.name,
           placeAddress: first.city,
           placeId: first.id,
         },
       });
     }
-  }, [pickerPlacesAreBribe]);
+  }, [pickerPlacesAreBribe, pickerBribeUserId]);
 
   const handleBribeMe = useCallback(() => {
     setShowMealPicker(false);
