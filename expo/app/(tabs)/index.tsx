@@ -99,7 +99,13 @@ export default function SearchScreen() {
     if (params.bribePicker === 'true' && params.bribeUserId) {
       const favorites = getUserFavorites(params.bribeUserId);
       if (favorites.length > 0) {
-        setPickerPlaces(favorites);
+        // MERGE with the user's own added places instead of replacing —
+        // places added via "Add a place" must survive the bribe flow.
+        setPickerPlaces((prev) => {
+          const existingIds = new Set(prev.map((p) => p.id));
+          const newFavorites = favorites.filter((f) => !existingIds.has(f.id));
+          return [...prev, ...newFavorites];
+        });
         setPickerMineAdded(false);
         setPickerPlacesAreBribe(true);
         setPickerWinner(null);
