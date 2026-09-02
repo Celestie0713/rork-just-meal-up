@@ -184,7 +184,9 @@ export default function SearchScreen() {
     setPickerWinner((prev) => (prev?.id === id ? null : prev));
   }, []);
 
-  const handleShuffleComplete = useCallback((place: PickerPlace) => {
+  const handleShuffleComplete = useCallback((place: PickerPlace | null) => {
+    // null = picker dismissed via X — discard the outcome so the picker
+    // resets back to its original state on the next open.
     setPickerWinner(place);
   }, []);
 

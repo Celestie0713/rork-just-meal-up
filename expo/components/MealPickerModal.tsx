@@ -48,8 +48,9 @@ interface MealPickerModalProps {
   onPick: (place: PickerPlace) => void;
   /** Winner of a completed shuffle — reopening shows the locked result, no reshuffle. */
   lockedWinner: PickerPlace | null;
-  /** Fired once a shuffle finishes and its winner is final. */
-  onShuffleComplete: (place: PickerPlace) => void;
+  /** Fired when a shuffle finishes with its final winner, or with null when
+   *  the picker is dismissed (X) and the outcome is discarded. */
+  onShuffleComplete: (place: PickerPlace | null) => void;
   onInviteePick: (places: PickerPlace[]) => void;
   onBribeMe: () => void;
   onAddMine: () => void;
@@ -82,6 +83,9 @@ export function MealPickerModal({
 
   const cardAnimsRef = useRef<CardAnim[]>([]);
   const wasVisibleRef = useRef(false);
+  // True once the user dismissed the picker — a shuffle finishing after that
+  // must not publish its winner (the result was discarded via X).
+  const dismissedRef = useRef(false);
 
   const reset = useCallback(() => {
     setPhase('select');
@@ -91,10 +95,11 @@ export function MealPickerModal({
     cardAnimsRef.current = [];
   }, []);
 
-  // A completed shuffle is final: reopening the picker lands on the locked
-  // result instead of the select phase, so the user can't reshuffle & re-pick.
+  // Reopening the picker lands on the locked result while one exists; once
+  // dismissed with X the outcome is discarded and it opens fresh instead.
   useEffect(() => {
     if (visible && !wasVisibleRef.current) {
+      dismissedRef.current = false;
       if (lockedWinner) {
         setWinner(lockedWinner);
         setShuffleCards([]);
@@ -109,9 +114,13 @@ export function MealPickerModal({
   }, [visible, lockedWinner, reset]);
 
   const handleClose = useCallback(() => {
+    // X discards the outcome: clear any locked winner so the picker resets
+    // back to its original state on the next open.
+    dismissedRef.current = true;
+    onShuffleComplete(null);
     reset();
     onClose();
-  }, [onClose, reset]);
+  }, [onClose, onShuffleComplete, reset]);
 
   const handleAddPlace = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -231,6 +240,7 @@ export function MealPickerModal({
       collapse,
       Animated.parallel([losersFade, winnerFlip]),
     ]).start(() => {
+      if (dismissedRef.current) return; // dismissed mid-shuffle — result discarded
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       setWinner(cards[pickIdx]);
       onShuffleComplete(cards[pickIdx]);
