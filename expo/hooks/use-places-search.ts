@@ -47,6 +47,20 @@ const PlaceSchema = z.preprocess(
   }).passthrough()
 );
 
+const QueryClassificationSchema = z.preprocess(
+  (v) => {
+    if (typeof v !== 'object' || v === null) return { queryKind: 'other', officialName: '' };
+    return v;
+  },
+  z.object({
+    queryKind: z.preprocess(
+      (v) => (typeof v === 'string' ? v : 'other'),
+      z.enum(['brand', 'dish', 'other'])
+    ),
+    officialName: nullableString,
+  })
+);
+
 const PlacesResponseSchema = z.preprocess(
   (v) => {
     if (typeof v !== 'object' || v === null) return { places: [] };
@@ -206,6 +220,9 @@ async function searchNominatim(query: string, userLocation?: UserLocation | null
     for (const hit of data) {
       const isFood = NOMINATIM_FOOD_CATEGORIES[hit.category ?? '']?.has(hit.type ?? '');
       if (!isFood || !hit.name || !hit.lat || !hit.lon) continue;
+      // Only keep hits whose name actually relates to the search —
+      // Nominatim can return unrelated amenities for odd tokens.
+      if (!nameMatchesBrand(hit.name, query)) continue;
 
       const addr = hit.address ?? {};
       const area = addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || addr.village || '';
@@ -303,6 +320,40 @@ function hasHighWordOverlap(a: string, b: string): boolean {
   return overlap >= Math.min(2, minLen);
 }
 
+/** Classify a search query: a specific brand name (even misspelled or
+ * concatenated) vs a dish/cuisine vs anything else. Brand queries get a
+ * precision search with hard name-matching instead of the broad cuisine
+ * search that produces irrelevant results. */
+async function classifyQuery(query: string): Promise<{ isBrand: boolean; officialName: string }> {
+  try {
+    const res = await generateObject({
+      messages: [
+        {
+          role: "user",
+          content: `You classify restaurant/food search queries for a place-search app.
+
+Query: "${query}"
+
+Decide:
+- queryKind:
+  - "brand": the user is searching for a specific NAMED restaurant / chain / venue (a proper name), even if misspelled, missing spaces, or concatenated into one word (e.g. "donomakase" → Don Omakase, "starbuck" → Starbucks). Franchise chains count. NOT dishes or cuisine styles like "omakase", "sushi", "nasi lemak".
+  - "dish": a dish, food type, cuisine, or dining style (e.g. "sushi", "omakase", "ramen", "nasi lemak", "seafood near me").
+  - "other": anything else (e.g. "romantic dinner", "best cafes", "breakfast").
+- officialName: if brand, the corrected official brand name with proper spacing and spelling (e.g. "Don Omakase"). Empty string for dish/other.`,
+        },
+      ],
+      schema: QueryClassificationSchema,
+    });
+    const isBrand = res.queryKind === 'brand';
+    const officialName = (res.officialName || '').trim();
+    console.log('[Places AI Search] Classified:', res.queryKind, 'officialName:', officialName);
+    return { isBrand, officialName: officialName || query };
+  } catch (e) {
+    console.log('[Places AI Search] Classification failed:', e);
+    return { isBrand: false, officialName: query };
+  }
+}
+
 function normalizeName(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
 }
@@ -312,6 +363,48 @@ function oneContainsOther(a: string, b: string): boolean {
   const normA = normalizeName(a);
   const normB = normalizeName(b);
   return normA.length > 3 && normB.length > 3 && (normA.includes(normB) || normB.includes(normA));
+}
+
+/** Levenshtein edit distance (small strings only). */
+function editDistance(a: string, b: string): number {
+  if (a.length > 40 || b.length > 40) return Math.abs(a.length - b.length) + 100;
+  const prev = new Array<number>(b.length + 1);
+  const curr = new Array<number>(b.length + 1);
+  for (let j = 0; j <= b.length; j++) prev[j] = j;
+  for (let i = 1; i <= a.length; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= b.length; j++) {
+      curr[j] = Math.min(
+        prev[j] + 1,
+        curr[j - 1] + 1,
+        prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)
+      );
+    }
+    for (let j = 0; j <= b.length; j++) prev[j] = curr[j];
+  }
+  return prev[b.length];
+}
+
+function editDistanceRatio(a: string, b: string): number {
+  const max = Math.max(a.length, b.length);
+  if (max === 0) return 0;
+  return editDistance(a, b) / max;
+}
+
+/** True when a place name plausibly matches the brand the user searched for:
+ * containment, ALL significant brand tokens present, or a close typo match.
+ * Used to hard-filter brand searches so unrelated restaurants can't leak in. */
+function nameMatchesBrand(name: string, brand: string): boolean {
+  const a = normalizeName(name);
+  const b = normalizeName(brand);
+  if (a.length < 3 || b.length < 3) return false;
+  if (a.includes(b) || b.includes(a)) return true;
+  // Every significant brand token must appear in the name (e.g. brand
+  // "Don Omakase" matches "Don Omakase Damansara" but NOT "Don the Burger").
+  const tokens = brand.toLowerCase().split(/[^a-z0-9]+/).filter((t) => t.length >= 3);
+  if (tokens.length > 0 && tokens.every((t) => a.includes(t))) return true;
+  // Typo tolerance: "Donomakase Restorant" vs "Don Omakase"
+  return editDistanceRatio(a, b) < 0.4;
 }
 
 /** Rough km distance using equirectangular approx. */
@@ -392,16 +485,23 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   }
 
   // Quote-based search mode: if the user wraps the query in quotes ("like this"),
-  // treat it as a specific restaurant name. Otherwise, always do a broad search
-  // with 3 batches for maximum variety and coverage.
+  // treat it as a specific restaurant name.
   const isQuoted = /^["\u201c\u201d].*["\u201c\u201d]$/.test(query.trim());
   // Strip quotes before passing to the AI
   const cleanQuery = isQuoted ? query.trim().replace(/^["\u201c\u201d]|["\u201c\u201d]$/g, '') : query;
   console.log("[Places AI Search] isQuoted:", isQuoted, "cleanQuery:", cleanQuery);
 
-  const batches: string[] = isQuoted
+  // Detect whether the query is a brand name (e.g. "donomakase" → Don
+  // Omakase). Brand queries run a precision branch search + hard name
+  // filtering; dish/other queries keep the broad multi-batch search.
+  const { isBrand, officialName } = isQuoted
+    ? { isBrand: true, officialName: cleanQuery }
+    : await classifyQuery(cleanQuery);
+
+  const batches: string[] = isBrand
     ? [
-        'IMPORTANT: This is a specific restaurant name: "' + cleanQuery + '". Only return places that GENUINELY match this exact name (including misspellings or missing spaces, per the BRAND RECOGNITION rule). Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants. If fewer than 10 real places exist worldwide with this name, return ONLY those — do NOT fabricate. Different branches/outlets of the same brand in different locations are all valid, distinct results.',
+        'BRAND SEARCH: The user is looking for the restaurant brand "' + officialName + '". Return ONLY real branches/outlets of this exact brand that you are confident actually exist — each result must be one distinct branch. Prioritize the user\'s country/region, but include notable branches in other cities too. Do NOT return other restaurants, competitors, or similar-sounding places. Use official branch names (often the brand name plus area/mall). matchScore 95-100 for every result.',
+        'BRAND SEARCH (more branches): Return UP TO 15 ADDITIONAL real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
       ]
     : [
         'BATCH 1/5: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
@@ -411,7 +511,7 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
         'BATCH 5/5: Focus on fine dining, Michelin-starred, celebrity chef restaurants, and any remaining notable places worldwide for this query.',
       ];
 
-    const isSpecific = isQuoted;
+    const isSpecific = isBrand;
   const [batchResults, realPlaces] = await Promise.all([
     Promise.all(
       batches.map((batchHint, batchIndex) =>
@@ -429,7 +529,7 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
         })
       )
     ),
-    searchNominatim(cleanQuery, userLocation),
+    searchNominatim(officialName, userLocation),
   ]);
 
   let index = 0;
@@ -446,11 +546,18 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   const deduped = deduplicatePlaces(allResults);
   // Sort by matchScore descending
   deduped.sort((a, b) => b.matchScore - a.matchScore);
-  // Quoted/specific searches: cap results while still keeping real branches
-  // across different cities.
-  const final = isQuoted ? deduped.slice(0, 12) : deduped;
+  // Brand searches: HARD name filter — drop anything that doesn't plausibly
+  // relate to the brand name, so unrelated restaurants can't leak in.
+  const relevant = isBrand
+    ? deduped.filter(
+        (r) =>
+          nameMatchesBrand(r.place.name, officialName) ||
+          nameMatchesBrand(r.place.name, cleanQuery)
+      )
+    : deduped;
+  const final = relevant.slice(0, 25);
 
-  console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "final:", final.length);
+  console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "after relevance:", relevant.length, "final:", final.length);
 
   return {
     results: final,
