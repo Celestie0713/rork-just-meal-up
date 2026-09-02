@@ -111,7 +111,9 @@ async function reverseGeocode(latitude: number, longitude: number): Promise<{ ci
   return {};
 }
 
-const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return restaurants that DIRECTLY match the search query, where the dish or cuisine is the PRIMARY specialty. Prioritize real, well-known places. For broad cuisine searches, include as many quality results as you know — cover famous spots, local favorites, chains, hawker stalls, and hidden gems. Always provide a googleMapsUrl. Sort by matchScore descending.`;
+const BASE_PROMPT = `You are a restaurant and venue discovery assistant. Return restaurants that DIRECTLY match the search query, where the dish or cuisine is the PRIMARY specialty. Prioritize real, well-known places. For broad cuisine searches, include as many quality results as you know — cover famous spots, local favorites, chains, hawker stalls, and hidden gems. Always provide a googleMapsUrl. Sort by matchScore descending.
+
+BRAND RECOGNITION: If the query could be a restaurant BRAND NAME — even if misspelled, missing spaces, or concatenated into one word (e.g. "donomakase" → "Don Omakase", "starbuck" → "Starbucks", "kfcmy" → "KFC Malaysia") — FIRST identify the real brand, THEN return that brand's ACTUAL real outlets/branches that you know of, prioritizing the user's country/region. These brand matches must have matchScore 95-100 and list every distinct branch you are confident exists (different branches in the same or different cities are all valid results). NEVER invent branches that you are not confident exist.`;
 
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
@@ -159,6 +161,91 @@ function mapPlaces(places: any[], baseIndex: number): PlaceResult[] {
     description: place.description,
     matchScore: place.matchScore,
   }));
+}
+
+const NOMINATIM_FOOD_CATEGORIES: Record<string, Set<string>> = {
+  amenity: new Set(['restaurant', 'fast_food', 'cafe', 'pub', 'bar', 'food_court', 'bistro', 'ice_cream', 'canteen']),
+  shop: new Set(['bakery', 'deli', 'coffee', 'tea', 'confectionery']),
+};
+
+const NOMINATIM_EMOJI: Record<string, string> = {
+  restaurant: '🍽️', fast_food: '🍔', cafe: '☕', pub: '🍺', bar: '🍸',
+  food_court: '🍜', bistro: '🥂', bakery: '🥐', deli: '🥓', ice_cream: '🍦',
+};
+
+interface NominatimHit {
+  osm_id?: number;
+  category?: string;
+  type?: string;
+  name?: string;
+  display_name?: string;
+  lat?: string;
+  lon?: string;
+  address?: Record<string, string>;
+  extratags?: Record<string, string>;
+}
+
+/** Real place lookup via OpenStreetMap (Nominatim). Catches actual mapped
+ * branches of a brand even when the AI doesn't know it — these are REAL
+ * places, so they are merged ahead of AI-generated results. */
+async function searchNominatim(query: string, userLocation?: UserLocation | null): Promise<PlaceResult[]> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=jsonv2&limit=25&addressdetails=1&extratags=1`;
+    const res = await fetch(url, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'JustMealUp/1.0 (places search)' },
+    });
+    if (!res.ok) {
+      console.log('[Places Nominatim] HTTP', res.status);
+      return [];
+    }
+    const data = (await res.json()) as NominatimHit[];
+    const userCountry = userLocation?.country?.toLowerCase() ?? null;
+    const normQuery = normalizeName(query);
+
+    const results: PlaceResult[] = [];
+    for (const hit of data) {
+      const isFood = NOMINATIM_FOOD_CATEGORIES[hit.category ?? '']?.has(hit.type ?? '');
+      if (!isFood || !hit.name || !hit.lat || !hit.lon) continue;
+
+      const addr = hit.address ?? {};
+      const area = addr.suburb || addr.neighbourhood || addr.quarter || addr.city_district || addr.village || '';
+      const city = addr.city || addr.town || addr.village || addr.county || '';
+      const country = addr.country || '';
+      const name = hit.name;
+      const normName = normalizeName(name);
+
+      // Exact name match floats to the top; same-country results next.
+      let matchScore = normName.includes(normQuery) || normQuery.includes(normName) ? 92 : 70;
+      if (userCountry && country.toLowerCase().includes(userCountry)) matchScore = Math.min(100, matchScore + 6);
+
+      results.push({
+        place: {
+          id: `osm-place-${hit.osm_id ?? results.length}`,
+          name,
+          address: area || city,
+          city,
+          country,
+          latitude: parseFloat(hit.lat),
+          longitude: parseFloat(hit.lon),
+          rating: 0,
+          priceLevel: 0,
+          placeType: [hit.type ?? 'restaurant'],
+          cuisineEmoji: NOMINATIM_EMOJI[hit.type ?? ''] || '🍽️',
+          googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + ' ' + city + ' ' + country)}`,
+        },
+        description: area
+          ? `${name} in ${area}, ${city}. Real location from OpenStreetMap.`
+          : `${name} in ${city}. Real location from OpenStreetMap.`,
+        matchScore,
+      });
+    }
+
+    console.log('[Places Nominatim] Real results:', results.length);
+    return results;
+  } catch (e) {
+    console.log('[Places Nominatim] Failed:', e);
+    return [];
+  }
 }
 
 const STOP_WORDS = new Set([
@@ -261,6 +348,16 @@ function isSimilarName(a: PlaceResult, b: PlaceResult, strict = false): boolean 
   if (oneContainsOther(a.place.name, b.place.name)) return true;
   // 1 significant word (≥4 chars) overlap + close coordinates
   if (hasAnySignificantWordOverlap(a.place.name, b.place.name) && approxDistanceKm(a, b) < 2.0) return true;
+  // One name fully contains the other when stripped — but only when the
+  // coordinates are close. Identical names far apart in the same city can be
+  // REAL different branches of a chain (e.g. Don Omakase across KL), so
+  // distance-gate this rule. Entries with unknown coords (0,0) fall back to
+  // the old behavior (always dedupe).
+  if (oneContainsOther(a.place.name, b.place.name)) {
+    if (a.place.latitude === 0 && a.place.longitude === 0) return true;
+    if (b.place.latitude === 0 && b.place.longitude === 0) return true;
+    return approxDistanceKm(a, b) < 2.0;
+  }
   return false;
 }
 
@@ -304,7 +401,7 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
 
   const batches: string[] = isQuoted
     ? [
-        'IMPORTANT: This is a specific restaurant name: "' + cleanQuery + '". Only return places that GENUINELY match this exact name. Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants. If fewer than 5 real places exist worldwide with this name, return ONLY those — do NOT fabricate. If the query includes a brand name (like "LV"), return ONLY places related to that brand.',
+        'IMPORTANT: This is a specific restaurant name: "' + cleanQuery + '". Only return places that GENUINELY match this exact name (including misspellings or missing spaces, per the BRAND RECOGNITION rule). Do NOT return places that just happen to be the same cuisine type. Do NOT return generic restaurants. If fewer than 10 real places exist worldwide with this name, return ONLY those — do NOT fabricate. Different branches/outlets of the same brand in different locations are all valid, distinct results.',
       ]
     : [
         'BATCH 1/5: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
@@ -315,40 +412,45 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
       ];
 
     const isSpecific = isQuoted;
-  const batchResults = await Promise.all(
-    batches.map((batchHint, batchIndex) =>
-      generateObject({
-        messages: [
-          {
-            role: "user",
-            content: buildSearchPrompt(cleanQuery, locationContext, batchHint, isSpecific),
-          },
-        ],
-        schema: PlacesResponseSchema,
-      }).catch((err) => {
-        console.error(`[Places AI Search] Batch ${batchIndex + 1} failed:`, err);
-        return { places: [] };
-      })
-    )
-  );
+  const [batchResults, realPlaces] = await Promise.all([
+    Promise.all(
+      batches.map((batchHint, batchIndex) =>
+        generateObject({
+          messages: [
+            {
+              role: "user",
+              content: buildSearchPrompt(cleanQuery, locationContext, batchHint, isSpecific),
+            },
+          ],
+          schema: PlacesResponseSchema,
+        }).catch((err) => {
+          console.error(`[Places AI Search] Batch ${batchIndex + 1} failed:`, err);
+          return { places: [] };
+        })
+      )
+    ),
+    searchNominatim(cleanQuery, userLocation),
+  ]);
 
   let index = 0;
-  const allResults: PlaceResult[] = [];
+  const aiResults: PlaceResult[] = [];
   for (const r of batchResults) {
     console.log(`[Places AI Search] Batch returned`, r.places.length, "places");
-    allResults.push(...mapPlaces(r.places, index));
+    aiResults.push(...mapPlaces(r.places, index));
     index += r.places.length;
   }
 
-  // For quoted searches, use strict dedup (ignore city) and limit results.
-  const strictDedup = isQuoted;
-  const deduped = deduplicatePlaces(allResults, strictDedup);
+  // Real OSM places first so they win dedup against AI approximations.
+  const allResults: PlaceResult[] = [...realPlaces, ...aiResults];
+
+  const deduped = deduplicatePlaces(allResults);
   // Sort by matchScore descending
   deduped.sort((a, b) => b.matchScore - a.matchScore);
-  // Quoted/specific searches: cap at 5 results to avoid showing the same place repeatedly
-  const final = isQuoted ? deduped.slice(0, 5) : deduped;
+  // Quoted/specific searches: cap results while still keeping real branches
+  // across different cities.
+  const final = isQuoted ? deduped.slice(0, 12) : deduped;
 
-  console.log("[Places AI Search] Total:", allResults.length, "raw, after dedup:", deduped.length, "final:", final.length);
+  console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "final:", final.length);
 
   return {
     results: final,
