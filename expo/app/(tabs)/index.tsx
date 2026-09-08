@@ -691,6 +691,15 @@ export default function SearchScreen() {
         bribeMode={pickerPlacesAreBribe}
         mineAdded={pickerMineAdded}
         onClose={() => {
+          // X after a place was chosen wipes everything — choices, bribe
+          // flags and the locked winner — so the picker reopens in its
+          // original state (empty pool, bribe button back).
+          if (pickerWinner) {
+            setPickerPlaces([]);
+            setPickerPlacesAreBribe(false);
+            setPickerMineAdded(false);
+            setPickerWinner(null);
+          }
           setShowMealPicker(false);
         }}
         onAddPlace={handleAddPickerPlace}
