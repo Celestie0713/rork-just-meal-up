@@ -68,6 +68,7 @@ export default function MessagesScreen() {
     bribePick?: string;
     bribeUserId?: string;
     bribeUserName?: string;
+    fromPicker?: string;
     fromMealUpShare?: string;
     fromBribePicker?: string;
     mealUpId?: string;
@@ -117,6 +118,7 @@ export default function MessagesScreen() {
       bribePick: undefined,
       bribeUserId: undefined,
       bribeUserName: undefined,
+      fromPicker: undefined,
       fromBribePicker: undefined,
       fromMealUpShare: undefined,
       placeName: undefined,
@@ -146,6 +148,8 @@ export default function MessagesScreen() {
       );
       setInvitationData({
         isBribePick: params.bribePick === 'true',
+        // From the meal picker's "Invitee will shuffle & pick" — no summary card
+        fromPicker: params.fromPicker === 'true',
         placeName: params.placeName,
         placeAddress: params.placeAddress,
         placeGoogleMapsUrl: params.placeGoogleMapsUrl,
@@ -178,7 +182,7 @@ export default function MessagesScreen() {
     } else {
       resetModes();
     }
-  }, [params.fromInvitation, params.bribePick, params.bribeUserId, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.bribePick, params.bribeUserId, params.fromPicker, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
@@ -510,7 +514,7 @@ export default function MessagesScreen() {
         </View>
         {(isInvitationMode || isMealUpShareMode || isBribePickerMode) && <View style={styles.placeholder} />}
       </View>
-      {isInvitationMode && !!invitationData && !invitationData.isBribePick && (
+      {isInvitationMode && !!invitationData && !invitationData.isBribePick && !invitationData.fromPicker && (
         <View style={styles.invitationSummary}>
           <View style={styles.summaryTitleRow}>
             <Text style={styles.summaryTitle}>Meal Invitation</Text>

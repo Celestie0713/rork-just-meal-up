@@ -204,6 +204,8 @@ export default function SearchScreen() {
           bribePick: pickerPlacesAreBribe ? 'true' : 'false',
           // Bribe flow: restrict the invitation screen to the chosen invitee only
           bribeUserId: pickerPlacesAreBribe ? pickerBribeUserId ?? undefined : undefined,
+          // Picker invitee flow: no invitation summary card at the top
+          fromPicker: 'true',
           placeName: first.name,
           placeAddress: first.city,
           placeId: first.id,
