@@ -10,6 +10,10 @@ interface PaymentGatewayModalProps {
   visible: boolean;
   amount: number;
   description?: string;
+  /** Currency symbol of the user's registered country (e.g. '$', 'RM'). Defaults to '$'. */
+  currencySymbol?: string;
+  /** ISO 4217 currency code sent to Stripe (e.g. 'usd', 'myr'). */
+  currencyCode?: string;
   onClose: () => void;
   onSuccess: () => void;
 }
@@ -19,6 +23,7 @@ async function createCheckoutSession(input: {
   successUrl: string;
   cancelUrl: string;
   description?: string;
+  currency?: string;
 }): Promise<{ url: string; sessionId: string }> {
   const res = await fetch(`${BACKEND_URL}/checkout-session`, {
     method: 'POST',
@@ -59,7 +64,7 @@ async function getCheckoutSession(sessionId: string): Promise<{
  * Opens Stripe's hosted checkout in a popup window and polls the Cloudflare
  * Worker backend for the session's payment status until it completes.
  */
-export function PaymentGatewayModal({ visible, amount, description, onClose, onSuccess }: PaymentGatewayModalProps) {
+export function PaymentGatewayModal({ visible, amount, description, currencySymbol = '$', currencyCode, onClose, onSuccess }: PaymentGatewayModalProps) {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<boolean>(false);
@@ -175,7 +180,8 @@ export function PaymentGatewayModal({ visible, amount, description, onClose, onS
           amount,
           successUrl,
           cancelUrl,
-          description: description ?? `Tip ${amount.toFixed(2)}`,
+          description: description ?? `Tip ${currencySymbol}${amount.toFixed(2)}`,
+          currency: currencyCode,
         });
 
         sessionIdRef.current = sessionId;
@@ -216,7 +222,7 @@ export function PaymentGatewayModal({ visible, amount, description, onClose, onS
         }
       }
     },
-    [amount, startPolling]
+    [amount, currencyCode, currencySymbol, startPolling]
   );
 
   const handlePay = useCallback(async () => {
@@ -258,7 +264,7 @@ export function PaymentGatewayModal({ visible, amount, description, onClose, onS
             <View style={styles.successWrap}>
               <CircleCheck size={72} color={Colors.primary} />
               <Text style={styles.successTitle}>Payment Successful</Text>
-              <Text style={styles.successSub}>${amount.toFixed(2)} charged</Text>
+              <Text style={styles.successSub}>{currencySymbol}{amount.toFixed(2)} charged</Text>
             </View>
           ) : (
             <>
@@ -274,7 +280,7 @@ export function PaymentGatewayModal({ visible, amount, description, onClose, onS
 
               <View style={styles.amountCard}>
                 <Text style={styles.amountLabel}>Total</Text>
-                <Text style={styles.amountValue}>${amount.toFixed(2)}</Text>
+                <Text style={styles.amountValue}>{currencySymbol}{amount.toFixed(2)}</Text>
               </View>
 
               {error ? (
@@ -310,7 +316,7 @@ export function PaymentGatewayModal({ visible, amount, description, onClose, onS
                 ) : (
                   <>
                     <Lock size={16} color={Colors.background} />
-                    <Text style={styles.payBtnText}>Pay ${amount.toFixed(2)}</Text>
+                    <Text style={styles.payBtnText}>Pay {currencySymbol}{amount.toFixed(2)}</Text>
                   </>
                 )}
               </TouchableOpacity>

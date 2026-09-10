@@ -103,6 +103,64 @@ export function getCurrencyFromCountry(country: string): string {
   return '$';
 }
 
+/** Maps the same country names / codes to ISO 4217 currency codes (Stripe). */
+export const COUNTRY_CURRENCY_CODES: { [key: string]: string } = {
+  'US': 'USD', 'USA': 'USD', 'United States': 'USD',
+  'Canada': 'CAD', 'CA': 'CAD',
+  'UK': 'GBP', 'United Kingdom': 'GBP', 'GB': 'GBP',
+  'EU': 'EUR', 'Germany': 'EUR', 'France': 'EUR', 'Italy': 'EUR',
+  'Spain': 'EUR', 'Netherlands': 'EUR', 'Belgium': 'EUR', 'Austria': 'EUR',
+  'Portugal': 'EUR', 'Greece': 'EUR', 'Ireland': 'EUR',
+  'Japan': 'JPY', 'JP': 'JPY',
+  'China': 'CNY', 'CN': 'CNY',
+  'India': 'INR', 'IN': 'INR',
+  'Australia': 'AUD', 'AU': 'AUD',
+  'New Zealand': 'NZD', 'NZ': 'NZD',
+  'Switzerland': 'CHF', 'CH': 'CHF',
+  'Sweden': 'SEK', 'SE': 'SEK',
+  'Norway': 'NOK', 'NO': 'NOK',
+  'Denmark': 'DKK', 'DK': 'DKK',
+  'Mexico': 'MXN', 'MX': 'MXN',
+  'Brazil': 'BRL', 'BR': 'BRL',
+  'South Korea': 'KRW', 'KR': 'KRW',
+  'Singapore': 'SGD', 'SG': 'SGD',
+  'Hong Kong': 'HKD', 'HK': 'HKD',
+  'Thailand': 'THB', 'TH': 'THB',
+  'Malaysia': 'MYR', 'MY': 'MYR',
+  'Indonesia': 'IDR', 'ID': 'IDR',
+  'Philippines': 'PHP', 'PH': 'PHP',
+  'Vietnam': 'VND', 'VN': 'VND',
+  'Turkey': 'TRY', 'TR': 'TRY',
+  'Russia': 'RUB', 'RU': 'RUB',
+  'Poland': 'PLN', 'PL': 'PLN',
+  'Czech Republic': 'CZK', 'CZ': 'CZK',
+  'Hungary': 'HUF', 'HU': 'HUF',
+  'South Africa': 'ZAR', 'ZA': 'ZAR',
+  'Israel': 'ILS', 'IL': 'ILS',
+  'UAE': 'AED', 'AE': 'AED',
+  'Saudi Arabia': 'SAR', 'SA': 'SAR',
+};
+
+/**
+ * Returns the ISO 4217 currency code (e.g. 'USD', 'MYR') for a country name
+ * or ISO code — the currency of the phone number registered at sign-up.
+ * Falls back to 'USD' when the country is unknown.
+ */
+export function getCurrencyCodeFromCountry(country: string): string {
+  if (!country) return 'USD';
+  const key = country.trim();
+  if (COUNTRY_CURRENCY_CODES[key]) return COUNTRY_CURRENCY_CODES[key];
+  // Try case-insensitive match against country names / codes
+  const lower = key.toLowerCase();
+  for (const [name, code] of Object.entries(COUNTRY_CURRENCY_CODES)) {
+    if (name.toLowerCase() === lower) return code;
+  }
+  // Handle common aliases
+  if (lower === 'us' || lower === 'usa' || lower === 'united states of america') return 'USD';
+  if (lower === 'uk' || lower === 'britain' || lower === 'england') return 'GBP';
+  return 'USD';
+}
+
 export function getCurrencyFromAddress(address: string): string {
   if (!address) return '$';
   

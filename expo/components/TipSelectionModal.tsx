@@ -8,11 +8,13 @@ interface TipSelectionModalProps {
   onClose: () => void;
   onConfirm: (amount: number) => void;
   recipientName: string;
+  /** Currency symbol of the user's registered country (e.g. '$', 'RM'). Defaults to '$'. */
+  currencySymbol?: string;
 }
 
 const TIP_AMOUNTS = [5, 10, 20, 50, 100];
 
-export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }: TipSelectionModalProps) {
+export function TipSelectionModal({ visible, onClose, onConfirm, recipientName, currencySymbol = '$' }: TipSelectionModalProps) {
   const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [isCustom, setIsCustom] = useState(false);
@@ -82,7 +84,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                     styles.amountText,
                     selectedAmount === amount && !isCustom && styles.amountTextSelected
                   ]}>
-                    ${amount}
+                    {currencySymbol}{amount}
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -90,7 +92,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
             <View style={styles.customAmountContainer}>
               <Text style={styles.customAmountLabel}>Custom Amount</Text>
               <View style={styles.customAmountInputWrapper}>
-                <Text style={styles.dollarSign}>$</Text>
+                <Text style={styles.dollarSign}>{currencySymbol}</Text>
                 <TextInput
                   style={styles.customAmountInput}
                   value={customAmount}
@@ -102,7 +104,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName }
                 />
               </View>
               {!!customAmount && customAmountValue < 5 && (
-                <Text style={styles.errorText}>Minimum tip is $5</Text>
+                <Text style={styles.errorText}>Minimum tip is {currencySymbol}5</Text>
               )}
             </View>
             <TouchableOpacity

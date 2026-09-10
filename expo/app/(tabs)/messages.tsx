@@ -9,6 +9,8 @@ import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
+import { useAuth } from '@/hooks/use-auth';
+import { getCurrencyCodeFromCountry } from '@/constants/currencies';
 import { TipSelectionModal } from '@/components/TipSelectionModal';
 import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 import type { User, SystemMessage } from '@/types/user';
@@ -57,6 +59,10 @@ const mockChats: ChatData[] = [
 export default function MessagesScreen() {
   const { getAvailableChats, isLoaded, addSystemMessage, hasActiveExclusiveMatch, getExclusiveMatchPartner } = useChat();
   const { addInvitation } = useInvitations();
+  // Currency of the phone number the current user registered at sign-up
+  const { user: currentUser } = useAuth();
+  const tipCurrencySymbol = currentUser?.currency ?? '$';
+  const tipCurrencyCode = getCurrencyCodeFromCountry(currentUser?.country ?? '');
   const params = useLocalSearchParams<{
     placeName?: string;
     placeAddress?: string;
@@ -641,10 +647,13 @@ export default function MessagesScreen() {
           setShowPaymentModal(true);
         }}
         recipientName={selectedRecipient?.name || ''}
+        currencySymbol={tipCurrencySymbol}
       />
       <PaymentGatewayModal
         visible={showPaymentModal}
         amount={pendingTipAmount}
+        currencySymbol={tipCurrencySymbol}
+        currencyCode={tipCurrencyCode}
         onClose={() => {
           setShowPaymentModal(false);
           setPendingTipAmount(0);
@@ -679,7 +688,7 @@ export default function MessagesScreen() {
             const systemMessage: SystemMessage = {
               id: Date.now().toString(),
               type: 'invitation_sent',
-              content: `Payment of ${amount.toFixed(2)} successful. Meal invitation sent.${invitationData.placeGoogleMapsUrl ? '\n\n📍 View on map: ' + invitationData.placeGoogleMapsUrl : ''} Now pick an outfit you can still breathe in after dessert while you wait🤘`,
+              content: `Payment of ${tipCurrencySymbol}${amount.toFixed(2)} successful. Meal invitation sent.${invitationData.placeGoogleMapsUrl ? '\n\n📍 View on map: ' + invitationData.placeGoogleMapsUrl : ''} Now pick an outfit you can still breathe in after dessert while you wait🤘`,
               timestamp: new Date(),
             };
             addSystemMessage(chatId, systemMessage);

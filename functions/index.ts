@@ -16,6 +16,17 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 } as const;
 
+/** Currency codes the client may request (from its registered country). */
+const ALLOWED_CURRENCIES = new Set([
+  "usd", "cad", "gbp", "eur", "jpy", "cny", "inr", "aud", "nzd",
+  "chf", "sek", "nok", "dkk", "mxn", "brl", "krw", "sgd", "hkd",
+  "thb", "myr", "idr", "php", "vnd", "try", "rub", "pln", "czk",
+  "huf", "zar", "ils", "aed", "sar",
+]);
+
+/** Stripe zero-decimal currencies — unit_amount equals whole units. */
+const ZERO_DECIMAL_CURRENCIES = new Set(["jpy", "krw", "vnd"]);
+
 async function stripeFetch(
   path: string,
   env: Env,
@@ -55,6 +66,7 @@ export default {
           successUrl: string;
           cancelUrl: string;
           description?: string;
+          currency?: string;
         };
 
         if (!body.amount || body.amount <= 0 || body.amount > 50000) {
@@ -71,14 +83,20 @@ export default {
           );
         }
 
-        const amountInCents = Math.round(body.amount * 100);
+        const currency =
+          body.currency && ALLOWED_CURRENCIES.has(body.currency.toLowerCase())
+            ? body.currency.toLowerCase()
+            : "usd";
+        const amountInMinorUnits = ZERO_DECIMAL_CURRENCIES.has(currency)
+          ? Math.round(body.amount)
+          : Math.round(body.amount * 100);
         const params = new URLSearchParams({
           "mode": "payment",
           "payment_method_types[]": "card",
-          "line_items[0][price_data][currency]": "usd",
+          "line_items[0][price_data][currency]": currency,
           "line_items[0][price_data][product_data][name]":
             body.description ?? "Tip",
-          "line_items[0][price_data][unit_amount]": String(amountInCents),
+          "line_items[0][price_data][unit_amount]": String(amountInMinorUnits),
           "line_items[0][quantity]": "1",
           "success_url": body.successUrl,
           "cancel_url": body.cancelUrl,
