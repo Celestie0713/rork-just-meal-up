@@ -184,6 +184,24 @@ export default function SearchScreen() {
     setPickerWinner((prev) => (prev?.id === id ? null : prev));
   }, []);
 
+  // Picker mode: tapping a place card adds/removes it directly — matches
+  // the "Tap a place to add it to the Meal Picker" instruction in the bar.
+  const handlePickerModeCardPress = useCallback((item: PlaceResult) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setPickerPlaces((prev) => {
+      const exists = prev.some((p) => p.id === item.place.id);
+      if (exists) {
+        return prev.filter((p) => p.id !== item.place.id);
+      }
+      return [...prev, {
+        id: item.place.id,
+        name: item.place.name,
+        emoji: item.place.cuisineEmoji || '🍽️',
+        city: item.place.city,
+      }];
+    });
+  }, []);
+
   const handleShuffleComplete = useCallback((place: PickerPlace | null) => {
     // null = picker dismissed via X — discard the outcome so the picker
     // resets back to its original state on the next open.
@@ -422,7 +440,7 @@ export default function SearchScreen() {
                 return (
                 <TouchableOpacity
                   style={[styles.placeCard, pickerMode && isInPicker && styles.placeCardInPicker]}
-                  onPress={() => setSelectedPlace(item)}
+                  onPress={() => (pickerMode ? handlePickerModeCardPress(item) : setSelectedPlace(item))}
                   activeOpacity={0.7}
                 >
                   <View style={styles.placeCardHeader}>
@@ -484,7 +502,12 @@ export default function SearchScreen() {
                           fill={isPlaceInFavorites(item.place.id) ? '#FF2D55' : 'none'}
                         />
                       </TouchableOpacity>
-                      <Map size={14} color={Colors.textLight} />
+                      <TouchableOpacity
+                        onPress={() => setSelectedPlace(item)}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Map size={14} color={Colors.textLight} />
+                      </TouchableOpacity>
                     </View>
                   </View>
                 </TouchableOpacity>
