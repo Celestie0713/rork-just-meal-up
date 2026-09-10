@@ -454,6 +454,56 @@ function isSimilarName(a: PlaceResult, b: PlaceResult, strict = false): boolean 
   return false;
 }
 
+/** Words that carry no relevance signal in a food search query. */
+const QUERY_STOP_WORDS = new Set([
+  'near', 'me', 'nearby', 'around', 'close', 'my', 'area', 'the', 'a', 'an',
+  'for', 'with', 'and', 'or', 'to', 'of', 'in', 'at', 'best', 'good', 'top',
+  'recommended', 'places', 'place', 'food', 'eat', 'eating',
+]);
+
+/** Lowercase query words that matter for relevance (>=3 chars, no stopwords). */
+function queryTokens(query: string): string[] {
+  return query
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((t) => t.length >= 3 && !QUERY_STOP_WORDS.has(t));
+}
+
+/** Like normalizeName but keeps word boundaries. */
+function looseText(text: string): string {
+  return text.toLowerCase().replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/** Substring check with plural/singular tolerance: "curries" ~ "curry". */
+function textHasToken(text: string, token: string): boolean {
+  if (text.includes(token)) return true;
+  if (token.length > 3 && token.endsWith('s') && text.includes(token.slice(0, -1))) return true;
+  if (text.includes(token + 's')) return true;
+  return false;
+}
+
+/** Combined searchable text for a place: name + types + description. */
+function placeSearchText(place: PlaceResult): string {
+  return looseText(`${place.place.name} ${place.place.placeType.join(' ')} ${place.description ?? ''}`);
+}
+
+/** True when EVERY meaningful query token appears in the place's name,
+ * types, or description — drops results that are unrelated to the search. */
+function isRelevantToQuery(place: PlaceResult, tokens: string[]): boolean {
+  if (tokens.length === 0) return true;
+  const text = placeSearchText(place);
+  return tokens.every((t) => textHasToken(text, t));
+}
+
+/** True when at least half the query tokens appear — backfill when the
+ * strict filter would leave a dish/other search nearly empty. */
+function isPartiallyRelevantToQuery(place: PlaceResult, tokens: string[]): boolean {
+  if (tokens.length === 0) return true;
+  const text = placeSearchText(place);
+  const matched = tokens.filter((t) => textHasToken(text, t)).length;
+  return matched >= Math.max(1, Math.ceil(tokens.length / 2));
+}
+
 function deduplicatePlaces(results: PlaceResult[], strict = false): PlaceResult[] {
   const deduped: PlaceResult[] = [];
 
@@ -548,16 +598,35 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   deduped.sort((a, b) => b.matchScore - a.matchScore);
   // Brand searches: HARD name filter — drop anything that doesn't plausibly
   // relate to the brand name, so unrelated restaurants can't leak in.
+  // Brand results must also have real coordinates — (0,0) entries are
+  // usually hallucinated branches.
+  // Dish/other searches: relevance filter — every meaningful query token
+  // must appear in the place's name, types, or description.
+  const relevanceTokens = isBrand ? [] : queryTokens(cleanQuery);
   const relevant = isBrand
     ? deduped.filter(
         (r) =>
-          nameMatchesBrand(r.place.name, officialName) ||
-          nameMatchesBrand(r.place.name, cleanQuery)
+          (nameMatchesBrand(r.place.name, officialName) ||
+            nameMatchesBrand(r.place.name, cleanQuery)) &&
+          !(r.place.latitude === 0 && r.place.longitude === 0)
       )
-    : deduped;
-  const final = relevant.slice(0, 25);
+    : deduped.filter((r) => isRelevantToQuery(r, relevanceTokens));
+
+  // If the relevance filter was too aggressive for a dish/other search,
+  // backfill with results matching at least half the query tokens so the
+  // list isn't empty — strict matches stay at the top.
+  const pool = !isBrand && relevant.length < 3
+    ? [
+        ...relevant,
+        ...deduped.filter(
+          (r) => !relevant.includes(r) && isPartiallyRelevantToQuery(r, relevanceTokens)
+        ).slice(0, 8),
+      ]
+    : relevant;
+  const final = pool.slice(0, 25);
 
   console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "after relevance:", relevant.length, "final:", final.length);
+  console.log("[Places AI Search] Top results:", final.slice(0, 8).map((f) => f.place.name).join(" | "));
 
   return {
     results: final,
