@@ -63,13 +63,14 @@ const QueryClassificationSchema = z.preprocess(
 
 const PlacesResponseSchema = z.preprocess(
   (v) => {
-    if (typeof v !== 'object' || v === null) return { places: [] };
+    if (typeof v !== 'object' || v === null) return { places: [], countryScope: '' };
     const obj = v as Record<string, unknown>;
-    if (!Array.isArray(obj.places)) return { places: [] };
-    return { places: obj.places };
+    if (!Array.isArray(obj.places)) return { places: [], countryScope: obj.countryScope };
+    return { places: obj.places, countryScope: obj.countryScope };
   },
   z.object({
     places: z.array(PlaceSchema),
+    countryScope: nullableString,
   })
 );
 
@@ -144,6 +145,11 @@ ${quantityLine}
 
 IMPORTANT: ONLY return places people visit to eat or drink — restaurants, cafes, hawker stalls, food courts, street food, bakeries, bars.
 NEVER return hotels, hostels, resorts, parks, museums, malls, supermarkets, shops, attractions, or landmarks, even if the name matches the search.
+
+LOCATION RULE: Every result MUST be located in ONE country. Follow the location context above: use the user's country unless the query explicitly names a different city/country. Do NOT mix countries in one response.
+
+First provide:
+- countryScope: the ONE country ALL your results are located in (empty string if you could not determine one)
 
 For each place provide:
 - name: exact official restaurant name
@@ -531,6 +537,30 @@ function isFoodPlace(result: PlaceResult): boolean {
   return FOOD_SIGNAL_WORDS.some((w) => text.includes(w));
 }
 
+/** Alternate names that all refer to the same country. */
+const COUNTRY_ALIASES: string[][] = [
+  ['usa', 'unitedstates', 'unitedstatesofamerica', 'america'],
+  ['uk', 'unitedkingdom', 'greatbritain', 'britain', 'england'],
+  ['uae', 'unitedarabemirates'],
+  ['southkorea', 'korea', 'republicofkorea'],
+  ['netherlands', 'holland'],
+];
+
+function normalizeCountry(c: string): string {
+  return c.toLowerCase().replace(/[^a-z]/g, '');
+}
+
+/** Loose country-name comparison: equality, containment, or alias groups
+ * ("USA" ~ "United States", "UK" ~ "England"). */
+function countriesMatch(a: string, b: string): boolean {
+  const na = normalizeCountry(a);
+  const nb = normalizeCountry(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  if (na.length > 3 && nb.length > 3 && (na.includes(nb) || nb.includes(na))) return true;
+  return COUNTRY_ALIASES.some((group) => group.includes(na) && group.includes(nb));
+}
+
 /** True when EVERY meaningful query token appears in the place's name,
  * types, or description — drops results that are unrelated to the search. */
 function isRelevantToQuery(place: PlaceResult, tokens: string[]): boolean {
@@ -619,7 +649,7 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
           schema: PlacesResponseSchema,
         }).catch((err) => {
           console.error(`[Places AI Search] Batch ${batchIndex + 1} failed:`, err);
-          return { places: [] };
+          return { places: [], countryScope: '' };
         })
       )
     ),
@@ -643,6 +673,24 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   // Drop anything that isn't somewhere people eat or drink (hotels, parks,
   // shops, landmarks...) before any other filtering.
   const foodOnly = deduped.filter(isFoodPlace);
+  // Country scope: trust the AI's declared scope, falling back to the
+  // user's detected country. Places outside the scope are dropped unless
+  // they don't declare a country at all. If filtering would empty the
+  // list, keep the unscoped results (scope was likely wrong).
+  const scope =
+    batchResults.map((r) => r.countryScope.trim()).find(Boolean) ?? '';
+  let scoped = foodOnly;
+  if (scope) {
+    const inScope = foodOnly.filter(
+      (r) => !r.place.country || countriesMatch(r.place.country, scope)
+    );
+    if (inScope.length >= Math.min(3, foodOnly.length)) {
+      scoped = inScope;
+    } else {
+      console.log('[Places AI Search] Scope filter would empty results, keeping unscoped list. Scope:', scope);
+    }
+  }
+  console.log('[Places AI Search] Country scope:', scope || '(none)', 'in-scope:', scoped.length);
   // Brand searches: HARD name filter — drop anything that doesn't plausibly
   // relate to the brand name, so unrelated restaurants can't leak in.
   // Brand results must also have real coordinates — (0,0) entries are
@@ -651,13 +699,13 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   // must appear in the place's name, types, or description.
   const relevanceTokens = isBrand ? [] : queryTokens(cleanQuery);
   const relevant = isBrand
-    ? foodOnly.filter(
+    ? scoped.filter(
         (r) =>
           (nameMatchesBrand(r.place.name, officialName) ||
             nameMatchesBrand(r.place.name, cleanQuery)) &&
           !(r.place.latitude === 0 && r.place.longitude === 0)
       )
-    : foodOnly.filter((r) => isRelevantToQuery(r, relevanceTokens));
+    : scoped.filter((r) => isRelevantToQuery(r, relevanceTokens));
 
   // If the relevance filter was too aggressive for a dish/other search,
   // backfill with results matching at least half the query tokens so the
@@ -665,14 +713,14 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   const pool = !isBrand && relevant.length < 3
     ? [
         ...relevant,
-        ...foodOnly.filter(
+        ...scoped.filter(
           (r) => !relevant.includes(r) && isPartiallyRelevantToQuery(r, relevanceTokens)
         ).slice(0, 8),
       ]
     : relevant;
   const final = pool.slice(0, 25);
 
-  console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "food-only:", foodOnly.length, "after relevance:", relevant.length, "final:", final.length);
+  console.log("[Places AI Search] Scope:", scope || "(none)", "food-only:", foodOnly.length, "in-scope:", scoped.length, "after relevance:", relevant.length, "final:", final.length);
   console.log("[Places AI Search] Top results:", final.slice(0, 8).map((f) => f.place.name).join(" | "));
 
   return {
@@ -789,10 +837,12 @@ export function usePlacesSearch() {
     };
   }, []);
 
-  const requestLocationPermission = useCallback(async (): Promise<boolean> => {
+  /** Detects the user's location on demand. Returns the location, or null
+   * when unavailable/denied. Truthy for boolean-style callers. */
+  const requestLocationPermission = useCallback(async (): Promise<UserLocation | null> => {
     try {
       if (Platform.OS === 'web') {
-        return new Promise((resolve) => {
+        return new Promise<UserLocation | null>((resolve) => {
           if ('geolocation' in navigator) {
             navigator.geolocation.getCurrentPosition(
               async (position) => {
@@ -807,13 +857,13 @@ export function usePlacesSearch() {
                 setLocationReady(true);
                 setLocationError(null);
                 setLocationPermissionDenied(false);
-                resolve(true);
+                resolve(loc);
               },
-              () => resolve(false),
+              () => resolve(null),
               { timeout: 15000, enableHighAccuracy: false, maximumAge: 300000 }
             );
           } else {
-            resolve(false);
+            resolve(null);
           }
         });
       } else {
@@ -834,19 +884,20 @@ export function usePlacesSearch() {
           setLocationReady(true);
           setLocationError(null);
           setLocationPermissionDenied(false);
-          return true;
+          return loc;
         }
         setLocationPermissionDenied(true);
-        return false;
+        return null;
       }
     } catch (error) {
       console.log('[Places] Manual location request error:', error);
-      return false;
+      return null;
     }
   }, []);
 
   const mutation = useMutation({
-    mutationFn: (query: string) => searchPlacesAI(query, 75, userLocation),
+    mutationFn: (v: { query: string; location: UserLocation | null }) =>
+      searchPlacesAI(v.query, 75, v.location),
     onSuccess: (result) => {
       console.log("[Places Search] Success:", result.totalResults, "results");
       setData(result);
@@ -856,11 +907,20 @@ export function usePlacesSearch() {
     },
   });
 
-  const search = useCallback((query: string) => {
-    if (query.trim().length > 0) {
-      mutation.mutate(query.trim());
+  // Detect the user's location BEFORE searching so results are scoped to
+  // where they actually are. On web this reuses the browser geolocation
+  // prompt; on native it fires the explicit permission request (safe inside
+  // try/catch). If detection fails, search globally like before.
+  const search = useCallback(async (query: string) => {
+    const q = query.trim();
+    if (q.length === 0) return;
+    let loc = userLocation;
+    if (!loc) {
+      console.log('[Places] No location yet — detecting before search');
+      loc = await requestLocationPermission();
     }
-  }, [mutation]);
+    mutation.mutate({ query: q, location: loc });
+  }, [userLocation, requestLocationPermission, mutation]);
 
   const clearResults = useCallback(() => {
     setData(null);
