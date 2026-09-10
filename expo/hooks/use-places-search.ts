@@ -142,6 +142,9 @@ ${batchHint}
 
 ${quantityLine}
 
+IMPORTANT: ONLY return places people visit to eat or drink — restaurants, cafes, hawker stalls, food courts, street food, bakeries, bars.
+NEVER return hotels, hostels, resorts, parks, museums, malls, supermarkets, shops, attractions, or landmarks, even if the name matches the search.
+
 For each place provide:
 - name: exact official restaurant name
 - address: area/neighborhood/district (e.g. "Imbi", "Bukit Bintang", "Damansara Heights", "Petaling Jaya") — NOT a street address. Use the well-known local area name.
@@ -487,6 +490,47 @@ function placeSearchText(place: PlaceResult): string {
   return looseText(`${place.place.name} ${place.place.placeType.join(' ')} ${place.description ?? ''}`);
 }
 
+/** Categories that are clearly NOT somewhere people go to eat or drink. */
+const NON_FOOD_TYPES = new Set([
+  'hotel', 'hostel', 'motel', 'guesthouse', 'apartment', 'resort', 'lodge',
+  'park', 'garden', 'museum', 'gallery', 'attraction', 'monument', 'memorial',
+  'landmark', 'viewpoint', 'zoo', 'mall', 'supermarket', 'grocery',
+  'convenience', 'departmentstore', 'market', 'store', 'shop',
+  'atm', 'bank', 'pharmacy', 'hospital', 'clinic', 'doctor', 'dentist',
+  'school', 'university', 'college', 'kindergarten', 'library',
+  'gym', 'fitness', 'spa', 'salon', 'hairdresser', 'beauty',
+  'airport', 'aerodrome', 'station', 'busstation', 'subway', 'ferryterminal',
+  'placeofworship', 'church', 'mosque', 'temple', 'synagogue',
+  'cinema', 'theatre', 'theater', 'stadium', 'nightclub', 'casino',
+  'parking', 'fuel', 'carwash', 'laundry', 'postoffice', 'police', 'townhall',
+  'office', 'residential', 'house', 'building',
+]);
+
+/** Words that signal a place serves food or drink. */
+const FOOD_SIGNAL_WORDS = [
+  'restaurant', 'cafe', 'caf', 'coffee', 'food', 'eat', 'dining', 'kitchen',
+  'grill', 'cuisine', 'bakery', 'bistro', 'bar', 'pub', 'diner', 'noodle',
+  'ramen', 'sushi', 'sashimi', 'pizza', 'burger', 'chicken', 'curry', 'bbq',
+  'steamboat', 'hotpot', 'hawker', 'foodcourt', 'deli', 'steakhouse',
+  'seafood', 'dessert', 'tea', 'wine', 'beer', 'cocktail', 'izakaya',
+  'yakiniku', 'donburi', 'udon', 'soba', 'dimsum', 'boba', 'juice', 'nasi',
+  'mee', 'warung', 'mamak', 'brunch', 'lunch', 'dinner', 'menu', 'dishes', 'drinks',
+];
+
+/** True when a place is somewhere people go to eat or drink: its category
+ * must not be a non-food type, and its name, types, or description must
+ * carry a food/drink signal. Filters out hotels, parks, shops, etc. */
+function isFoodPlace(result: PlaceResult): boolean {
+  const types = result.place.placeType
+    .map((t) => normalizeName(String(t)))
+    .filter(Boolean);
+  if (types.some((t) => NON_FOOD_TYPES.has(t))) return false;
+  const text = normalizeName(
+    `${result.place.name} ${types.join(' ')} ${result.description ?? ''}`
+  );
+  return FOOD_SIGNAL_WORDS.some((w) => text.includes(w));
+}
+
 /** True when EVERY meaningful query token appears in the place's name,
  * types, or description — drops results that are unrelated to the search. */
 function isRelevantToQuery(place: PlaceResult, tokens: string[]): boolean {
@@ -596,6 +640,9 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   const deduped = deduplicatePlaces(allResults);
   // Sort by matchScore descending
   deduped.sort((a, b) => b.matchScore - a.matchScore);
+  // Drop anything that isn't somewhere people eat or drink (hotels, parks,
+  // shops, landmarks...) before any other filtering.
+  const foodOnly = deduped.filter(isFoodPlace);
   // Brand searches: HARD name filter — drop anything that doesn't plausibly
   // relate to the brand name, so unrelated restaurants can't leak in.
   // Brand results must also have real coordinates — (0,0) entries are
@@ -604,13 +651,13 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   // must appear in the place's name, types, or description.
   const relevanceTokens = isBrand ? [] : queryTokens(cleanQuery);
   const relevant = isBrand
-    ? deduped.filter(
+    ? foodOnly.filter(
         (r) =>
           (nameMatchesBrand(r.place.name, officialName) ||
             nameMatchesBrand(r.place.name, cleanQuery)) &&
           !(r.place.latitude === 0 && r.place.longitude === 0)
       )
-    : deduped.filter((r) => isRelevantToQuery(r, relevanceTokens));
+    : foodOnly.filter((r) => isRelevantToQuery(r, relevanceTokens));
 
   // If the relevance filter was too aggressive for a dish/other search,
   // backfill with results matching at least half the query tokens so the
@@ -618,14 +665,14 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   const pool = !isBrand && relevant.length < 3
     ? [
         ...relevant,
-        ...deduped.filter(
+        ...foodOnly.filter(
           (r) => !relevant.includes(r) && isPartiallyRelevantToQuery(r, relevanceTokens)
         ).slice(0, 8),
       ]
     : relevant;
   const final = pool.slice(0, 25);
 
-  console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "after relevance:", relevant.length, "final:", final.length);
+  console.log("[Places AI Search] Total:", allResults.length, "(real:", realPlaces.length, "ai:", aiResults.length, "), after dedup:", deduped.length, "food-only:", foodOnly.length, "after relevance:", relevant.length, "final:", final.length);
   console.log("[Places AI Search] Top results:", final.slice(0, 8).map((f) => f.place.name).join(" | "));
 
   return {
