@@ -7,9 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
-import { useAuth } from '@/hooks/use-auth';
 import type { MealInvitation, SystemMessage } from '@/types/user';
-import { PlatformTipsPopup } from '@/components/PlatformTipsPopup';
 import { MealPickerModal } from '@/components/MealPickerModal';
 import type { PickerPlace } from '@/components/MealPickerModal';
 
@@ -303,14 +301,11 @@ export default function InvitationsScreen() {
   const [editData, setEditData] = useState<EditModalData | null>(null);
   const [confirmModalVisible, setConfirmModalVisible] = useState(false);
   const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
-  const [tipsModalVisible, setTipsModalVisible] = useState(false);
-  const [pendingAcceptInvitationId, setPendingAcceptInvitationId] = useState<string | null>(null);
   // Received "Invitee will shuffle & pick" invitation currently being shuffled
   const [shuffleInvitation, setShuffleInvitation] = useState<MealInvitation | null>(null);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
-  const { user: currentUser } = useAuth();
   const currentUserId = '1';
 
   const handleAccept = (invitationId: string) => {
@@ -374,10 +369,29 @@ export default function InvitationsScreen() {
     if (!confirmData) return;
 
     if (confirmData.type === 'accept') {
-      setPendingAcceptInvitationId(confirmData.invitationId);
-      setConfirmModalVisible(false);
-      setConfirmData(null);
-      setTipsModalVisible(true);
+      const invitation = invitations.find(inv => inv.id === confirmData.invitationId);
+      if (invitation) {
+        const inviter = mockUsers.find(user => user.id === invitation.inviterId);
+
+        updateInvitation(confirmData.invitationId, { status: 'accepted' });
+
+        if (inviter) {
+          const chatId = `${currentUserId}-${inviter.id}`;
+          const systemMessage: SystemMessage = {
+            id: `system-${Date.now()}`,
+            type: 'invitation_accepted',
+            content: `You accepted the meal invitation for ${invitation.venue.name} on ${invitation.date.toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              month: 'short', 
+              day: 'numeric' 
+            })} at ${invitation.time}. Looking forward to it!`,
+            timestamp: new Date(),
+            relatedInvitationId: confirmData.invitationId
+          };
+
+          addSystemMessage(chatId, systemMessage);
+        }
+      }
     } else if (confirmData.type === 'decline') {
       const invitation = invitations.find(inv => inv.id === confirmData.invitationId);
       if (invitation) {
@@ -410,39 +424,6 @@ export default function InvitationsScreen() {
 
     setConfirmModalVisible(false);
     setConfirmData(null);
-  };
-
-  const handleTipsComplete = (amount: number) => {
-    console.log(`Platform tip of ${amount} received`);
-    
-    if (!pendingAcceptInvitationId) return;
-    
-    const invitation = invitations.find(inv => inv.id === pendingAcceptInvitationId);
-    if (invitation) {
-      const inviter = mockUsers.find(user => user.id === invitation.inviterId);
-      
-      updateInvitation(pendingAcceptInvitationId, { status: 'accepted' });
-      
-      if (inviter) {
-        const chatId = `${currentUserId}-${inviter.id}`;
-        const systemMessage: SystemMessage = {
-          id: `system-${Date.now()}`,
-          type: 'invitation_accepted',
-          content: `You accepted the meal invitation for ${invitation.venue.name} on ${invitation.date.toLocaleDateString('en-US', { 
-            weekday: 'long', 
-            month: 'short', 
-            day: 'numeric' 
-          })} at ${invitation.time}. Looking forward to it!`,
-          timestamp: new Date(),
-          relatedInvitationId: pendingAcceptInvitationId
-        };
-        
-        addSystemMessage(chatId, systemMessage);
-      }
-    }
-    
-    setTipsModalVisible(false);
-    setPendingAcceptInvitationId(null);
   };
 
   const handleCancelConfirm = () => {
@@ -788,15 +769,6 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
-      <PlatformTipsPopup
-        visible={tipsModalVisible}
-        onComplete={handleTipsComplete}
-        onClose={() => {
-          setTipsModalVisible(false);
-          setPendingAcceptInvitationId(null);
-        }}
-        currencySymbol={currentUser?.currency ?? '$'}
-      />
       <MealPickerModal
         visible={!!shuffleInvitation}
         places={shuffleInvitation?.pickerPlaces ?? []}
