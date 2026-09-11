@@ -54,6 +54,9 @@ interface MealPickerModalProps {
   onInviteePick: (places: PickerPlace[]) => void;
   onBribeMe: () => void;
   onAddMine: () => void;
+  /** Invitee mode: the recipient shuffles a pool chosen by the sender —
+   *  no editing, no extra buttons, only shuffle + lock in. */
+  inviteeMode?: boolean;
 }
 
 const CARD_W = 96;
@@ -75,6 +78,7 @@ export function MealPickerModal({
   onInviteePick,
   onBribeMe,
   onAddMine,
+  inviteeMode = false,
 }: MealPickerModalProps) {
   const [phase, setPhase] = useState<Phase>('select');
   const [shuffleCards, setShuffleCards] = useState<PickerPlace[]>([]);
@@ -288,7 +292,7 @@ export function MealPickerModal({
       <View style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            {phase === 'select' && 'Meal Picker'}
+            {phase === 'select' && (inviteeMode ? 'Meal Shuffle' : 'Meal Picker')}
             {phase === 'shuffling' && 'Shuffling...'}
             {phase === 'result' && 'Your pick!'}
           </Text>
@@ -300,34 +304,40 @@ export function MealPickerModal({
         {phase === 'select' && (
           <>
             <Text style={styles.subtitle}>
-              Can't decide where to eat? Add a few places and let fate choose one for you. 🎴
+              {inviteeMode
+                ? "They couldn't decide — the deck is yours. Shuffle and let fate pick where you'll eat! 🎴"
+                : "Can't decide where to eat? Add a few places and let fate choose one for you. 🎴"}
             </Text>
             <ScrollView style={styles.placesScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.placesGrid}>
               {places.map((place) => (
                 <View key={place.id} style={[styles.placeSquare, { width: SQUARE_SIZE, height: SQUARE_SIZE }]}>
-                  <TouchableOpacity
-                    style={styles.placeRemoveBtn}
-                    onPress={() => handleRemovePlace(place.id)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <Trash2 size={13} color="#FF6B35" />
-                  </TouchableOpacity>
+                  {!inviteeMode && (
+                    <TouchableOpacity
+                      style={styles.placeRemoveBtn}
+                      onPress={() => handleRemovePlace(place.id)}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    >
+                      <Trash2 size={13} color="#FF6B35" />
+                    </TouchableOpacity>
+                  )}
                   <Text style={styles.placeEmoji}>{place.emoji}</Text>
                   <Text style={styles.placeName} numberOfLines={2}>{place.name}</Text>
                   <Text style={styles.placeCity} numberOfLines={1}>{place.city}</Text>
                 </View>
               ))}
 
-              <TouchableOpacity
-                style={[styles.addSquare, { width: SQUARE_SIZE, height: SQUARE_SIZE }]}
-                onPress={handleAddPlace}
-                activeOpacity={0.7}
-              >
-                <View style={styles.addCircle}>
-                  <Plus size={26} color={Colors.primary} strokeWidth={2.5} />
-                </View>
-                <Text style={styles.addLabel}>Add a place</Text>
-              </TouchableOpacity>
+              {!inviteeMode && (
+                <TouchableOpacity
+                  style={[styles.addSquare, { width: SQUARE_SIZE, height: SQUARE_SIZE }]}
+                  onPress={handleAddPlace}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.addCircle}>
+                    <Plus size={26} color={Colors.primary} strokeWidth={2.5} />
+                  </View>
+                  <Text style={styles.addLabel}>Add a place</Text>
+                </TouchableOpacity>
+              )}
             </ScrollView>
 
             <View style={styles.footer}>
@@ -346,22 +356,26 @@ export function MealPickerModal({
                 activeOpacity={0.8}
               >
                 <Shuffle size={18} color="#FFFFFF" />
-                <Text style={styles.primaryButtonText}>I'll shuffle & pick</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[styles.secondaryButton, !canShuffle && styles.secondaryButtonDisabled]}
-                onPress={handleInviteePick}
-                disabled={!canShuffle}
-                activeOpacity={0.8}
-              >
-                <Send size={17} color={canShuffle ? Colors.primary : '#666666'} />
-                <Text style={[styles.secondaryButtonText, !canShuffle && styles.secondaryButtonTextDisabled]}>
-                  Invitee will shuffle & pick
+                <Text style={styles.primaryButtonText}>
+                  {inviteeMode ? 'Shuffle & pick' : "I'll shuffle & pick"}
                 </Text>
               </TouchableOpacity>
 
-              {(!bribeMode || !mineAdded) && (
+              {!inviteeMode && (
+                <TouchableOpacity
+                  style={[styles.secondaryButton, !canShuffle && styles.secondaryButtonDisabled]}
+                  onPress={handleInviteePick}
+                  disabled={!canShuffle}
+                  activeOpacity={0.8}
+                >
+                  <Send size={17} color={canShuffle ? Colors.primary : '#666666'} />
+                  <Text style={[styles.secondaryButtonText, !canShuffle && styles.secondaryButtonTextDisabled]}>
+                    Invitee will shuffle & pick
+                  </Text>
+                </TouchableOpacity>
+              )}
+
+              {(!bribeMode || !mineAdded) && !inviteeMode && (
                 <TouchableOpacity
                   style={styles.tertiaryButton}
                   onPress={bribeMode ? handleAddMine : handleBribeMe}
@@ -450,7 +464,9 @@ export function MealPickerModal({
             <View style={styles.resultActions}>
               <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.8}>
                 <Calendar size={18} color="#FFFFFF" />
-                <Text style={styles.searchButtonText}>Set date & time</Text>
+                <Text style={styles.searchButtonText}>
+                  {inviteeMode ? 'Lock in this pick' : 'Set date & time'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

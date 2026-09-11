@@ -1,3 +1,5 @@
+import type { PickerPlace } from '@/components/MealPickerModal';
+
 export interface User {
   id: string;
   name: string;
@@ -79,6 +81,10 @@ export interface MealInvitation {
   status: 'pending' | 'accepted' | 'declined' | 'completed';
   createdAt: Date;
   declinedAt?: Date;
+  /** Sent via the Meal Picker's "Invitee will shuffle & pick" — the invitee shuffles this pool. */
+  pickerPlaces?: PickerPlace[];
+  /** Id of the place the invitee locked in via the shuffle. */
+  pickerPickedId?: string;
 }
 
 export interface PostDateResponse {

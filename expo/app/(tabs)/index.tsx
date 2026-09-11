@@ -224,6 +224,8 @@ export default function SearchScreen() {
           bribeUserId: pickerPlacesAreBribe ? pickerBribeUserId ?? undefined : undefined,
           // Picker invitee flow: no invitation summary card at the top
           fromPicker: 'true',
+          // Full pool travels with the invitation so the invitee can shuffle it
+          pickerPlacesJson: JSON.stringify(places),
           placeName: first.name,
           placeAddress: first.city,
           placeId: first.id,

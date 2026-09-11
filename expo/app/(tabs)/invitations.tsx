@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle } from 'lucide-react-native';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
 import type { MealInvitation, SystemMessage } from '@/types/user';
 import { PlatformTipsPopup } from '@/components/PlatformTipsPopup';
+import { MealPickerModal } from '@/components/MealPickerModal';
+import type { PickerPlace } from '@/components/MealPickerModal';
 
 const colors = {
   primary: '#FF6B35',
@@ -27,9 +30,11 @@ type InvitationCardProps = {
   onDecline: (id: string) => void;
   onEdit?: (id: string) => void;
   showActions?: boolean;
+  /** Present on the received tab — opens the invitee Meal Shuffle picker. */
+  onShuffle?: (invitation: MealInvitation) => void;
 };
 
-function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions = true }: InvitationCardProps) {
+function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions = true, onShuffle }: InvitationCardProps) {
   const [navModalVisible, setNavModalVisible] = useState(false);
 
   const openWaze = () => {
@@ -54,6 +59,18 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
   const inviter = mockUsers.find(user => user.id === invitation.inviterId);
   const isPending = invitation.status === 'pending';
   const isConfirmed = invitation.status === 'accepted';
+  // "Invitee will shuffle & pick" invitation — the pick still belongs to the
+  // invitee until they shuffle, so the venue row is replaced by the shuffle panel.
+  const isShufflePending =
+    !!invitation.pickerPlaces &&
+    invitation.pickerPlaces.length >= 2 &&
+    isPending &&
+    !invitation.pickerPickedId;
+  const shufflePanelText = isShufflePending
+    ? showActions
+      ? `${invitation.pickerPlaces!.length} places on the deck — ${inviter?.name || 'they'} left the pick to you!`
+      : `Waiting for the invitee to shuffle ${invitation.pickerPlaces!.length} places and pick!`
+    : '';
 
   const formatDate = (date: Date) => {
     const today = new Date();
@@ -165,54 +182,79 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             {formatDate(invitation.date)} at {invitation.time}
           </Text>
         </View>
-        <View style={styles.detailRow}>
-          <ChefHat size={16} color={colors.textLight} />
-          <Text style={styles.detailText}>
-            {invitation.venue.name} • {invitation.venue.cuisine}
-          </Text>
-        </View>
-        <TouchableOpacity style={styles.detailRow} onPress={() => setNavModalVisible(true)} activeOpacity={0.7}>
-          <MapPin size={16} color={colors.primary} />
-          <Text style={[styles.detailText, styles.addressText]}>
-            {invitation.venue.address}
-          </Text>
-        </TouchableOpacity>
-        <Modal
-          visible={navModalVisible}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setNavModalVisible(false)}
-        >
-          <TouchableOpacity 
-            style={styles.navModalOverlay} 
-            activeOpacity={1} 
-            onPress={() => setNavModalVisible(false)}
-          >
-            <View style={styles.navModalContent}>
-              <Text style={styles.navModalTitle}>Navigate to</Text>
-              <Text style={styles.navModalAddress} numberOfLines={2}>{invitation.venue.address}</Text>
-              <View style={styles.navOptions}>
-                <TouchableOpacity style={styles.navOption} onPress={openWaze} activeOpacity={0.7}>
-                  <View style={[styles.navIconCircle, { backgroundColor: '#33CCFF20' }]}>
-                    <Navigation size={24} color="#33CCFF" />
-                  </View>
-                  <Text style={styles.navOptionLabel}>Waze</Text>
-                  <Text style={styles.navOptionSub}>Live traffic</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.navOption} onPress={openGoogleMaps} activeOpacity={0.7}>
-                  <View style={[styles.navIconCircle, { backgroundColor: '#4285F420' }]}>
-                    <Map size={24} color="#4285F4" />
-                  </View>
-                  <Text style={styles.navOptionLabel}>Google Maps</Text>
-                  <Text style={styles.navOptionSub}>Directions</Text>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity style={styles.navCancelButton} onPress={() => setNavModalVisible(false)}>
-                <Text style={styles.navCancelText}>Cancel</Text>
+        {isShufflePending ? (
+          <View style={styles.shufflePanel}>
+            <Text style={styles.shufflePanelTitle}>🎴 Meal Shuffle</Text>
+            <Text style={styles.shufflePanelText}>{shufflePanelText}</Text>
+            {showActions && (
+              <TouchableOpacity
+                style={styles.shuffleButton}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  onShuffle?.(invitation);
+                }}
+                activeOpacity={0.8}
+              >
+                <Shuffle size={16} color="#FFFFFF" />
+                <Text style={styles.shuffleButtonText}>Shuffle & pick</Text>
               </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <>
+            <View style={styles.detailRow}>
+              <ChefHat size={16} color={colors.textLight} />
+              <Text style={styles.detailText}>
+                {invitation.venue.name} • {invitation.venue.cuisine}
+              </Text>
             </View>
-          </TouchableOpacity>
-        </Modal>
+            {!!invitation.pickerPickedId && (
+              <Text style={styles.pickerNote}>Picked via Meal Shuffle 🎴</Text>
+            )}
+            <TouchableOpacity style={styles.detailRow} onPress={() => setNavModalVisible(true)} activeOpacity={0.7}>
+              <MapPin size={16} color={colors.primary} />
+              <Text style={[styles.detailText, styles.addressText]}>
+                {invitation.venue.address}
+              </Text>
+            </TouchableOpacity>
+            <Modal
+              visible={navModalVisible}
+              transparent
+              animationType="fade"
+              onRequestClose={() => setNavModalVisible(false)}
+            >
+              <TouchableOpacity 
+                style={styles.navModalOverlay} 
+                activeOpacity={1} 
+                onPress={() => setNavModalVisible(false)}
+              >
+                <View style={styles.navModalContent}>
+                  <Text style={styles.navModalTitle}>Navigate to</Text>
+                  <Text style={styles.navModalAddress} numberOfLines={2}>{invitation.venue.address}</Text>
+                  <View style={styles.navOptions}>
+                    <TouchableOpacity style={styles.navOption} onPress={openWaze} activeOpacity={0.7}>
+                      <View style={[styles.navIconCircle, { backgroundColor: '#33CCFF20' }]}>
+                        <Navigation size={24} color="#33CCFF" />
+                      </View>
+                      <Text style={styles.navOptionLabel}>Waze</Text>
+                      <Text style={styles.navOptionSub}>Live traffic</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.navOption} onPress={openGoogleMaps} activeOpacity={0.7}>
+                      <View style={[styles.navIconCircle, { backgroundColor: '#4285F420' }]}>
+                        <Map size={24} color="#4285F4" />
+                      </View>
+                      <Text style={styles.navOptionLabel}>Google Maps</Text>
+                      <Text style={styles.navOptionSub}>Directions</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity style={styles.navCancelButton} onPress={() => setNavModalVisible(false)}>
+                    <Text style={styles.navCancelText}>Cancel</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            </Modal>
+          </>
+        )}
       </View>
       {isPending && showActions && (
         <View style={styles.actionButtons}>
@@ -262,6 +304,8 @@ export default function InvitationsScreen() {
   const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
   const [tipsModalVisible, setTipsModalVisible] = useState(false);
   const [pendingAcceptInvitationId, setPendingAcceptInvitationId] = useState<string | null>(null);
+  // Received "Invitee will shuffle & pick" invitation currently being shuffled
+  const [shuffleInvitation, setShuffleInvitation] = useState<MealInvitation | null>(null);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
@@ -402,6 +446,41 @@ export default function InvitationsScreen() {
   const handleCancelConfirm = () => {
     setConfirmModalVisible(false);
     setConfirmData(null);
+  };
+
+  const handleOpenShuffle = (invitation: MealInvitation) => {
+    setShuffleInvitation(invitation);
+  };
+
+  // Invitee locked in their pick from the sender's Meal Shuffle deck —
+  // the venue becomes the picked place and the chat gets a system note.
+  const handleShuffleConfirm = (place: PickerPlace) => {
+    if (!shuffleInvitation) return;
+    const inviter = mockUsers.find(user => user.id === shuffleInvitation.inviterId);
+
+    updateInvitation(shuffleInvitation.id, {
+      venue: {
+        name: place.name,
+        address: place.city,
+        cuisine: 'Meal Shuffle pick',
+        placeId: place.id,
+      },
+      pickerPickedId: place.id,
+    });
+
+    if (inviter) {
+      const chatId = `${currentUserId}-${inviter.id}`;
+      const systemMessage: SystemMessage = {
+        id: `system-${Date.now()}`,
+        type: 'invitation_sent',
+        content: `You picked ${place.name} from ${inviter.name}'s Meal Shuffle 🎴 Fate has spoken!`,
+        timestamp: new Date(),
+        relatedInvitationId: shuffleInvitation.id,
+      };
+      addSystemMessage(chatId, systemMessage);
+    }
+
+    setShuffleInvitation(null);
   };
 
   const isInvitationDue = (invitation: MealInvitation) => {
@@ -596,6 +675,7 @@ export default function InvitationsScreen() {
                   onAccept={handleAccept}
                   onDecline={handleDecline}
                   onEdit={invitation.status === 'accepted' ? handleEdit : undefined}
+                  onShuffle={handleOpenShuffle}
                 />
               ))
             ) : (
@@ -709,6 +789,22 @@ export default function InvitationsScreen() {
       <PlatformTipsPopup
         visible={tipsModalVisible}
         onComplete={handleTipsComplete}
+      />
+      <MealPickerModal
+        visible={!!shuffleInvitation}
+        places={shuffleInvitation?.pickerPlaces ?? []}
+        inviteeMode
+        bribeMode={false}
+        mineAdded={false}
+        lockedWinner={null}
+        onClose={() => setShuffleInvitation(null)}
+        onAddPlace={() => {}}
+        onRemovePlace={() => {}}
+        onPick={handleShuffleConfirm}
+        onShuffleComplete={() => {}}
+        onInviteePick={() => {}}
+        onBribeMe={() => {}}
+        onAddMine={() => {}}
       />
     </SafeAreaView>
   );
@@ -1093,6 +1189,47 @@ const styles = StyleSheet.create({
   },
   addressText: {
     color: colors.primary,
+  },
+  shufflePanel: {
+    backgroundColor: colors.primary + '15',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+    padding: 12,
+    marginBottom: 8,
+  },
+  shufflePanelTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.primary,
+    marginBottom: 4,
+  },
+  shufflePanelText: {
+    fontSize: 14,
+    color: colors.text,
+    lineHeight: 20,
+  },
+  shuffleButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    marginTop: 12,
+    gap: 8,
+  },
+  shuffleButtonText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
+  pickerNote: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 24,
+    marginBottom: 8,
   },
   navModalOverlay: {
     flex: 1,

@@ -14,6 +14,7 @@ import { getCurrencyCodeFromCountry } from '@/constants/currencies';
 import { TipSelectionModal } from '@/components/TipSelectionModal';
 import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 import type { User, SystemMessage } from '@/types/user';
+import type { PickerPlace } from '@/components/MealPickerModal';
 import { getUserFavorites } from '@/mocks/user-favorites';
 
 interface ChatData {
@@ -21,6 +22,19 @@ interface ChatData {
   lastMessage: string;
   lastMessageTime: Date;
   unreadCount: number;
+}
+
+/** Safely parses the serialized picker pool passed through route params
+ *  (may arrive as string[] on web query params). */
+function parsePickerPlaces(json?: string | string[]): PickerPlace[] {
+  if (!json) return [];
+  try {
+    const raw = Array.isArray(json) ? json[0] : json;
+    const parsed: unknown = JSON.parse(raw);
+    return Array.isArray(parsed) ? (parsed as PickerPlace[]) : [];
+  } catch {
+    return [];
+  }
 }
 
 const mockChats: ChatData[] = [
@@ -75,6 +89,7 @@ export default function MessagesScreen() {
     bribeUserId?: string;
     bribeUserName?: string;
     fromPicker?: string;
+    pickerPlacesJson?: string;
     fromMealUpShare?: string;
     fromBribePicker?: string;
     mealUpId?: string;
@@ -125,6 +140,7 @@ export default function MessagesScreen() {
       bribeUserId: undefined,
       bribeUserName: undefined,
       fromPicker: undefined,
+      pickerPlacesJson: undefined,
       fromBribePicker: undefined,
       fromMealUpShare: undefined,
       placeName: undefined,
@@ -156,6 +172,8 @@ export default function MessagesScreen() {
         isBribePick: params.bribePick === 'true',
         // From the meal picker's "Invitee will shuffle & pick" — no summary card
         fromPicker: params.fromPicker === 'true',
+        // Full picker pool travels with the invitation so the invitee can shuffle it
+        pickerPlaces: parsePickerPlaces(params.pickerPlacesJson),
         placeName: params.placeName,
         placeAddress: params.placeAddress,
         placeGoogleMapsUrl: params.placeGoogleMapsUrl,
@@ -188,7 +206,7 @@ export default function MessagesScreen() {
     } else {
       resetModes();
     }
-  }, [params.fromInvitation, params.bribePick, params.bribeUserId, params.fromPicker, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
+  }, [params.fromInvitation, params.bribePick, params.bribeUserId, params.fromPicker, params.pickerPlacesJson, params.fromMealUpShare, params.fromBribePicker, params.placeName, params.placeAddress, params.placeGoogleMapsUrl, params.placeId, params.date, params.time, params.mealUpId, params.mealUpTitle, params.mealUpVenue, params.mealUpDate, params.mealUpTime, params.mealUpPrice, params.mealUpImage]);
   
   // Filter chats based on removed profiles
   React.useEffect(() => {
@@ -680,6 +698,11 @@ export default function MessagesScreen() {
                 cuisine: 'Restaurant',
                 placeId: invitationData.placeId,
               },
+              // "Invitee will shuffle & pick" — the invitee shuffles this pool
+              // on the Meal Invitations page; the venue updates once they pick.
+              pickerPlaces: invitationData.pickerPlaces?.length
+                ? invitationData.pickerPlaces
+                : undefined,
               status: 'pending',
               createdAt: new Date(),
             });
