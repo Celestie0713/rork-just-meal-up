@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { mockUsers } from '@/mocks/users';
 import { useChat } from '@/hooks/use-chat';
 import { useInvitations } from '@/hooks/use-invitations';
+import { useAuth } from '@/hooks/use-auth';
 import type { MealInvitation, SystemMessage } from '@/types/user';
 import { PlatformTipsPopup } from '@/components/PlatformTipsPopup';
 import { MealPickerModal } from '@/components/MealPickerModal';
@@ -309,6 +310,7 @@ export default function InvitationsScreen() {
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
+  const { user: currentUser } = useAuth();
   const currentUserId = '1';
 
   const handleAccept = (invitationId: string) => {
@@ -789,6 +791,11 @@ export default function InvitationsScreen() {
       <PlatformTipsPopup
         visible={tipsModalVisible}
         onComplete={handleTipsComplete}
+        onClose={() => {
+          setTipsModalVisible(false);
+          setPendingAcceptInvitationId(null);
+        }}
+        currencySymbol={currentUser?.currency ?? '$'}
       />
       <MealPickerModal
         visible={!!shuffleInvitation}

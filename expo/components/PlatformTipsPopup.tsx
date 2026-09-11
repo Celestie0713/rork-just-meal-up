@@ -1,129 +1,124 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
-import { DollarSign, Heart } from 'lucide-react-native';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, TextInput } from 'react-native';
+import { X } from 'lucide-react-native';
+import { Colors } from '@/constants/colors';
 
 interface PlatformTipsPopupProps {
   visible: boolean;
   onComplete: (amount: number) => void;
+  /** Optional close handler — renders the X button when provided. */
+  onClose?: () => void;
+  /** Currency symbol of the user's registered country (e.g. '$', 'RM'). Defaults to '$'. */
+  currencySymbol?: string;
 }
 
-const colors = {
-  primary: '#FF6B35',
-  text: '#FFFFFF',
-  textLight: '#CCCCCC',
-  background: '#000000',
-  surface: '#1A1A1A',
-  success: '#4CAF50',
-  error: '#EF5350',
-  border: '#333333',
-} as const;
+const TIP_AMOUNTS = [5, 10, 20, 50, 100];
 
-const PRESET_AMOUNTS = [5, 10, 20, 50];
-const MINIMUM_TIP = 5;
-
-export function PlatformTipsPopup({ visible, onComplete }: PlatformTipsPopupProps) {
-  const [selectedAmount, setSelectedAmount] = useState<number>(10);
+export function PlatformTipsPopup({ visible, onComplete, onClose, currencySymbol = '$' }: PlatformTipsPopupProps) {
+  const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
   const [customAmount, setCustomAmount] = useState<string>('');
   const [isCustom, setIsCustom] = useState(false);
-  const [error, setError] = useState<string>('');
 
-  const handlePresetSelect = (amount: number) => {
-    setSelectedAmount(amount);
+  const handleConfirm = () => {
+    const amount = isCustom ? parseFloat(customAmount) : selectedAmount;
+    if (amount && amount >= 5) {
+      onComplete(amount);
+      setSelectedAmount(null);
+      setCustomAmount('');
+      setIsCustom(false);
+    }
+  };
+
+  const handleSelectPredefined = (amount: number) => {
     setIsCustom(false);
     setCustomAmount('');
-    setError('');
+    setSelectedAmount(amount);
   };
 
   const handleCustomAmountChange = (text: string) => {
+    const cleaned = text.replace(/[^0-9.]/g, '');
+    const parts = cleaned.split('.');
+    if (parts.length > 2) return;
+    if (parts[1] && parts[1].length > 2) return;
+
+    setCustomAmount(cleaned);
     setIsCustom(true);
-    setCustomAmount(text);
-    setError('');
-    
-    const numValue = parseFloat(text);
-    if (!isNaN(numValue)) {
-      setSelectedAmount(numValue);
-    }
+    setSelectedAmount(null);
   };
 
-  const handleContinue = () => {
-    const amount = isCustom ? parseFloat(customAmount) : selectedAmount;
-    
-    if (isNaN(amount) || amount < MINIMUM_TIP) {
-      setError(`Minimum tip is $${MINIMUM_TIP}`);
-      return;
-    }
-    
-    onComplete(amount);
-  };
-
-  const currentAmount = isCustom ? parseFloat(customAmount) : selectedAmount;
-  const isValidAmount = !isNaN(currentAmount) && currentAmount >= MINIMUM_TIP;
+  const customAmountValue = parseFloat(customAmount);
+  const isValid = isCustom
+    ? !isNaN(customAmountValue) && customAmountValue >= 5
+    : selectedAmount !== null && selectedAmount >= 5;
 
   return (
     <Modal
       visible={visible}
       transparent
       animationType="fade"
+      onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
+      <View style={styles.overlay}>
         <View style={styles.modalContent}>
-          <View style={styles.iconContainer}>
-            <Heart size={48} color={colors.primary} fill={colors.primary} />
-          </View>
-          <Text style={styles.title}>Support the Platform</Text>
-          <Text style={styles.subtitle}>
-            Help us keep connecting food lovers!{'\n'}
-            Minimum tip: ${MINIMUM_TIP}
-          </Text>
-          <View style={styles.presetContainer}>
-            {PRESET_AMOUNTS.map((amount) => (
-              <TouchableOpacity
-                key={amount}
-                style={[
-                  styles.presetButton,
-                  !isCustom && selectedAmount === amount && styles.presetButtonActive
-                ]}
-                onPress={() => handlePresetSelect(amount)}
-              >
-                <Text style={[
-                  styles.presetButtonText,
-                  !isCustom && selectedAmount === amount && styles.presetButtonTextActive
-                ]}>
-                  ${amount}
-                </Text>
+          <View style={styles.header}>
+            <Text style={styles.title}>Support the platform 💝</Text>
+            {!!onClose && (
+              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                <X size={24} color={Colors.textLight} />
               </TouchableOpacity>
-            ))}
+            )}
           </View>
-          <View style={styles.customInputContainer}>
-            <DollarSign size={20} color={colors.textLight} style={styles.dollarIcon} />
-            <TextInput
-              style={[styles.customInput, isCustom && styles.customInputActive]}
-              placeholder="Custom amount"
-              placeholderTextColor={colors.textLight}
-              keyboardType="decimal-pad"
-              value={customAmount}
-              onChangeText={handleCustomAmountChange}
-              onFocus={() => setIsCustom(true)}
-            />
-          </View>
-          {error ? (
-            <Text style={styles.errorText}>{error}</Text>
-          ) : null}
-          <TouchableOpacity
-            style={[
-              styles.continueButton,
-              !isValidAmount && styles.continueButtonDisabled
-            ]}
-            onPress={handleContinue}
-            disabled={!isValidAmount}
-          >
-            <Text style={styles.continueButtonText}>
-              Continue with ${isValidAmount ? currentAmount.toFixed(2) : '0.00'}
+          <View style={styles.body}>
+            <Text style={styles.subtitle}>
+              Your Cupid deserves a snack 🍕 Matchmaking burns calories too.
             </Text>
-          </TouchableOpacity>
-          <Text style={styles.disclaimer}>
-            This tip goes directly to supporting the platform.
-          </Text>
+            <View style={styles.amountGrid}>
+              {TIP_AMOUNTS.map((amount) => (
+                <TouchableOpacity
+                  key={amount}
+                  style={[
+                    styles.amountButton,
+                    selectedAmount === amount && !isCustom && styles.amountButtonSelected
+                  ]}
+                  onPress={() => handleSelectPredefined(amount)}
+                >
+                  <Text style={[
+                    styles.amountText,
+                    selectedAmount === amount && !isCustom && styles.amountTextSelected
+                  ]}>
+                    {currencySymbol}{amount}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <View style={styles.customAmountContainer}>
+              <Text style={styles.customAmountLabel}>Custom Amount</Text>
+              <View style={styles.customAmountInputWrapper}>
+                <Text style={styles.dollarSign}>{currencySymbol}</Text>
+                <TextInput
+                  style={styles.customAmountInput}
+                  value={customAmount}
+                  onChangeText={handleCustomAmountChange}
+                  placeholder="Enter amount"
+                  placeholderTextColor={Colors.textLight}
+                  keyboardType="decimal-pad"
+                  maxLength={8}
+                />
+              </View>
+              {!!customAmount && customAmountValue < 5 && (
+                <Text style={styles.errorText}>Minimum tip is {currencySymbol}5</Text>
+              )}
+            </View>
+            <TouchableOpacity
+              style={[styles.confirmButton, !isValid && styles.confirmButtonDisabled]}
+              onPress={handleConfirm}
+              disabled={!isValid}
+            >
+              <Text style={styles.confirmButtonText}>
+                Continue to Payment
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </Modal>
@@ -131,128 +126,130 @@ export function PlatformTipsPopup({ visible, onComplete }: PlatformTipsPopupProp
 }
 
 const styles = StyleSheet.create({
-  modalOverlay: {
+  overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
   },
   modalContent: {
-    backgroundColor: colors.surface,
-    borderRadius: 24,
-    padding: 32,
+    backgroundColor: Colors.background,
+    borderRadius: 20,
     width: '100%',
     maxWidth: 400,
-    borderWidth: 1,
-    borderColor: colors.border,
-    alignItems: 'center',
+    maxHeight: '80%',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
   },
-  iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: colors.primary + '20',
-    justifyContent: 'center',
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    padding: 20,
+    paddingBottom: 12,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: colors.text,
-    marginBottom: 8,
-    textAlign: 'center',
+    color: Colors.text,
+  },
+  closeButton: {
+    padding: 4,
   },
   subtitle: {
-    fontSize: 16,
-    color: colors.textLight,
+    fontSize: 15,
+    color: '#FFFFFF',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 32,
-  },
-  presetContainer: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-    width: '100%',
-  },
-  presetButton: {
-    flex: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: colors.background,
-    borderWidth: 2,
-    borderColor: colors.border,
-    alignItems: 'center',
-  },
-  presetButtonActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  presetButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.textLight,
-  },
-  presetButtonTextActive: {
-    color: colors.text,
-  },
-  customInputContainer: {
-    position: 'relative',
-    width: '100%',
     marginBottom: 24,
   },
-  dollarIcon: {
-    position: 'absolute',
-    left: 16,
-    top: 18,
-    zIndex: 1,
+  body: {
+    padding: 20,
+    paddingTop: 0,
   },
-  customInput: {
-    backgroundColor: colors.background,
-    borderRadius: 12,
-    paddingVertical: 16,
-    paddingLeft: 44,
-    paddingRight: 16,
-    fontSize: 18,
-    color: colors.text,
-    borderWidth: 2,
-    borderColor: colors.border,
-    fontWeight: '600',
+  amountGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 32,
+    marginHorizontal: -6,
   },
-  customInputActive: {
-    borderColor: colors.primary,
-  },
-  errorText: {
-    fontSize: 14,
-    color: colors.error,
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  continueButton: {
-    width: '100%',
-    backgroundColor: colors.success,
+  amountButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
     paddingVertical: 16,
     paddingHorizontal: 24,
     borderRadius: 12,
-    alignItems: 'center',
-    marginBottom: 16,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.background,
+    minWidth: 80,
+    margin: 6,
   },
-  continueButtonDisabled: {
-    backgroundColor: colors.border,
+  amountButtonSelected: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primary,
+  },
+  amountText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+  },
+  amountTextSelected: {
+    color: Colors.background,
+  },
+  confirmButton: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 18,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  confirmButtonDisabled: {
+    backgroundColor: Colors.border,
     opacity: 0.5,
   },
-  continueButtonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
+  confirmButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.background,
   },
-  disclaimer: {
+  customAmountContainer: {
+    marginBottom: 32,
+  },
+  customAmountLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Colors.text,
+    marginBottom: 12,
+  },
+  customAmountInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: Colors.border,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.background,
+  },
+  dollarSign: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: Colors.text,
+    marginRight: 4,
+  },
+  customAmountInput: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '600',
+    color: Colors.text,
+    paddingVertical: 16,
+  },
+  errorText: {
     fontSize: 12,
-    color: colors.textLight,
-    textAlign: 'center',
-    lineHeight: 18,
+    color: '#FF3B30',
+    marginTop: 8,
   },
 });
