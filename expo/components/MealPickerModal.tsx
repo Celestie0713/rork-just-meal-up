@@ -11,7 +11,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, Gift } from 'lucide-react-native';
+import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/colors';
 
@@ -370,7 +370,7 @@ export function MealPickerModal({
                   {bribeMode ? (
                     <Plus size={17} color="#FFFFFF" />
                   ) : (
-                    <Gift size={17} color="#FFFFFF" />
+                    <Text style={styles.tertiaryButtonEmoji}>🥞</Text>
                   )}
                   <Text style={styles.tertiaryButtonText}>
                     {bribeMode ? 'Add mine as well' : 'Choose from Food to bribe me with'}
@@ -652,6 +652,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  tertiaryButtonEmoji: {
+    fontSize: 17,
   },
 
   shuffleStage: {
