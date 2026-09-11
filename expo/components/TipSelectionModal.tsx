@@ -61,7 +61,7 @@ export function TipSelectionModal({ visible, onClose, onConfirm, recipientName, 
       <View style={styles.overlay}>
         <View style={styles.modalContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>Send a Tip</Text>
+            <Text style={styles.title}>Send a tip to us💝</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <X size={24} color={Colors.textLight} />
             </TouchableOpacity>
