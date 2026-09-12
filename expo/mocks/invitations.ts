@@ -1,4 +1,14 @@
 import type { MealInvitation } from '@/types/user';
+import type { PickerPlace } from '@/components/MealPickerModal';
+
+// Pool for the "Invitee will shuffle & pick" demo invitation (sent via Meal Picker)
+const mealPickerDeck: PickerPlace[] = [
+  { id: 'picker-1', name: 'Ramen Kiwami', emoji: '🍜', city: 'Downtown' },
+  { id: 'picker-2', name: 'Sushi Zen', emoji: '🍣', city: 'Midtown' },
+  { id: 'picker-3', name: 'Taco Fiesta', emoji: '🌮', city: 'South Side' },
+  { id: 'picker-4', name: 'Pasta Fresca', emoji: '🍝', city: 'Little Italy' },
+  { id: 'picker-5', name: 'Burger Palace', emoji: '🍔', city: 'Uptown' },
+];
 
 export const mockInvitations: MealInvitation[] = [
   {
@@ -152,5 +162,23 @@ export const mockInvitations: MealInvitation[] = [
     status: 'declined',
     createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
     declinedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000)
+  },
+  {
+    // Sent via the Meal Picker's "Invitee will shuffle & pick" —
+    // shows the Meal Shuffle panel on the received tab.
+    id: '11',
+    inviterId: '6',
+    inviteeId: '1',
+    date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // Day after tomorrow
+    time: '7:00 PM',
+    venue: {
+      name: 'Ramen Kiwami',
+      address: '12 Noodle Way, Downtown',
+      cuisine: 'Meal Shuffle pick',
+      placeId: 'picker-1'
+    },
+    status: 'pending',
+    pickerPlaces: mealPickerDeck,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000)
   }
 ];
