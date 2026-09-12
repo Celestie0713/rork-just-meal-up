@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -319,6 +320,7 @@ export default function InvitationsScreen() {
     time: string;
   } | null>(null);
   const [scheduleError, setScheduleError] = useState<string>('');
+  const [showScheduleDatePicker, setShowScheduleDatePicker] = useState(false);
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
@@ -472,6 +474,23 @@ export default function InvitationsScreen() {
   const handleCancelSchedule = () => {
     setScheduleData(null);
     setScheduleError('');
+  };
+
+  const schedulePickerValue =
+    scheduleData?.date && !isNaN(new Date(scheduleData.date + 'T12:00:00').getTime())
+      ? new Date(scheduleData.date + 'T12:00:00')
+      : new Date();
+
+  // Calendar picker — Android opens the system dialog, iOS opens a dark
+  // bottom sheet; both write back as YYYY-MM-DD.
+  const handleScheduleDateChange = (event: any, selected?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowScheduleDatePicker(false);
+    }
+    if (selected) {
+      setScheduleData(prev => (prev ? { ...prev, date: selected.toISOString().split('T')[0] } : prev));
+      setScheduleError('');
+    }
   };
 
   // Saves the picked place together with the invitee-chosen date & time.
@@ -800,16 +819,16 @@ export default function InvitationsScreen() {
             </Text>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Date</Text>
-              <TextInput
-                style={styles.input}
-                value={scheduleData?.date || ''}
-                onChangeText={(text) => {
-                  setScheduleData(prev => (prev ? { ...prev, date: text } : prev));
-                  setScheduleError('');
-                }}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={colors.textLight}
-              />
+              <TouchableOpacity
+                style={[styles.input, styles.dateInputButton]}
+                onPress={() => setShowScheduleDatePicker(true)}
+                activeOpacity={0.7}
+              >
+                <Calendar size={18} color={colors.primary} />
+                <Text style={[styles.dateInputText, !scheduleData?.date && { color: colors.textLight }]}>
+                  {scheduleData?.date || 'Pick a date'}
+                </Text>
+              </TouchableOpacity>
             </View>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Time</Text>
@@ -842,6 +861,41 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
+      {showScheduleDatePicker && Platform.OS === 'android' && (
+        <DateTimePicker
+          value={schedulePickerValue}
+          mode="date"
+          display="default"
+          minimumDate={new Date()}
+          onChange={handleScheduleDateChange}
+        />
+      )}
+      {showScheduleDatePicker && Platform.OS === 'ios' && (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setShowScheduleDatePicker(false)}>
+          <View style={styles.pickerSheetOverlay}>
+            <TouchableOpacity style={styles.pickerSheetBackdrop} activeOpacity={1} onPress={() => setShowScheduleDatePicker(false)} />
+            <View style={styles.pickerSheetContainer}>
+              <View style={styles.pickerSheetHeader}>
+                <TouchableOpacity onPress={() => setShowScheduleDatePicker(false)}>
+                  <Text style={styles.pickerSheetCancel}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.pickerSheetTitle}>Select Date</Text>
+                <TouchableOpacity onPress={() => setShowScheduleDatePicker(false)}>
+                  <Text style={styles.pickerSheetDone}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={schedulePickerValue}
+                mode="date"
+                display="inline"
+                minimumDate={new Date()}
+                onChange={handleScheduleDateChange}
+                themeVariant="dark"
+              />
+            </View>
+          </View>
+        </Modal>
+      )}
       <Modal
         visible={confirmModalVisible}
         transparent
@@ -1330,6 +1384,53 @@ const styles = StyleSheet.create({
     color: colors.error,
     textAlign: 'center',
     marginBottom: 12,
+  },
+  dateInputButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  dateInputText: {
+    flex: 1,
+    fontSize: 16,
+    color: colors.text,
+  },
+  pickerSheetOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
+  pickerSheetBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  pickerSheetContainer: {
+    backgroundColor: colors.surface,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 24,
+  },
+  pickerSheetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  pickerSheetTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  pickerSheetCancel: {
+    fontSize: 16,
+    color: colors.textLight,
+  },
+  pickerSheetDone: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
   },
   navModalOverlay: {
     flex: 1,
