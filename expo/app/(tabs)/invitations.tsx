@@ -760,7 +760,7 @@ export default function InvitationsScreen() {
               >
                 <Text style={[
                   styles.confirmButtonText, 
-                  { color: confirmData?.type === 'decline' ? colors.error : colors.success }
+                  { color: '#FFFFFF' }
                 ]}>
                   {confirmData?.type === 'decline' ? 'Decline' : 'Accept'}
                 </Text>
@@ -1155,12 +1155,12 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   acceptConfirmButton: {
-    backgroundColor: colors.success + '20',
-    borderColor: colors.success,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   declineConfirmButton: {
-    backgroundColor: colors.error + '20',
-    borderColor: colors.error,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   confirmButtonText: {
     fontSize: 16,
