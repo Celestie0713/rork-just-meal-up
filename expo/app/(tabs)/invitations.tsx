@@ -175,16 +175,16 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
         </View>
       </View>
       <View style={styles.mealDetails}>
-        <View style={styles.detailRow}>
-          <Calendar size={16} color={colors.textLight} />
-          <Text style={styles.detailText}>
-            {formatDate(invitation.date)} at {invitation.time}
-          </Text>
-        </View>
         {isShufflePending ? (
           <View style={styles.shufflePanel}>
             <Text style={styles.shufflePanelTitle}>🎴 Meal Shuffle</Text>
             <Text style={styles.shufflePanelText}>{shufflePanelText}</Text>
+            <View style={styles.detailRow}>
+              <Calendar size={16} color={colors.textLight} />
+              <Text style={styles.detailText}>
+                {showActions ? "Date & time: you'll set them after picking" : 'Date & time: invitee decides'}
+              </Text>
+            </View>
             {showActions && (
               <TouchableOpacity
                 style={styles.shuffleButton}
@@ -201,6 +201,12 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
           </View>
         ) : (
           <>
+            <View style={styles.detailRow}>
+              <Calendar size={16} color={colors.textLight} />
+              <Text style={styles.detailText}>
+                {formatDate(invitation.date)} at {invitation.time}
+              </Text>
+            </View>
             <View style={styles.detailRow}>
               <ChefHat size={16} color={colors.textLight} />
               <Text style={styles.detailText}>
@@ -303,6 +309,16 @@ export default function InvitationsScreen() {
   const [confirmData, setConfirmData] = useState<ConfirmModalData | null>(null);
   // Received "Invitee will shuffle & pick" invitation currently being shuffled
   const [shuffleInvitation, setShuffleInvitation] = useState<MealInvitation | null>(null);
+  // Date & time the invitee sets on this page after locking in a Meal Shuffle pick
+  const [scheduleData, setScheduleData] = useState<{
+    invitationId: string;
+    place: PickerPlace;
+    inviterId: string;
+    inviterName: string;
+    date: string;
+    time: string;
+  } | null>(null);
+  const [scheduleError, setScheduleError] = useState<string>('');
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
@@ -436,12 +452,41 @@ export default function InvitationsScreen() {
   };
 
   // Invitee locked in their pick from the sender's Meal Shuffle deck —
-  // the venue becomes the picked place and the chat gets a system note.
+  // next they choose the date & time on this page before it's confirmed.
   const handleShuffleConfirm = (place: PickerPlace) => {
     if (!shuffleInvitation) return;
     const inviter = mockUsers.find(user => user.id === shuffleInvitation.inviterId);
 
-    updateInvitation(shuffleInvitation.id, {
+    setScheduleData({
+      invitationId: shuffleInvitation.id,
+      place,
+      inviterId: inviter?.id ?? '',
+      inviterName: inviter?.name ?? 'them',
+      date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      time: '7:00 PM',
+    });
+    setScheduleError('');
+    setShuffleInvitation(null);
+  };
+
+  const handleCancelSchedule = () => {
+    setScheduleData(null);
+    setScheduleError('');
+  };
+
+  // Saves the picked place together with the invitee-chosen date & time.
+  const handleSaveSchedule = () => {
+    if (!scheduleData) return;
+    const { invitationId, place, inviterId, inviterName, date, time } = scheduleData;
+    const trimmedDate = date.trim();
+    const trimmedTime = time.trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(trimmedDate) || !trimmedTime) {
+      setScheduleError('Enter a date as YYYY-MM-DD and a time (e.g. 7:00 PM).');
+      return;
+    }
+    const chosenDate = new Date(trimmedDate);
+
+    updateInvitation(invitationId, {
       venue: {
         name: place.name,
         address: place.city,
@@ -449,21 +494,28 @@ export default function InvitationsScreen() {
         placeId: place.id,
       },
       pickerPickedId: place.id,
+      date: chosenDate,
+      time: trimmedTime,
     });
 
-    if (inviter) {
-      const chatId = `${currentUserId}-${inviter.id}`;
+    if (inviterId) {
+      const chatId = `${currentUserId}-${inviterId}`;
       const systemMessage: SystemMessage = {
         id: `system-${Date.now()}`,
         type: 'invitation_sent',
-        content: `You picked ${place.name} from ${inviter.name}'s Meal Shuffle 🎴 Fate has spoken!`,
+        content: `You picked ${place.name} from ${inviterName}'s Meal Shuffle 🎴 Meeting on ${chosenDate.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'short',
+          day: 'numeric',
+        })} at ${trimmedTime}. Fate has spoken!`,
         timestamp: new Date(),
-        relatedInvitationId: shuffleInvitation.id,
+        relatedInvitationId: invitationId,
       };
       addSystemMessage(chatId, systemMessage);
     }
 
-    setShuffleInvitation(null);
+    setScheduleData(null);
+    setScheduleError('');
   };
 
   const isInvitationDue = (invitation: MealInvitation) => {
@@ -729,6 +781,62 @@ export default function InvitationsScreen() {
                 onPress={handleSaveEdit}
               >
                 <Text style={[styles.modalButtonText, { color: colors.text }]}>Save</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        visible={!!scheduleData}
+        transparent
+        animationType="slide"
+        onRequestClose={handleCancelSchedule}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Set Date & Time</Text>
+            <Text style={styles.scheduleSubtitle}>
+              You picked {scheduleData?.place.emoji} {scheduleData?.place.name} — when are you meeting?
+            </Text>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Date</Text>
+              <TextInput
+                style={styles.input}
+                value={scheduleData?.date || ''}
+                onChangeText={(text) => {
+                  setScheduleData(prev => (prev ? { ...prev, date: text } : prev));
+                  setScheduleError('');
+                }}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textLight}
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Time</Text>
+              <TextInput
+                style={styles.input}
+                value={scheduleData?.time || ''}
+                onChangeText={(text) => {
+                  setScheduleData(prev => (prev ? { ...prev, time: text } : prev));
+                  setScheduleError('');
+                }}
+                placeholder="7:00 PM"
+                placeholderTextColor={colors.textLight}
+              />
+            </View>
+            {!!scheduleError && <Text style={styles.scheduleError}>{scheduleError}</Text>}
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={handleCancelSchedule}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.textLight }]}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleSaveSchedule}
+              >
+                <Text style={[styles.modalButtonText, { color: colors.text }]}>Confirm</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1209,6 +1317,19 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginLeft: 24,
     marginBottom: 8,
+  },
+  scheduleSubtitle: {
+    fontSize: 14,
+    color: colors.textLight,
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 20,
+  },
+  scheduleError: {
+    fontSize: 12,
+    color: colors.error,
+    textAlign: 'center',
+    marginBottom: 12,
   },
   navModalOverlay: {
     flex: 1,
