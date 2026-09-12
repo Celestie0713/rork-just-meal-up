@@ -261,8 +261,8 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             style={[styles.actionButton, styles.declineButton]}
             onPress={() => onDecline(invitation.id)}
           >
-            <X size={16} color={colors.error} />
-            <Text style={[styles.actionButtonText, { color: colors.error }]}>
+            <X size={16} color="#FFFFFF" />
+            <Text style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
               Decline
             </Text>
           </TouchableOpacity>
@@ -270,8 +270,8 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
             style={[styles.actionButton, styles.acceptButton]}
             onPress={() => onAccept(invitation.id)}
           >
-            <Check size={16} color={colors.success} />
-            <Text style={[styles.actionButtonText, { color: colors.success }]}>
+            <Check size={16} color="#FFFFFF" />
+            <Text style={[styles.actionButtonText, { color: '#FFFFFF' }]}>
               Accept
             </Text>
           </TouchableOpacity>
@@ -999,12 +999,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   acceptButton: {
-    backgroundColor: colors.success + '20',
-    borderColor: colors.success,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   declineButton: {
-    backgroundColor: colors.error + '20',
-    borderColor: colors.error,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   actionButtonText: {
     fontSize: 14,
