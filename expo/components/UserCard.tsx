@@ -18,6 +18,17 @@ interface UserCardProps {
 
 export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge = false }: UserCardProps) {
   const { user: currentUser } = useAuth();
+
+  // When the full name is too long for the card, show only the first name
+  // instead of truncating with "…". Grid cards are narrow, so they switch
+  // to the first name sooner than the wide list cards.
+  const fullName = (user.name ?? '').trim();
+  const firstNameLimit = isGridView ? 10 : 16;
+  const displayName =
+    fullName.includes(' ') && fullName.length > firstNameLimit
+      ? fullName.split(/\s+/)[0]
+      : fullName;
+
   const getMembershipIcon = () => {
     if (user.membershipTier === 'organizer') {
       return <Crown size={16} color={Colors.organizer} />;
@@ -54,9 +65,9 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
             <Text
               style={[styles.name, styles.nameText, isGridView && styles.gridName]}
               numberOfLines={1}
-              ellipsizeMode="tail"
+              ellipsizeMode="clip"
             >
-              {user.name}
+              {displayName}
             </Text>
             {user.age != null && (
               <Text
