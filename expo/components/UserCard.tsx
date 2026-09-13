@@ -51,9 +51,18 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
       <View style={[styles.content, isGridView && styles.gridContent]}>
         <View style={styles.header}>
           <View style={styles.nameRow}>
-            <Text style={[styles.name, isGridView && styles.gridName]} numberOfLines={1}>
-              {user.name}{user.age != null ? `, ${user.age}` : ''}
+            <Text
+              style={[styles.name, styles.nameText, isGridView && styles.gridName]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {user.name}
             </Text>
+            {user.age != null && (
+              <Text style={[styles.name, isGridView && styles.gridName]}>
+                {`, ${user.age}`}
+              </Text>
+            )}
           </View>
           <View style={styles.badgeContainer}>
             {showOrganizerBadge && (
@@ -220,6 +229,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     flex: 1,
+  },
+  nameText: {
+    flexShrink: 1,
   },
 
 });

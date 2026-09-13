@@ -325,6 +325,7 @@ export default function SignUpScreen() {
                   placeholder="Your name"
                   placeholderTextColor="#666666"
                   autoCapitalize="words"
+                  maxLength={20}
                   returnKeyType="next"
                 />
               </View>
