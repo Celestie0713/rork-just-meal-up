@@ -74,7 +74,7 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
                 style={[styles.name, styles.ageText, isGridView && styles.gridName]}
                 numberOfLines={1}
               >
-                {`,\u00A0${user.age}`}
+                {`\u00A0${user.age}`}
               </Text>
             )}
           </View>
