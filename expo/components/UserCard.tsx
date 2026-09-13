@@ -59,8 +59,11 @@ export function UserCard({ user, onPress, isGridView = false, showOrganizerBadge
               {user.name}
             </Text>
             {user.age != null && (
-              <Text style={[styles.name, isGridView && styles.gridName]}>
-                {`, ${user.age}`}
+              <Text
+                style={[styles.name, styles.ageText, isGridView && styles.gridName]}
+                numberOfLines={1}
+              >
+                {`,\u00A0${user.age}`}
               </Text>
             )}
           </View>
@@ -232,6 +235,9 @@ const styles = StyleSheet.create({
   },
   nameText: {
     flexShrink: 1,
+  },
+  ageText: {
+    flexShrink: 0,
   },
 
 });
