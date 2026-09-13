@@ -66,11 +66,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
     invitation.pickerPlaces.length >= 2 &&
     isPending &&
     !invitation.pickerPickedId;
-  const shufflePanelText = isShufflePending
-    ? showActions
-      ? `${invitation.pickerPlaces!.length} places on the deck — ${inviter?.name || 'they'} left the pick to you!`
-      : `Waiting for the invitee to shuffle ${invitation.pickerPlaces!.length} places and pick!`
-    : '';
 
   const formatDate = (date: Date) => {
     const today = new Date();
@@ -179,13 +174,6 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
         {isShufflePending ? (
           <View style={styles.shufflePanel}>
             <Text style={styles.shufflePanelTitle}>🎴 Meal Shuffle</Text>
-            <Text style={styles.shufflePanelText}>{shufflePanelText}</Text>
-            <View style={styles.detailRow}>
-              <Calendar size={16} color={colors.textLight} />
-              <Text style={styles.detailText}>
-                {showActions ? "Date & time: you'll set them after picking" : 'Date & time: invitee decides'}
-              </Text>
-            </View>
             {showActions && (
               <TouchableOpacity
                 style={styles.shuffleButton}
