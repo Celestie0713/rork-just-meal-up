@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { WebCalendarModal } from '@/components/WebCalendarModal';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { mockUsers } from '@/mocks/users';
@@ -12,6 +11,20 @@ import { useInvitations } from '@/hooks/use-invitations';
 import type { MealInvitation, SystemMessage } from '@/types/user';
 import { MealPickerModal } from '@/components/MealPickerModal';
 import type { PickerPlace } from '@/components/MealPickerModal';
+
+const tomorrowNoon = () => {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(12, 0, 0, 0);
+  return d;
+};
+
+const tomorrowEvening = () => {
+  const t = new Date();
+  t.setDate(t.getDate() + 1);
+  t.setHours(19, 0, 0, 0);
+  return t;
+};
 
 const colors = {
   primary: '#FF6B35',
@@ -310,6 +323,13 @@ export default function InvitationsScreen() {
   } | null>(null);
   const [scheduleError, setScheduleError] = useState<string>('');
   const [showScheduleDatePicker, setShowScheduleDatePicker] = useState(false);
+  const [showScheduleTimePicker, setShowScheduleTimePicker] = useState(false);
+  const [scheduleDate, setScheduleDate] = useState<Date>(() => tomorrowNoon());
+  const [scheduleTime, setScheduleTime] = useState<Date>(() => tomorrowEvening());
+  const [scheduleCalendarMonth, setScheduleCalendarMonth] = useState<Date>(() => tomorrowNoon());
+  const [scheduleTempHour, setScheduleTempHour] = useState<number>(19);
+  const [scheduleTempMinute, setScheduleTempMinute] = useState<number>(0);
+  const [scheduleTempPeriod, setScheduleTempPeriod] = useState<'AM' | 'PM'>('PM');
   const [activeTab, setActiveTab] = useState<'sent' | 'received'>('sent');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
@@ -456,6 +476,9 @@ export default function InvitationsScreen() {
       date: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       time: '7:00 PM',
     });
+    setScheduleDate(tomorrowNoon());
+    setScheduleTime(tomorrowEvening());
+    setScheduleCalendarMonth(tomorrowNoon());
     setScheduleError('');
     setShuffleInvitation(null);
   };
@@ -465,21 +488,350 @@ export default function InvitationsScreen() {
     setScheduleError('');
   };
 
-  const schedulePickerValue =
-    scheduleData?.date && !isNaN(new Date(scheduleData.date + 'T12:00:00').getTime())
-      ? new Date(scheduleData.date + 'T12:00:00')
-      : new Date();
+  // Date & Time pickers mirror the Create invitation page: same row buttons,
+  // same calendar sheet on iOS/web, same hour/minute/period picker for web time.
+  const formatScheduleDate = (date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
+  };
 
-  // Calendar picker — Android opens the system dialog, iOS opens a dark
-  // bottom sheet; both write back as YYYY-MM-DD.
+  const formatScheduleTime = (time: Date) => {
+    return time.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+  };
+
+  const scheduleIsToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear();
+  };
+
+  const scheduleIsSameDay = (d1: Date, d2: Date) => {
+    return d1.getDate() === d2.getDate() &&
+      d1.getMonth() === d2.getMonth() &&
+      d1.getFullYear() === d2.getFullYear();
+  };
+
+  const scheduleIsPast = (date: Date) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const compare = new Date(date);
+    compare.setHours(0, 0, 0, 0);
+    return compare < today;
+  };
+
+  const changeScheduleMonth = (direction: 'prev' | 'next') => {
+    const next = new Date(scheduleCalendarMonth);
+    next.setMonth(next.getMonth() + (direction === 'prev' ? -1 : 1));
+    setScheduleCalendarMonth(next);
+  };
+
+  const applyScheduleDate = (date: Date) => {
+    setScheduleDate(date);
+    setScheduleCalendarMonth(date);
+    setScheduleData(prev => (prev ? { ...prev, date: date.toISOString().split('T')[0] } : prev));
+    setScheduleError('');
+  };
+
   const handleScheduleDateChange = (event: any, selected?: Date) => {
     if (Platform.OS === 'android') {
       setShowScheduleDatePicker(false);
     }
     if (selected) {
-      setScheduleData(prev => (prev ? { ...prev, date: selected.toISOString().split('T')[0] } : prev));
+      applyScheduleDate(selected);
+    }
+  };
+
+  const handleScheduleTimePickerOpen = () => {
+    const hours = scheduleTime.getHours();
+    setScheduleTempHour(hours % 12 || 12);
+    setScheduleTempMinute(scheduleTime.getMinutes());
+    setScheduleTempPeriod(hours >= 12 ? 'PM' : 'AM');
+    setShowScheduleTimePicker(true);
+  };
+
+  const handleScheduleTimeChange = (event: any, time?: Date) => {
+    if (Platform.OS === 'android') {
+      setShowScheduleTimePicker(false);
+    }
+    if (time) {
+      setScheduleTime(time);
+      setScheduleData(prev => (prev ? { ...prev, time: formatScheduleTime(time) } : prev));
       setScheduleError('');
     }
+  };
+
+  const handleScheduleTimeDone = () => {
+    const newTime = new Date(scheduleTime);
+    let hours = scheduleTempHour;
+    if (scheduleTempPeriod === 'PM' && hours !== 12) {
+      hours += 12;
+    } else if (scheduleTempPeriod === 'AM' && hours === 12) {
+      hours = 0;
+    }
+    newTime.setHours(hours, scheduleTempMinute, 0, 0);
+    setScheduleTime(newTime);
+    setScheduleData(prev => (prev ? { ...prev, time: formatScheduleTime(newTime) } : prev));
+    setScheduleError('');
+    setShowScheduleTimePicker(false);
+  };
+
+  const renderScheduleCalendar = () => {
+    const year = scheduleCalendarMonth.getFullYear();
+    const month = scheduleCalendarMonth.getMonth();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const startingDayOfWeek = new Date(year, month, 1).getDay();
+    const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const days: (Date | null)[] = [];
+
+    for (let i = 0; i < startingDayOfWeek; i++) {
+      days.push(null);
+    }
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      days.push(new Date(year, month, day));
+    }
+
+    return (
+      <View style={styles.calendar}>
+        <View style={styles.calendarHeader}>
+          <TouchableOpacity onPress={() => changeScheduleMonth('prev')} style={styles.monthButton}>
+            <ChevronLeft size={24} color={colors.primary} />
+          </TouchableOpacity>
+          <Text style={styles.monthYearText}>
+            {scheduleCalendarMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </Text>
+          <TouchableOpacity onPress={() => changeScheduleMonth('next')} style={styles.monthButton}>
+            <ChevronRight size={24} color={colors.primary} />
+          </TouchableOpacity>
+        </View>
+        <View style={styles.weekDaysRow}>
+          {weekDays.map((day) => (
+            <View key={day} style={styles.weekDayCell}>
+              <Text style={styles.weekDayText}>{day}</Text>
+            </View>
+          ))}
+        </View>
+        <View style={styles.daysGrid}>
+          {days.map((date, index) => {
+            if (!date) {
+              return <View key={`empty-${index}`} style={styles.dayCell} />;
+            }
+
+            const isSelected = scheduleIsSameDay(date, scheduleDate);
+            const isTodayDate = scheduleIsToday(date);
+            const isPast = scheduleIsPast(date);
+
+            return (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.dayCell,
+                  isSelected && styles.selectedDayCell,
+                  isTodayDate && !isSelected && styles.todayDayCell,
+                ]}
+                onPress={() => !isPast && applyScheduleDate(date)}
+                disabled={isPast}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.dayText,
+                    isSelected && styles.selectedDayText,
+                    isTodayDate && !isSelected && styles.todayDayText,
+                    isPast && styles.pastDayText,
+                  ]}
+                >
+                  {date.getDate()}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+    );
+  };
+
+  const renderScheduleTimeColumns = () => {
+    const hours = Array.from({ length: 12 }, (_, i) => i + 1);
+    const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+    return (
+      <View style={styles.customTimePickerContainer}>
+        <View style={styles.timePickerRow}>
+          <View style={styles.timePickerColumn}>
+            <Text style={styles.timePickerColumnLabel}>Hour</Text>
+            <ScrollView style={styles.timePickerScroll} showsVerticalScrollIndicator={false}>
+              {hours.map((hour) => (
+                <TouchableOpacity
+                  key={hour}
+                  style={[styles.timePickerItem, scheduleTempHour === hour && styles.timePickerItemSelected]}
+                  onPress={() => setScheduleTempHour(hour)}
+                >
+                  <Text
+                    style={[
+                      styles.timePickerItemText,
+                      scheduleTempHour === hour && styles.timePickerItemTextSelected,
+                    ]}
+                  >
+                    {hour}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          <View style={styles.timePickerColumn}>
+            <Text style={styles.timePickerColumnLabel}>Minute</Text>
+            <ScrollView style={styles.timePickerScroll} showsVerticalScrollIndicator={false}>
+              {minutes.map((minute) => (
+                <TouchableOpacity
+                  key={minute}
+                  style={[styles.timePickerItem, scheduleTempMinute === minute && styles.timePickerItemSelected]}
+                  onPress={() => setScheduleTempMinute(minute)}
+                >
+                  <Text
+                    style={[
+                      styles.timePickerItemText,
+                      scheduleTempMinute === minute && styles.timePickerItemTextSelected,
+                    ]}
+                  >
+                    {minute.toString().padStart(2, '0')}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+          <View style={styles.timePickerColumn}>
+            <Text style={styles.timePickerColumnLabel}>Period</Text>
+            <ScrollView style={styles.timePickerScroll} showsVerticalScrollIndicator={false}>
+              {(['AM', 'PM'] as const).map((period) => (
+                <TouchableOpacity
+                  key={period}
+                  style={[styles.timePickerItem, scheduleTempPeriod === period && styles.timePickerItemSelected]}
+                  onPress={() => setScheduleTempPeriod(period)}
+                >
+                  <Text
+                    style={[
+                      styles.timePickerItemText,
+                      scheduleTempPeriod === period && styles.timePickerItemTextSelected,
+                    ]}
+                  >
+                    {period}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
+  const renderScheduleDateTimePicker = () => {
+    if (Platform.OS === 'android') {
+      return (
+        <>
+          {showScheduleDatePicker && (
+            <DateTimePicker
+              value={scheduleDate}
+              mode="date"
+              display="default"
+              onChange={handleScheduleDateChange}
+              minimumDate={new Date()}
+            />
+          )}
+          {showScheduleTimePicker && (
+            <DateTimePicker
+              value={scheduleTime}
+              mode="time"
+              display="default"
+              onChange={handleScheduleTimeChange}
+              is24Hour={false}
+            />
+          )}
+        </>
+      );
+    }
+
+    if (showScheduleDatePicker) {
+      return (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setShowScheduleDatePicker(false)}>
+          <View style={styles.iosModalOverlay}>
+            <TouchableOpacity style={styles.iosModalBackdrop} activeOpacity={1} onPress={() => setShowScheduleDatePicker(false)} />
+            <View style={styles.iosModalContainer}>
+              <View style={styles.iosModalHeader}>
+                <TouchableOpacity onPress={() => setShowScheduleDatePicker(false)}>
+                  <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.iosModalTitle}>Select Date</Text>
+                <TouchableOpacity onPress={() => setShowScheduleDatePicker(false)}>
+                  <Text style={styles.iosModalDoneButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.calendarWrapper}>{renderScheduleCalendar()}</View>
+            </View>
+          </View>
+        </Modal>
+      );
+    }
+
+    if (showScheduleTimePicker) {
+      if (Platform.OS === 'ios') {
+        return (
+          <Modal visible transparent animationType="slide" onRequestClose={() => setShowScheduleTimePicker(false)}>
+            <View style={styles.iosModalOverlay}>
+              <TouchableOpacity style={styles.iosModalBackdrop} activeOpacity={1} onPress={() => setShowScheduleTimePicker(false)} />
+              <View style={styles.iosModalContainer}>
+                <View style={styles.iosModalHeader}>
+                  <TouchableOpacity onPress={() => setShowScheduleTimePicker(false)}>
+                    <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.iosModalTitle}>Select Time</Text>
+                  <TouchableOpacity onPress={() => setShowScheduleTimePicker(false)}>
+                    <Text style={styles.iosModalDoneButton}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <View style={styles.iosPickerWrapper}>
+                  <DateTimePicker
+                    value={scheduleTime}
+                    mode="time"
+                    display="spinner"
+                    onChange={handleScheduleTimeChange}
+                    textColor="#000000"
+                    style={styles.iosPicker}
+                  />
+                </View>
+              </View>
+            </View>
+          </Modal>
+        );
+      }
+      return (
+        <Modal visible transparent animationType="slide" onRequestClose={() => setShowScheduleTimePicker(false)}>
+          <View style={styles.iosModalOverlay}>
+            <TouchableOpacity style={styles.iosModalBackdrop} activeOpacity={1} onPress={() => setShowScheduleTimePicker(false)} />
+            <View style={styles.iosModalContainer}>
+              <View style={styles.iosModalHeader}>
+                <TouchableOpacity onPress={() => setShowScheduleTimePicker(false)}>
+                  <Text style={styles.iosModalCancelButton}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={styles.iosModalTitle}>Select Time</Text>
+                <TouchableOpacity onPress={handleScheduleTimeDone}>
+                  <Text style={styles.iosModalDoneButton}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              {renderScheduleTimeColumns()}
+            </View>
+          </View>
+        </Modal>
+      );
+    }
+
+    return null;
   };
 
   // Saves the picked place together with the invitee-chosen date & time.
@@ -806,32 +1158,28 @@ export default function InvitationsScreen() {
             <Text style={styles.scheduleSubtitle}>
               You picked {scheduleData?.place.emoji} {scheduleData?.place.name} — when are you meeting?
             </Text>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Date</Text>
-              <TouchableOpacity
-                style={[styles.input, styles.dateInputButton]}
-                onPress={() => setShowScheduleDatePicker(true)}
-                activeOpacity={0.7}
-              >
-                <Calendar size={18} color={colors.primary} />
-                <Text style={[styles.dateInputText, !scheduleData?.date && { color: colors.textLight }]}>
-                  {scheduleData?.date || 'Pick a date'}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Time</Text>
-              <TextInput
-                style={styles.input}
-                value={scheduleData?.time || ''}
-                onChangeText={(text) => {
-                  setScheduleData(prev => (prev ? { ...prev, time: text } : prev));
-                  setScheduleError('');
-                }}
-                placeholder="7:00 PM"
-                placeholderTextColor={colors.textLight}
-              />
-            </View>
+            <TouchableOpacity style={styles.dateTimeButton} onPress={() => setShowScheduleDatePicker(true)} activeOpacity={0.7}>
+              <View style={styles.dateTimeButtonContent}>
+                <View style={styles.iconWrapper}>
+                  <Calendar size={20} color={colors.primary} />
+                </View>
+                <View style={styles.dateTimeTextContainer}>
+                  <Text style={styles.dateTimeLabel}>Date</Text>
+                  <Text style={styles.dateTimeValue}>{formatScheduleDate(scheduleDate)}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.dateTimeButton} onPress={handleScheduleTimePickerOpen} activeOpacity={0.7}>
+              <View style={styles.dateTimeButtonContent}>
+                <View style={styles.iconWrapper}>
+                  <Clock size={20} color={colors.primary} />
+                </View>
+                <View style={styles.dateTimeTextContainer}>
+                  <Text style={styles.dateTimeLabel}>Time</Text>
+                  <Text style={styles.dateTimeValue}>{formatScheduleTime(scheduleTime)}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
             {!!scheduleError && <Text style={styles.scheduleError}>{scheduleError}</Text>}
             <View style={styles.modalButtons}>
               <TouchableOpacity
@@ -850,50 +1198,7 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
-      {showScheduleDatePicker && Platform.OS === 'web' && (
-        <WebCalendarModal
-          visible
-          value={schedulePickerValue}
-          minimumDate={new Date()}
-          onChange={(date) => handleScheduleDateChange(null, date)}
-          onClose={() => setShowScheduleDatePicker(false)}
-        />
-      )}
-      {showScheduleDatePicker && Platform.OS === 'android' && (
-        <DateTimePicker
-          value={schedulePickerValue}
-          mode="date"
-          display="default"
-          minimumDate={new Date()}
-          onChange={handleScheduleDateChange}
-        />
-      )}
-      {showScheduleDatePicker && Platform.OS === 'ios' && (
-        <Modal visible transparent animationType="slide" onRequestClose={() => setShowScheduleDatePicker(false)}>
-          <View style={styles.pickerSheetOverlay}>
-            <TouchableOpacity style={styles.pickerSheetBackdrop} activeOpacity={1} onPress={() => setShowScheduleDatePicker(false)} />
-            <View style={styles.pickerSheetContainer}>
-              <View style={styles.pickerSheetHeader}>
-                <TouchableOpacity onPress={() => setShowScheduleDatePicker(false)}>
-                  <Text style={styles.pickerSheetCancel}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={styles.pickerSheetTitle}>Select Date</Text>
-                <TouchableOpacity onPress={() => setShowScheduleDatePicker(false)}>
-                  <Text style={styles.pickerSheetDone}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                value={schedulePickerValue}
-                mode="date"
-                display="inline"
-                minimumDate={new Date()}
-                onChange={handleScheduleDateChange}
-                themeVariant="dark"
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
+      {renderScheduleDateTimePicker()}
       <Modal
         visible={confirmModalVisible}
         transparent
@@ -1383,52 +1688,222 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
   },
-  dateInputButton: {
+  dateTimeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    backgroundColor: colors.background,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  dateInputText: {
+  dateTimeButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  iconWrapper: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 107, 53, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateTimeTextContainer: {
     flex: 1,
+  },
+  dateTimeLabel: {
+    fontSize: 12,
+    color: colors.textLight,
+    marginBottom: 2,
+  },
+  dateTimeValue: {
     fontSize: 16,
+    fontWeight: '600',
     color: colors.text,
   },
-  pickerSheetOverlay: {
+  iosModalOverlay: {
     flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'flex-end',
   },
-  pickerSheetBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+  iosModalBackdrop: {
+    position: 'absolute' as const,
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
   },
-  pickerSheetContainer: {
-    backgroundColor: colors.surface,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 24,
+  iosModalContainer: {
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 34,
   },
-  pickerSheetHeader: {
+  iosModalHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomColor: '#E5E5E5',
   },
-  pickerSheetTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
+  iosModalTitle: {
+    fontSize: 17,
+    fontWeight: '600' as const,
+    color: '#000000',
   },
-  pickerSheetCancel: {
-    fontSize: 16,
-    color: colors.textLight,
+  iosModalCancelButton: {
+    fontSize: 17,
+    color: '#888888',
   },
-  pickerSheetDone: {
-    fontSize: 16,
-    fontWeight: '600',
+  iosModalDoneButton: {
+    fontSize: 17,
     color: colors.primary,
+    fontWeight: '600' as const,
+  },
+  iosPickerWrapper: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 0,
+    minHeight: 260,
+  },
+  iosPicker: {
+    width: '100%',
+    height: 260,
+  },
+  calendarWrapper: {
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    minHeight: 400,
+  },
+  calendar: {
+    backgroundColor: '#FFFFFF',
+  },
+  calendarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 24,
+    paddingHorizontal: 4,
+  },
+  monthButton: {
+    padding: 8,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 20,
+    backgroundColor: 'rgba(255, 107, 53, 0.08)',
+  },
+  monthYearText: {
+    fontSize: 18,
+    fontWeight: '700' as const,
+    color: '#000000',
+  },
+  weekDaysRow: {
+    flexDirection: 'row',
+    marginBottom: 8,
+    paddingHorizontal: 2,
+  },
+  weekDayCell: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  weekDayText: {
+    fontSize: 13,
+    fontWeight: '700' as const,
+    color: '#999999',
+  },
+  daysGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 2,
+  },
+  dayCell: {
+    width: '14.285%',
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 4,
+  },
+  selectedDayCell: {
+    backgroundColor: colors.primary,
+    borderRadius: 24,
+  },
+  todayDayCell: {
+    borderWidth: 2,
+    borderColor: colors.primary,
+    borderRadius: 24,
+  },
+  dayText: {
+    fontSize: 17,
+    color: '#000000',
+    fontWeight: '500' as const,
+  },
+  selectedDayText: {
+    color: '#FFFFFF',
+    fontWeight: '700' as const,
+  },
+  todayDayText: {
+    color: colors.primary,
+    fontWeight: '700' as const,
+  },
+  pastDayText: {
+    color: '#D0D0D0',
+    fontWeight: '400' as const,
+  },
+  customTimePickerContainer: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 20,
+    paddingHorizontal: 16,
+    minHeight: 300,
+  },
+  timePickerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  timePickerColumn: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  timePickerColumnLabel: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: '#666666',
+    marginBottom: 12,
+  },
+  timePickerScroll: {
+    maxHeight: 200,
+  },
+  timePickerItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minWidth: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    marginVertical: 4,
+  },
+  timePickerItemSelected: {
+    backgroundColor: colors.primary,
+  },
+  timePickerItemText: {
+    fontSize: 18,
+    color: '#000000',
+    fontWeight: '500' as const,
+  },
+  timePickerItemTextSelected: {
+    color: '#FFFFFF',
+    fontWeight: '700' as const,
   },
   navModalOverlay: {
     flex: 1,
