@@ -846,7 +846,10 @@ export default function InvitationsScreen() {
     }
     const chosenDate = new Date(trimmedDate);
 
+    // Setting date & time after the Meal Shuffle pick auto-accepts the
+    // invitation — no separate Accept/Decline tap needed.
     updateInvitation(invitationId, {
+      status: 'accepted',
       venue: {
         name: place.name,
         address: place.city,
@@ -862,7 +865,7 @@ export default function InvitationsScreen() {
       const chatId = `${currentUserId}-${inviterId}`;
       const systemMessage: SystemMessage = {
         id: `system-${Date.now()}`,
-        type: 'invitation_sent',
+        type: 'invitation_accepted',
         content: `You picked ${place.name} from ${inviterName}'s Meal Shuffle 🎴 Meeting on ${chosenDate.toLocaleDateString('en-US', {
           weekday: 'long',
           month: 'short',
