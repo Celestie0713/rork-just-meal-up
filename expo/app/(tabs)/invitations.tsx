@@ -26,6 +26,18 @@ const tomorrowEvening = () => {
   return t;
 };
 
+// Parses invitation time strings like "7:00 PM" into a Date on the given day.
+const parseTimeString = (time: string, base: Date): Date => {
+  const match = time.trim().match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)?$/i);
+  const fallback = new Date(base);
+  fallback.setHours(19, 0, 0, 0);
+  if (!match) return fallback;
+  let hours = parseInt(match[1], 10) % 12;
+  if (match[3] && match[3].toUpperCase() === 'PM') hours += 12;
+  fallback.setHours(hours, match[2] ? parseInt(match[2], 10) : 0, 0, 0);
+  return fallback;
+};
+
 const colors = {
   primary: '#FF6B35',
   text: '#FFFFFF',
@@ -295,6 +307,7 @@ type EditModalData = {
   date: string;
   time: string;
   venue: string;
+  address: string;
 };
 
 type ConfirmModalData = {
@@ -326,6 +339,11 @@ export default function InvitationsScreen() {
   const [showScheduleTimePicker, setShowScheduleTimePicker] = useState(false);
   const [scheduleDate, setScheduleDate] = useState<Date>(() => tomorrowNoon());
   const [scheduleTime, setScheduleTime] = useState<Date>(() => tomorrowEvening());
+  // The same picker machinery powers the Edit Invitation modal — when the
+  // target is 'edit', picks route to editDate/editTime + editData strings.
+  const [editDate, setEditDate] = useState<Date>(() => tomorrowNoon());
+  const [editTime, setEditTime] = useState<Date>(() => tomorrowEvening());
+  const [pickerTarget, setPickerTarget] = useState<'schedule' | 'edit'>('schedule');
   const [scheduleCalendarMonth, setScheduleCalendarMonth] = useState<Date>(() => tomorrowNoon());
   const [scheduleTempHour, setScheduleTempHour] = useState<number>(19);
   const [scheduleTempMinute, setScheduleTempMinute] = useState<number>(0);
@@ -358,31 +376,38 @@ export default function InvitationsScreen() {
   const handleEdit = (invitationId: string) => {
     const invitation = invitations.find(inv => inv.id === invitationId);
     if (invitation) {
+      const baseDate = new Date(invitation.date);
+      baseDate.setHours(12, 0, 0, 0);
       setEditData({
         id: invitationId,
         date: invitation.date.toISOString().split('T')[0],
         time: invitation.time,
-        venue: invitation.venue.name
+        venue: invitation.venue.name,
+        address: invitation.venue.address,
       });
+      setEditDate(baseDate);
+      setEditTime(parseTimeString(invitation.time, baseDate));
+      setScheduleCalendarMonth(baseDate);
+      setPickerTarget('edit');
       setEditModalVisible(true);
     }
   };
 
   const handleSaveEdit = () => {
     if (!editData) return;
-    
+
     const invitation = invitations.find(inv => inv.id === editData.id);
     if (invitation) {
       updateInvitation(editData.id, {
-        date: new Date(editData.date),
-        time: editData.time,
-        venue: { ...invitation.venue, name: editData.venue }
+        date: editDate,
+        time: formatScheduleTime(editTime),
+        venue: { ...invitation.venue, name: editData.venue, address: editData.address }
       });
     }
-    
+
     setEditModalVisible(false);
     setEditData(null);
-    
+
     // Show success feedback
     console.log('Invitation updated successfully!');
   };
@@ -479,6 +504,7 @@ export default function InvitationsScreen() {
     setScheduleDate(tomorrowNoon());
     setScheduleTime(tomorrowEvening());
     setScheduleCalendarMonth(tomorrowNoon());
+    setPickerTarget('schedule');
     setScheduleError('');
     setShuffleInvitation(null);
   };
@@ -531,9 +557,14 @@ export default function InvitationsScreen() {
   };
 
   const applyScheduleDate = (date: Date) => {
-    setScheduleDate(date);
+    if (pickerTarget === 'edit') {
+      setEditDate(date);
+      setEditData(prev => (prev ? { ...prev, date: date.toISOString().split('T')[0] } : null));
+    } else {
+      setScheduleDate(date);
+      setScheduleData(prev => (prev ? { ...prev, date: date.toISOString().split('T')[0] } : prev));
+    }
     setScheduleCalendarMonth(date);
-    setScheduleData(prev => (prev ? { ...prev, date: date.toISOString().split('T')[0] } : prev));
     setScheduleError('');
   };
 
@@ -547,9 +578,10 @@ export default function InvitationsScreen() {
   };
 
   const handleScheduleTimePickerOpen = () => {
-    const hours = scheduleTime.getHours();
+    const activeTime = pickerTarget === 'edit' ? editTime : scheduleTime;
+    const hours = activeTime.getHours();
     setScheduleTempHour(hours % 12 || 12);
-    setScheduleTempMinute(scheduleTime.getMinutes());
+    setScheduleTempMinute(activeTime.getMinutes());
     setScheduleTempPeriod(hours >= 12 ? 'PM' : 'AM');
     setShowScheduleTimePicker(true);
   };
@@ -559,14 +591,20 @@ export default function InvitationsScreen() {
       setShowScheduleTimePicker(false);
     }
     if (time) {
-      setScheduleTime(time);
-      setScheduleData(prev => (prev ? { ...prev, time: formatScheduleTime(time) } : prev));
+      if (pickerTarget === 'edit') {
+        setEditTime(time);
+        setEditData(prev => (prev ? { ...prev, time: formatScheduleTime(time) } : null));
+      } else {
+        setScheduleTime(time);
+        setScheduleData(prev => (prev ? { ...prev, time: formatScheduleTime(time) } : prev));
+      }
       setScheduleError('');
     }
   };
 
   const handleScheduleTimeDone = () => {
-    const newTime = new Date(scheduleTime);
+    const activeTime = pickerTarget === 'edit' ? editTime : scheduleTime;
+    const newTime = new Date(activeTime);
     let hours = scheduleTempHour;
     if (scheduleTempPeriod === 'PM' && hours !== 12) {
       hours += 12;
@@ -574,13 +612,19 @@ export default function InvitationsScreen() {
       hours = 0;
     }
     newTime.setHours(hours, scheduleTempMinute, 0, 0);
-    setScheduleTime(newTime);
-    setScheduleData(prev => (prev ? { ...prev, time: formatScheduleTime(newTime) } : prev));
+    if (pickerTarget === 'edit') {
+      setEditTime(newTime);
+      setEditData(prev => (prev ? { ...prev, time: formatScheduleTime(newTime) } : null));
+    } else {
+      setScheduleTime(newTime);
+      setScheduleData(prev => (prev ? { ...prev, time: formatScheduleTime(newTime) } : prev));
+    }
     setScheduleError('');
     setShowScheduleTimePicker(false);
   };
 
   const renderScheduleCalendar = () => {
+    const activeDate = pickerTarget === 'edit' ? editDate : scheduleDate;
     const year = scheduleCalendarMonth.getFullYear();
     const month = scheduleCalendarMonth.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -622,7 +666,7 @@ export default function InvitationsScreen() {
               return <View key={`empty-${index}`} style={styles.dayCell} />;
             }
 
-            const isSelected = scheduleIsSameDay(date, scheduleDate);
+            const isSelected = scheduleIsSameDay(date, activeDate);
             const isTodayDate = scheduleIsToday(date);
             const isPast = scheduleIsPast(date);
 
@@ -732,12 +776,14 @@ export default function InvitationsScreen() {
   };
 
   const renderScheduleDateTimePicker = () => {
+    const activeDate = pickerTarget === 'edit' ? editDate : scheduleDate;
+    const activeTime = pickerTarget === 'edit' ? editTime : scheduleTime;
     if (Platform.OS === 'android') {
       return (
         <>
           {showScheduleDatePicker && (
             <DateTimePicker
-              value={scheduleDate}
+              value={activeDate}
               mode="date"
               display="default"
               onChange={handleScheduleDateChange}
@@ -746,7 +792,7 @@ export default function InvitationsScreen() {
           )}
           {showScheduleTimePicker && (
             <DateTimePicker
-              value={scheduleTime}
+              value={activeTime}
               mode="time"
               display="default"
               onChange={handleScheduleTimeChange}
@@ -797,7 +843,7 @@ export default function InvitationsScreen() {
                 </View>
                 <View style={styles.iosPickerWrapper}>
                   <DateTimePicker
-                    value={scheduleTime}
+                    value={activeTime}
                     mode="time"
                     display="spinner"
                     onChange={handleScheduleTimeChange}
@@ -1102,26 +1148,42 @@ export default function InvitationsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Edit Invitation</Text>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Date</Text>
-              <TextInput
-                style={styles.input}
-                value={editData?.date || ''}
-                onChangeText={(text) => setEditData(prev => prev ? { ...prev, date: text } : null)}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={colors.textLight}
-              />
-            </View>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Time</Text>
-              <TextInput
-                style={styles.input}
-                value={editData?.time || ''}
-                onChangeText={(text) => setEditData(prev => prev ? { ...prev, time: text } : null)}
-                placeholder="7:00 PM"
-                placeholderTextColor={colors.textLight}
-              />
-            </View>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() => {
+                setPickerTarget('edit');
+                setShowScheduleDatePicker(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.dateTimeButtonContent}>
+                <View style={styles.iconWrapper}>
+                  <Calendar size={20} color={colors.primary} />
+                </View>
+                <View style={styles.dateTimeTextContainer}>
+                  <Text style={styles.dateTimeLabel}>Date</Text>
+                  <Text style={styles.dateTimeValue}>{formatScheduleDate(editDate)}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.dateTimeButton}
+              onPress={() => {
+                setPickerTarget('edit');
+                handleScheduleTimePickerOpen();
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.dateTimeButtonContent}>
+                <View style={styles.iconWrapper}>
+                  <Clock size={20} color={colors.primary} />
+                </View>
+                <View style={styles.dateTimeTextContainer}>
+                  <Text style={styles.dateTimeLabel}>Time</Text>
+                  <Text style={styles.dateTimeValue}>{formatScheduleTime(editTime)}</Text>
+                </View>
+              </View>
+            </TouchableOpacity>
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Venue</Text>
               <TextInput
@@ -1129,6 +1191,16 @@ export default function InvitationsScreen() {
                 value={editData?.venue || ''}
                 onChangeText={(text) => setEditData(prev => prev ? { ...prev, venue: text } : null)}
                 placeholder="Restaurant name"
+                placeholderTextColor={colors.textLight}
+              />
+            </View>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Address</Text>
+              <TextInput
+                style={styles.input}
+                value={editData?.address || ''}
+                onChangeText={(text) => setEditData(prev => prev ? { ...prev, address: text } : null)}
+                placeholder="Street, city"
                 placeholderTextColor={colors.textLight}
               />
             </View>
@@ -1161,7 +1233,7 @@ export default function InvitationsScreen() {
             <Text style={styles.scheduleSubtitle}>
               You picked {scheduleData?.place.emoji} {scheduleData?.place.name} — when are you meeting?
             </Text>
-            <TouchableOpacity style={styles.dateTimeButton} onPress={() => setShowScheduleDatePicker(true)} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.dateTimeButton} onPress={() => { setPickerTarget('schedule'); setShowScheduleDatePicker(true); }} activeOpacity={0.7}>
               <View style={styles.dateTimeButtonContent}>
                 <View style={styles.iconWrapper}>
                   <Calendar size={20} color={colors.primary} />
@@ -1172,7 +1244,7 @@ export default function InvitationsScreen() {
                 </View>
               </View>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.dateTimeButton} onPress={handleScheduleTimePickerOpen} activeOpacity={0.7}>
+            <TouchableOpacity style={styles.dateTimeButton} onPress={() => { setPickerTarget('schedule'); handleScheduleTimePickerOpen(); }} activeOpacity={0.7}>
               <View style={styles.dateTimeButtonContent}>
                 <View style={styles.iconWrapper}>
                   <Clock size={20} color={colors.primary} />
