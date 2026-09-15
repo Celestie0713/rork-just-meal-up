@@ -4,6 +4,7 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
 import { ArrowLeft, Calendar, Clock, MessageCircle, MapPin, DollarSign, Pencil, X, ExternalLink } from 'lucide-react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { WebCalendarModal } from '@/components/WebCalendarModal';
 import { ChatListItem } from '@/components/ChatListItem';
 import { Colors } from '@/constants/colors';
 import { mockUsers } from '@/mocks/users';
@@ -345,6 +346,21 @@ export default function MessagesScreen() {
   };
 
   const renderInvitationDateTimePickers = () => {
+    if (Platform.OS === 'web') {
+      return (
+        <>
+          {showDatePicker && (
+            <WebCalendarModal
+              visible
+              value={editDraft?.date ?? new Date()}
+              minimumDate={new Date()}
+              onChange={(date) => handleDateChange(null, date)}
+              onClose={() => setShowDatePicker(false)}
+            />
+          )}
+        </>
+      );
+    }
     if (Platform.OS === 'android') {
       return (
         <>

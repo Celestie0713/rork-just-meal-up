@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { WebCalendarModal } from '@/components/WebCalendarModal';
 import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -849,6 +850,15 @@ export default function InvitationsScreen() {
           </View>
         </View>
       </Modal>
+      {showScheduleDatePicker && Platform.OS === 'web' && (
+        <WebCalendarModal
+          visible
+          value={schedulePickerValue}
+          minimumDate={new Date()}
+          onChange={(date) => handleScheduleDateChange(null, date)}
+          onClose={() => setShowScheduleDatePicker(false)}
+        />
+      )}
       {showScheduleDatePicker && Platform.OS === 'android' && (
         <DateTimePicker
           value={schedulePickerValue}
