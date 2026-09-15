@@ -118,13 +118,16 @@ export function MealPickerModal({
   }, [visible, lockedWinner, reset]);
 
   const handleClose = useCallback(() => {
+    // In invitee mode the result must be accepted via "Set date and time now"
+    // — X and the backdrop can't discard it.
+    if (inviteeMode && phase === 'result') return;
     // X discards the outcome: clear any locked winner so the picker resets
     // back to its original state on the next open.
     dismissedRef.current = true;
     onShuffleComplete(null);
     reset();
     onClose();
-  }, [onClose, onShuffleComplete, reset]);
+  }, [onClose, onShuffleComplete, reset, inviteeMode, phase]);
 
   const handleAddPlace = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
@@ -287,7 +290,10 @@ export function MealPickerModal({
 
   return (
     <View style={styles.overlay}>
-      <Pressable style={styles.backdrop} onPress={handleClose} />
+      <Pressable
+        style={styles.backdrop}
+        onPress={inviteeMode && phase === 'result' ? undefined : handleClose}
+      />
 
       <View style={styles.sheet}>
         <View style={styles.header}>
@@ -296,9 +302,11 @@ export function MealPickerModal({
             {phase === 'shuffling' && 'Shuffling...'}
             {phase === 'result' && 'Your pick!'}
           </Text>
-          <TouchableOpacity style={styles.closeBtn} onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-            <X size={22} color={Colors.textLight} />
-          </TouchableOpacity>
+          {!(inviteeMode && phase === 'result') && (
+            <TouchableOpacity style={styles.closeBtn} onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <X size={22} color={Colors.textLight} />
+            </TouchableOpacity>
+          )}
         </View>
 
         {phase === 'select' && (
@@ -465,7 +473,7 @@ export function MealPickerModal({
               <TouchableOpacity style={styles.searchButton} onPress={handleSearch} activeOpacity={0.8}>
                 <Calendar size={18} color="#FFFFFF" />
                 <Text style={styles.searchButtonText}>
-                  {inviteeMode ? 'Lock in this pick' : 'Set date & time'}
+                  {inviteeMode ? 'Set date and time now' : 'Set date & time'}
                 </Text>
               </TouchableOpacity>
             </View>
