@@ -230,6 +230,9 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
                   : `${invitation.venue.name} • ${invitation.venue.cuisine}`}
               </Text>
             </View>
+            {!!invitation.pickerPickedId && (
+              <Text style={styles.pickerNote}>Picked via Meal Shuffle 🎴</Text>
+            )}
             <TouchableOpacity style={styles.detailRow} onPress={() => setNavModalVisible(true)} activeOpacity={0.7}>
               <MapPin size={16} color={colors.primary} />
               <Text style={[styles.detailText, styles.addressText]}>
@@ -1738,6 +1741,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  pickerNote: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 24,
+    marginBottom: 8,
   },
   scheduleError: {
     fontSize: 12,
