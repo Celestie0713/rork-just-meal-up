@@ -1230,9 +1230,6 @@ export default function InvitationsScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>Set Date & Time</Text>
-            <Text style={styles.scheduleSubtitle}>
-              You picked {scheduleData?.place.emoji} {scheduleData?.place.name} — when are you meeting?
-            </Text>
             <TouchableOpacity style={styles.dateTimeButton} onPress={() => { setPickerTarget('schedule'); setShowScheduleDatePicker(true); }} activeOpacity={0.7}>
               <View style={styles.dateTimeButtonContent}>
                 <View style={styles.iconWrapper}>
@@ -1749,13 +1746,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     marginLeft: 24,
     marginBottom: 8,
-  },
-  scheduleSubtitle: {
-    fontSize: 14,
-    color: colors.textLight,
-    textAlign: 'center',
-    lineHeight: 20,
-    marginBottom: 20,
   },
   scheduleError: {
     fontSize: 12,
