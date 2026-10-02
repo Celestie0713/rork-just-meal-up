@@ -621,6 +621,7 @@ export default function SearchScreen() {
                       rating: selectedPlace.place.rating,
                       priceLevel: selectedPlace.place.priceLevel,
                       description: selectedPlace.description,
+                      tags: selectedPlace.place.placeType,
                     };
                     if (isPlaceInPicker) {
                       setPickerPlaces((prev) => prev.filter((p) => p.id !== newPlace.id));

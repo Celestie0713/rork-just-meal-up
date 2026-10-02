@@ -22,11 +22,12 @@ export type PickerPlace = {
   name: string;
   emoji: string;
   city: string;
-  /** Optional details shown when tapping a deck card. */
+  /** Optional details shown when tapping a deck card — mirror the Search Places detail sheet. */
   address?: string;
   rating?: number;
   priceLevel?: number;
   description?: string;
+  tags?: string[];
 };
 
 type Phase = 'select' | 'shuffling' | 'result';
@@ -320,31 +321,48 @@ export function MealPickerModal({
 
         {phase === 'select' && detailPlace && (
           <View style={styles.deckDetail}>
-            <View style={styles.deckDetailEmojiWrap}>
+            <ScrollView
+              contentContainerStyle={styles.deckDetailBody}
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={styles.deckDetailEmoji}>{detailPlace.emoji}</Text>
-            </View>
-            <Text style={styles.deckDetailName}>{detailPlace.name}</Text>
-            <View style={styles.deckDetailCityRow}>
-              <MapPin size={13} color={Colors.textLight} />
-              <Text style={styles.deckDetailCityText}>
-                {detailPlace.city}{detailPlace.address ? ` · ${detailPlace.address}` : ''}
-              </Text>
-            </View>
-            {(detailRating > 0 || detailPrice > 0) && (
-              <View style={styles.deckDetailMeta}>
-                {detailRating > 0 && <Text style={styles.deckDetailRating}>★ {detailRating.toFixed(1)}</Text>}
-                {detailPrice > 0 && (
-                  <Text style={styles.deckDetailPrice}>{'$'.repeat(Math.min(detailPrice, 4))}</Text>
-                )}
+              <Text style={styles.deckDetailName}>{detailPlace.name}</Text>
+              <View style={styles.deckDetailCityRow}>
+                <MapPin size={14} color={Colors.text} />
+                <Text style={styles.deckDetailCityText}>{detailPlace.city}</Text>
               </View>
-            )}
-            {detailPlace.description ? (
-              <Text style={styles.deckDetailDescription}>{detailPlace.description}</Text>
-            ) : (
-              <Text style={styles.deckDetailDescriptionMuted}>
-                No extra details — luck will tell the rest 🎴
-              </Text>
-            )}
+              {detailPlace.address ? (
+                <Text style={styles.deckDetailAddress}>{detailPlace.address}</Text>
+              ) : (
+                <Text style={styles.deckDetailAddressHint}>Tap Maps for exact location</Text>
+              )}
+              {(detailRating > 0 || detailPrice > 0) && (
+                <View style={styles.deckDetailMeta}>
+                  {detailRating > 0 && (
+                    <Text style={styles.deckDetailRating}>★ {detailRating.toFixed(1)}</Text>
+                  )}
+                  {detailPrice > 0 && (
+                    <Text style={styles.deckDetailPrice}>{'$'.repeat(Math.min(detailPrice, 4))}</Text>
+                  )}
+                </View>
+              )}
+              {detailPlace.description ? (
+                <Text style={styles.deckDetailDescription}>{detailPlace.description}</Text>
+              ) : (
+                <Text style={styles.deckDetailDescriptionMuted}>
+                  No extra details — luck will tell the rest 🎴
+                </Text>
+              )}
+              {!!detailPlace.tags?.length && (
+                <View style={styles.deckDetailTags}>
+                  {detailPlace.tags.map((t) => (
+                    <View key={t} style={styles.deckDetailTag}>
+                      <Text style={styles.deckDetailTagText}>{t}</Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
             <TouchableOpacity
               style={styles.deckDetailBackBtn}
               onPress={() => setDetailPlace(null)}
@@ -641,76 +659,107 @@ const styles = StyleSheet.create({
   },
   deckDetail: {
     flex: 1,
-    alignItems: 'center',
-    paddingTop: 20,
-    paddingHorizontal: 24,
   },
-  deckDetailEmojiWrap: {
-    width: 84,
-    height: 84,
-    borderRadius: 42,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.primary + '66',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
+  deckDetailBody: {
+    paddingHorizontal: 24,
+    paddingTop: 24,
+    paddingBottom: 8,
+    alignItems: 'center' as const,
   },
   deckDetailEmoji: {
-    fontSize: 42,
+    fontSize: 44,
+    textAlign: 'center' as const,
+    marginBottom: 10,
   },
   deckDetailName: {
-    fontSize: 20,
-    fontWeight: '700' as const,
+    fontSize: 22,
+    fontWeight: '800' as const,
     color: Colors.text,
-    textAlign: 'center',
+    textAlign: 'center' as const,
+    marginBottom: 4,
   },
   deckDetailCityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    marginTop: 6,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    gap: 4,
+    marginBottom: 2,
   },
   deckDetailCityText: {
-    fontSize: 13,
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.text,
+  },
+  deckDetailAddress: {
+    fontSize: 12,
     color: Colors.textLight,
-    flexShrink: 1,
-    textAlign: 'center',
+    textAlign: 'center' as const,
+    lineHeight: 17,
+    fontStyle: 'italic' as const,
+    marginBottom: 4,
+  },
+  deckDetailAddressHint: {
+    fontSize: 13,
+    color: '#888888',
+    textAlign: 'center' as const,
+    marginBottom: 8,
   },
   deckDetailMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
     gap: 12,
     marginTop: 10,
+    marginBottom: 16,
   },
   deckDetailRating: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700' as const,
     color: Colors.primary,
   },
   deckDetailPrice: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700' as const,
     color: Colors.textLight,
   },
   deckDetailDescription: {
-    marginTop: 14,
-    fontSize: 13.5,
-    lineHeight: 20,
-    color: Colors.text,
-    textAlign: 'center',
+    fontSize: 14,
+    color: Colors.textLight,
+    lineHeight: 21,
+    textAlign: 'center' as const,
+    marginBottom: 16,
   },
   deckDetailDescriptionMuted: {
-    marginTop: 14,
     fontSize: 13,
+    color: '#888888',
+    lineHeight: 19,
+    textAlign: 'center' as const,
+    marginBottom: 16,
+  },
+  deckDetailTags: {
+    flexDirection: 'row' as const,
+    flexWrap: 'wrap' as const,
+    justifyContent: 'center' as const,
+    gap: 8,
+    marginBottom: 8,
+  },
+  deckDetailTag: {
+    backgroundColor: '#2A2A2A',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  deckDetailTagText: {
+    fontSize: 12,
+    fontWeight: '600' as const,
     color: Colors.textLight,
-    textAlign: 'center',
+    textTransform: 'capitalize' as const,
   },
   deckDetailBackBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    alignSelf: 'center' as const,
     gap: 2,
-    marginTop: 'auto',
     marginBottom: 18,
     paddingVertical: 10,
     paddingHorizontal: 18,
