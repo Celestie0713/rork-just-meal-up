@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -93,22 +93,14 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
     isPending &&
     !invitation.pickerPickedId;
 
+  // Always an exact date — no relative "Today"/"Tomorrow" labels.
   const formatDate = (date: Date) => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === tomorrow.toDateString()) {
-      return 'Tomorrow';
-    } else {
-      return date.toLocaleDateString('en-US', { 
-        weekday: 'long', 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   };
 
   const getStatusConfig = () => {
@@ -354,6 +346,13 @@ export default function InvitationsScreen() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'confirmed' | 'declined'>('all');
   const { addSystemMessage } = useChat();
   const currentUserId = '1';
+
+  // Re-render every 30s so expired invitations drop off the lists on their own.
+  const [, setTimeTick] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setTimeTick(tick => tick + 1), 30_000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleAccept = (invitationId: string) => {
     setConfirmData({
