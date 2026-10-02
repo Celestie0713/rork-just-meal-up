@@ -231,6 +231,8 @@ export default function SearchScreen() {
       name: p.name,
       emoji: p.cuisineEmoji ?? '🍽️',
       city: p.city ?? p.vicinity ?? '',
+      rating: p.rating ?? undefined,
+      priceLevel: p.price_level ?? undefined,
     }));
     if (myFavPlaces.length === 0) {
       // No favorites yet — send them to places tab to add some
@@ -615,6 +617,10 @@ export default function SearchScreen() {
                       name: selectedPlace.place.name,
                       emoji: selectedPlace.place.cuisineEmoji || '🍽️',
                       city: selectedPlace.place.city,
+                      address: selectedPlace.place.address || undefined,
+                      rating: selectedPlace.place.rating,
+                      priceLevel: selectedPlace.place.priceLevel,
+                      description: selectedPlace.description,
                     };
                     if (isPlaceInPicker) {
                       setPickerPlaces((prev) => prev.filter((p) => p.id !== newPlace.id));

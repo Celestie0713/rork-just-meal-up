@@ -3,11 +3,11 @@ import type { PickerPlace } from '@/components/MealPickerModal';
 
 // Pool for the "Invitee will shuffle & pick" demo invitation (sent via Meal Picker)
 const mealPickerDeck: PickerPlace[] = [
-  { id: 'picker-1', name: 'Ramen Kiwami', emoji: '🍜', city: 'Downtown' },
-  { id: 'picker-2', name: 'Sushi Zen', emoji: '🍣', city: 'Midtown' },
-  { id: 'picker-3', name: 'Taco Fiesta', emoji: '🌮', city: 'South Side' },
-  { id: 'picker-4', name: 'Pasta Fresca', emoji: '🍝', city: 'Little Italy' },
-  { id: 'picker-5', name: 'Burger Palace', emoji: '🍔', city: 'Uptown' },
+  { id: 'picker-1', name: 'Ramen Kiwami', emoji: '🍜', city: 'Downtown', rating: 4.8, priceLevel: 2, address: '12 Noodle Lane', description: 'Hand-pulled tonkotsu ramen with a rich 18-hour pork broth and jammy eggs.' },
+  { id: 'picker-2', name: 'Sushi Zen', emoji: '🍣', city: 'Midtown', rating: 4.6, priceLevel: 3, address: '88 Harbor Ave', description: 'Omakase-style sushi bar — the chef picks the freshest catch of the day.' },
+  { id: 'picker-3', name: 'Taco Fiesta', emoji: '🌮', city: 'South Side', rating: 4.4, priceLevel: 1, address: '5 Calle Verde', description: 'Street-style tacos, house salsas, and margaritas until late.' },
+  { id: 'picker-4', name: 'Pasta Fresca', emoji: '🍝', city: 'Little Italy', rating: 4.7, priceLevel: 2, address: '23 Mulberry St', description: 'Fresh pasta rolled daily; the truffle carbonara is the crowd favorite.' },
+  { id: 'picker-5', name: 'Burger Palace', emoji: '🍔', city: 'Uptown', rating: 4.3, priceLevel: 1, address: '301 Grill Blvd', description: 'Smashed double patties, crispy fries, and thick shakes.' },
 ];
 
 export const mockInvitations: MealInvitation[] = [

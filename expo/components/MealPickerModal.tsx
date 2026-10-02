@@ -11,7 +11,7 @@ import {
   Pressable,
   Platform,
 } from 'react-native';
-import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar } from 'lucide-react-native';
+import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, ChevronLeft, MapPin } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/colors';
 
@@ -22,6 +22,11 @@ export type PickerPlace = {
   name: string;
   emoji: string;
   city: string;
+  /** Optional details shown when tapping a deck card. */
+  address?: string;
+  rating?: number;
+  priceLevel?: number;
+  description?: string;
 };
 
 type Phase = 'select' | 'shuffling' | 'result';
@@ -81,6 +86,7 @@ export function MealPickerModal({
   inviteeMode = false,
 }: MealPickerModalProps) {
   const [phase, setPhase] = useState<Phase>('select');
+  const [detailPlace, setDetailPlace] = useState<PickerPlace | null>(null);
   const [shuffleCards, setShuffleCards] = useState<PickerPlace[]>([]);
   const [winnerIndex, setWinnerIndex] = useState<number>(0);
   const [winner, setWinner] = useState<PickerPlace | null>(null);
@@ -93,6 +99,7 @@ export function MealPickerModal({
 
   const reset = useCallback(() => {
     setPhase('select');
+    setDetailPlace(null);
     setShuffleCards([]);
     setWinner(null);
     setWinnerIndex(0);
@@ -283,6 +290,8 @@ export function MealPickerModal({
   const centerX = SCREEN_WIDTH / 2 - CARD_W / 2;
   const centerY = SHUFFLE_AREA_HEIGHT / 2 - CARD_H / 2;
   const canShuffle = places.length >= MIN_TO_SHUFFLE;
+  const detailRating = detailPlace?.rating ?? 0;
+  const detailPrice = detailPlace?.priceLevel ?? 0;
 
   if (!visible) return null;
 
@@ -298,7 +307,7 @@ export function MealPickerModal({
       <View style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.title}>
-            {phase === 'select' && (inviteeMode ? 'Meal Shuffle' : 'Meal Picker')}
+            {phase === 'select' && (detailPlace ? 'Place details' : inviteeMode ? 'Meal Shuffle' : 'Meal Picker')}
             {phase === 'shuffling' && 'Shuffling...'}
             {phase === 'result' && 'Your pick!'}
           </Text>
@@ -309,7 +318,45 @@ export function MealPickerModal({
           )}
         </View>
 
-        {phase === 'select' && (
+        {phase === 'select' && detailPlace && (
+          <View style={styles.deckDetail}>
+            <View style={styles.deckDetailEmojiWrap}>
+              <Text style={styles.deckDetailEmoji}>{detailPlace.emoji}</Text>
+            </View>
+            <Text style={styles.deckDetailName}>{detailPlace.name}</Text>
+            <View style={styles.deckDetailCityRow}>
+              <MapPin size={13} color={Colors.textLight} />
+              <Text style={styles.deckDetailCityText}>
+                {detailPlace.city}{detailPlace.address ? ` · ${detailPlace.address}` : ''}
+              </Text>
+            </View>
+            {(detailRating > 0 || detailPrice > 0) && (
+              <View style={styles.deckDetailMeta}>
+                {detailRating > 0 && <Text style={styles.deckDetailRating}>★ {detailRating.toFixed(1)}</Text>}
+                {detailPrice > 0 && (
+                  <Text style={styles.deckDetailPrice}>{'$'.repeat(Math.min(detailPrice, 4))}</Text>
+                )}
+              </View>
+            )}
+            {detailPlace.description ? (
+              <Text style={styles.deckDetailDescription}>{detailPlace.description}</Text>
+            ) : (
+              <Text style={styles.deckDetailDescriptionMuted}>
+                No extra details — luck will tell the rest 🎴
+              </Text>
+            )}
+            <TouchableOpacity
+              style={styles.deckDetailBackBtn}
+              onPress={() => setDetailPlace(null)}
+              activeOpacity={0.8}
+            >
+              <ChevronLeft size={18} color={Colors.primary} />
+              <Text style={styles.deckDetailBackText}>Back to deck</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {phase === 'select' && !detailPlace && (
           <>
             <Text style={styles.subtitle}>
               {inviteeMode
@@ -318,7 +365,15 @@ export function MealPickerModal({
             </Text>
             <ScrollView style={styles.placesScroll} showsVerticalScrollIndicator={false} contentContainerStyle={styles.placesGrid}>
               {places.map((place) => (
-                <View key={place.id} style={[styles.placeSquare, { width: SQUARE_SIZE, height: SQUARE_SIZE }]}>
+                <TouchableOpacity
+                  key={place.id}
+                  style={[styles.placeSquare, { width: SQUARE_SIZE, height: SQUARE_SIZE }]}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setDetailPlace(place);
+                  }}
+                  activeOpacity={0.8}
+                >
                   {!inviteeMode && (
                     <TouchableOpacity
                       style={styles.placeRemoveBtn}
@@ -331,7 +386,7 @@ export function MealPickerModal({
                   <Text style={styles.placeEmoji}>{place.emoji}</Text>
                   <Text style={styles.placeName} numberOfLines={2}>{place.name}</Text>
                   <Text style={styles.placeCity} numberOfLines={1}>{place.city}</Text>
-                </View>
+                </TouchableOpacity>
               ))}
 
               {!inviteeMode && (
@@ -583,6 +638,91 @@ const styles = StyleSheet.create({
     fontSize: 9,
     color: Colors.textLight,
     textAlign: 'center',
+  },
+  deckDetail: {
+    flex: 1,
+    alignItems: 'center',
+    paddingTop: 20,
+    paddingHorizontal: 24,
+  },
+  deckDetailEmojiWrap: {
+    width: 84,
+    height: 84,
+    borderRadius: 42,
+    backgroundColor: Colors.surface,
+    borderWidth: 1.5,
+    borderColor: Colors.primary + '66',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  deckDetailEmoji: {
+    fontSize: 42,
+  },
+  deckDetailName: {
+    fontSize: 20,
+    fontWeight: '700' as const,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  deckDetailCityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 6,
+  },
+  deckDetailCityText: {
+    fontSize: 13,
+    color: Colors.textLight,
+    flexShrink: 1,
+    textAlign: 'center',
+  },
+  deckDetailMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 10,
+  },
+  deckDetailRating: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+  },
+  deckDetailPrice: {
+    fontSize: 14,
+    fontWeight: '700' as const,
+    color: Colors.textLight,
+  },
+  deckDetailDescription: {
+    marginTop: 14,
+    fontSize: 13.5,
+    lineHeight: 20,
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  deckDetailDescriptionMuted: {
+    marginTop: 14,
+    fontSize: 13,
+    color: Colors.textLight,
+    textAlign: 'center',
+  },
+  deckDetailBackBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    marginTop: 'auto',
+    marginBottom: 18,
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  deckDetailBackText: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    color: Colors.primary,
   },
   addSquare: {
     borderWidth: 2,
