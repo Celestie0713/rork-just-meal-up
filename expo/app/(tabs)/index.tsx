@@ -184,24 +184,6 @@ export default function SearchScreen() {
     setPickerWinner((prev) => (prev?.id === id ? null : prev));
   }, []);
 
-  // Picker mode: tapping a place card adds/removes it directly — matches
-  // the "Tap a place to add it to the Meal Picker" instruction in the bar.
-  const handlePickerModeCardPress = useCallback((item: PlaceResult) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setPickerPlaces((prev) => {
-      const exists = prev.some((p) => p.id === item.place.id);
-      if (exists) {
-        return prev.filter((p) => p.id !== item.place.id);
-      }
-      return [...prev, {
-        id: item.place.id,
-        name: item.place.name,
-        emoji: item.place.cuisineEmoji || '🍽️',
-        city: item.place.city,
-      }];
-    });
-  }, []);
-
   const handleShuffleComplete = useCallback((place: PickerPlace | null) => {
     // null = picker dismissed via X — discard the outcome so the picker
     // resets back to its original state on the next open.
@@ -394,8 +376,8 @@ export default function SearchScreen() {
             <View style={styles.pickerModeBar}>
               <Text style={styles.pickerModeText}>
                 {pickerPlaces.length > 0
-                  ? `${pickerPlaces.length} place${pickerPlaces.length === 1 ? '' : 's'} added — tap more to add`
-                  : 'Tap a place to add it to the Meal Picker'}
+                  ? `${pickerPlaces.length} place${pickerPlaces.length === 1 ? '' : 's'} added — tap a place for details`
+                  : 'Tap a place to see its details first'}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <TouchableOpacity
@@ -442,7 +424,7 @@ export default function SearchScreen() {
                 return (
                 <TouchableOpacity
                   style={[styles.placeCard, pickerMode && isInPicker && styles.placeCardInPicker]}
-                  onPress={() => (pickerMode ? handlePickerModeCardPress(item) : setSelectedPlace(item))}
+                  onPress={() => setSelectedPlace(item)}
                   activeOpacity={0.7}
                 >
                   <View style={styles.placeCardHeader}>
