@@ -10,8 +10,9 @@ import {
   Dimensions,
   Pressable,
   Platform,
+  Linking,
 } from 'react-native';
-import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, ChevronLeft, MapPin } from 'lucide-react-native';
+import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, ChevronLeft, MapPin, Map } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/colors';
 
@@ -278,6 +279,22 @@ export function MealPickerModal({
     reset();
   }, [places, onInviteePick, reset]);
 
+  const handleOpenMaps = useCallback(() => {
+    if (!detailPlace) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    const query = `${detailPlace.name} ${detailPlace.city}`;
+    const encoded = encodeURIComponent(query);
+    const webFallback = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
+    const url = Platform.select({
+      ios: `comgooglemaps://?q=${encoded}`,
+      android: `geo:0,0?q=${encoded}`,
+      default: webFallback,
+    });
+    Linking.canOpenURL(url)
+      .then((supported) => Linking.openURL(supported ? url : webFallback))
+      .catch(() => Linking.openURL(webFallback));
+  }, [detailPlace]);
+
   const handleBribeMe = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onBribeMe();
@@ -363,14 +380,24 @@ export function MealPickerModal({
                 </View>
               )}
             </ScrollView>
-            <TouchableOpacity
-              style={styles.deckDetailBackBtn}
-              onPress={() => setDetailPlace(null)}
-              activeOpacity={0.8}
-            >
-              <ChevronLeft size={18} color={Colors.primary} />
-              <Text style={styles.deckDetailBackText}>Back to deck</Text>
-            </TouchableOpacity>
+            <View style={styles.deckDetailActions}>
+              <TouchableOpacity
+                style={styles.deckDetailMapsButton}
+                onPress={handleOpenMaps}
+                activeOpacity={0.8}
+              >
+                <Map size={18} color={Colors.primary} />
+                <Text style={styles.deckDetailMapsButtonText}>Maps</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deckDetailBackBtn}
+                onPress={() => setDetailPlace(null)}
+                activeOpacity={0.8}
+              >
+                <ChevronLeft size={18} color={Colors.primary} />
+                <Text style={styles.deckDetailBackText}>Back to deck</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 
@@ -755,22 +782,44 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     textTransform: 'capitalize' as const,
   },
-  deckDetailBackBtn: {
+  deckDetailActions: {
+    flexDirection: 'row' as const,
+    gap: 10,
+    paddingHorizontal: 24,
+    marginBottom: 18,
+  },
+  deckDetailMapsButton: {
+    flex: 1,
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    alignSelf: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: '#2A2A2A',
+    borderRadius: 14,
+    paddingVertical: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: Colors.primary,
+  },
+  deckDetailMapsButtonText: {
+    fontSize: 15,
+    fontWeight: '700' as const,
+    color: Colors.primary,
+  },
+  deckDetailBackBtn: {
+    flex: 1,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
     gap: 2,
-    marginBottom: 18,
-    paddingVertical: 10,
-    paddingHorizontal: 18,
-    borderRadius: 12,
+    borderRadius: 14,
+    paddingVertical: 14,
     backgroundColor: Colors.surface,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   deckDetailBackText: {
-    fontSize: 14,
-    fontWeight: '600' as const,
+    fontSize: 15,
+    fontWeight: '700' as const,
     color: Colors.primary,
   },
   addSquare: {
