@@ -279,10 +279,10 @@ export function MealPickerModal({
     reset();
   }, [places, onInviteePick, reset]);
 
-  const handleOpenMaps = useCallback(() => {
-    if (!detailPlace) return;
+  const handleOpenMaps = useCallback((place: PickerPlace | null) => {
+    if (!place) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    const query = `${detailPlace.name} ${detailPlace.city}`;
+    const query = `${place.name} ${place.city}`;
     const encoded = encodeURIComponent(query);
     const webFallback = `https://www.google.com/maps/search/?api=1&query=${encoded}`;
     const url = Platform.select({
@@ -293,7 +293,7 @@ export function MealPickerModal({
     Linking.canOpenURL(url)
       .then((supported) => Linking.openURL(supported ? url : webFallback))
       .catch(() => Linking.openURL(webFallback));
-  }, [detailPlace]);
+  }, []);
 
   const handleBribeMe = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -383,7 +383,7 @@ export function MealPickerModal({
             <View style={styles.deckDetailActions}>
               <TouchableOpacity
                 style={styles.deckDetailMapsButton}
-                onPress={handleOpenMaps}
+                onPress={() => handleOpenMaps(detailPlace)}
                 activeOpacity={0.8}
               >
                 <Map size={18} color={Colors.primary} />
@@ -575,6 +575,13 @@ export function MealPickerModal({
                 <Text style={styles.searchButtonText}>
                   {inviteeMode ? 'Set date and time now' : 'Set date & time'}
                 </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.resultMapsButton}
+                onPress={() => handleOpenMaps(winner)}
+                activeOpacity={0.8}
+              >
+                <Map size={20} color={Colors.primary} />
               </TouchableOpacity>
             </View>
           </View>
@@ -1070,5 +1077,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  resultMapsButton: {
+    width: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#2A2A2A',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.primary,
   },
 });
