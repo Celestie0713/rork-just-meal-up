@@ -4,6 +4,43 @@ import { useMutation } from '@tanstack/react-query';
 import { generateObject } from '@rork-ai/toolkit-sdk';
 import { z } from 'zod';
 
+/** Sleep helper for retry backoff. */
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** Extract an HTTP status from an AI gateway error, if it carries one. */
+function extractErrorStatus(err: unknown): number | undefined {
+  if (!err || typeof err !== 'object') return undefined;
+  const rec = err as Record<string, unknown>;
+  if (typeof rec.statusCode === 'number') return rec.statusCode;
+  if (typeof rec.status === 'number') return rec.status;
+  const m = err instanceof Error ? /failed \((\d{3})\)/.exec(err.message) : null;
+  return m ? Number(m[1]) : undefined;
+}
+
+/** generateObject with retry: 5xx / 429 / network errors retry with
+ * exponential backoff (max 2 retries per gateway guidance); deterministic
+ * 4xx failures (401 auth, 402 balance, 413 payload) fail immediately. */
+async function generateObjectWithRetry<T extends z.ZodType>(
+  label: string,
+  params: { messages: Parameters<typeof generateObject>[0]['messages']; schema: T },
+): Promise<z.infer<T>> {
+  let lastError: unknown = null;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await generateObject(params);
+    } catch (err) {
+      lastError = err;
+      const status = extractErrorStatus(err);
+      const retryable = status === undefined || status === 429 || status >= 500;
+      if (attempt === 2 || !retryable) throw err;
+      const delayMs = 1000 * 2 ** attempt;
+      console.warn(`[Places AI Search] ${label} failed (attempt ${attempt + 1}, status ${status ?? 'network'}), retrying in ${delayMs}ms`);
+      await sleep(delayMs);
+    }
+  }
+  throw lastError;
+}
+
 const nullableString = z.preprocess((v) => (v === null || v === undefined ? '' : String(v)), z.string());
 const nullableNumber = z.preprocess((v) => {
   if (v === null || v === undefined) return 0;
@@ -335,7 +372,7 @@ function hasHighWordOverlap(a: string, b: string): boolean {
  * search that produces irrelevant results. */
 async function classifyQuery(query: string): Promise<{ isBrand: boolean; officialName: string }> {
   try {
-    const res = await generateObject({
+    const res = await generateObjectWithRetry('Classification', {
       messages: [
         {
           role: "user",
@@ -639,18 +676,25 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
   const [batchResults, realPlaces] = await Promise.all([
     Promise.all(
       batches.map((batchHint, batchIndex) =>
-        generateObject({
-          messages: [
-            {
-              role: "user",
-              content: buildSearchPrompt(cleanQuery, locationContext, batchHint, isSpecific),
-            },
-          ],
-          schema: PlacesResponseSchema,
-        }).catch((err) => {
-          console.error(`[Places AI Search] Batch ${batchIndex + 1} failed:`, err);
-          return { places: [], countryScope: '' };
-        })
+        (async () => {
+          // Stagger batch starts so the gateway isn't hit with five
+          // identical-schema requests at the same instant.
+          if (batchIndex > 0) await sleep(300 * batchIndex);
+          try {
+            return await generateObjectWithRetry(`Batch ${batchIndex + 1}`, {
+              messages: [
+                {
+                  role: "user",
+                  content: buildSearchPrompt(cleanQuery, locationContext, batchHint, isSpecific),
+                },
+              ],
+              schema: PlacesResponseSchema,
+            });
+          } catch (err) {
+            console.error(`[Places AI Search] Batch ${batchIndex + 1} failed:`, err);
+            return { places: [], countryScope: '' };
+          }
+        })()
       )
     ),
     searchNominatim(officialName, userLocation),
