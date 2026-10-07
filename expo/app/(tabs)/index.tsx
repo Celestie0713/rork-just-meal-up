@@ -157,6 +157,10 @@ export default function SearchScreen() {
 
   const handleMealPicked = useCallback((place: PickerPlace) => {
     setShowMealPicker(false);
+    // Capture the bribe state BEFORE resetting it — the invitation must stay
+    // restricted to the invitee whose "Food to bribe me with" was shuffled.
+    const isBribe = pickerPlacesAreBribe;
+    const bribeUserId = pickerBribeUserId;
     // Personal pick flow completed — the pool is no longer the invitee's bribe foods
     setPickerPlacesAreBribe(false);
     setPickerMineAdded(false);
@@ -168,9 +172,13 @@ export default function SearchScreen() {
         placeName: place.name,
         placeAddress: place.city,
         placeId: place.id,
+        // Explicit 'true'/'false' so a stale param from an earlier bribe
+        // flow can't leak into a normal invitation (params merge on tabs).
+        bribePick: isBribe ? 'true' : 'false',
+        bribeUserId: isBribe && bribeUserId ? bribeUserId : undefined,
       },
     });
-  }, []);
+  }, [pickerPlacesAreBribe, pickerBribeUserId]);
 
   const handleAddPickerPlace = useCallback(() => {
     setShowMealPicker(false);
