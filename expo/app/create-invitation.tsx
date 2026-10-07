@@ -18,13 +18,15 @@ import { Colors } from '@/constants/colors';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function CreateInvitationScreen() {
-  const { placeName, placeAddress, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId } = useLocalSearchParams<{
+  const { placeName, placeAddress, placeGoogleMapsUrl, placeLatitude, placeLongitude, placeId, bribePick, bribeUserId } = useLocalSearchParams<{
     placeName: string;
     placeAddress: string;
     placeGoogleMapsUrl: string;
     placeLatitude: string;
     placeLongitude: string;
     placeId: string;
+    bribePick?: string;
+    bribeUserId?: string;
   }>();
 
   const [selectedDate, setSelectedDate] = useState<Date>(() => {
@@ -277,6 +279,10 @@ export default function CreateInvitationScreen() {
     );
   };
 
+  // Bribe flow: the picker shuffled this invitee's "Food to bribe me with" —
+  // the invitation can only be sent to them.
+  const isBribeFlow = bribePick === 'true' && !!bribeUserId;
+
   const handleSendInvitation = () => {
     const invitationData: Record<string, string> = {
       placeName: editName || placeName || '',
@@ -286,10 +292,13 @@ export default function CreateInvitationScreen() {
       date: selectedDate.toISOString(),
       time: selectedTime.toISOString(),
       fromInvitation: 'true',
-      // Explicitly not a bribe pick — tab params merge, so this overrides
-      // any stale bribePick='true' left by an earlier bribe flow.
-      bribePick: 'false',
+      // Explicit value — tab params merge, so this overrides any stale
+      // bribePick left by an earlier flow.
+      bribePick: isBribeFlow ? 'true' : 'false',
     };
+    if (isBribeFlow) {
+      invitationData.bribeUserId = bribeUserId;
+    }
     
     const params = new URLSearchParams(invitationData).toString();
     router.push(`/(tabs)/messages?${params}` as any);
