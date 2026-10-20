@@ -1,8 +1,9 @@
+import Head from "expo-router/head";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useEffect } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, Platform, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StripeProviderWrapper } from "@/components/StripeProviderWrapper";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
@@ -15,6 +16,43 @@ import { trpc, trpcClient } from "@/lib/trpc";
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
+
+/** PWA: install the service worker so the web app works offline and is
+ * installable. Web-only — no-ops on iOS/Android. */
+function useServiceWorker() {
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    if (!("serviceWorker" in navigator)) return;
+    const register = () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    };
+    if (document.readyState === "complete") {
+      register();
+    } else {
+      window.addEventListener("load", register);
+      return () => window.removeEventListener("load", register);
+    }
+  }, []);
+}
+
+/** PWA metadata: manifest, icons, theme color, and iOS home-screen tags.
+ * Rendered only on web — native builds ignore <Head>. */
+function PwaHead() {
+  if (Platform.OS !== "web") return null;
+  return (
+    <Head>
+      <title>Just Meal Up</title>
+      <meta name="theme-color" content="#FF6B35" />
+      <link rel="manifest" href="/manifest.json" />
+      <link rel="icon" href="/pwa-icon-192.png" />
+      <link rel="apple-touch-icon" href="/pwa-icon-192.png" />
+      <meta name="mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-capable" content="yes" />
+      <meta name="apple-mobile-web-app-title" content="Meal Up" />
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    </Head>
+  );
+}
 
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
@@ -71,10 +109,13 @@ export default function RootLayout() {
     SplashScreen.hideAsync();
   }, []);
 
+  useServiceWorker();
+
   const publishableKey = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "";
 
   return (
     <StripeProviderWrapper publishableKey={publishableKey} merchantIdentifier="merchant.com.rork.app">
+      <PwaHead />
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
