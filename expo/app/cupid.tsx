@@ -15,6 +15,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Heart, ArrowLeft, ArrowRight, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
+import { useUserLocation } from '@/hooks/use-user-location';
 
 const DISTANCE_OPTIONS = [5, 10, 25, 50, 100];
 
@@ -30,6 +31,7 @@ export default function CupidScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ edit?: string }>();
   const { user, updateUser } = useAuth();
+  const { requestLocation } = useUserLocation();
 
   // Edit mode = the user already completed cupid once and came back from
   // their profile. Onboarding mode = first-time, must complete to continue.
@@ -55,7 +57,12 @@ export default function CupidScreen() {
   const handleContinue = async () => {
     if (!canContinue || !interestedIn) return;
     const currentPrefs = user?.preferences;
+    // Capture real GPS coordinates (prompts for permission on native) so the
+    // max-distance preference can filter the people list. Fails silently if
+    // the user denies — distance filtering just stays off until next save.
+    const coords = await requestLocation();
     await updateUser({
+      ...(coords ? { latitude: coords.latitude, longitude: coords.longitude } : {}),
       interestedIn,
       hasCompletedCupid: true,
       preferences: {

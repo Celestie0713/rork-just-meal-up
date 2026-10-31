@@ -26,6 +26,9 @@ export interface User {
   interestedIn?: 'F' | 'M';
   /** Whether the user completed the cupid (match preferences) onboarding. */
   hasCompletedCupid?: boolean;
+  /** Real device coordinates, captured when cupid preferences are saved. */
+  latitude?: number;
+  longitude?: number;
   preferences: {
     ageRange: [number, number];
     maxDistance: number;

@@ -6,6 +6,8 @@ import * as Haptics from 'expo-haptics';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
 import { useAuth } from '@/hooks/use-auth';
+import { useUserLocation } from '@/hooks/use-user-location';
+import { distanceMiles } from '@/utils/distance';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
 import { useFavorites } from '@/hooks/use-favorites';
@@ -149,6 +151,7 @@ export default function SearchScreen() {
     distance: '',
   });
   const { user: currentUser } = useAuth();
+  const { coords: liveCoords } = useUserLocation();
   const { getUnreadCount } = useNotifications();
   useChat();
 
@@ -278,6 +281,14 @@ export default function SearchScreen() {
   // age range. The manual filter modal narrows the list further on top.
   const cupidActive = currentUser?.hasCompletedCupid === true && currentUser.interestedIn !== undefined;
   const cupidAgeRange = cupidActive ? currentUser.preferences?.ageRange : undefined;
+  const cupidMaxDistance = cupidActive ? currentUser.preferences?.maxDistance : undefined;
+  // Prefer coordinates stored on the user (captured at cupid save); fall back
+  // to live detection on web. Distance filtering is skipped (fail-open) when
+  // either side has no coordinates.
+  const myCoords =
+    currentUser?.latitude != null && currentUser?.longitude != null
+      ? { latitude: currentUser.latitude, longitude: currentUser.longitude }
+      : liveCoords;
 
   const filteredUsers = mockUsers.filter(user => {
     if (user.id === currentUser?.id) return false;
@@ -296,7 +307,13 @@ export default function SearchScreen() {
         : /^m/i.test(user.sex)
     ));
     const matchesCupidAge = !cupidAgeRange || (user.age != null && user.age >= cupidAgeRange[0] && user.age <= cupidAgeRange[1]);
-    return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge && matchesCupidSex && matchesCupidAge;
+    const matchesCupidDistance =
+      !cupidMaxDistance ||
+      !myCoords ||
+      user.latitude == null ||
+      user.longitude == null ||
+      distanceMiles(myCoords, { latitude: user.latitude, longitude: user.longitude }) <= cupidMaxDistance;
+    return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge && matchesCupidSex && matchesCupidAge && matchesCupidDistance;
   });
 
   const renderUser = useCallback(({ item }: { item: User }) => {

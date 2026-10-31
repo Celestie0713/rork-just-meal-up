@@ -15,6 +15,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.7749,
+    longitude: -122.4194,
     membershipTier: 'premium',
     isOnline: true,
     ethnicity: ['English', 'Mandarin', 'Cantonese'],
@@ -43,6 +45,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.7599,
+    longitude: -122.4148,
     membershipTier: 'premium',
     isOnline: true,
     ethnicity: ['English', 'Mandarin'],
@@ -69,6 +73,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.7594,
+    longitude: -122.4664,
     membershipTier: 'organizer',
     isOnline: true,
     ethnicity: ['English', 'Cantonese'],
@@ -95,6 +101,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.8044,
+    longitude: -122.2712, // Oakland
     membershipTier: 'premium',
     isOnline: false,
     lastSeen: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
@@ -122,6 +130,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.7785,
+    longitude: -122.4056,
     membershipTier: 'free',
     isOnline: true,
     ethnicity: ['English', 'Cantonese'],
@@ -149,6 +159,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.3382,
+    longitude: -121.8863, // San Jose — outside most distance ranges
     membershipTier: 'premium',
     isOnline: true,
     ethnicity: ['English', 'Mandarin'],
@@ -175,6 +187,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.8715,
+    longitude: -122.2730, // Berkeley
     membershipTier: 'organizer',
     isOnline: false,
     lastSeen: new Date(Date.now() - 45 * 60 * 1000), // 45 minutes ago
@@ -202,6 +216,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.8021,
+    longitude: -122.4368,
     membershipTier: 'premium',
     isOnline: true,
     ethnicity: ['English', 'Mandarin'],
@@ -228,6 +244,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.7215,
+    longitude: -122.4787, // Daly City
     membershipTier: 'free',
     isOnline: true,
     ethnicity: ['English', 'Cantonese'],
@@ -254,6 +272,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1558203728-00f45181dd84?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.8591,
+    longitude: -122.4843, // Sausalito
     membershipTier: 'premium',
     isOnline: false,
     lastSeen: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
@@ -281,6 +301,8 @@ export const mockUsers: User[] = [
       'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=400&h=600&fit=crop'
     ],
     location: 'San Francisco, CA',
+    latitude: 37.5485,
+    longitude: -122.0455, // Fremont — outside most distance ranges
     membershipTier: 'free',
     isOnline: true,
     ethnicity: ['English', 'Cantonese'],
