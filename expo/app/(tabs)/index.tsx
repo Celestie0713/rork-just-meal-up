@@ -5,6 +5,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { UserCard } from '@/components/UserCard';
 import { mockUsers } from '@/mocks/users';
+import { useAuth } from '@/hooks/use-auth';
 import { useNotifications } from '@/hooks/use-notifications';
 import { useChat } from '@/hooks/use-chat';
 import { useFavorites } from '@/hooks/use-favorites';
@@ -147,6 +148,7 @@ export default function SearchScreen() {
     maxAge: '',
     distance: '',
   });
+  const { user: currentUser } = useAuth();
   const { getUnreadCount } = useNotifications();
   useChat();
 
@@ -271,7 +273,14 @@ export default function SearchScreen() {
 
   const unreadCount = getUnreadCount();
 
+  // Cupid preferences (set on the cupid page) are the base filter for the
+  // people list: only show the sex the user is interested in, within their
+  // age range. The manual filter modal narrows the list further on top.
+  const cupidActive = currentUser?.hasCompletedCupid === true && currentUser.interestedIn !== undefined;
+  const cupidAgeRange = cupidActive ? currentUser.preferences?.ageRange : undefined;
+
   const filteredUsers = mockUsers.filter(user => {
+    if (user.id === currentUser?.id) return false;
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCountry = !filters.country || (user.country !== undefined && user.country.toLowerCase() === filters.country.toLowerCase());
@@ -281,7 +290,13 @@ export default function SearchScreen() {
     const minAge = filters.minAge ? parseInt(filters.minAge) : null;
     const maxAge = filters.maxAge ? parseInt(filters.maxAge) : null;
     const matchesAge = (!minAge || (user.age != null && user.age >= minAge)) && (!maxAge || (user.age != null && user.age <= maxAge));
-    return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge;
+    const matchesCupidSex = !cupidActive || (user.sex !== undefined && (
+      currentUser.interestedIn === 'F'
+        ? /^f/i.test(user.sex)
+        : /^m/i.test(user.sex)
+    ));
+    const matchesCupidAge = !cupidAgeRange || (user.age != null && user.age >= cupidAgeRange[0] && user.age <= cupidAgeRange[1]);
+    return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge && matchesCupidSex && matchesCupidAge;
   });
 
   const renderUser = useCallback(({ item }: { item: User }) => {
