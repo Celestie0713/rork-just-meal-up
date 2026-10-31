@@ -284,27 +284,15 @@ export default function SearchScreen() {
   const cupidMaxDistance = cupidActive ? currentUser.preferences?.maxDistance : undefined;
   // Prefer coordinates stored on the user (captured at cupid save); fall back
   // to live detection on web. Distance filtering is skipped (fail-open) when
-  // either side has no coordinates.
+  // either side has no coordinates. Real (mock) coordinates are used as-is —
+  // a user in Malaysia genuinely won't see users pinned to San Francisco.
   const myCoords =
     currentUser?.latitude != null && currentUser?.longitude != null
       ? { latitude: currentUser.latitude, longitude: currentUser.longitude }
       : liveCoords;
-  // Mock users are pinned to San Francisco, but you're previewing from your
-  // real location — often thousands of miles away, which would empty the
-  // list. Anchor each mock user's offset-from-SF around YOUR location so
-  // their varied distances (1 mi … 42 mi) work wherever you are. Real users
-  // from the backend will use their true coordinates unchanged.
-  const MOCK_ANCHOR = { latitude: 37.7749, longitude: -122.4194 };
   const userDistanceFromMe = (user: User): number | null => {
     if (!myCoords || user.latitude == null || user.longitude == null) return null;
-    const offset = {
-      latitude: user.latitude - MOCK_ANCHOR.latitude,
-      longitude: user.longitude - MOCK_ANCHOR.longitude,
-    };
-    return distanceMiles(myCoords, {
-      latitude: myCoords.latitude + offset.latitude,
-      longitude: myCoords.longitude + offset.longitude,
-    });
+    return distanceMiles(myCoords, { latitude: user.latitude, longitude: user.longitude });
   };
 
   const filteredUsers = mockUsers.filter(user => {
