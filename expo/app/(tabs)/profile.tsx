@@ -632,7 +632,18 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.settingsContent}>
-            <TouchableOpacity style={styles.settingsItem}>
+            <TouchableOpacity
+              style={styles.settingsItem}
+              onPress={() => {
+                setShowSettingsModal(false);
+                router.push('/cupid' as any);
+              }}
+              activeOpacity={0.7}
+            >
+              <Heart size={20} color={Colors.primary} fill={Colors.primary} />
+              <Text style={styles.settingsItemText}>Cupid Preferences</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.settingsItem, { marginTop: 8 }]}>
               <Settings size={20} color={Colors.textLight} />
               <Text style={styles.settingsItemText}>Account Settings</Text>
             </TouchableOpacity>
@@ -736,32 +747,6 @@ export default function ProfileScreen() {
         </View>
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
-          {/* Cupid preferences — opens the cupid page to change match prefs */}
-          <TouchableOpacity
-            style={styles.cupidRow}
-            onPress={() => router.push('/cupid' as any)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.cupidRowIcon}>
-              <Heart size={18} color={Colors.primary} fill={Colors.primary} />
-            </View>
-            <View style={styles.cupidRowText}>
-              <Text style={styles.preferenceLabel}>Cupid preferences</Text>
-              <Text style={styles.cupidRowValue}>
-                {(() => {
-                  if (!user.interestedIn) return 'Tap to set who you\'re interested in';
-                  const [rangeMin, rangeMax] = user.preferences?.ageRange ?? [];
-                  const distance = user.preferences?.maxDistance;
-                  return [
-                    user.interestedIn === 'F' ? 'Female' : 'Male',
-                    rangeMin != null && rangeMax != null ? `${rangeMin}–${rangeMax}` : null,
-                    distance != null ? `${distance} mi` : null,
-                  ].filter(Boolean).join(' · ');
-                })()}
-              </Text>
-            </View>
-            <ChevronRight size={18} color={Colors.textLight} />
-          </TouchableOpacity>
           <View style={styles.personalInfoRow}>
             <View style={styles.halfPreferenceItem}>
               <View style={styles.preferenceHeader}>
@@ -1100,32 +1085,6 @@ const styles = StyleSheet.create({
   personalInfoSection: {
     paddingHorizontal: 20,
     paddingBottom: 24,
-  },
-  cupidRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: Colors.surface,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 14,
-  },
-  cupidRowIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: `${Colors.primary}1A`,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cupidRowText: {
-    flex: 1,
-  },
-  cupidRowValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.primary,
-    marginTop: 2,
   },
   bioEditContainer: {
     backgroundColor: Colors.surface,
