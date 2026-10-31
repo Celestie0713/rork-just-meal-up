@@ -289,6 +289,23 @@ export default function SearchScreen() {
     currentUser?.latitude != null && currentUser?.longitude != null
       ? { latitude: currentUser.latitude, longitude: currentUser.longitude }
       : liveCoords;
+  // Mock users are pinned to San Francisco, but you're previewing from your
+  // real location — often thousands of miles away, which would empty the
+  // list. Anchor each mock user's offset-from-SF around YOUR location so
+  // their varied distances (1 mi … 42 mi) work wherever you are. Real users
+  // from the backend will use their true coordinates unchanged.
+  const MOCK_ANCHOR = { latitude: 37.7749, longitude: -122.4194 };
+  const userDistanceFromMe = (user: User): number | null => {
+    if (!myCoords || user.latitude == null || user.longitude == null) return null;
+    const offset = {
+      latitude: user.latitude - MOCK_ANCHOR.latitude,
+      longitude: user.longitude - MOCK_ANCHOR.longitude,
+    };
+    return distanceMiles(myCoords, {
+      latitude: myCoords.latitude + offset.latitude,
+      longitude: myCoords.longitude + offset.longitude,
+    });
+  };
 
   const filteredUsers = mockUsers.filter(user => {
     if (user.id === currentUser?.id) return false;
@@ -307,12 +324,11 @@ export default function SearchScreen() {
         : /^m/i.test(user.sex)
     ));
     const matchesCupidAge = !cupidAgeRange || (user.age != null && user.age >= cupidAgeRange[0] && user.age <= cupidAgeRange[1]);
+    const userDistance = userDistanceFromMe(user);
     const matchesCupidDistance =
       !cupidMaxDistance ||
-      !myCoords ||
-      user.latitude == null ||
-      user.longitude == null ||
-      distanceMiles(myCoords, { latitude: user.latitude, longitude: user.longitude }) <= cupidMaxDistance;
+      userDistance === null ||
+      userDistance <= cupidMaxDistance;
     return matchesSearch && matchesCountry && matchesSex && matchesIntention && matchesLanguages && matchesAge && matchesCupidSex && matchesCupidAge && matchesCupidDistance;
   });
 
@@ -382,6 +398,15 @@ export default function SearchScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
           columnWrapperStyle={styles.row}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Heart size={40} color="#FF6B35" />
+              <Text style={styles.emptyStateTitle}>No people found</Text>
+              <Text style={styles.emptyStateText}>
+                No one matches your cupid preferences and filters yet. Try widening the age range or distance.
+              </Text>
+            </View>
+          }
         />
       )}
       {activeTab === 'places' && (
@@ -924,6 +949,9 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, marginRight: 8, fontSize: 16, color: '#000000' },
   filterButton: { backgroundColor: '#FFF8E7', borderRadius: 12, padding: 12, borderWidth: 1, borderColor: '#888888' },
   listContent: { paddingBottom: 20, paddingHorizontal: 4 },
+  emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32, gap: 10 },
+  emptyStateTitle: { fontSize: 18, fontWeight: '700', color: '#000000', marginTop: 6 },
+  emptyStateText: { fontSize: 14, color: '#666666', textAlign: 'center', lineHeight: 20 },
   row: { justifyContent: 'space-between', paddingHorizontal: 4 },
   tabContainer: { flexDirection: 'row', borderWidth: 1, borderColor: '#888888', borderRadius: 12, overflow: 'hidden' },
   tab: { flex: 1, paddingVertical: 12, paddingHorizontal: 24, backgroundColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
