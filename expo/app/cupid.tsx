@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,14 +10,16 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  PanResponder,
 } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Heart, ArrowLeft, ArrowRight, Check } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
 import { useUserLocation } from '@/hooks/use-user-location';
 
-const DISTANCE_OPTIONS = [5, 10, 25, 50, 100];
+const MAX_DISTANCE_MI = 1000;
 
 /** Labels for the cupid "Interested in" choice. */
 const INTERESTED_LABELS: Record<string, string> = { F: 'Female', M: 'Male' };
@@ -41,6 +43,33 @@ export default function CupidScreen() {
   const [ageMin, setAgeMin] = useState(String(user?.preferences?.ageRange?.[0] ?? 21));
   const [ageMax, setAgeMax] = useState(String(user?.preferences?.ageRange?.[1] ?? 45));
   const [maxDistance, setMaxDistance] = useState<number>(user?.preferences?.maxDistance ?? 25);
+
+  // Distance slider (0–1000 mi): custom PanResponder bar so it behaves
+  // identically on native and web (the community slider has no solid web
+  // support). trackWidthRef mirrors the measured bar width for the drag math.
+  const trackWidthRef = useRef(0);
+  const updateDistanceFromTouch = useCallback((locationX: number) => {
+    const width = trackWidthRef.current;
+    if (!width) return;
+    const ratio = Math.min(1, Math.max(0, locationX / width));
+    const next = Math.round(ratio * MAX_DISTANCE_MI);
+    setMaxDistance((prev) => {
+      if (prev !== next) {
+        Haptics.selectionAsync().catch(() => {});
+      }
+      return next;
+    });
+  }, []);
+  const updateDistanceRef = useRef(updateDistanceFromTouch);
+  updateDistanceRef.current = updateDistanceFromTouch;
+  const distancePanResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (e) => updateDistanceRef.current(e.nativeEvent.locationX),
+      onPanResponderMove: (e) => updateDistanceRef.current(e.nativeEvent.locationX),
+    })
+  ).current;
 
   const parseAge = (t: string): number | null => {
     const digits = t.replace(/\D/g, '').slice(0, 3);
@@ -189,23 +218,34 @@ export default function CupidScreen() {
           )}
 
           {/* Distance */}
-          <Text style={styles.fieldLabel}>Distance</Text>
-          <View style={styles.distanceGrid}>
-            {DISTANCE_OPTIONS.map((distance) => {
-              const selected = maxDistance === distance;
-              return (
-                <TouchableOpacity
-                  key={distance}
-                  style={[styles.distanceChip, selected && styles.distanceChipSelected]}
-                  onPress={() => setMaxDistance(distance)}
-                  activeOpacity={0.8}
-                >
-                  <Text style={[styles.distanceChipText, selected && styles.distanceChipTextSelected]}>
-                    {distance} mi
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+          <View style={styles.distanceHeaderRow}>
+            <Text style={styles.fieldLabel}>Distance</Text>
+            <Text style={styles.distanceValue}>{maxDistance} mi</Text>
+          </View>
+          <View
+            style={styles.sliderTrack}
+            onLayout={(e) => {
+              trackWidthRef.current = e.nativeEvent.layout.width;
+            }}
+            {...distancePanResponder.panHandlers}
+          >
+            <View style={styles.sliderTrackBase} />
+            <View
+              style={[
+                styles.sliderFill,
+                { width: `${(maxDistance / MAX_DISTANCE_MI) * 100}%` },
+              ]}
+            />
+            <View
+              style={[
+                styles.sliderThumb,
+                { left: `${(maxDistance / MAX_DISTANCE_MI) * 100}%` },
+              ]}
+            />
+          </View>
+          <View style={styles.sliderBoundsRow}>
+            <Text style={styles.sliderBound}>0 mi</Text>
+            <Text style={styles.sliderBound}>{MAX_DISTANCE_MI} mi</Text>
           </View>
           <Text style={styles.distanceHint}>How far should Cupid search for your match?</Text>
 
@@ -364,31 +404,63 @@ const styles = StyleSheet.create({
     color: '#FF4444',
     marginBottom: 8,
   },
-  distanceGrid: {
+  distanceHeaderRow: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 14,
+  },
+  distanceValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: Colors.primary,
+  },
+  sliderTrack: {
+    height: 36,
+    justifyContent: 'center',
+    marginBottom: 2,
+  },
+  sliderFill: {
+    position: 'absolute',
+    left: 0,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.primary,
+  },
+  sliderTrackBase: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.border,
+  },
+  sliderThumb: {
+    position: 'absolute',
+    top: '50%',
+    marginLeft: -13,
+    marginTop: -13,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: Colors.primary,
+    borderWidth: 3,
+    borderColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  sliderBoundsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 8,
   },
-  distanceChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 22,
-    backgroundColor: Colors.surface,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  distanceChipSelected: {
-    borderColor: Colors.primary,
-    backgroundColor: `${Colors.primary}14`,
-  },
-  distanceChipText: {
-    fontSize: 14,
-    fontWeight: '700',
+  sliderBound: {
+    fontSize: 11,
+    fontWeight: '600',
     color: Colors.textLight,
-  },
-  distanceChipTextSelected: {
-    color: Colors.primary,
   },
   distanceHint: {
     fontSize: 12,
