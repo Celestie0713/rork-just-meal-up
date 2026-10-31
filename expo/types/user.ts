@@ -22,6 +22,10 @@ export interface User {
   relationshipStatus?: 'single' | 'in_relationship';
   intention?: 'make_new_friends' | 'relationship' | 'casual' | 'marriage' | 'open_marriage' | 'figuring_it_out';
   partnerId?: string;
+  /** Who the user is interested in (cupid page): F = Female, M = Male. */
+  interestedIn?: 'F' | 'M';
+  /** Whether the user completed the cupid (match preferences) onboarding. */
+  hasCompletedCupid?: boolean;
   preferences: {
     ageRange: [number, number];
     maxDistance: number;

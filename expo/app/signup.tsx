@@ -272,7 +272,9 @@ export default function SignUpScreen() {
     try {
       const fullPhone = `${dialCode} ${formattedPhone}`;
       await signUp({ name: name.trim(), country, phone: fullPhone });
-      router.replace('/(tabs)/profile');
+      // New accounts fill the cupid (match preferences) page first,
+      // then land on the profile page.
+      router.replace('/cupid');
     } catch (e) {
       Alert.alert('Sign up failed', 'Something went wrong. Please try again.');
     } finally {

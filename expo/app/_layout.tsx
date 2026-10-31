@@ -59,14 +59,22 @@ function RootLayoutNav() {
   const segments = useSegments();
   const router = useRouter();
 
-  // Auth gate: send unauthenticated users to /signup (unless they're already there)
+  // Auth gate:
+  // - unauthenticated users go to /signup
+  // - signed-up users who haven't filled the cupid (match preferences)
+  //   page are sent there first, before they can reach the profile page
+  // - everyone else lands on the tabs
   useEffect(() => {
     if (isLoading) return;
     const inSignupRoute = segments[0] === "signup";
+    const inCupidRoute = segments[0] === "cupid";
     if (!user && !inSignupRoute) {
       router.replace("/signup");
     } else if (user && inSignupRoute) {
-      router.replace("/(tabs)");
+      router.replace(user.hasCompletedCupid ? "/(tabs)" : "/cupid");
+    } else if (user && !user.hasCompletedCupid && !inCupidRoute) {
+      // First-timers must complete cupid before anything else.
+      router.replace("/cupid");
     }
   }, [user, isLoading, segments, router]);
 
@@ -95,6 +103,7 @@ function RootLayoutNav() {
       <Stack.Screen name="create-group" options={{ headerShown: true }} />
       <Stack.Screen name="chat" options={{ headerShown: true }} />
       <Stack.Screen name="create-invitation" options={{ headerShown: true }} />
+      <Stack.Screen name="cupid" options={{ headerShown: false }} />
       <Stack.Screen name="group-details" options={{ headerShown: true }} />
       <Stack.Screen name="meal-up-details" options={{ headerShown: true }} />
       <Stack.Screen name="user-profile" options={{ headerShown: true }} />
