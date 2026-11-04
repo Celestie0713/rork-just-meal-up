@@ -40,7 +40,7 @@ async function generateObjectWithRetry<T extends z.ZodType>(
     try {
       const res = await generateObject({
         model: gateway(PLACES_MODEL_ID),
-        maxOutputTokens: 4000,
+        maxOutputTokens: 6000,
         ...params,
       });
       return res.object as z.infer<T>;
@@ -186,7 +186,7 @@ BRAND RECOGNITION: If the query could be a restaurant BRAND NAME — even if mis
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
     ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity. Return AT MOST 10 places.'
-    : 'QUANTITY: Return AT MOST 10 diverse, real restaurants — exactly 10 when that many genuinely exist. Every result must be a distinct, real restaurant. Do NOT return more than 10.';
+    : 'QUANTITY: Return AT MOST 15 diverse, real restaurants — exactly 15 when that many genuinely exist. Every result must be a distinct, real restaurant. Do NOT return more than 15.';
 
   return `${BASE_PROMPT}
 
@@ -676,12 +676,12 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     : await classifyQuery(cleanQuery);
 
   // Two lean batches instead of five heavy ones — 5×30+ place batches took
-  // 80+ seconds to generate. Two 10-place batches run in ~10-15s and the
-  // final list is capped at 25 anyway.
+  // 80+ seconds to generate. Two 15-place batches run in ~10-15s and feed
+  // the final cap of 30 results.
   const batches: string[] = isBrand
     ? [
         'BRAND SEARCH: The user is looking for the restaurant brand "' + officialName + '". Return ONLY real branches/outlets of this exact brand that you are confident actually exist — each result must be one distinct branch. Prioritize the user\'s country/region, but include notable branches in other cities too. Do NOT return other restaurants, competitors, or similar-sounding places. Use official branch names (often the brand name plus area/mall). matchScore 95-100 for every result.',
-        'BRAND SEARCH (more branches): Return UP TO 10 ADDITIONAL real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
+        'BRAND SEARCH (more branches): Return UP TO 15 ADDITIONAL real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
       ]
     : [
         'BATCH 1/2: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments, including well-known chains.',
@@ -775,7 +775,7 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
         ).slice(0, 8),
       ]
     : relevant;
-  const final = pool.slice(0, 25);
+  const final = pool.slice(0, 30);
 
   console.log("[Places AI Search] Scope:", scope || "(none)", "food-only:", foodOnly.length, "in-scope:", scoped.length, "after relevance:", relevant.length, "final:", final.length);
   console.log("[Places AI Search] Top results:", final.slice(0, 8).map((f) => f.place.name).join(" | "));
