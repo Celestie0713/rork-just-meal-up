@@ -1,8 +1,19 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Platform } from 'react-native';
 import { useMutation } from '@tanstack/react-query';
-import { generateObject } from '@rork-ai/toolkit-sdk';
+import { createGateway, generateObject, type ModelMessage } from 'ai';
 import { z } from 'zod';
+
+// Toolkit v2 gateway — the v1 compat endpoints (/llm/object) were shut down
+// (410 V1_TOOLKIT_DEPRECATED). Calls authenticate with the project's toolkit
+// secret on native; on web the build runtime injects a delegated token.
+const TOOLKIT_URL = process.env['EXPO_PUBLIC_TOOLKIT_URL'] ?? 'https://toolkit.rork.com';
+const gateway = createGateway({
+  baseURL: `${TOOLKIT_URL}/v2/vercel/v3/ai`,
+  apiKey: process.env['EXPO_PUBLIC_RORK_TOOLKIT_SECRET_KEY'] ?? '',
+});
+/** Fast structured-output model for place search/classification. */
+const PLACES_MODEL_ID = 'google/gemini-3.5-flash';
 
 /** Sleep helper for retry backoff. */
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
@@ -22,12 +33,16 @@ function extractErrorStatus(err: unknown): number | undefined {
  * 4xx failures (401 auth, 402 balance, 413 payload) fail immediately. */
 async function generateObjectWithRetry<T extends z.ZodType>(
   label: string,
-  params: { messages: Parameters<typeof generateObject>[0]['messages']; schema: T },
+  params: { messages: ModelMessage[]; schema: T },
 ): Promise<z.infer<T>> {
   let lastError: unknown = null;
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
-      return await generateObject(params);
+      const res = await generateObject({
+        model: gateway(PLACES_MODEL_ID),
+        ...params,
+      });
+      return res.object as z.infer<T>;
     } catch (err) {
       lastError = err;
       const status = extractErrorStatus(err);
