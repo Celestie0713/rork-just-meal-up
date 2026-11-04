@@ -773,6 +773,14 @@ export default function SearchScreen() {
         }}
         onAddPlace={handleAddPickerPlace}
         onRemovePlace={handleRemovePickerPlace}
+        onRefresh={() => {
+          // Header refresh button — wipe everything for a fresh start:
+          // pool, bribe flags and any locked winner.
+          setPickerPlaces([]);
+          setPickerPlacesAreBribe(false);
+          setPickerMineAdded(false);
+          setPickerWinner(null);
+        }}
         onPick={handleMealPicked}
         lockedWinner={pickerWinner}
         onShuffleComplete={handleShuffleComplete}

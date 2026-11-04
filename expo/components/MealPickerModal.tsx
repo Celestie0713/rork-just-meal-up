@@ -12,7 +12,7 @@ import {
   Platform,
   Linking,
 } from 'react-native';
-import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, ChevronLeft, MapPin, Map } from 'lucide-react-native';
+import { X, Sparkles, Shuffle, Plus, Send, Trash2, Calendar, ChevronLeft, MapPin, Map, RefreshCw } from 'lucide-react-native';
 import * as Haptics from 'expo-haptics';
 import { Colors } from '@/constants/colors';
 
@@ -68,6 +68,9 @@ interface MealPickerModalProps {
   /** Invitee mode: the recipient shuffles a pool chosen by the sender —
    *  no editing, no extra buttons, only shuffle + lock in. */
   inviteeMode?: boolean;
+  /** Fired by the header refresh button — the parent clears the whole pool
+   *  (places, bribe flags, locked winner) for a fresh start. */
+  onRefresh?: () => void;
 }
 
 const CARD_W = 96;
@@ -91,6 +94,7 @@ export function MealPickerModal({
   onAddMine,
   hasMineFavorites = true,
   inviteeMode = false,
+  onRefresh,
 }: MealPickerModalProps) {
   const [phase, setPhase] = useState<Phase>('select');
   const [detailPlace, setDetailPlace] = useState<PickerPlace | null>(null);
@@ -305,6 +309,12 @@ export function MealPickerModal({
     onBribeMe();
   }, [onBribeMe]);
 
+  const handleRefresh = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    reset();
+    onRefresh?.();
+  }, [reset, onRefresh]);
+
   const handleAddMine = useCallback(() => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onAddMine();
@@ -335,9 +345,20 @@ export function MealPickerModal({
             {phase === 'result' && 'Your pick!'}
           </Text>
           {!(inviteeMode && phase === 'result') && (
-            <TouchableOpacity style={styles.closeBtn} onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-              <X size={22} color={Colors.textLight} />
-            </TouchableOpacity>
+            <View style={styles.headerActions}>
+              {!inviteeMode && phase !== 'shuffling' && onRefresh && (
+                <TouchableOpacity
+                  style={styles.refreshBtn}
+                  onPress={handleRefresh}
+                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+                >
+                  <RefreshCw size={18} color={Colors.textLight} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity style={styles.closeBtn} onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+                <X size={22} color={Colors.textLight} />
+              </TouchableOpacity>
+            </View>
           )}
         </View>
 
@@ -635,6 +656,16 @@ const styles = StyleSheet.create({
   },
   closeBtn: {
     padding: 6,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  refreshBtn: {
+    padding: 7,
     borderRadius: 20,
     backgroundColor: Colors.surface,
   },
