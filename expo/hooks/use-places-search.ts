@@ -40,6 +40,7 @@ async function generateObjectWithRetry<T extends z.ZodType>(
     try {
       const res = await generateObject({
         model: gateway(PLACES_MODEL_ID),
+        maxOutputTokens: 4000,
         ...params,
       });
       return res.object as z.infer<T>;
@@ -184,8 +185,8 @@ BRAND RECOGNITION: If the query could be a restaurant BRAND NAME — even if mis
 
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
-    ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity.'
-    : 'QUANTITY: You MUST return at least 30 diverse, real restaurants per batch — aim for 40 if possible. Cover the full range: legendary destinations, neighborhood joints, hawker stalls, food courts, night markets, chains, and hidden gems. Do NOT return the same place more than once. Every result must be a distinct, real restaurant. More is better — fill the list completely. Return the maximum number of real, distinct places you can.';
+    ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity. Return AT MOST 10 places.'
+    : 'QUANTITY: Return AT MOST 10 diverse, real restaurants — exactly 10 when that many genuinely exist. Every result must be a distinct, real restaurant. Do NOT return more than 10.';
 
   return `${BASE_PROMPT}
 
@@ -213,7 +214,7 @@ For each place provide:
 - placeType: array like ["restaurant", "indian", "curry"]
 - cuisineEmoji: single emoji
 - googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=NAME+CITY+COUNTRY"
-- description: 2-3 sentences
+- description: ONE short sentence (max ~15 words)
 - matchScore: 0-100 relevance to query`;
 }
 
@@ -674,17 +675,17 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     ? { isBrand: true, officialName: cleanQuery }
     : await classifyQuery(cleanQuery);
 
+  // Two lean batches instead of five heavy ones — 5×30+ place batches took
+  // 80+ seconds to generate. Two 10-place batches run in ~10-15s and the
+  // final list is capped at 25 anyway.
   const batches: string[] = isBrand
     ? [
         'BRAND SEARCH: The user is looking for the restaurant brand "' + officialName + '". Return ONLY real branches/outlets of this exact brand that you are confident actually exist — each result must be one distinct branch. Prioritize the user\'s country/region, but include notable branches in other cities too. Do NOT return other restaurants, competitors, or similar-sounding places. Use official branch names (often the brand name plus area/mall). matchScore 95-100 for every result.',
-        'BRAND SEARCH (more branches): Return UP TO 15 ADDITIONAL real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
+        'BRAND SEARCH (more branches): Return UP TO 10 ADDITIONAL real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
       ]
     : [
-        'BATCH 1/5: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments worldwide.',
-        'BATCH 2/5: Focus on HIDDEN GEMS, local favorites, hawker stalls, food courts, neighborhood spots, and lesser-known but excellent places.',
-        'BATCH 3/5: Focus on well-known chain restaurants, popular casual spots, and notable mid-range places not covered in batches 1-2.',
-        'BATCH 4/5: Focus on street food, night markets, regional specialties, and authentic local spots across different cities/countries.',
-        'BATCH 5/5: Focus on fine dining, Michelin-starred, celebrity chef restaurants, and any remaining notable places worldwide for this query.',
+        'BATCH 1/2: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments, including well-known chains.',
+        'BATCH 2/2: Focus on LOCAL favorites — hidden gems, hawker stalls, food courts, street food, night markets, neighborhood spots, and casual mid-range places the first batch would miss.',
       ];
 
     const isSpecific = isBrand;
@@ -692,9 +693,6 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     Promise.all(
       batches.map((batchHint, batchIndex) =>
         (async () => {
-          // Stagger batch starts so the gateway isn't hit with five
-          // identical-schema requests at the same instant.
-          if (batchIndex > 0) await sleep(300 * batchIndex);
           try {
             return await generateObjectWithRetry(`Batch ${batchIndex + 1}`, {
               messages: [
