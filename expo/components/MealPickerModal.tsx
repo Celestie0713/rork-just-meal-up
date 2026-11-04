@@ -61,6 +61,10 @@ interface MealPickerModalProps {
   onInviteePick: (places: PickerPlace[]) => void;
   onBribeMe: () => void;
   onAddMine: () => void;
+  /** Whether the current user has any favorites under "Food to bribe me
+   *  with" — "Add mine as well" is only offered when they do. Defaults to
+   *  true so callers that don't track it keep the old behavior. */
+  hasMineFavorites?: boolean;
   /** Invitee mode: the recipient shuffles a pool chosen by the sender —
    *  no editing, no extra buttons, only shuffle + lock in. */
   inviteeMode?: boolean;
@@ -85,6 +89,7 @@ export function MealPickerModal({
   onInviteePick,
   onBribeMe,
   onAddMine,
+  hasMineFavorites = true,
   inviteeMode = false,
 }: MealPickerModalProps) {
   const [phase, setPhase] = useState<Phase>('select');
@@ -483,7 +488,7 @@ export function MealPickerModal({
                 </TouchableOpacity>
               )}
 
-              {(!bribeMode || !mineAdded) && !inviteeMode && (
+              {(!bribeMode || (!mineAdded && hasMineFavorites)) && !inviteeMode && (
                 <TouchableOpacity
                   style={styles.tertiaryButton}
                   onPress={bribeMode ? handleAddMine : handleBribeMe}

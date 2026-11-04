@@ -779,6 +779,7 @@ export default function SearchScreen() {
         onInviteePick={handleInviteePick}
         onBribeMe={handleBribeMe}
         onAddMine={handleAddMine}
+        hasMineFavorites={favoritePlaces.length > 0}
       />
 
       <SuccessPopup
