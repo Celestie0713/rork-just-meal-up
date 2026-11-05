@@ -97,6 +97,11 @@ const PlaceSchema = z.preprocess(
     openingHours: nullableStringArray.nullable().default(null),
     description: nullableString,
     matchScore: nullableNumber,
+    closed: z.preprocess((v2) => {
+      if (v2 === true || v2 === 1) return true;
+      if (typeof v2 === 'string') return /^(true|yes|1|closed)$/i.test(v2.trim());
+      return false;
+    }, z.boolean()),
   }).passthrough()
 );
 
@@ -144,6 +149,7 @@ export interface PlaceResult {
     website?: string;
     googleMapsUrl?: string;
     openingHours?: string[];
+    closed?: boolean;
   };
   description: string;
   matchScore: number;
@@ -199,6 +205,8 @@ ${quantityLine}
 IMPORTANT: ONLY return places people visit to eat or drink — restaurants, cafes, hawker stalls, food courts, street food, bakeries, bars.
 NEVER return hotels, hostels, resorts, parks, museums, malls, supermarkets, shops, attractions, or landmarks, even if the name matches the search.
 
+OPEN-FOR-BUSINESS RULE: Only return places that are CURRENTLY operating. NEVER return permanently closed, shut-down, defunct, or out-of-business establishments. Set closed: true ONLY for a place you are including that you know is permanently closed; otherwise closed: false.
+
 LOCATION RULE: Every result MUST be located in ONE country. Follow the location context above: use the user's country unless the query explicitly names a different city/country. Do NOT mix countries in one response.
 
 First provide:
@@ -215,7 +223,8 @@ For each place provide:
 - cuisineEmoji: single emoji
 - googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=NAME+CITY+COUNTRY"
 - description: ONE short sentence (max ~15 words)
-- matchScore: 0-100 relevance to query`;
+- matchScore: 0-100 relevance to query
+- closed: true if the place is PERMANENTLY closed/out of business, otherwise false`;
 }
 
 function mapPlaces(places: any[], baseIndex: number): PlaceResult[] {
@@ -233,6 +242,7 @@ function mapPlaces(places: any[], baseIndex: number): PlaceResult[] {
       placeType: place.placeType,
       cuisineEmoji: place.cuisineEmoji || '🍽️',
       googleMapsUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.city + ' ' + place.country)}`,
+      closed: place.closed === true || place.closed === 'true' || place.closed === 'yes',
     },
     description: place.description,
     matchScore: place.matchScore,
@@ -282,6 +292,13 @@ async function searchNominatim(query: string, userLocation?: UserLocation | null
     for (const hit of data) {
       const isFood = NOMINATIM_FOOD_CATEGORIES[hit.category ?? '']?.has(hit.type ?? '');
       if (!isFood || !hit.name || !hit.lat || !hit.lon) continue;
+      // Skip closed/down-graded OSM entries (disused:*, closed:*) and
+      // names explicitly marked closed.
+      const catLower = (hit.category ?? '').toLowerCase();
+      const typeLower = (hit.type ?? '').toLowerCase();
+      if (catLower.includes('disused') || typeLower.includes('disused') || typeLower.includes('closed')) continue;
+      if (/\(closed\)|permanently closed/i.test(hit.name)) continue;
+      if (hit.extratags && Object.keys(hit.extratags).some((k) => k.startsWith('disused:') || k === 'closed')) continue;
       // Only keep hits whose name actually relates to the search —
       // Nominatim can return unrelated amenities for odd tokens.
       if (!nameMatchesBrand(hit.name, query)) continue;
@@ -724,8 +741,17 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     index += r.places.length;
   }
 
+  // Drop permanently closed places before anything else — they must never
+  // reach the user, even as candidates.
+  const closedCount = [...realPlaces, ...aiResults].filter((r) => r.place.closed).length;
+  if (closedCount > 0) {
+    console.log(`[Places AI Search] Removing ${closedCount} permanently closed place(s)`);
+  }
+  const openRealPlaces = realPlaces.filter((r) => !r.place.closed);
+  const openAiResults = aiResults.filter((r) => !r.place.closed);
+
   // Real OSM places first so they win dedup against AI approximations.
-  const allResults: PlaceResult[] = [...realPlaces, ...aiResults];
+  const allResults: PlaceResult[] = [...openRealPlaces, ...openAiResults];
 
   const deduped = deduplicatePlaces(allResults);
   // Sort by matchScore descending
@@ -778,7 +804,42 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
         ).slice(0, 8),
       ]
     : relevant;
-  const final = pool.slice(0, 30);
+  let final = pool.slice(0, 30);
+
+  // Replacement pass: closed-place removal (plus the other filters) may
+  // leave the list short of the target. Ask the AI for additional distinct
+  // places to top the list back up — only runs when there's a shortfall.
+  const TARGET_RESULTS = 30;
+  if (final.length < TARGET_RESULTS) {
+    try {
+      const excludeNames = new Set(allResults.map((r) => normalizeName(r.place.name)));
+      const excludeLine = `Do NOT repeat ANY of these already-provided places: ${[...excludeNames].slice(0, 40).join(', ')}.`;
+      const topUpHint = isBrand
+        ? `TOP-UP SEARCH: Return UP TO 10 more CURRENTLY-OPERATING real branches of "${officialName}" not listed below.`
+        : 'TOP-UP SEARCH: Return UP TO 10 more distinct, real, CURRENTLY-OPERATING places matching the query that are NOT listed below — different from every already-provided place.';
+      const topUpPrompt = `${buildSearchPrompt(cleanQuery, locationContext, topUpHint, isSpecific)}\n\n${excludeLine}`;
+      const topUpRes = await generateObjectWithRetry('Top-up', {
+        messages: [{ role: 'user', content: topUpPrompt }],
+        schema: PlacesResponseSchema,
+      });
+      const topUpMapped = mapPlaces(topUpRes.places, index);
+      const topUpOpen = topUpMapped.filter((r) => {
+        if (r.place.closed) return false;
+        if (excludeNames.has(normalizeName(r.place.name))) return false;
+        if (!isFoodPlace(r)) return false;
+        if (scope && r.place.country && !countriesMatch(r.place.country, scope)) return false;
+        return isBrand
+          ? (nameMatchesBrand(r.place.name, officialName) || nameMatchesBrand(r.place.name, cleanQuery)) &&
+            !(r.place.latitude === 0 && r.place.longitude === 0)
+          : isRelevantToQuery(r, relevanceTokens);
+      });
+      const before = final.length;
+      final = deduplicatePlaces([...final, ...topUpOpen]).slice(0, TARGET_RESULTS);
+      console.log(`[Places AI Search] Top-up: got ${topUpRes.places.length}, kept ${final.length - before}, final: ${final.length}`);
+    } catch (e) {
+      console.log('[Places AI Search] Top-up batch failed:', e);
+    }
+  }
 
   console.log("[Places AI Search] Scope:", scope || "(none)", "food-only:", foodOnly.length, "in-scope:", scoped.length, "after relevance:", relevant.length, "final:", final.length);
   console.log("[Places AI Search] Top results:", final.slice(0, 8).map((f) => f.place.name).join(" | "));
