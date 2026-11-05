@@ -186,7 +186,7 @@ BRAND RECOGNITION: If the query could be a restaurant BRAND NAME — even if mis
 function buildSearchPrompt(query: string, locationContext: string, batchHint: string, isSpecific: boolean): string {
   const quantityLine = isSpecific
     ? 'QUANTITY: Return ONLY places that GENUINELY match this exact name. If fewer than 5 real places exist worldwide, return ONLY those — do NOT fabricate similar-sounding places. Quality over quantity. Return AT MOST 10 places.'
-    : 'QUANTITY: Return AT MOST 15 diverse, real restaurants — exactly 15 when that many genuinely exist. Every result must be a distinct, real restaurant. Do NOT return more than 15.';
+    : 'QUANTITY: Return AT MOST 10 diverse, real restaurants — exactly 10 when that many genuinely exist. Every result must be a distinct, real restaurant. Do NOT return more than 10.';
 
   return `${BASE_PROMPT}
 
@@ -675,17 +675,20 @@ async function searchPlacesAI(query: string, limit: number = 12, userLocation?: 
     ? { isBrand: true, officialName: cleanQuery }
     : await classifyQuery(cleanQuery);
 
-  // Two lean batches instead of five heavy ones — 5×30+ place batches took
-  // 80+ seconds to generate. Two 15-place batches run in ~10-15s and feed
-  // the final cap of 30 results.
+  // Three lean batches of 10, not fewer bigger ones — 15-place batches
+  // overflowed the 6000-token output cap and returned truncated JSON
+  // (AI_NoObjectGeneratedError). Three batches run in parallel, so the
+  // wall-clock time is the same and 3×10 feeds the final cap of 30 results.
   const batches: string[] = isBrand
     ? [
         'BRAND SEARCH: The user is looking for the restaurant brand "' + officialName + '". Return ONLY real branches/outlets of this exact brand that you are confident actually exist — each result must be one distinct branch. Prioritize the user\'s country/region, but include notable branches in other cities too. Do NOT return other restaurants, competitors, or similar-sounding places. Use official branch names (often the brand name plus area/mall). matchScore 95-100 for every result.',
-        'BRAND SEARCH (more branches): Return UP TO 15 ADDITIONAL real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
+        'BRAND SEARCH (more branches): Return UP TO 10 real branches of "' + officialName + '" in the user\'s country/region not covered by the most famous outlets. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
+        'BRAND SEARCH (more branches): Return UP TO 10 real branches of "' + officialName + '" in other cities, regions, or countries not covered by typical results. ONLY branches you are confident exist. Do NOT return other restaurants or similar names.',
       ]
     : [
-        'BATCH 1/2: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments, including well-known chains.',
-        'BATCH 2/2: Focus on LOCAL favorites — hidden gems, hawker stalls, food courts, street food, night markets, neighborhood spots, and casual mid-range places the first batch would miss.',
+        'BATCH 1/3: Focus on the MOST FAMOUS and iconic places for this query — the legendary, award-winning, and widely-renowned establishments, including well-known chains.',
+        'BATCH 2/3: Focus on LOCAL favorites — hidden gems, hawker stalls, food courts, street food, and night markets the first batch would miss.',
+        'BATCH 3/3: Focus on NEIGHBORHOOD spots — casual mid-range places, cafes, bakeries, and everyday eateries across different areas and cities.',
       ];
 
     const isSpecific = isBrand;
