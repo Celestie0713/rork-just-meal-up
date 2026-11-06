@@ -485,6 +485,9 @@ export default function InvitationsScreen() {
   };
 
   const handleOpenShuffle = (invitation: MealInvitation) => {
+    // A shuffle can only happen ONCE per invitation: the pick is recorded
+    // on the invitation, and reopening shows the locked result ("Tadah!")
+    // instead of the deck — no second shuffle.
     setShuffleInvitation(invitation);
   };
 
@@ -493,6 +496,11 @@ export default function InvitationsScreen() {
   const handleShuffleConfirm = (place: PickerPlace) => {
     if (!shuffleInvitation) return;
     const inviter = mockUsers.find(user => user.id === shuffleInvitation.inviterId);
+
+    // Lock the pick in permanently — the invitation can't be re-shuffled.
+    if (shuffleInvitation.pickerPickedId !== place.id) {
+      updateInvitation(shuffleInvitation.id, { pickerPickedId: place.id });
+    }
 
     setScheduleData({
       invitationId: shuffleInvitation.id,
@@ -1313,12 +1321,23 @@ export default function InvitationsScreen() {
         inviteeMode
         bribeMode={false}
         mineAdded={false}
-        lockedWinner={null}
+        lockedWinner={
+          shuffleInvitation?.pickerPickedId
+            ? shuffleInvitation.pickerPlaces?.find(p => p.id === shuffleInvitation.pickerPickedId) ?? null
+            : null
+        }
         onClose={() => setShuffleInvitation(null)}
         onAddPlace={() => {}}
         onRemovePlace={() => {}}
         onPick={handleShuffleConfirm}
-        onShuffleComplete={() => {}}
+        onShuffleComplete={(place) => {
+          // The result is out the moment the shuffle lands — record the pick
+          // on the invitation immediately, so X-ing the result never allows
+          // a second shuffle. null = dismissed mid-shuffle, nothing locked.
+          if (place && shuffleInvitation) {
+            updateInvitation(shuffleInvitation.id, { pickerPickedId: place.id });
+          }
+        }}
         onInviteePick={() => {}}
         onBribeMe={() => {}}
         onAddMine={() => {}}
