@@ -136,9 +136,14 @@ export function MealPickerModal({
   }, [visible, lockedWinner, reset]);
 
   const handleClose = useCallback(() => {
-    // In invitee mode the result must be accepted via "Set date and time now"
-    // — X and the backdrop can't discard it.
-    if (inviteeMode && phase === 'result') return;
+    // In invitee mode the result can only be confirmed via "Set date and
+    // time now" — the backdrop can't discard it. The X (below) is the
+    // explicit way out: dismiss without setting a date.
+    if (inviteeMode && phase === 'result') {
+      reset();
+      onClose();
+      return;
+    }
     // X discards the outcome: clear any locked winner so the picker resets
     // back to its original state on the next open.
     dismissedRef.current = true;
@@ -342,24 +347,22 @@ export function MealPickerModal({
           <Text style={styles.title}>
             {phase === 'select' && (detailPlace ? 'Place details' : inviteeMode ? 'Meal Shuffle' : 'Meal Picker')}
             {phase === 'shuffling' && 'Shuffling...'}
-            {phase === 'result' && 'Your pick!'}
+            {phase === 'result' && (inviteeMode ? 'Tadah!' : 'Your pick!')}
           </Text>
-          {!(inviteeMode && phase === 'result') && (
-            <View style={styles.headerActions}>
-              {!inviteeMode && phase !== 'shuffling' && onRefresh && (
-                <TouchableOpacity
-                  style={styles.refreshBtn}
-                  onPress={handleRefresh}
-                  hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-                >
-                  <RefreshCw size={18} color={Colors.textLight} />
-                </TouchableOpacity>
-              )}
-              <TouchableOpacity style={styles.closeBtn} onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
-                <X size={22} color={Colors.textLight} />
+          <View style={styles.headerActions}>
+            {!inviteeMode && phase !== 'shuffling' && onRefresh && (
+              <TouchableOpacity
+                style={styles.refreshBtn}
+                onPress={handleRefresh}
+                hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+              >
+                <RefreshCw size={18} color={Colors.textLight} />
               </TouchableOpacity>
-            </View>
-          )}
+            )}
+            <TouchableOpacity style={styles.closeBtn} onPress={handleClose} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+              <X size={22} color={Colors.textLight} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {phase === 'select' && detailPlace && (
