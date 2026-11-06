@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, TextInput, Image, Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle, ChevronLeft, ChevronRight } from 'lucide-react-native';
+import { CheckCircle, Clock, X, Check, Calendar, MapPin, User, ChefHat, Pencil, Navigation, Map, Shuffle, Eye, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { mockUsers } from '@/mocks/users';
@@ -87,11 +87,13 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
   const isConfirmed = invitation.status === 'accepted';
   // "Invitee will shuffle & pick" invitation — the pick still belongs to the
   // invitee until they shuffle, so the venue row is replaced by the shuffle panel.
-  const isShufflePending =
+  const hasShuffleDeck =
     !!invitation.pickerPlaces &&
-    invitation.pickerPlaces.length >= 2 &&
-    isPending &&
-    !invitation.pickerPickedId;
+    invitation.pickerPlaces.length >= 2;
+  const isShufflePending = hasShuffleDeck && isPending && !invitation.pickerShuffledId;
+  // Shuffled but date & time not confirmed yet — the panel stays, its button
+  // reopens the locked result page instead of shuffling again.
+  const isShufflePicked = hasShuffleDeck && isPending && !!invitation.pickerShuffledId && !invitation.pickerPickedId;
 
   // Always an exact date — no relative "Today"/"Tomorrow" labels.
   const formatDate = (date: Date) => {
@@ -189,7 +191,7 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
         </View>
       </View>
       <View style={styles.mealDetails}>
-        {isShufflePending ? (
+        {isShufflePending || isShufflePicked ? (
           <View style={styles.shufflePanel}>
             <Text style={styles.shufflePanelTitle}>🎴 Meal Shuffle</Text>
             {showActions && (
@@ -201,8 +203,17 @@ function InvitationCard({ invitation, onAccept, onDecline, onEdit, showActions =
                 }}
                 activeOpacity={0.8}
               >
-                <Shuffle size={16} color="#FFFFFF" />
-                <Text style={styles.shuffleButtonText}>Shuffle & pick</Text>
+                {isShufflePicked ? (
+                  <>
+                    <Eye size={16} color="#FFFFFF" />
+                    <Text style={styles.shuffleButtonText}>View result</Text>
+                  </>
+                ) : (
+                  <>
+                    <Shuffle size={16} color="#FFFFFF" />
+                    <Text style={styles.shuffleButtonText}>Shuffle & pick</Text>
+                  </>
+                )}
               </TouchableOpacity>
             )}
           </View>
@@ -496,11 +507,6 @@ export default function InvitationsScreen() {
   const handleShuffleConfirm = (place: PickerPlace) => {
     if (!shuffleInvitation) return;
     const inviter = mockUsers.find(user => user.id === shuffleInvitation.inviterId);
-
-    // Lock the pick in permanently — the invitation can't be re-shuffled.
-    if (shuffleInvitation.pickerPickedId !== place.id) {
-      updateInvitation(shuffleInvitation.id, { pickerPickedId: place.id });
-    }
 
     setScheduleData({
       invitationId: shuffleInvitation.id,
@@ -1322,8 +1328,8 @@ export default function InvitationsScreen() {
         bribeMode={false}
         mineAdded={false}
         lockedWinner={
-          shuffleInvitation?.pickerPickedId
-            ? shuffleInvitation.pickerPlaces?.find(p => p.id === shuffleInvitation.pickerPickedId) ?? null
+          shuffleInvitation?.pickerShuffledId
+            ? shuffleInvitation.pickerPlaces?.find(p => p.id === shuffleInvitation.pickerShuffledId) ?? null
             : null
         }
         onClose={() => setShuffleInvitation(null)}
@@ -1331,11 +1337,12 @@ export default function InvitationsScreen() {
         onRemovePlace={() => {}}
         onPick={handleShuffleConfirm}
         onShuffleComplete={(place) => {
-          // The result is out the moment the shuffle lands — record the pick
-          // on the invitation immediately, so X-ing the result never allows
-          // a second shuffle. null = dismissed mid-shuffle, nothing locked.
+          // The result is out the moment the shuffle lands — record it
+          // immediately so X-ing the result never allows a second shuffle.
+          // The card's confirmed layout waits for pickerPickedId (set when
+          // the date & time are saved). null = dismissed mid-shuffle.
           if (place && shuffleInvitation) {
-            updateInvitation(shuffleInvitation.id, { pickerPickedId: place.id });
+            updateInvitation(shuffleInvitation.id, { pickerShuffledId: place.id });
           }
         }}
         onInviteePick={() => {}}

@@ -90,7 +90,13 @@ export interface MealInvitation {
   declinedAt?: Date;
   /** Sent via the Meal Picker's "Invitee will shuffle & pick" — the invitee shuffles this pool. */
   pickerPlaces?: PickerPlace[];
-  /** Id of the place the invitee locked in via the shuffle. */
+  /** Id of the place the invitee locked in via the shuffle — set the
+   * moment the result is out, so the shuffle can't run twice. The venue
+   * and confirmed layout only apply once the date & time are saved
+   * (pickerPickedId). */
+  pickerShuffledId?: string;
+  /** Id of the place the invitee locked in via the shuffle AND confirmed
+   * with a date & time. */
   pickerPickedId?: string;
 }
 
