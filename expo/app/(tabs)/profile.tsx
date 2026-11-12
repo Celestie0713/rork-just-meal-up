@@ -713,7 +713,28 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.nameContainer}>
-            <Text style={styles.name}>{user.name}{user.age != null ? `, ${user.age}` : ''}</Text>
+            <Text style={styles.name}>{user.name}</Text>
+            {isEditing ? (
+              <TextInput
+                style={styles.nameAgeInput}
+                value={editedUser?.age != null ? String(editedUser.age) : ''}
+                onChangeText={(t) => {
+                  const digits = t.replace(/\D/g, '').slice(0, 3);
+                  const parsed = digits ? parseInt(digits, 10) : 0;
+                  const capped = Math.min(parsed, 100);
+                  setEditedUser(prev => prev ? {
+                    ...prev,
+                    age: digits ? capped : undefined,
+                  } : prev);
+                }}
+                placeholder="Age"
+                placeholderTextColor={Colors.textLight}
+                keyboardType="number-pad"
+                maxLength={3}
+              />
+            ) : (
+              user.age != null && <Text style={styles.nameAge}>{user.age}</Text>
+            )}
           </View>
           {isExclusive && partnerUser && (
             <View style={styles.loveIconRow}>
@@ -748,35 +769,6 @@ export default function ProfileScreen() {
         <View style={styles.personalInfoSection}>
           <Text style={styles.sectionTitle}>Personal Information</Text>
           <View style={styles.personalInfoRow}>
-            <View style={styles.halfPreferenceItem}>
-              <View style={styles.preferenceHeader}>
-                <Text style={styles.preferenceLabel}>Age</Text>
-                {isEditing && <Pencil size={16} color={Colors.primary} />}
-              </View>
-              {isEditing ? (
-                <TextInput
-                  style={styles.ageInput}
-                  value={editedUser?.age != null ? String(editedUser.age) : ''}
-                  onChangeText={(t) => {
-                    const digits = t.replace(/\D/g, '').slice(0, 3);
-                    const parsed = digits ? parseInt(digits, 10) : 0;
-                    const capped = Math.min(parsed, 100);
-                    setEditedUser(prev => prev ? {
-                      ...prev,
-                      age: digits ? capped : undefined,
-                    } : prev);
-                  }}
-                  placeholder="Add age"
-                  placeholderTextColor={Colors.textLight}
-                  keyboardType="number-pad"
-                  maxLength={3}
-                />
-              ) : (
-                <Text style={styles.preferenceValue}>
-                  {user.age != null ? user.age : 'Not specified'}
-                </Text>
-              )}
-            </View>
             <TouchableOpacity 
               style={styles.halfPreferenceItem}
               onPress={() => isEditing && setShowIntentionModal(true)}
@@ -1058,8 +1050,10 @@ const styles = StyleSheet.create({
     borderRadius: 60,
   },
   nameContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     marginBottom: 8,
   },
 
@@ -1067,6 +1061,22 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '700',
     color: Colors.text,
+  },
+  nameAge: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: Colors.textLight,
+  },
+  nameAgeInput: {
+    fontSize: 20,
+    fontWeight: '600' as const,
+    color: Colors.text,
+    backgroundColor: Colors.surface,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    minWidth: 70,
+    textAlign: 'center',
   },
   locationContainer: {
     flexDirection: 'row',
