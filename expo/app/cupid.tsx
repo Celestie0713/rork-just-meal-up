@@ -250,7 +250,6 @@ export default function CupidScreen() {
             <Text style={styles.sliderBound}>0 mi</Text>
             <Text style={styles.sliderBound}>{MAX_DISTANCE_MI} mi</Text>
           </View>
-          <Text style={styles.distanceHint}>How far should Cupid search for your match?</Text>
 
           {/* Any distance — bypasses the slider and shows everyone */}
           <TouchableOpacity
@@ -442,7 +441,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    marginTop: 14,
+    marginTop: 12,
+    marginBottom: 20,
   },
   checkboxBox: {
     width: 22,
@@ -507,11 +507,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     color: Colors.textLight,
-  },
-  distanceHint: {
-    fontSize: 12,
-    color: '#777777',
-    marginBottom: 32,
   },
   continueButton: {
     flexDirection: 'row',
