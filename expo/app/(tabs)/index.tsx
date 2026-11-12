@@ -282,6 +282,8 @@ export default function SearchScreen() {
   const cupidActive = currentUser?.hasCompletedCupid === true && currentUser.interestedIn !== undefined;
   const cupidAgeRange = cupidActive ? currentUser.preferences?.ageRange : undefined;
   const cupidMaxDistance = cupidActive ? currentUser.preferences?.maxDistance : undefined;
+  // "Any distance" checkbox on the cupid page — show everyone, no distance cap.
+  const cupidAnyDistance = cupidActive ? currentUser.preferences?.anyDistance === true : false;
   // Prefer coordinates stored on the user (captured at cupid save); fall back
   // to live detection on web. Distance filtering is skipped (fail-open) when
   // either side has no coordinates. Real (mock) coordinates are used as-is —
@@ -314,6 +316,7 @@ export default function SearchScreen() {
     const matchesCupidAge = !cupidAgeRange || (user.age != null && user.age >= cupidAgeRange[0] && user.age <= cupidAgeRange[1]);
     const userDistance = userDistanceFromMe(user);
     const matchesCupidDistance =
+      cupidAnyDistance ||
       !cupidMaxDistance ||
       userDistance === null ||
       userDistance <= cupidMaxDistance;

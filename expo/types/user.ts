@@ -32,6 +32,8 @@ export interface User {
   preferences: {
     ageRange: [number, number];
     maxDistance: number;
+    /** "Any distance" checkbox — show everyone regardless of how far. */
+    anyDistance?: boolean;
     cuisinePreferences: string[];
     preferredEthnicity?: string[];
     incomeLevel?: string;

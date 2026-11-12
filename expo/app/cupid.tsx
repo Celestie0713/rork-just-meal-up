@@ -43,6 +43,8 @@ export default function CupidScreen() {
   const [ageMin, setAgeMin] = useState(String(user?.preferences?.ageRange?.[0] ?? 21));
   const [ageMax, setAgeMax] = useState(String(user?.preferences?.ageRange?.[1] ?? 45));
   const [maxDistance, setMaxDistance] = useState<number>(user?.preferences?.maxDistance ?? 25);
+  // "Any distance" checkbox — overrides the slider entirely.
+  const [anyDistance, setAnyDistance] = useState<boolean>(user?.preferences?.anyDistance ?? false);
 
   // Distance slider (0–1000 mi): custom PanResponder bar so it behaves
   // identically on native and web (the community slider has no solid web
@@ -100,6 +102,7 @@ export default function CupidScreen() {
         }),
         ageRange: [minAge as number, maxAge as number],
         maxDistance,
+        anyDistance,
       },
     });
     if (isEditMode) {
@@ -223,11 +226,11 @@ export default function CupidScreen() {
             <Text style={styles.distanceValue}>{maxDistance} mi</Text>
           </View>
           <View
-            style={styles.sliderTrack}
+            style={[styles.sliderTrack, anyDistance && styles.sliderDisabled]}
             onLayout={(e) => {
               trackWidthRef.current = e.nativeEvent.layout.width;
             }}
-            {...distancePanResponder.panHandlers}
+            {...(anyDistance ? {} : distancePanResponder.panHandlers)}
           >
             <View style={styles.sliderTrackBase} />
             <View
@@ -248,6 +251,22 @@ export default function CupidScreen() {
             <Text style={styles.sliderBound}>{MAX_DISTANCE_MI} mi</Text>
           </View>
           <Text style={styles.distanceHint}>How far should Cupid search for your match?</Text>
+
+          {/* Any distance — bypasses the slider and shows everyone */}
+          <TouchableOpacity
+            style={styles.anyDistanceRow}
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              setAnyDistance((v) => !v);
+            }}
+            activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8 }}
+          >
+            <View style={[styles.checkboxBox, anyDistance && styles.checkboxBoxChecked]}>
+              {anyDistance && <Check size={16} color="#FFFFFF" strokeWidth={3} />}
+            </View>
+            <Text style={styles.checkboxLabel}>Any distance - show me everyone</Text>
+          </TouchableOpacity>
 
           {/* Continue */}
           <TouchableOpacity
@@ -415,6 +434,32 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     color: Colors.primary,
+  },
+  sliderDisabled: {
+    opacity: 0.3,
+  },
+  anyDistanceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 14,
+  },
+  checkboxBox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkboxBoxChecked: {
+    backgroundColor: Colors.primary,
+  },
+  checkboxLabel: {
+    flex: 1,
+    fontSize: 14,
+    color: Colors.text,
   },
   sliderTrack: {
     height: 36,
