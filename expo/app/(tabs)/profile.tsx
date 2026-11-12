@@ -1065,7 +1065,7 @@ const styles = StyleSheet.create({
   nameAge: {
     fontSize: 20,
     fontWeight: '600' as const,
-    color: Colors.textLight,
+    color: '#FFFFFF',
   },
   nameAgeInput: {
     fontSize: 20,
