@@ -835,7 +835,9 @@ export default function ProfileScreen() {
               />
             </View>
           ) : (
-            <Text style={styles.bio}>{user.bio}</Text>
+            <Text style={styles.bio}>
+              {user.bio && user.bio.trim().length > 0 ? user.bio : 'Not specified'}
+            </Text>
           )}
         </View>
 
