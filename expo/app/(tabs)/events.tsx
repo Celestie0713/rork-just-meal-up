@@ -6,8 +6,7 @@ import { router } from 'expo-router';
 import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
 import { ALL_COUNTRIES } from '@/constants/countries';
-import { mockMealUps } from '@/mocks/meal-ups';
-import { mockGroups, type Group } from '@/mocks/groups';
+import type { Group } from '@/mocks/groups';
 import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
 
@@ -35,10 +34,14 @@ export default function EventsScreen() {
 
   const countries = ALL_COUNTRIES as unknown as string[];
 
-  const upcomingMealUps = mockMealUps.filter(mealUp => mealUp.date >= now);
-  const pastMealUps = mockMealUps.filter(mealUp => mealUp.date < now);
+  // Launch state: no seeded meal ups or groups — these lists fill up with
+  // real data only. (The mock files stay for the detail screens' types.)
+  const mealUps: MealUp[] = [];
+  const groups: Group[] = [];
 
-  const displayedMealUps = activeTab === 'upcoming' ? upcomingMealUps : pastMealUps;
+  const upcomingMealUps = mealUps.filter(mealUp => mealUp.date >= now);
+
+  const displayedMealUps = upcomingMealUps;
 
   const filteredMealUps = displayedMealUps.filter(mealUp => {
     const matchesSearch = mealUp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -289,18 +292,36 @@ export default function EventsScreen() {
         </View>
       </Modal>
       {activeTab === 'upcoming' ? (
-        <FlatList
-          key="upcoming-meal-ups"
-          data={filteredMealUps}
-          renderItem={renderMealUp}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-        />
+        filteredMealUps.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Users size={40} color={Colors.textLight} />
+            <Text style={styles.emptyStateTitle}>No meal ups near you yet</Text>
+            <Text style={styles.emptyStateText}>
+              Be the first to host one — tap the + button to create a group.
+            </Text>
+          </View>
+        ) : (
+          <FlatList
+            key="upcoming-meal-ups"
+            data={filteredMealUps}
+            renderItem={renderMealUp}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+          />
+        )
+      ) : groups.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Users size={40} color={Colors.textLight} />
+          <Text style={styles.emptyStateTitle}>No groups yet</Text>
+          <Text style={styles.emptyStateText}>
+            Tap the + button to start the first group.
+          </Text>
+        </View>
       ) : (
         <FlatList
           key="groups-grid"
-          data={mockGroups}
+          data={groups}
           renderItem={renderGroup}
           keyExtractor={(item) => item.id}
           numColumns={3}
@@ -361,6 +382,25 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 40,
+    gap: 10,
+  },
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: Colors.text,
+    textAlign: 'center',
+  },
+  emptyStateText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    textAlign: 'center',
+    lineHeight: 20,
   },
   searchContainer: {
     flexDirection: 'row',
