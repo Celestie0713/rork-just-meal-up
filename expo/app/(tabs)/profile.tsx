@@ -835,7 +835,13 @@ export default function ProfileScreen() {
               />
             </View>
           ) : (
-            <Text style={styles.bio}>
+            <Text
+              style={
+                user.bio && user.bio.trim().length > 0
+                  ? styles.bio
+                  : styles.preferenceValue // same look as Intention's "Not specified"
+              }
+            >
               {user.bio && user.bio.trim().length > 0 ? user.bio : 'Not specified'}
             </Text>
           )}
