@@ -1,19 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Modal, Animated, Dimensions, Pressable } from 'react-native';
+import React, { useState, useRef } from 'react';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, Modal, Animated, Pressable } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { MapPin, Users, DollarSign, Heart, Calendar, Crown, Plus, X, Shield, Star, CheckCircle, TicketPercent } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors, Gradients } from '@/constants/colors';
-import { mockGroups } from '@/mocks/groups';
-import { mockMealUps } from '@/mocks/meal-ups';
 import { MealUpCard } from '@/components/MealUpCard';
+import { useGroup, useGroupMembership } from '@/hooks/use-groups';
 import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
 
 export default function GroupDetailsScreen() {
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
-  const { joinGroup, leaveGroup, isGroupMember } = useAuth();
+  const { user, joinGroup, leaveGroup, isGroupMember } = useAuth();
+  const { join, leave } = useGroupMembership();
+  const { data: group, isLoading: groupLoading } = useGroup(groupId);
   const isMember = isGroupMember(groupId);
   const [showJoinModal, setShowJoinModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -60,6 +61,12 @@ export default function GroupDetailsScreen() {
   const confirmJoin = () => {
     closeJoinModal();
     setTimeout(() => {
+      if (user) {
+        join.mutate(
+          { groupId, userId: user.id },
+          { onError: (e) => console.error('Failed to join group on backend:', e) }
+        );
+      }
       joinGroup(groupId);
       setShowSuccessModal(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -91,7 +98,14 @@ export default function GroupDetailsScreen() {
     }, 300);
   };
 
-  const group = mockGroups.find(g => g.id === groupId);
+  if (groupLoading) {
+    return (
+      <View style={styles.container}>
+        <Stack.Screen options={{ title: 'Loading…' }} />
+        <Text style={styles.loadingText}>Loading group…</Text>
+      </View>
+    );
+  }
 
   if (!group) {
     return (
@@ -102,9 +116,12 @@ export default function GroupDetailsScreen() {
     );
   }
 
-  const upcomingMealUpsData = mockMealUps.filter(mealUp => 
-    group.upcomingMealUps.includes(mealUp.id)
-  );
+  // Meal ups are not on the backend yet, so groups have no sessions to list.
+  const upcomingMealUpsData: MealUp[] = [];
+
+  const handleMealUpPress = (mealUp: MealUp) => {
+    router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any);
+  };
 
   const handleJoinGroup = () => {
     openJoinModal();
@@ -120,16 +137,18 @@ export default function GroupDetailsScreen() {
           text: 'Leave', 
           style: 'destructive',
           onPress: () => {
+            if (user) {
+              leave.mutate(
+                { groupId, userId: user.id },
+                { onError: (e) => console.error('Failed to leave group on backend:', e) }
+              );
+            }
             leaveGroup(groupId);
             Alert.alert('Left Group', 'You have left the group.');
           }
         }
       ]
     );
-  };
-
-  const handleMealUpPress = (mealUp: MealUp) => {
-    router.push(`/meal-up-details?mealUpId=${mealUp.id}` as any);
   };
 
   return (
@@ -558,6 +577,12 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: Colors.error,
+    textAlign: 'center',
+    marginTop: 40,
+  },
+  loadingText: {
+    fontSize: 16,
+    color: Colors.textLight,
     textAlign: 'center',
     marginTop: 40,
   },

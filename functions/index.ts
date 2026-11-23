@@ -1,20 +1,21 @@
 /**
- * Cloudflare Worker — Stripe Checkout endpoints.
+ * Cloudflare Worker — Stripe Checkout endpoints + Groups API.
  *
- * Replaces the legacy Hono+tRPC backend (broken due to a platform-level
- * `expo/fetch` module-resolution crash) with a portable Cloudflare Worker
- * that creates and retrieves Stripe Checkout sessions.
+ * Stripe: creates and retrieves Stripe Checkout sessions.
+ * Groups: a CRUD API backed by the GroupStore Durable Object (SQLite),
+ * reached through the platform `env.DO` binding (legacy functions/ backend).
  */
+
+import { GroupStore, CORS_HEADERS } from "./group-store";
+
+export { GroupStore };
 
 type Env = {
   STRIPE_SECRET_KEY: string;
+  DO: Fetcher;
 };
 
-const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-} as const;
+const CORS = CORS_HEADERS;
 
 /** Currency codes the client may request (from its registered country). */
 const ALLOWED_CURRENCIES = new Set([
@@ -156,6 +157,14 @@ export default {
           { status: 500, headers: CORS },
         );
       }
+    }
+
+    // Groups API — forwarded to the GroupStore Durable Object.
+    if (url.pathname === "/groups" || url.pathname.startsWith("/groups/")) {
+      const wrapped = new Request(request.url, request);
+      wrapped.headers.set("X-Rork-DO-Class", "GroupStore");
+      wrapped.headers.set("X-Rork-DO-Id", "global");
+      return env.DO.fetch(wrapped);
     }
 
     // Health check

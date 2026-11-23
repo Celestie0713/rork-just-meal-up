@@ -7,6 +7,7 @@ import { MealUpCard } from '@/components/MealUpCard';
 import { Colors, Gradients } from '@/constants/colors';
 import { ALL_COUNTRIES } from '@/constants/countries';
 import type { Group } from '@/mocks/groups';
+import { useGroups } from '@/hooks/use-groups';
 import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
 
@@ -19,6 +20,7 @@ export default function EventsScreen() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const { isGroupMember } = useAuth();
+  const { data: groups, isLoading: groupsLoading } = useGroups();
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
@@ -34,10 +36,8 @@ export default function EventsScreen() {
 
   const countries = ALL_COUNTRIES as unknown as string[];
 
-  // Launch state: no seeded meal ups or groups — these lists fill up with
-  // real data only. (The mock files stay for the detail screens' types.)
+  // Meal ups are not on the backend yet; groups are (Durable Object SQLite).
   const mealUps: MealUp[] = [];
-  const groups: Group[] = [];
 
   const upcomingMealUps = mealUps.filter(mealUp => mealUp.date >= now);
 
@@ -310,7 +310,11 @@ export default function EventsScreen() {
             contentContainerStyle={styles.listContent}
           />
         )
-      ) : groups.length === 0 ? (
+      ) : groupsLoading ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>Loading groups…</Text>
+        </View>
+      ) : !groups || groups.length === 0 ? (
         <View style={styles.emptyState}>
           <Users size={40} color={Colors.textLight} />
           <Text style={styles.emptyStateTitle}>No groups yet</Text>

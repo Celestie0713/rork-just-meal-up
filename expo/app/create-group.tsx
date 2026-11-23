@@ -14,11 +14,12 @@ import {
   Modal,
   FlatList,
 } from 'react-native';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { ArrowLeft, MapPin, Users, DollarSign, Image as ImageIcon, ChevronDown, Check, Percent } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { COUNTRY_CURRENCIES } from '@/constants/currencies';
 import { useAuth } from '@/hooks/use-auth';
+import { useCreateGroup } from '@/hooks/use-groups';
 
 const CURRENCY_OPTIONS = (() => {
   const seen = new Set<string>();
@@ -35,7 +36,8 @@ const CURRENCY_OPTIONS = (() => {
 const DISCOUNT_OPTIONS = ['10%', '20%', '35%', '50%', '70%', '100%'] as const;
 
 export default function CreateGroupScreen() {
-  const _auth = useAuth();
+  const { user } = useAuth();
+  const createGroup = useCreateGroup();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -71,16 +73,45 @@ export default function CreateGroupScreen() {
       return;
     }
 
-    console.log('Creating group:', formData);
-    Alert.alert(
-      'Group Created!',
-      'Your group has been created successfully. Members can now discover and join your group!',
-      [
-        {
-          text: 'OK',
-          onPress: () => safeGoBack(),
+    if (!user) {
+      Alert.alert('Error', 'You need to be signed in to create a group');
+      return;
+    }
+
+    const monthlyFee = formData.isPaid ? parseFloat(formData.monthlyFee) : undefined;
+
+    createGroup.mutate(
+      {
+        name: formData.name.trim(),
+        description: formData.description.trim(),
+        location: formData.location.trim(),
+        imageUrl: formData.imageUrl.trim() || undefined,
+        isPaid: formData.isPaid,
+        monthlyFee: monthlyFee != null && !Number.isNaN(monthlyFee) ? monthlyFee : undefined,
+        memberDiscount: formData.isPaid ? formData.memberDiscount : undefined,
+        user: {
+          id: user.id,
+          name: user.name,
+          avatar: user.photos?.[0],
         },
-      ]
+      },
+      {
+        onSuccess: () => {
+          Alert.alert(
+            'Group Created!',
+            'Your group has been created successfully. Members can now discover and join your group!',
+            [
+              {
+                text: 'OK',
+                onPress: () => safeGoBack(),
+              },
+            ]
+          );
+        },
+        onError: (error) => {
+          Alert.alert('Error', error instanceof Error ? error.message : 'Failed to create group. Please try again.');
+        },
+      }
     );
   };
 
@@ -221,8 +252,14 @@ export default function CreateGroupScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
-            <Text style={styles.createButtonText}>Create Group</Text>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={handleSubmit}
+            disabled={createGroup.isPending}
+          >
+            <Text style={styles.createButtonText}>
+              {createGroup.isPending ? 'Creating…' : 'Create Group'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
