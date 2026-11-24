@@ -366,7 +366,7 @@ export default function EventsScreen() {
             <Text style={styles.emptyStateText}>
               {!userCoords
                 ? 'Let us find you so we can show meal ups close by — or host one yourself.'
-                : 'Nothing within your area right now — be the first to host one!'}
+                : 'Host one now by clicking the add button to create a group for your people❤️'}
             </Text>
             {!userCoords && (
               <TouchableOpacity
