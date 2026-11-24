@@ -133,7 +133,7 @@ export default function CreateGroupScreen() {
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         <View style={styles.content}>
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Group Info</Text>
+            <Text style={styles.tagline}>Be a Cupid. Bring People Together. ❤️</Text>
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Group Name *</Text>
               <TextInput
@@ -372,6 +372,14 @@ const styles = StyleSheet.create({
     fontWeight: '700' as const,
     color: Colors.text,
     marginBottom: 16,
+  },
+  tagline: {
+    fontSize: 22,
+    fontWeight: '800' as const,
+    color: Colors.primary,
+    textAlign: 'center' as const,
+    lineHeight: 30,
+    marginBottom: 20,
   },
   inputGroup: {
     marginBottom: 16,
