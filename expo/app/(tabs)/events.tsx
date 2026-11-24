@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView } from 'react-native';
+import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Filter, Plus, Users, X, TicketPercent, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react-native';
 import { router } from 'expo-router';
@@ -20,7 +20,7 @@ export default function EventsScreen() {
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const { isGroupMember } = useAuth();
-  const { data: groups, isLoading: groupsLoading } = useGroups();
+  const { data: groups, isLoading: groupsLoading, refetch: refetchGroups, isRefetching: groupsRefetching } = useGroups();
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
@@ -332,6 +332,14 @@ export default function EventsScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.groupsContent}
           columnWrapperStyle={styles.groupsRow}
+          refreshControl={
+            <RefreshControl
+              refreshing={groupsRefetching}
+              onRefresh={refetchGroups}
+              tintColor="#FF6B35"
+              colors={['#FF6B35']}
+            />
+          }
         />
       )}
     </SafeAreaView>
