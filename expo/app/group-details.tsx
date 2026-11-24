@@ -237,7 +237,7 @@ export default function GroupDetailsScreen() {
           {isMember && (
             <TouchableOpacity 
               style={styles.createMealUpButton}
-              onPress={() => router.push(`/create-meal-up?groupId=${group.id}&groupName=${encodeURIComponent(group.name)}` as any)}
+              onPress={() => router.push(`/create-meal-up?groupId=${group.id}&groupName=${encodeURIComponent(group.name)}&groupIsPaid=${group.isPaid ? 'true' : 'false'}&groupMemberDiscount=${encodeURIComponent(group.memberDiscount ?? '')}` as any)}
             >
               <Plus size={20} color="#FFFFFF" />
               <Text style={styles.createMealUpButtonText}>Create Meal Up Session</Text>

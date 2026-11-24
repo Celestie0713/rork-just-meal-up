@@ -5,9 +5,8 @@ import { Stack, router, useLocalSearchParams } from 'expo-router';
 import { safeGoBack } from '@/utils/navigation';
 import { Calendar, Clock, MapPin, Users, DollarSign, Share2, ArrowLeft, Heart, ChevronLeft, ChevronRight, Check, BadgePercent, X } from 'lucide-react-native';
 import { Colors, Gradients } from '@/constants/colors';
-import { mockMealUps } from '@/mocks/meal-ups';
-import { mockUsers } from '@/mocks/users';
-import { mockGroups } from '@/mocks/groups';
+import { useMealUp, useJoinMealUp } from '@/hooks/use-meal-ups';
+import { useGroup } from '@/hooks/use-groups';
 import { useAuth } from '@/hooks/use-auth';
 import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 
@@ -15,27 +14,37 @@ import { PaymentGatewayModal } from '@/components/PaymentGatewayModal';
 export default function MealUpDetailsScreen() {
   const { mealUpId } = useLocalSearchParams<{ mealUpId: string }>();
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
-  
-  const mealUp = mockMealUps.find(m => m.id === mealUpId);
-  const organizer = mockUsers.find(u => u.id === mealUp?.organizerId);
-  
+
+  const { data: fetchedMealUp, isLoading: mealUpLoading } = useMealUp(mealUpId ?? '');
+  const mealUp = fetchedMealUp;
+
   const { user: currentUser, isGroupMember } = useAuth();
   const [showJoinModal, setShowJoinModal] = useState<boolean>(false);
   const [showPaymentModal, setShowPaymentModal] = useState<boolean>(false);
-  
+  const joinMutation = useJoinMealUp();
+
   // Look up the authoritative group to get the real discount (not the cached copy on the meal-up)
-  const actualGroup = mealUp?.group?.id ? mockGroups.find(g => g.id === mealUp.group!.id) : undefined;
+  const groupQuery = useGroup(mealUp?.group?.id ?? '');
+  const actualGroup = mealUp?.group?.id ? groupQuery.data : undefined;
   const groupInfo = actualGroup ?? mealUp?.group;
   const isPaidGroup = !!(groupInfo?.isPaid && groupInfo?.memberDiscount);
   const isMember = !!(groupInfo?.id && isGroupMember(groupInfo.id));
   const discountPercent = isPaidGroup ? parseInt((groupInfo?.memberDiscount ?? '0').replace('%', '')) / 100 : 0;
   const discountedPrice = isPaidGroup && mealUp ? Math.round(mealUp.ticketPrice * (1 - discountPercent)) : 0;
   const finalPrice = isPaidGroup && isMember ? discountedPrice : (mealUp?.ticketPrice ?? 0);
-  
+
   const images = mealUp?.images || [mealUp?.imageUrl].filter(Boolean);
   const maxImages = Math.min(images.length, 10);
   const displayImages = images.slice(0, maxImages);
-  
+
+  if (mealUpLoading) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Loading meal up…</Text>
+      </View>
+    );
+  }
+
   if (!mealUp) {
     return (
       <View style={styles.errorContainer}>
@@ -56,7 +65,10 @@ export default function MealUpDetailsScreen() {
     });
   };
 
-  const spotsLeft = mealUp.maxAttendees - mealUp.currentAttendees.length;
+  const spotsLeft = mealUp.maxAttendees > 0
+    ? mealUp.maxAttendees - mealUp.currentAttendees.length
+    : 1; // 0 maxAttendees means unlimited
+  const isAttending = !!currentUser && mealUp.currentAttendees.includes(currentUser.id);
 
   const handleShare = async () => {
     try {
@@ -91,9 +103,19 @@ export default function MealUpDetailsScreen() {
     setShowPaymentModal(true);
   };
 
-  const handlePaymentSuccess = () => {
-    setShowPaymentModal(false);
-    Alert.alert('Success!', 'You have successfully joined this meal up!');
+  const handlePaymentSuccess = async () => {
+    if (!currentUser) return;
+    try {
+      await joinMutation.mutateAsync({ mealUpId: mealUp.id, userId: currentUser.id });
+      setShowPaymentModal(false);
+      Alert.alert('Success!', 'You have successfully joined this meal up!');
+    } catch (error) {
+      setShowPaymentModal(false);
+      Alert.alert(
+        'Almost there',
+        error instanceof Error ? error.message : 'Could not save your spot. Please try again.'
+      );
+    }
   };
 
   const handleViewAttendees = () => {
@@ -196,19 +218,21 @@ export default function MealUpDetailsScreen() {
         </View>
         <View style={styles.content}>
           <Text style={styles.title}>{mealUp.title}</Text>
-          {!!organizer && (
-            <TouchableOpacity 
-              style={styles.organizerContainer}
-              onPress={() => router.push(`/user-profile?userId=${organizer.id}` as any)}
-              testID="organizer-profile"
-            >
-              <Image source={{ uri: organizer.photos[0] }} style={styles.organizerAvatar} />
-              <View style={styles.organizerInfo}>
-                <Text style={styles.organizerLabel}>Organized by</Text>
-                <Text style={[styles.organizerName, styles.clickableOrganizerName]}>{organizer.name}</Text>
+          <View style={styles.organizerContainer}>
+            {currentUser?.id === mealUp.organizerId && currentUser.photos[0] ? (
+              <Image source={{ uri: currentUser.photos[0] }} style={styles.organizerAvatar} />
+            ) : (
+              <View style={styles.organizerInitialContainer}>
+                <Text style={styles.organizerInitialText}>
+                  {mealUp.organizerName.charAt(0).toUpperCase()}
+                </Text>
               </View>
-            </TouchableOpacity>
-          )}
+            )}
+            <View style={styles.organizerInfo}>
+              <Text style={styles.organizerLabel}>Organized by</Text>
+              <Text style={styles.organizerName}>{mealUp.organizerName}</Text>
+            </View>
+          </View>
           <View style={styles.detailsGrid}>
             <View style={styles.detailCard}>
               <Calendar size={20} color={Colors.primary} />
@@ -323,10 +347,16 @@ export default function MealUpDetailsScreen() {
             </View>
             <View style={styles.attendeesInfo}>
               <Text style={styles.attendeesCount}>
-                {mealUp.currentAttendees.length} of {mealUp.maxAttendees} spots filled
+                {mealUp.maxAttendees > 0
+                  ? `${mealUp.currentAttendees.length} of ${mealUp.maxAttendees} spots filled`
+                  : `${mealUp.currentAttendees.length} going`}
               </Text>
               <Text style={styles.spotsLeft}>
-                {spotsLeft > 0 ? `${spotsLeft} spots left` : 'Event is full'}
+                {isAttending
+                  ? 'You\'re going ✓'
+                  : mealUp.maxAttendees > 0
+                    ? (spotsLeft > 0 ? `${spotsLeft} spots left` : 'Event is full')
+                    : 'Everyone welcome'}
               </Text>
             </View>
           </TouchableOpacity>
@@ -362,20 +392,20 @@ export default function MealUpDetailsScreen() {
           )}
         </View>
         <LinearGradient
-          colors={spotsLeft > 0 ? Gradients.primary : ['#ccc', '#999']}
-          style={[styles.joinButton, spotsLeft === 0 && styles.disabledButton]}
+          colors={spotsLeft > 0 && !isAttending ? Gradients.primary : ['#ccc', '#999']}
+          style={[styles.joinButton, (spotsLeft === 0 || isAttending) && styles.disabledButton]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
         >
           <TouchableOpacity 
             onPress={handleJoinMeal}
-            disabled={spotsLeft === 0}
+            disabled={spotsLeft === 0 || isAttending}
             style={styles.joinButtonInner}
             testID="join-meal-button"
           >
-            <Text style={styles.joinButtonText}>
-              {spotsLeft > 0 ? 'Join Now' : 'Event Full'}
-            </Text>
+          <Text style={styles.joinButtonText}>
+            {isAttending ? 'You\'re Going' : spotsLeft > 0 ? 'Join Now' : 'Event Full'}
+          </Text>
           </TouchableOpacity>
         </LinearGradient>
       </View>
@@ -603,6 +633,20 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 25,
     marginRight: 12,
+  },
+  organizerInitialContainer: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+    backgroundColor: `${Colors.primary}25`,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  organizerInitialText: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Colors.primary,
   },
   organizerInfo: {
     flex: 1,

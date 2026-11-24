@@ -7,8 +7,9 @@
  */
 
 import { GroupStore, CORS_HEADERS } from "./group-store";
+import { MealUpStore } from "./meal-up-store";
 
-export { GroupStore };
+export { GroupStore, MealUpStore };
 
 type Env = {
   STRIPE_SECRET_KEY: string;
@@ -163,6 +164,14 @@ export default {
     if (url.pathname === "/groups" || url.pathname.startsWith("/groups/")) {
       const wrapped = new Request(request.url, request);
       wrapped.headers.set("X-Rork-DO-Class", "GroupStore");
+      wrapped.headers.set("X-Rork-DO-Id", "global");
+      return env.DO.fetch(wrapped);
+    }
+
+    // Meal-ups API — forwarded to the MealUpStore Durable Object.
+    if (url.pathname === "/meal-ups" || url.pathname.startsWith("/meal-ups/")) {
+      const wrapped = new Request(request.url, request);
+      wrapped.headers.set("X-Rork-DO-Class", "MealUpStore");
       wrapped.headers.set("X-Rork-DO-Id", "global");
       return env.DO.fetch(wrapped);
     }

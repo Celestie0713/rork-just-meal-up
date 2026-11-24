@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Text, StyleSheet, FlatList, SafeAreaView, View, TextInput, TouchableOpacity, Image, Dimensions, Modal, ScrollView, RefreshControl } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Search, Filter, Plus, Users, X, TicketPercent, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react-native';
@@ -8,8 +8,23 @@ import { Colors, Gradients } from '@/constants/colors';
 import { ALL_COUNTRIES } from '@/constants/countries';
 import type { Group } from '@/mocks/groups';
 import { useGroups } from '@/hooks/use-groups';
+import { useMealUps } from '@/hooks/use-meal-ups';
+import { useUserLocation, type Coords } from '@/hooks/use-user-location';
 import { useAuth } from '@/hooks/use-auth';
 import type { MealUp } from '@/types/user';
+
+const DEFAULT_RADIUS_MILES = 25;
+
+/** Great-circle distance in miles (haversine). */
+function distanceMiles(a: Coords, b: { lat: number; lng: number }): number {
+  const R = 3958.8;
+  const dLat = ((b.lat - a.latitude) * Math.PI) / 180;
+  const dLng = ((b.lng - a.longitude) * Math.PI) / 180;
+  const lat1 = (a.latitude * Math.PI) / 180;
+  const lat2 = (b.lat * Math.PI) / 180;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
 
 export default function EventsScreen() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -19,8 +34,34 @@ export default function EventsScreen() {
   const [priceRange, setPriceRange] = useState<{ min: number; max: number } | null>(null);
   const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
   const [countryDropdownOpen, setCountryDropdownOpen] = useState(false);
-  const { isGroupMember } = useAuth();
+  const { user, isGroupMember } = useAuth();
   const { data: groups, isLoading: groupsLoading, refetch: refetchGroups, isRefetching: groupsRefetching } = useGroups();
+  const { data: backendMealUps, isLoading: mealUpsLoading, refetch: refetchMealUps, isRefetching: mealUpsRefetching } = useMealUps();
+  const { coords, requestLocation, isRequesting: isLocating } = useUserLocation();
+
+  // Location fallback: forward-geocode the user's saved location string.
+  // Network-based (no permission prompt, no hardware) — safe on native too.
+  const [geocodedCoords, setGeocodedCoords] = useState<Coords | null>(null);
+  useEffect(() => {
+    if (coords || geocodedCoords || !user?.location) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const Location = await import('expo-location');
+        const results = await Location.geocodeAsync(user.location!);
+        if (!cancelled && results[0]?.latitude != null && results[0]?.longitude != null) {
+          setGeocodedCoords({ latitude: results[0].latitude, longitude: results[0].longitude });
+        }
+      } catch (error) {
+        console.log('[Events] Location geocode failed:', error);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [coords, geocodedCoords, user?.location]);
+
+  const userCoords = coords ?? geocodedCoords;
 
   const handleMealUpPress = (mealUp: MealUp) => {
     console.log('Opening meal up:', mealUp.title);
@@ -36,21 +77,43 @@ export default function EventsScreen() {
 
   const countries = ALL_COUNTRIES as unknown as string[];
 
-  // Meal ups are not on the backend yet; groups are (Durable Object SQLite).
-  const mealUps: MealUp[] = [];
+  // Meal ups live on the backend (Durable Object SQLite) — same as groups.
+  const mealUps: MealUp[] = backendMealUps ?? [];
 
   const upcomingMealUps = mealUps.filter(mealUp => mealUp.date >= now);
 
-  const displayedMealUps = upcomingMealUps;
+  /** Distance to each meal up when both the user and the venue are geolocated. */
+  const distances = new Map<string, number>();
+  if (userCoords) {
+    for (const mealUp of upcomingMealUps) {
+      if (mealUp.venue.lat != null && mealUp.venue.lng != null) {
+        distances.set(mealUp.id, distanceMiles(userCoords, { lat: mealUp.venue.lat, lng: mealUp.venue.lng }));
+      }
+    }
+  }
 
-  const filteredMealUps = displayedMealUps.filter(mealUp => {
+  // Nearest first when we know where the user is, otherwise soonest first.
+  const sortedMealUps = [...upcomingMealUps].sort((a, b) => {
+    const da = distances.get(a.id);
+    const db = distances.get(b.id);
+    if (da != null && db != null && da !== db) return da - db;
+    if (da != null && db == null) return -1;
+    if (db != null && da == null) return 1;
+    return a.date.getTime() - b.date.getTime();
+  });
+
+  const filteredMealUps = sortedMealUps.filter(mealUp => {
     const matchesSearch = mealUp.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mealUp.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mealUp.venue.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mealUp.venue.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
       mealUp.venue.cuisine.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const matchesDistance = !selectedDistance || true;
+    // Radius from the filter modal; default "near me" is 25 miles. Meal ups
+    // without geocoded venues always show (we can't place them on the map).
+    const distance = distances.get(mealUp.id);
+    const radius = selectedDistance ?? (userCoords ? DEFAULT_RADIUS_MILES : null);
+    const matchesDistance = radius == null || distance == null || distance <= radius;
     const matchesPrice = !priceRange || (mealUp.ticketPrice >= priceRange.min && mealUp.ticketPrice <= priceRange.max);
     const matchesCountry = !selectedCountry || (mealUp.venue.country ?? '') === selectedCountry;
     
@@ -292,13 +355,30 @@ export default function EventsScreen() {
         </View>
       </Modal>
       {activeTab === 'upcoming' ? (
-        filteredMealUps.length === 0 ? (
+        mealUpsLoading ? (
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>Loading meal ups…</Text>
+          </View>
+        ) : filteredMealUps.length === 0 ? (
           <View style={styles.emptyState}>
             <Users size={40} color={Colors.textLight} />
             <Text style={styles.emptyStateTitle}>No meal ups near you yet</Text>
             <Text style={styles.emptyStateText}>
-              Be the first to host one — tap the + button to create a group.
+              {!userCoords
+                ? 'Let us find you so we can show meal ups close by — or host one yourself.'
+                : 'Nothing within your area right now — be the first to host one!'}
             </Text>
+            {!userCoords && (
+              <TouchableOpacity
+                style={styles.locationButton}
+                onPress={() => requestLocation()}
+                disabled={isLocating}
+              >
+                <Text style={styles.locationButtonText}>
+                  {isLocating ? 'Finding you…' : 'Use my location'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           <FlatList
@@ -308,6 +388,14 @@ export default function EventsScreen() {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
+            refreshControl={
+              <RefreshControl
+                refreshing={mealUpsRefetching}
+                onRefresh={refetchMealUps}
+                tintColor="#FF6B35"
+                colors={['#FF6B35']}
+              />
+            }
           />
         )
       ) : groupsLoading ? (
@@ -394,6 +482,18 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 20,
+  },
+  locationButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    marginTop: 6,
+  },
+  locationButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
   emptyState: {
     flex: 1,

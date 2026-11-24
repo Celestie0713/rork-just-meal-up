@@ -122,6 +122,9 @@ export interface MealUp {
     address: string;
     country?: string;
     cuisine: string;
+    /** Geocoded at creation — powers "near me" distance filtering. */
+    lat?: number;
+    lng?: number;
   };
   maxAttendees: number;
   currentAttendees: string[];

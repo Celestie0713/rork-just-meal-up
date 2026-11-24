@@ -13,17 +13,43 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import { Stack, router, useLocalSearchParams } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import { Calendar, Clock, MapPin, Users, ArrowLeft, Video, X, Plus } from 'lucide-react-native';
 import { Colors } from '@/constants/colors';
 import { useAuth } from '@/hooks/use-auth';
+import { useCreateMealUp } from '@/hooks/use-meal-ups';
 import { getCurrencyFromAddress } from '@/constants/currencies';
 import * as ImagePicker from 'expo-image-picker';
 import { Video as ExpoVideo, ResizeMode } from 'expo-av';
 
+/**
+ * Parse "MM/DD/YYYY" + "7:00 PM" to epoch ms without `new Date(string)` —
+ * Hermes / JS engines parse that format unreliably across locales.
+ */
+function parseDateTimeMs(dateStr: string, timeStr: string): number | null {
+  const dateMatch = dateStr.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!dateMatch) return null;
+  const timeMatch = timeStr.trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!timeMatch) return null;
+  let hours = parseInt(timeMatch[1], 10) % 12;
+  if (timeMatch[3].toUpperCase() === 'PM') hours += 12;
+  return new Date(
+    parseInt(dateMatch[3], 10),
+    parseInt(dateMatch[1], 10) - 1,
+    parseInt(dateMatch[2], 10),
+    hours,
+    parseInt(timeMatch[2], 10),
+  ).getTime();
+}
+
 export default function CreateMealUpScreen() {
-  useAuth();
-  const { groupId: _groupId, groupName } = useLocalSearchParams<{ groupId?: string; groupName?: string }>();
+  const { user } = useAuth();
+  const { groupId, groupName, groupIsPaid, groupMemberDiscount } = useLocalSearchParams<{
+    groupId?: string;
+    groupName?: string;
+    groupIsPaid?: string;
+    groupMemberDiscount?: string;
+  }>();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -152,8 +178,37 @@ export default function CreateMealUpScreen() {
     );
   };
 
-  const handleSubmit = () => {
+  const createMealUpMutation = useCreateMealUp();
+
+  /**
+   * Geocode the venue to lat/lng so the "Upcoming Meal Up Near Me" tab can
+   * compute distances. Forward geocoding is network-based — no permission
+   * prompt, no hardware needed. Best effort: the meal up is still created
+   * without coordinates if geocoding fails (it just won't distance-filter).
+   */
+  const geocodeVenue = async (): Promise<{ lat?: number; lng?: number }> => {
+    const query = [formData.venue.name.trim(), formData.venue.address.trim()]
+      .filter(Boolean)
+      .join(', ');
+    if (!query) return {};
+    try {
+      const Location = await import('expo-location');
+      const results = await Location.geocodeAsync(query);
+      if (results[0] && results[0].latitude != null && results[0].longitude != null) {
+        return { lat: results[0].latitude, lng: results[0].longitude };
+      }
+    } catch (error) {
+      console.log('[CreateMealUp] Geocode failed:', error);
+    }
+    return {};
+  };
+
+  const handleSubmit = async () => {
     // Basic validation
+    if (!user) {
+      Alert.alert('Error', 'Please sign in first');
+      return;
+    }
     if (!formData.title.trim()) {
       Alert.alert('Error', 'Please enter a title for your meal up');
       return;
@@ -170,19 +225,67 @@ export default function CreateMealUpScreen() {
       Alert.alert('Error', 'Please enter a time');
       return;
     }
+    const dateMs = parseDateTimeMs(formData.date, formData.time);
+    if (dateMs == null) {
+      Alert.alert('Error', 'Please enter the date as MM/DD/YYYY and the time as 7:00 PM');
+      return;
+    }
+    if (dateMs < Date.now()) {
+      Alert.alert('Error', 'The date and time must be in the future');
+      return;
+    }
+    const maxAttendees = parseInt(formData.maxAttendees, 10);
+    const malePrice = formData.maleTicketPrice ? parseFloat(formData.maleTicketPrice) : undefined;
+    const femalePrice = formData.femaleTicketPrice ? parseFloat(formData.femaleTicketPrice) : undefined;
 
-    // Show success message and navigate back
-    const groupLabel = groupName ? ` in ${decodeURIComponent(groupName)}` : '';
-    Alert.alert(
-      'Meal Up Created!',
-      `Your meal up has been created successfully${groupLabel} with ${mediaFiles.length} media files. Group members can now join!`,
-      [
-        {
-          text: 'OK',
-          onPress: () => safeGoBack(),
+    try {
+      const coords = await geocodeVenue();
+      const group = groupId
+        ? {
+            id: groupId,
+            name: decodeURIComponent(groupName ?? ''),
+            isPaid: groupIsPaid === 'true' || groupIsPaid === '1' ? true : undefined,
+            memberDiscount: groupMemberDiscount || undefined,
+          }
+        : undefined;
+
+      await createMealUpMutation.mutateAsync({
+        organizer: { id: user.id, name: user.name },
+        title: formData.title.trim(),
+        description: formData.description.trim(),
+        date: dateMs,
+        timeLabel: formData.time.trim(),
+        venue: {
+          name: formData.venue.name.trim(),
+          address: formData.venue.address.trim(),
+          cuisine: formData.keywords.trim(),
+          ...coords,
         },
-      ]
-    );
+        maxAttendees: Number.isFinite(maxAttendees) && maxAttendees > 0 ? maxAttendees : undefined,
+        malePrice,
+        femalePrice,
+        // Media files stay local — the backend meal up carries no photos.
+        imageUrl: '',
+        group,
+      });
+
+      const groupLabel = groupName ? ` in ${decodeURIComponent(groupName)}` : '';
+      Alert.alert(
+        'Meal Up Created!',
+        `Your meal up has been created successfully${groupLabel}. People nearby can now see it!`,
+        [
+          {
+            text: 'OK',
+            onPress: () => safeGoBack(),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert(
+        'Could not create meal up',
+        error instanceof Error ? error.message : 'Something went wrong. Please try again.'
+      );
+    }
   };
 
 
@@ -519,8 +622,14 @@ export default function CreateMealUpScreen() {
               </Text>
             )}
           </View>
-          <TouchableOpacity style={styles.createButton} onPress={handleSubmit}>
-            <Text style={styles.createButtonText}>Create Meal Up</Text>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={handleSubmit}
+            disabled={createMealUpMutation.isPending}
+          >
+            <Text style={styles.createButtonText}>
+              {createMealUpMutation.isPending ? 'Creating…' : 'Create Meal Up'}
+            </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
